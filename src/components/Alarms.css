@@ -1,0 +1,235 @@
+.alarms-container {
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.alarms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.alarms-header h2 {
+  font-size: 22px;
+  color: var(--primary);
+}
+
+.btn-add {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.alarm-form {
+  background: rgba(102, 126, 234, 0.1);
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+}
+
+.form-group input::placeholder {
+  color: #999;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+}
+
+.form-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-save,
+.btn-cancel {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-save {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.alarms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.alarm-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.alarm-item.disabled {
+  opacity: 0.5;
+  border-color: #666;
+}
+
+.alarm-item:hover {
+  background: rgba(102, 126, 234, 0.15);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.alarm-info {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+}
+
+.alarm-time {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: 'Courier New', monospace;
+  min-width: 80px;
+  text-align: center;
+}
+
+.alarm-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.alarm-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 5px;
+}
+
+.alarm-sound {
+  font-size: 12px;
+  color: #999;
+}
+
+.alarm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-test,
+.btn-toggle,
+.btn-delete {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-test:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.btn-toggle {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.btn-toggle.on {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.btn-toggle.off {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.btn-delete:hover {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+@media (max-width: 768px) {
+  .alarm-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .alarm-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
