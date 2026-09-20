@@ -263,6 +263,180 @@ body {
   text-align: center;
 }
 
+/* ---------- ruleta de retos ---------- */
+
+.wheel-section {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wheel-outer {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: .25rem 0 1.25rem;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 18px solid var(--yellow-deep);
+  z-index: 2;
+  filter: drop-shadow(0 2px 3px rgba(150, 100, 20, .3));
+}
+
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, .85);
+  box-shadow: 0 16px 34px rgba(150, 100, 20, .22);
+  position: relative;
+  background: conic-gradient(
+    #ffe08a 0deg 45deg, #ffc94a 45deg 90deg,
+    #ffe08a 90deg 135deg, #ffc94a 135deg 180deg,
+    #ffe08a 180deg 225deg, #ffc94a 225deg 270deg,
+    #ffe08a 270deg 315deg, #ffc94a 315deg 360deg
+  );
+  transition: transform 3.2s cubic-bezier(.15, .85, .25, 1);
+  will-change: transform;
+}
+
+.wheel-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.wheel-result {
+  width: 100%;
+  min-height: 1.4rem;
+  background: rgba(255, 255, 255, .7);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  font-size: .95rem;
+  color: var(--brown-soft);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+
+.wheel-result.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- memory match game ---------- */
+
+.memory-section {
+  width: 100%;
+  max-width: 440px;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.memory-moves {
+  font-size: .85rem;
+  color: var(--brown);
+  opacity: .75;
+  margin-bottom: .75rem;
+}
+
+.memory-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .55rem;
+}
+
+.memory-card {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  perspective: 800px;
+  aspect-ratio: 1 / 1;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.memory-card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform .5s cubic-bezier(.4, .2, .2, 1);
+  transform-style: preserve-3d;
+}
+
+.memory-card.flipped .memory-card-inner,
+.memory-card.matched .memory-card-inner {
+  transform: rotateY(180deg);
+}
+
+.memory-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  font-size: 1.4rem;
+}
+
+.memory-front {
+  background: linear-gradient(135deg, #ffc94a, #ffb03a);
+}
+
+.memory-back {
+  background: rgba(255, 255, 255, .78);
+  border: 1.5px solid rgba(169, 114, 10, .25);
+  transform: rotateY(180deg);
+}
+
+.memory-card.matched .memory-back {
+  opacity: .55;
+}
+
+.memory-win {
+  margin-top: 1.1rem;
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.4rem;
+  color: var(--yellow-deep);
+  text-align: center;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: opacity .5s ease;
+}
+
+.memory-win.visible {
+  opacity: 1;
+  height: auto;
+  margin-bottom: .25rem;
+}
+
+.memory-reset {
+  margin-top: 1.25rem;
+}
+
 /* ---------- secret scratch message ---------- */
 
 .secret-section {
@@ -419,5 +593,5 @@ body {
     transition: none !important;
   }
   .reveal { opacity: 1 !important; transform: none !important; }
-  .reason-card-inner { transition: none !important; }
+  .reason-card-inner, .memory-card-inner, .wheel { transition: none !important; }
 }

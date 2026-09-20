@@ -220,6 +220,174 @@
     }
   })();
 
+  // ---------- ruleta de retos de amor ----------
+
+  (function initWheel() {
+    var wheelEl = document.getElementById('love-wheel');
+    var resultEl = document.getElementById('wheel-result');
+    var spinBtn = document.getElementById('wheel-spin-btn');
+    if (!wheelEl || !spinBtn || !resultEl) return;
+
+    var CHALLENGES = [
+      { icon: '🌼', text: 'Mándale un mensaje ahora mismo diciendo lo que sientes.' },
+      { icon: '🎵', text: 'Pongan su canción favorita y bailen un rato.' },
+      { icon: '🤗', text: 'Un abrazo largo, de esos de 10 segundos.' },
+      { icon: '📝', text: 'Escriban juntos 3 cosas que quieren hacer pronto.' },
+      { icon: '😘', text: 'Un beso de buenos días mañana.' },
+      { icon: '📸', text: 'Tómense una foto juntos hoy.' },
+      { icon: '🌙', text: 'Planeen una noche especial, solo para ustedes.' },
+      { icon: '💛', text: 'Díganse algo lindo antes de dormir.' }
+    ];
+    var sliceAngle = 360 / CHALLENGES.length;
+    var radius = 82;
+
+    CHALLENGES.forEach(function (c, i) {
+      var icon = document.createElement('span');
+      icon.className = 'wheel-icon';
+      icon.textContent = c.icon;
+      var angle = i * sliceAngle + sliceAngle / 2;
+      icon.style.transform =
+        'translate(-50%, -50%) rotate(' + angle + 'deg) translateY(-' + radius + 'px) rotate(' + (-angle) + 'deg)';
+      wheelEl.appendChild(icon);
+    });
+
+    var currentRotation = 0;
+    var spinning = false;
+
+    spinBtn.addEventListener('click', function () {
+      if (spinning) return;
+      spinning = true;
+      spinBtn.disabled = true;
+      resultEl.classList.remove('visible');
+
+      var idx = Math.floor(Math.random() * CHALLENGES.length);
+      var sliceCenter = idx * sliceAngle + sliceAngle / 2;
+      var neededMod = (360 - sliceCenter) % 360;
+      var currentMod = ((currentRotation % 360) + 360) % 360;
+      var delta = (neededMod - currentMod + 360) % 360;
+      currentRotation += 5 * 360 + delta;
+
+      if (prefersReducedMotion) {
+        wheelEl.style.transition = 'none';
+      }
+      wheelEl.style.transform = 'rotate(' + currentRotation + 'deg)';
+
+      var finish = function () {
+        spinning = false;
+        spinBtn.disabled = false;
+        resultEl.textContent = CHALLENGES[idx].icon + ' ' + CHALLENGES[idx].text;
+        resultEl.classList.add('visible');
+        var rect = wheelEl.getBoundingClientRect();
+        burstAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        playTone('reveal');
+      };
+
+      if (prefersReducedMotion) {
+        finish();
+      } else {
+        wheelEl.addEventListener('transitionend', function onEnd() {
+          wheelEl.removeEventListener('transitionend', onEnd);
+          finish();
+        });
+      }
+    });
+  })();
+
+  // ---------- memory match game: "encuentra las parejas" ----------
+
+  (function initMemory() {
+    var grid = document.getElementById('memory-grid');
+    var movesEl = document.getElementById('memory-moves');
+    var winEl = document.getElementById('memory-win');
+    var resetBtn = document.getElementById('memory-reset');
+    if (!grid) return;
+
+    var ICONS = ['🌼', '💛', '🌻', '✨', '💐', '😊'];
+    var state = { first: null, second: null, lock: false, matches: 0, moves: 0 };
+
+    function shuffle(arr) {
+      for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    function updateMoves() {
+      if (movesEl) movesEl.textContent = 'Movimientos: ' + state.moves;
+    }
+
+    function handleClick(card) {
+      if (state.lock || card === state.first || card.classList.contains('matched')) return;
+      card.classList.add('flipped');
+      playTone('flip');
+
+      if (!state.first) {
+        state.first = card;
+        return;
+      }
+      state.second = card;
+      state.lock = true;
+      state.moves++;
+      updateMoves();
+
+      if (state.first.dataset.icon === state.second.dataset.icon) {
+        state.first.classList.add('matched');
+        state.second.classList.add('matched');
+        state.matches++;
+        state.first = null;
+        state.second = null;
+        state.lock = false;
+        if (state.matches === ICONS.length) onWin();
+      } else {
+        var f = state.first, s = state.second;
+        setTimeout(function () {
+          f.classList.remove('flipped');
+          s.classList.remove('flipped');
+          state.first = null;
+          state.second = null;
+          state.lock = false;
+        }, 800);
+      }
+    }
+
+    function onWin() {
+      playTone('reveal');
+      if (winEl) winEl.classList.add('visible');
+      var rect = grid.getBoundingClientRect();
+      burstAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
+
+    function buildGrid() {
+      grid.innerHTML = '';
+      state.first = null;
+      state.second = null;
+      state.lock = false;
+      state.matches = 0;
+      state.moves = 0;
+      updateMoves();
+      if (winEl) winEl.classList.remove('visible');
+
+      var deck = shuffle(ICONS.concat(ICONS));
+      deck.forEach(function (icon) {
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'memory-card';
+        card.dataset.icon = icon;
+        card.innerHTML =
+          '<span class="memory-card-inner">' +
+            '<span class="memory-face memory-front">💛</span>' +
+            '<span class="memory-face memory-back">' + icon + '</span>' +
+          '</span>';
+        card.addEventListener('click', function () { handleClick(card); });
+        grid.appendChild(card);
+      });
+    }
+
+    if (resetBtn) resetBtn.addEventListener('click', buildGrid);
+    buildGrid();
+  })();
+
   // ---------- cursor heart trail (desktop only) ----------
 
   if (!prefersReducedMotion && window.matchMedia('(pointer: fine)').matches) {
