@@ -229,14 +229,14 @@
     if (!wheelEl || !spinBtn || !resultEl) return;
 
     var CHALLENGES = [
-      { icon: '🌼', text: 'Mándale un mensaje ahora mismo diciendo lo que sientes.' },
-      { icon: '🎵', text: 'Pongan su canción favorita y bailen un rato.' },
-      { icon: '🤗', text: 'Un abrazo largo, de esos de 10 segundos.' },
-      { icon: '📝', text: 'Escriban juntos 3 cosas que quieren hacer pronto.' },
-      { icon: '😘', text: 'Un beso de buenos días mañana.' },
-      { icon: '📸', text: 'Tómense una foto juntos hoy.' },
-      { icon: '🌙', text: 'Planeen una noche especial, solo para ustedes.' },
-      { icon: '💛', text: 'Díganse algo lindo antes de dormir.' }
+      { icon: '🤗', text: 'Un abrazo de los que no quieren soltar.' },
+      { icon: '🎵', text: 'Bailar nuestra canción, sin pena.' },
+      { icon: '😘', text: 'Un beso apenas te vea.' },
+      { icon: '📸', text: 'Una foto juntos, para no olvidar ese día.' },
+      { icon: '🌙', text: 'Una cita sorpresa, la que tú elijas.' },
+      { icon: '🍳', text: 'Cocinar algo juntos, aunque salga mal.' },
+      { icon: '💬', text: 'Contarte todo lo que no alcanzó el mensaje.' },
+      { icon: '💛', text: 'Quedarme viéndote, nada más porque sí.' }
     ];
     var sliceAngle = 360 / CHALLENGES.length;
     var radius = 82;
