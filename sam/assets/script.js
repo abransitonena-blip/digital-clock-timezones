@@ -1,18 +1,31 @@
 (function () {
-  var EMOJIS = ['🌼', '💛', '🌻', '✨', '💐'];
+  var ICON_IDS = ['heart', 'flower', 'bow', 'sparkle', 'leaf', 'butterfly'];
+  var ICON_COLORS = ['#ffc94a', '#a9720a', '#ffb3c6', '#8a5a00', '#f4b74a'];
   var container = document.getElementById('floaties');
   var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function iconSvg(id) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-' + id + '"></use></svg>';
+  }
+  function randomIconId() {
+    return ICON_IDS[Math.floor(Math.random() * ICON_IDS.length)];
+  }
+  function randomColor() {
+    return ICON_COLORS[Math.floor(Math.random() * ICON_COLORS.length)];
+  }
 
   function spawnFloaty() {
     if (!container) return;
     var el = document.createElement('span');
     el.className = 'floaty';
-    el.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-    var size = 1 + Math.random() * 1.6;
+    el.innerHTML = iconSvg(randomIconId());
+    el.style.color = randomColor();
+    var size = 16 + Math.random() * 26;
     var duration = 9 + Math.random() * 8;
     var drift = (Math.random() * 200 - 100).toFixed(0) + 'px';
     el.style.left = Math.random() * 100 + 'vw';
-    el.style.fontSize = size + 'rem';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
     el.style.setProperty('--drift', drift);
     el.style.animationDuration = duration + 's';
     el.addEventListener('animationend', function () { el.remove(); });
@@ -86,12 +99,15 @@
     for (var i = 0; i < count; i++) {
       var p = document.createElement('span');
       p.className = 'burst-particle';
-      p.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+      p.innerHTML = iconSvg(randomIconId());
+      p.style.color = randomColor();
       var angle = Math.random() * Math.PI * 2;
       var dist = 80 + Math.random() * 140;
+      var size = 16 + Math.random() * 16;
       p.style.left = originX + 'px';
       p.style.top = originY + 'px';
-      p.style.fontSize = (1 + Math.random()) + 'rem';
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
       p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
       p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
       document.body.appendChild(p);
@@ -142,7 +158,7 @@
       ctx.font = '600 ' + Math.max(14, Math.min(18, w * 0.045)) + 'px Quicksand, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Raspa aquí 👆', w / 2, h / 2);
+      ctx.fillText('Raspa aquí', w / 2, h / 2);
     }
 
     function sizeCanvas() {
@@ -229,7 +245,7 @@
     var resetBtn = document.getElementById('memory-reset');
     if (!grid) return;
 
-    var ICONS = ['🌼', '💛', '🌻', '✨', '💐', '😊'];
+    var ICONS = ['flower', 'heart', 'bow', 'sparkle', 'leaf', 'butterfly'];
     var state = { first: null, second: null, lock: false, matches: 0, moves: 0 };
 
     function shuffle(arr) {
@@ -303,8 +319,8 @@
         card.dataset.icon = icon;
         card.innerHTML =
           '<span class="memory-card-inner">' +
-            '<span class="memory-face memory-front">💛</span>' +
-            '<span class="memory-face memory-back">' + icon + '</span>' +
+            '<span class="memory-face memory-front"><svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg></span>' +
+            '<span class="memory-face memory-back"><svg class="icon" aria-hidden="true"><use href="#icon-' + icon + '"></use></svg></span>' +
           '</span>';
         card.addEventListener('click', function () { handleClick(card); });
         grid.appendChild(card);
@@ -325,7 +341,8 @@
       lastTrail = now;
       var h = document.createElement('span');
       h.className = 'cursor-heart';
-      h.textContent = Math.random() > 0.5 ? '💛' : '🌼';
+      h.innerHTML = iconSvg(Math.random() > 0.5 ? 'heart' : 'flower');
+      h.style.color = randomColor();
       h.style.left = e.clientX + 'px';
       h.style.top = e.clientY + 'px';
       document.body.appendChild(h);
