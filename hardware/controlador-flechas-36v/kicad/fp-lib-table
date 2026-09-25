@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "ControladorFlechas")(type "KiCad")(uri "${KIPRJMOD}/ControladorFlechas.pretty")(options "")(descr "Huellas THT con pads para transferencia de toner"))
+)
