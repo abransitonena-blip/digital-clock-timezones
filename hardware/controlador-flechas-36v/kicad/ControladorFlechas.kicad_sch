@@ -4045,7 +4045,7 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Entrada de la fuente aislada de 36 VCC (pin 1 = 36V+, pin 2 = GND)"
+		(property "Description" "Entrada de la fuente aislada de 36 VCC (pin 2 = 36V+, pin 1 = GND)"
 			(at 25.4 44.45 0)
 			(hide yes)
 			(effects
@@ -4055,7 +4055,7 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Entrada de la fuente aislada de 36 VCC (pin 1 = 36V+, pin 2 = GND)"
+		(property "Funcion" "Entrada de la fuente aislada de 36 VCC (pin 2 = 36V+, pin 1 = GND)"
 			(at 25.4 44.45 0)
 			(hide yes)
 			(effects
@@ -4066,10 +4066,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "cbd1e291-6c39-4c17-9ce9-fa9559275aaa")
+			(uuid "d1a17ab7-b368-410a-9193-229038b1613d")
 		)
 		(pin "2"
-			(uuid "5b8fe954-01ea-4bb3-a7fb-0c93b90fefec")
+			(uuid "468dfebf-312c-4fd5-8644-063d6330edbf")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4083,58 +4083,36 @@
 	(wire
 		(pts
 			(xy 20.32 44.45)
-			(xy 17.78 44.45)
+			(xy 15.24 44.45)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "44d0ade0-29bb-4301-80b4-1ce8e29df1d7")
-	)
-	(label "VIN"
-		(at 17.78 44.45 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "085300ad-d84e-4879-b344-a65b1ae2437b")
+		(uuid "85cb5552-c3cd-4eb5-a836-c69ca73c9558")
 	)
 	(wire
 		(pts
-			(xy 20.32 46.99)
+			(xy 15.24 44.45)
 			(xy 15.24 46.99)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "978eff00-cab0-4b2c-836e-2f6e8dd6cde2")
-	)
-	(wire
-		(pts
-			(xy 15.24 46.99)
-			(xy 15.24 49.53)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1fe38f99-f205-4d37-b0f1-a60ef6e91ebd")
+		(uuid "396d6257-0ac2-4116-b5ba-4f4b9cb18e88")
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 15.24 49.53 0)
+		(at 15.24 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "464a81bd-257a-48c9-ac85-a01e16436859")
+		(uuid "0b3958c3-669f-4cbb-a994-caf1770fc828")
 		(property "Reference" "#PWR001"
-			(at 18.44 48.53 0)
+			(at 18.44 45.99 0)
 			(hide yes)
 			(effects
 				(font
@@ -4144,7 +4122,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 18.44 51.13 0)
+			(at 18.44 48.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4153,7 +4131,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 15.24 49.53 0)
+			(at 15.24 46.99 0)
 			(hide yes)
 			(effects
 				(font
@@ -4163,7 +4141,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 15.24 49.53 0)
+			(at 15.24 46.99 0)
 			(hide yes)
 			(effects
 				(font
@@ -4173,7 +4151,7 @@
 			)
 		)
 		(property "Description" "Símbolo de alimentación"
-			(at 15.24 49.53 0)
+			(at 15.24 46.99 0)
 			(hide yes)
 			(effects
 				(font
@@ -4183,7 +4161,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "b0977919-edef-4ab4-9f03-262e2c30c5e2")
+			(uuid "958c316b-91f5-454e-94f0-d64ddf9fd764")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4193,6 +4171,28 @@
 				)
 			)
 		)
+	)
+	(wire
+		(pts
+			(xy 20.32 46.99)
+			(xy 17.78 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "44f0d55e-2fff-405c-b5d9-36b671e051d6")
+	)
+	(label "VIN"
+		(at 17.78 46.99 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "59fe35f3-a521-4891-8645-b2abb432ef82")
 	)
 	(symbol
 		(lib_id "Connector:Screw_Terminal_01x02")
@@ -4262,10 +4262,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "7d923cd0-3ac2-42e6-b480-76d8b9bff9e5")
+			(uuid "580d63ef-242d-46f6-ba36-f2832fcb2566")
 		)
 		(pin "2"
-			(uuid "c6a719c2-8d3e-4db7-9bd4-539e636f0720")
+			(uuid "408258e9-9e9b-42df-8c1a-8d45f939c988")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4285,9 +4285,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e9fae86d-f6c1-41f4-87f2-b31e9d4f7aab")
+		(uuid "be669957-8249-464b-afdc-e6e452128bbc")
 	)
-	(label "VSW"
+	(label "VIN"
 		(at 17.78 69.85 180)
 		(fields_autoplaced yes)
 		(effects
@@ -4296,7 +4296,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "676c859d-2d60-43d1-9db9-49945f22a198")
+		(uuid "1e7b3e2c-f8c5-4d0c-9383-a9362e0582e5")
 	)
 	(wire
 		(pts
@@ -4307,9 +4307,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "6e953829-7b27-4c41-bd37-986d79f7f828")
+		(uuid "bd3ad7f6-52dc-44ee-8361-f6203d7624a6")
 	)
-	(label "VIN"
+	(label "VSW"
 		(at 17.78 72.39 180)
 		(fields_autoplaced yes)
 		(effects
@@ -4318,7 +4318,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ceb09eda-f571-4383-a242-5ba0f0597d6d")
+		(uuid "7cf89b77-8602-49ab-89fa-bce7efb6442e")
 	)
 	(symbol
 		(lib_id "Device:Polyfuse")
@@ -4388,10 +4388,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "4f1056b6-68e4-4f27-b864-1695baa74b61")
+			(uuid "dc0e6b64-5574-4a92-aa32-da8941d63bf4")
 		)
 		(pin "2"
-			(uuid "8636945a-326b-4b28-9a13-aee7f21622a2")
+			(uuid "c78a7b68-8030-4e5c-b726-da5c9e2b0fe3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4411,7 +4411,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "831107aa-6265-4da6-8459-c3e0c86f4a8a")
+		(uuid "194253f6-7327-490b-b00f-b203d0dfa3cd")
 	)
 	(label "VSW"
 		(at 54.61 38.1 90)
@@ -4422,7 +4422,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "3f4c0076-ef4a-469f-9717-89ca28ba9c24")
+		(uuid "0a855f32-4f7a-41a5-a41e-155ac8b91dbc")
 	)
 	(wire
 		(pts
@@ -4433,7 +4433,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "312e1a69-aa2d-4e3a-9d60-67fb1bdfbdf9")
+		(uuid "8c8877c6-c2ac-427b-b2d2-584daaf10069")
 	)
 	(label "VF"
 		(at 54.61 50.8 270)
@@ -4444,7 +4444,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "c0215b61-691c-4fb1-b4ad-a5ba0599e3e0")
+		(uuid "72ce2dc9-48f0-4107-a4fb-7e2ff69f1f4f")
 	)
 	(symbol
 		(lib_id "Device:D")
@@ -4514,10 +4514,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "65ce0713-22d5-48ea-b981-a1dc2d452a52")
+			(uuid "ebdbd369-064e-4739-9e92-66541c9c181a")
 		)
 		(pin "2"
-			(uuid "bc867033-a2f5-4581-9729-58e51e6c4323")
+			(uuid "0de20f3a-ec19-4b33-9540-ac8769c6ddda")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4537,7 +4537,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3fbee128-91a0-46e1-9ad6-917bc4e4ab90")
+		(uuid "2f3867b4-b46a-48cf-9c32-022b28b22b5b")
 	)
 	(wire
 		(pts
@@ -4548,7 +4548,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "694d74bf-eb5e-4c8b-9e92-228f78062a85")
+		(uuid "0725cb8e-9149-43ee-ae8b-964e320b5df4")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -4558,7 +4558,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "7d88ce41-e7ea-4af3-8117-660919a49f4b")
+		(uuid "5f9072cd-c156-4874-aa8e-6a28773219b0")
 		(property "Reference" "#PWR002"
 			(at 92.1 32.02 0)
 			(hide yes)
@@ -4609,7 +4609,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "843f519f-6e47-41a9-a75a-c40c763767a1")
+			(uuid "7bc34beb-c011-41bc-8b2e-d4e8cba171c7")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4629,7 +4629,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c310cfa0-0248-4f1b-b85b-2b917d2e9943")
+		(uuid "6d3c8df9-b0c2-41b6-b5ba-9224a68a28b2")
 	)
 	(label "VF"
 		(at 73.66 35.56 180)
@@ -4640,7 +4640,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "a20c74a0-6438-4447-97c9-56c31793e335")
+		(uuid "0244042a-383e-47cd-80aa-ae2598d5c23e")
 	)
 	(symbol
 		(lib_id "Device:D_Zener")
@@ -4710,10 +4710,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "0f7b277a-b43c-4ca7-a111-db491f6ead49")
+			(uuid "ef5794e7-c94d-45e2-9b80-be91ed8e09e8")
 		)
 		(pin "2"
-			(uuid "6e4d1873-d84f-438f-8aaa-65f2ae210af4")
+			(uuid "936759e4-2d42-48ab-893b-c1507e5c88fe")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4733,7 +4733,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0e80ba15-2260-43a7-83ff-11481ca7db09")
+		(uuid "c93cf94d-dac2-4d21-b5c9-63a46445d898")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -4743,7 +4743,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d5cb27d3-d078-4c98-b5ba-bf4d6835f1f9")
+		(uuid "bd91dfac-b640-41cd-bf45-a299b7422963")
 		(property "Reference" "#PWR003"
 			(at 108.61 37.1 0)
 			(hide yes)
@@ -4794,7 +4794,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "da96d63a-a64a-4e18-8f62-0323ca294c6c")
+			(uuid "fdb51b4e-40c5-4e2d-949a-57cdac5bb9f9")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4814,7 +4814,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b02054ce-8248-44e4-8bd9-b46eae6b351c")
+		(uuid "e1087eae-fe55-4566-a3d2-9c09de2ea8f3")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -4824,7 +4824,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "f55d2bd1-1342-4353-bb57-e57a05cb3fd3")
+		(uuid "e96c44d2-5111-41b0-80db-80dc4054a817")
 		(property "Reference" "#PWR004"
 			(at 108.61 49.8 0)
 			(hide yes)
@@ -4875,7 +4875,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "d38b0457-d64a-4087-ac38-907af1fe0b7f")
+			(uuid "fa5ecbba-85a8-4fb4-a623-cad27b117a67")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4954,10 +4954,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "88c56a34-dbc3-421b-bd1c-5b8460fd32ef")
+			(uuid "43a9df23-4bc5-454b-8410-a2d77b882f4d")
 		)
 		(pin "2"
-			(uuid "b5fc9a86-d68e-4507-a884-d031068681c6")
+			(uuid "3a68027c-3cf4-4d90-a0f7-ec0aeff38cb5")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -4977,7 +4977,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e001d6b1-fc29-4734-9875-036bc4df2bbc")
+		(uuid "f7e2bf82-6886-4100-b6bc-817bd84e60dc")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -4987,7 +4987,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "557a7da1-d77a-4cbf-a522-bd6485f96066")
+		(uuid "59f01384-b358-411a-81fc-e605cf83ad0e")
 		(property "Reference" "#PWR005"
 			(at 127.66 37.1 0)
 			(hide yes)
@@ -5038,7 +5038,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "32cd6f4e-70bb-4c40-87d2-9344ca06f79d")
+			(uuid "fa7ab1c4-c2d3-4696-acba-1311cc5123b3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5058,7 +5058,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "202306e1-4c3f-458f-aff6-31eba2d8ef6d")
+		(uuid "74ae3eb8-740f-4c0d-97f6-c87a2c1b38f9")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5068,7 +5068,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "adab0527-9091-4c31-9a3a-8575cf69fc18")
+		(uuid "43cf9820-b710-4399-892f-f071b1f8200d")
 		(property "Reference" "#PWR006"
 			(at 127.66 49.8 0)
 			(hide yes)
@@ -5119,7 +5119,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "fdecc34c-1b21-4699-a1f0-853e6484309c")
+			(uuid "261d21d8-0404-4838-a7bd-4f781cc138a2")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5198,10 +5198,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "da8bc355-4ec4-4378-95e9-de5c0d452d72")
+			(uuid "7fcf6396-696a-4c65-92f9-f0bb4583fce0")
 		)
 		(pin "2"
-			(uuid "2aff9bad-18df-4b58-93f2-02af737d6a0c")
+			(uuid "a171824d-f68c-4da6-8753-6fbbca0dc175")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5221,7 +5221,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e8948389-184a-493f-ab6a-a9997194c074")
+		(uuid "3f5444b0-f55b-4792-88f4-3d2b0fa976be")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -5231,7 +5231,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "e2c1645e-e40c-43cc-83e3-20c3dfa1b6b9")
+		(uuid "c7628645-a308-43d7-b267-31609f87a559")
 		(property "Reference" "#PWR007"
 			(at 146.71 37.1 0)
 			(hide yes)
@@ -5282,7 +5282,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "99b72133-c96d-41da-9901-27fa579cf45e")
+			(uuid "89142844-85cc-417e-8212-cb42e95ff26e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5302,7 +5302,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "30dc265d-12f3-4d71-83ec-e196087acec9")
+		(uuid "5625333d-edb6-437d-a764-bee431fcbfe0")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5312,7 +5312,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "f79c8885-e446-4c65-9044-81e6b83c0bdd")
+		(uuid "4ad3402e-e0c8-4679-807c-774252d3e3cb")
 		(property "Reference" "#PWR008"
 			(at 146.71 49.8 0)
 			(hide yes)
@@ -5363,7 +5363,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "0ac800dd-43f2-4933-846f-d566e21d9c2c")
+			(uuid "76c4fbae-98be-49e7-bc87-1adf34cdecf1")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5442,10 +5442,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "486e977a-1cc7-48fe-a88a-6b369cb6faee")
+			(uuid "3cccf241-bde0-4d7c-bd26-7b043d7cb908")
 		)
 		(pin "2"
-			(uuid "a033f000-e3d9-43f6-abe3-ea654965f584")
+			(uuid "a245ab94-6de7-4460-b32a-d22631572a65")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5465,7 +5465,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "aabef3aa-e1ee-417c-af84-d6984a2e72ce")
+		(uuid "eec04ad5-889b-46ed-a882-9f270a78e44e")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -5475,7 +5475,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "c652575c-1f24-49b8-ab49-62352645a6a0")
+		(uuid "ae47b04e-b075-40e4-9beb-76e417c451ac")
 		(property "Reference" "#PWR009"
 			(at 165.76 32.02 0)
 			(hide yes)
@@ -5526,7 +5526,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "a3a0ed16-68af-4f07-a307-fe33a4cd913f")
+			(uuid "3f02b920-0aeb-4ad2-8960-180ed4e13897")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5546,7 +5546,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a204e3cf-56b7-4cba-ae36-8dc3726478d0")
+		(uuid "1886f7dc-0be8-42d2-8fc7-295c1301fc18")
 	)
 	(label "LED1A"
 		(at 162.56 45.72 270)
@@ -5557,7 +5557,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8d540771-33fa-4a56-b062-f67e146dec42")
+		(uuid "2867cc2b-2645-4c50-9988-b3c9f9045060")
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -5627,10 +5627,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "7159fe7a-21c7-4f1e-bdb5-4ab14b23f91e")
+			(uuid "08e360fa-9305-4a39-81e0-598ce9ef9d1b")
 		)
 		(pin "2"
-			(uuid "c7571aca-0eab-427f-80a0-da2a835c57a9")
+			(uuid "da5ed684-73d0-40fb-9160-52c0b05e60f3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5650,7 +5650,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "56c2cc39-4f94-4c4a-882f-014256a74402")
+		(uuid "ae4dff62-5886-4d08-820a-601848f88603")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5660,7 +5660,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "18e1d36a-c7b1-4116-b149-e695e3f9ef60")
+		(uuid "92832f64-cf86-42df-a104-564bf8e84211")
 		(property "Reference" "#PWR010"
 			(at 165.76 67.58 0)
 			(hide yes)
@@ -5711,7 +5711,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "81125122-c652-488c-b5b7-ce195151c450")
+			(uuid "cf782e8a-9f4a-4f09-94be-ad4fc956b7d3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5731,7 +5731,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d4945bc8-c19d-496d-854d-b0aa5d1da489")
+		(uuid "605b2405-54eb-4ac9-9ccc-095f62132a0b")
 	)
 	(label "LED1A"
 		(at 162.56 55.88 90)
@@ -5742,7 +5742,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "484a9e25-7ba7-461a-88b0-5ca2a48b5077")
+		(uuid "f3298bd6-8eb7-4339-88bc-f99260c1e9a9")
 	)
 	(symbol
 		(lib_id "Regulator_Linear:LM317_TO-220")
@@ -5812,13 +5812,13 @@
 			)
 		)
 		(pin "3"
-			(uuid "6aa4cb5e-48de-4963-a2e7-508c3cc771f1")
+			(uuid "2ce863ad-d67b-4003-968e-a3ba7f00c208")
 		)
 		(pin "1"
-			(uuid "971d65d5-fabb-4da9-b65f-ec80045b43b1")
+			(uuid "d4b5f3d8-282f-4348-aa0f-1ec67cdf2d88")
 		)
 		(pin "2"
-			(uuid "89dafc69-16a4-42ad-960e-51727b814fff")
+			(uuid "dafee93b-54c3-451e-8c15-59a05f272ea9")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5838,7 +5838,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "5f43ff72-e7dc-456f-9810-1441ec15e8ce")
+		(uuid "a5260fd0-75fb-4ea3-b5e8-7026a12b3f1a")
 	)
 	(wire
 		(pts
@@ -5849,7 +5849,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a1f4f742-0ae0-4039-953f-417cd28ba352")
+		(uuid "29caeff7-6b49-4c52-9d2d-064912e8e009")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -5859,7 +5859,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "5f4179af-1306-4e8d-986f-c60b6e9eeb57")
+		(uuid "f76cb050-9249-4026-af8b-3a316c24b2d0")
 		(property "Reference" "#PWR011"
 			(at 220.37 48.53 0)
 			(hide yes)
@@ -5910,7 +5910,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "3bce5d8a-b434-44eb-849b-956456af549a")
+			(uuid "73bceda4-5dd5-4c5d-8979-ca7a099656d8")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -5930,7 +5930,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "2818cf01-b570-4cdb-b13e-96d49efb7da1")
+		(uuid "4772a4b5-961b-465a-a474-c33944658879")
 	)
 	(label "ADJ12"
 		(at 229.87 62.23 270)
@@ -5941,7 +5941,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "80d84e7a-ffb7-490d-a85b-ed0198bbab31")
+		(uuid "379453c8-35fd-4d45-accc-2a715eb65506")
 	)
 	(wire
 		(pts
@@ -5952,7 +5952,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "18381f60-a623-4919-9ecb-012425c0a6ab")
+		(uuid "cf152a1b-1475-46d8-818b-e6ade3cc1540")
 	)
 	(wire
 		(pts
@@ -5963,7 +5963,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "7a2cbb5a-9ef3-4f98-9bd4-c6b54ef9f5c5")
+		(uuid "97b3422e-dd98-4977-82f1-5db4f92c9d62")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -5973,7 +5973,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "042d59a2-e1b9-4aa0-ae89-cc5ed912f599")
+		(uuid "479116d3-715d-4886-a8c0-1ec307059c47")
 		(property "Reference" "#PWR012"
 			(at 245.77 48.53 0)
 			(hide yes)
@@ -6024,7 +6024,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "bf14f3a0-fd02-4511-8a27-b98799dea3d7")
+			(uuid "dc3faed5-2778-446b-b14b-0df3f4955119")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6103,10 +6103,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "c49e7a7a-5b28-4ace-ab2c-d69e296084dc")
+			(uuid "fa42914d-f8c2-4ad7-84f0-4d189665ec35")
 		)
 		(pin "2"
-			(uuid "30a4767b-9934-466f-83fd-d38513947541")
+			(uuid "281aac4b-af7d-4749-a580-9474a7a74b06")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6126,7 +6126,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "56c964cb-7f58-4b43-9937-415356cfaaae")
+		(uuid "ae8f457a-d0c4-4815-86f4-4f82ab5f662a")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -6136,7 +6136,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d07b1637-bb49-4096-99a9-8047c4a21c94")
+		(uuid "e7554952-2caf-4364-8edd-a65764e66dd5")
 		(property "Reference" "#PWR013"
 			(at 263.55 47.26 0)
 			(hide yes)
@@ -6187,7 +6187,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "4e4e53b8-d757-49ad-a26d-c6862a69e18f")
+			(uuid "424c31a2-fecb-4126-a9bf-79abe3069082")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6207,7 +6207,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "6ce8f6e4-69f8-49c9-8fa7-f75de6294fb5")
+		(uuid "2fd09e03-ab2e-49b6-928a-ced621f4ab28")
 	)
 	(label "ADJ12"
 		(at 260.35 60.96 270)
@@ -6218,7 +6218,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ef2ae235-1706-45bc-a668-fd4ef247c131")
+		(uuid "446ccaf0-b754-41b3-9386-c66b3af934d7")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -6288,10 +6288,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "f8a3ae79-6cda-421d-9973-33d9c5a15213")
+			(uuid "7d5c88b7-2b36-47e9-8db9-3af01ef19f2c")
 		)
 		(pin "2"
-			(uuid "3a21efb1-1585-4d16-ac8d-d63c4b19b87f")
+			(uuid "8d1953d0-632f-42c7-a785-f63c2ea06139")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6311,7 +6311,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "cfa51d38-8c60-4d2d-ad1d-ef1595b5e308")
+		(uuid "650f189e-1c30-4930-b4a7-13440faa8f33")
 	)
 	(label "ADJ12"
 		(at 245.11 68.58 90)
@@ -6322,7 +6322,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "9df3630c-d1bc-48e8-a30f-1fc9e5807b0a")
+		(uuid "be124f9b-5c75-4b47-8927-04f334a8971e")
 	)
 	(wire
 		(pts
@@ -6333,7 +6333,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e81da6c7-c5fe-4c88-bf01-bef023261716")
+		(uuid "d1db8de9-9922-42b3-8b78-ef7abb6b0148")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6343,7 +6343,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "3393f3e5-74ec-493b-9aa0-67f029a90f04")
+		(uuid "d1178fef-9a95-438d-9ff9-e1916ccc6b16")
 		(property "Reference" "#PWR014"
 			(at 248.31 80.28 0)
 			(hide yes)
@@ -6394,7 +6394,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "065704a9-12e1-4f4d-9fbb-24abd03ebe1a")
+			(uuid "c99c97ec-1b7a-4435-81f6-ea7254cdcd55")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6473,10 +6473,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "bcfae6ff-bcec-4baf-b329-d724973528aa")
+			(uuid "0111a33a-0952-40c0-8ecb-1026c9b2fbf9")
 		)
 		(pin "2"
-			(uuid "410c501d-884a-4aec-b174-8a50c868bbdf")
+			(uuid "36fbc508-0657-4f62-b25a-ce47b0b88967")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6496,7 +6496,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "1682634a-3b5d-4479-a93d-72431cae4d24")
+		(uuid "4858c3cf-328c-4c98-8c85-d39925e5412d")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -6506,7 +6506,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "aa18a3a7-a9a6-4396-847e-21f6cb448598")
+		(uuid "8eaa8258-5502-447e-aa97-2edf5725427c")
 		(property "Reference" "#PWR015"
 			(at 273.71 47.26 0)
 			(hide yes)
@@ -6557,7 +6557,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "4cd10fc1-6720-4179-9e97-5a06cc99336c")
+			(uuid "2db38a2a-dc8d-4eb3-911b-a65b21f06ad9")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6577,7 +6577,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c5debf61-4b0e-4cb5-927a-c677b7db767d")
+		(uuid "8f5be86b-73b2-400b-b4b4-ed462bc40b28")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6587,7 +6587,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "e58fb388-8770-498c-9ae1-d95c92074ae5")
+		(uuid "f0f343b9-cff1-46d3-ba50-94a0da7130a4")
 		(property "Reference" "#PWR016"
 			(at 273.71 59.96 0)
 			(hide yes)
@@ -6638,7 +6638,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "fbc782cb-ed84-444f-bd95-ebbf1d7f5253")
+			(uuid "88628836-9fe8-44eb-a163-dd17b9020ce3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6717,28 +6717,28 @@
 			)
 		)
 		(pin "1"
-			(uuid "0d0eccbc-5384-47ec-8cb6-4acb5ac58f27")
+			(uuid "1e60fcda-d2d4-4550-aede-69cebaef0cb0")
 		)
 		(pin "8"
-			(uuid "84996495-6094-49c4-8615-195d0ccf132e")
+			(uuid "44141203-e018-4da9-bdb5-a4e1aee6d497")
 		)
 		(pin "4"
-			(uuid "371b1717-5d93-44e4-b62b-2841d4801e9a")
+			(uuid "c3d41a0a-7745-44f7-961c-bc9f107bc911")
 		)
 		(pin "7"
-			(uuid "3efa5ba0-773f-4278-b92d-74e56009424c")
+			(uuid "0082132b-0ad5-432a-9605-624055a6f68a")
 		)
 		(pin "6"
-			(uuid "f8a83e3e-e30d-443e-9fe7-5b9c29dcefed")
+			(uuid "e2737b97-866a-4120-983c-7f033dd707de")
 		)
 		(pin "2"
-			(uuid "25c5491f-005d-4638-a59b-8dc9e78fccea")
+			(uuid "2c7500f8-77b4-4b80-9207-f49e61cfca9f")
 		)
 		(pin "5"
-			(uuid "6dd56a25-afcd-4083-9ca4-b0da99e3793b")
+			(uuid "83f63ac8-b777-4944-9634-4e693a20ee89")
 		)
 		(pin "3"
-			(uuid "74f4ab02-d365-404b-bedc-ac5cf77a9634")
+			(uuid "2518571a-4417-4039-bcf1-1aad45d9ea74")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6758,7 +6758,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0a19deda-1d96-4690-b6eb-830b3beae32a")
+		(uuid "c2c49f08-6133-4668-a4dc-e21527ae452d")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6768,7 +6768,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d43df7dc-9782-4b20-abd7-91a06d0f05ea")
+		(uuid "ede94337-7d2b-46f0-a137-27a30314b5f8")
 		(property "Reference" "#PWR017"
 			(at 78.13 151.4 0)
 			(hide yes)
@@ -6819,7 +6819,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "4cc1e947-99b2-485f-b0e8-e53d12df2ee5")
+			(uuid "198bf6e7-b6b0-4ffe-a1e9-b949377957d1")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -6839,7 +6839,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "5af2c65f-f4fd-4f57-af12-789634d6fa7e")
+		(uuid "124c38f8-3ac2-4a17-aa94-4543f255107c")
 	)
 	(label "+12V_W1"
 		(at 77.47 127 90)
@@ -6850,7 +6850,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "eec5f001-0fc9-4e54-bd71-03320d549557")
+		(uuid "ba5d74bc-dd87-4aba-be10-009577e2eca9")
 	)
 	(wire
 		(pts
@@ -6861,7 +6861,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "f57db86b-a075-45a6-9245-fa9aafe53c74")
+		(uuid "d3a6a7ec-cf5f-4faf-9408-a65aab637563")
 	)
 	(label "RST555"
 		(at 62.23 134.62 180)
@@ -6872,7 +6872,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "189ce514-b7c3-45b8-988f-0149d7f835a2")
+		(uuid "934cd426-31a0-4444-951c-c1965ea6a757")
 	)
 	(wire
 		(pts
@@ -6883,7 +6883,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "8974bf40-782d-4a90-8d79-f719a9e515a2")
+		(uuid "1e609d7d-f7c7-4909-b88f-37c38ec3c36c")
 	)
 	(label "DIS"
 		(at 62.23 137.16 180)
@@ -6894,7 +6894,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "58e0ef7b-97ab-4b4c-bcde-58287d9079d2")
+		(uuid "917fbc1f-f865-4723-9263-56f902f6afc2")
 	)
 	(wire
 		(pts
@@ -6905,7 +6905,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b3ce57e6-f023-43ab-8ec0-8d9325f80d11")
+		(uuid "4e086518-305c-475e-984d-5dcf90bbabee")
 	)
 	(label "TIM"
 		(at 62.23 142.24 180)
@@ -6916,7 +6916,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "2199f0ec-742f-4c72-bd33-094b1eae79e4")
+		(uuid "a92aeb60-c771-4ee2-8937-1bdd350a1901")
 	)
 	(wire
 		(pts
@@ -6927,7 +6927,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "2dee0e9f-b434-4f86-b88c-e702279b06ea")
+		(uuid "0cff847b-b692-48ab-b535-dae924bb3c94")
 	)
 	(label "TIM"
 		(at 62.23 144.78 180)
@@ -6938,7 +6938,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "3377b1d1-b340-4a97-98dd-fd0bb90cc116")
+		(uuid "5aa6620b-2a3b-44a4-8c78-c37c92ec7e9e")
 	)
 	(wire
 		(pts
@@ -6949,7 +6949,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "97ecf186-fb0a-498b-a1df-ca1fe894f42d")
+		(uuid "fdd9b11d-88db-4cd8-8fd5-e0f03772e9e9")
 	)
 	(label "CV"
 		(at 74.93 127 90)
@@ -6960,7 +6960,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "75ca91ba-e265-4ba6-a600-b320e1cd8468")
+		(uuid "dd7c9f7b-69e1-47c3-bd65-e1b5393493d6")
 	)
 	(wire
 		(pts
@@ -6971,7 +6971,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "75bc0f72-d787-4621-bfc6-7d1d486a54a5")
+		(uuid "0fcadb99-24ae-46c7-a96d-b26682d71625")
 	)
 	(label "CLK555"
 		(at 87.63 139.7 0)
@@ -6982,7 +6982,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "43d042dc-fd18-4ec9-807c-7b487b337f13")
+		(uuid "95a1386e-6ea1-4bfd-b81a-5578760fa327")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -7052,10 +7052,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "ec163e45-86f7-4db6-94d7-354db665e7cb")
+			(uuid "d461018b-d530-4872-a806-fa3c6ce6e121")
 		)
 		(pin "2"
-			(uuid "e839687b-fc8c-41a4-bddc-35d6bfe0046d")
+			(uuid "23c2e5fb-7983-43cf-8331-d14a22135357")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7075,7 +7075,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c6f7c42a-c854-49af-ae18-439e2fa57b5c")
+		(uuid "1d671c78-36c9-421f-b64a-ec4d242206c3")
 	)
 	(label "+12V_W1"
 		(at 110.49 109.22 90)
@@ -7086,7 +7086,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "8510e759-cf4f-4f31-812a-61ad402087a7")
+		(uuid "eb77adfe-029d-4dbe-9961-555b07f0a096")
 	)
 	(wire
 		(pts
@@ -7097,7 +7097,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a023a845-e1d0-4401-9fc7-2c3f1fd7bdc5")
+		(uuid "a83cb69b-710f-4faf-a56b-c3639fa939c3")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -7107,7 +7107,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "af65e4bc-4a3f-478c-8d80-3ef5d5b1699c")
+		(uuid "ded1db25-02b8-4e67-a155-7fae187eff73")
 		(property "Reference" "#PWR018"
 			(at 113.69 120.92 0)
 			(hide yes)
@@ -7158,7 +7158,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "e8cb3bd5-513a-40a5-9ded-fa4f711e9364")
+			(uuid "cdf4778d-5f9c-4bda-ae4d-e08dc1d3543d")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7237,10 +7237,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "21481ccb-4662-4c7c-a0a8-04dc0f242874")
+			(uuid "5c93afb8-4d79-4cbf-bb0e-9bbf2982c0f5")
 		)
 		(pin "2"
-			(uuid "36a93244-06d4-45d1-9ef2-0c1a9ce91d4c")
+			(uuid "fdb0f9c2-7d34-4b9b-882c-30c2c6039ea8")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7260,7 +7260,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "7ff48de2-c084-4e13-ac04-4c556695b851")
+		(uuid "fd272596-0259-4bcf-9743-e23225c3c02b")
 	)
 	(label "+12V_W1"
 		(at 30.48 109.22 90)
@@ -7271,7 +7271,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "215011ed-27dd-41e7-8ffe-b671a15502e1")
+		(uuid "71dd9311-c085-4051-9df1-278fd16f7a3d")
 	)
 	(wire
 		(pts
@@ -7282,7 +7282,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4422b10f-43c2-4eb5-93a6-2cfd350a00fa")
+		(uuid "b62bbe1c-45e2-422a-b240-c421b62f6906")
 	)
 	(label "DIS"
 		(at 30.48 121.92 270)
@@ -7293,7 +7293,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "681f8d29-b525-416a-b4f0-f4c06f369bd2")
+		(uuid "135d1021-0f01-4742-9f87-117f9a637819")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -7363,10 +7363,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "49ae60ec-c899-43a0-aa10-3ceb743cdf3d")
+			(uuid "74d69128-00d4-4b69-a262-410546cf018d")
 		)
 		(pin "2"
-			(uuid "65af327b-920a-432b-abaf-9416e56ed382")
+			(uuid "a874837f-dad3-489b-b2da-426980370e70")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7386,7 +7386,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "10ccf4fc-947a-4310-89db-2a9179277d68")
+		(uuid "18c96706-e8e5-4281-a64d-95b141972cdb")
 	)
 	(label "DIS"
 		(at 30.48 130.81 90)
@@ -7397,7 +7397,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "94b0d151-7579-4480-93d5-a7616a838e72")
+		(uuid "72a2cfeb-971f-4346-b9f6-cd15cb996e57")
 	)
 	(wire
 		(pts
@@ -7408,7 +7408,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "7b5aaee4-a2a9-41d5-89a8-06cefab0d539")
+		(uuid "91c4ea71-645e-4f65-b95c-577a62fe8dbc")
 	)
 	(label "RB"
 		(at 30.48 143.51 270)
@@ -7419,7 +7419,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "63f6f54d-a927-413b-b8ad-2b94f9e56aae")
+		(uuid "ae167668-091d-4cd0-b47d-ad6c61108c30")
 	)
 	(symbol
 		(lib_id "Device:R_Potentiometer_Trim")
@@ -7489,13 +7489,13 @@
 			)
 		)
 		(pin "1"
-			(uuid "989eebb3-91f5-4712-8390-6214078bc76a")
+			(uuid "05617ae6-5796-4fdd-b6e3-f48e3a0a9856")
 		)
 		(pin "3"
-			(uuid "596e4805-3268-4c1b-8867-ab17b6f12a00")
+			(uuid "0fcf0c82-e6e5-47a5-b530-37066d1fcf6e")
 		)
 		(pin "2"
-			(uuid "5b998526-060f-4693-8357-0340d3756beb")
+			(uuid "c4bd1cfb-60ef-4652-b180-5d1456cd369f")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7515,7 +7515,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b6b53d61-0336-4b0c-8c44-ed9ac500b5a2")
+		(uuid "627ab439-85e4-4866-9d63-09a7a3286dbc")
 	)
 	(label "RB"
 		(at 35.56 160.02 90)
@@ -7526,7 +7526,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "56d09661-adaf-43e4-aabe-caa3c2ad694f")
+		(uuid "22f40b84-6d66-4f00-b458-79893c065b1b")
 	)
 	(wire
 		(pts
@@ -7537,7 +7537,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b4dfdb5c-d3d2-4000-8855-055edc8d4b63")
+		(uuid "1e7f7ab9-675b-4ffb-a152-a9995bb10c4a")
 	)
 	(label "TIM"
 		(at 35.56 172.72 270)
@@ -7548,7 +7548,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "9fc76fda-751a-4b4d-bcd0-c80582c87bb8")
+		(uuid "d7d711e0-1a36-4736-aa40-5819fa06b6d2")
 	)
 	(wire
 		(pts
@@ -7559,7 +7559,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "31b33f1b-ce79-4d3c-82f0-4416a50c7172")
+		(uuid "43b8cc5b-c008-4098-88ac-076e64879f33")
 	)
 	(label "TIM"
 		(at 41.91 166.37 0)
@@ -7570,7 +7570,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a7e518e7-3ed3-4173-bd25-fada72e91420")
+		(uuid "2740e1b3-0562-4a74-bae9-34060f8e87e1")
 	)
 	(symbol
 		(lib_id "Device:C_Polarized")
@@ -7640,10 +7640,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "3ac9bee3-d195-4a5b-a974-60018938bd7b")
+			(uuid "5c49db96-6c98-42db-8200-fcb93380eff4")
 		)
 		(pin "2"
-			(uuid "86e24d4d-fc96-43bc-9e36-0cf1c7e09e46")
+			(uuid "137d523b-6178-4ed2-9a3d-db8e263c61d6")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7663,7 +7663,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c19f1710-dfe8-42aa-9f38-a26f93dfc9e5")
+		(uuid "e7f4d4c1-978b-48f6-993c-8e3f0f01f389")
 	)
 	(label "TIM"
 		(at 59.69 153.67 90)
@@ -7674,7 +7674,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a93b8c4b-6ded-4150-be33-be51273acdfa")
+		(uuid "e04ed7ff-42a0-4411-bcf0-0798464b63e8")
 	)
 	(wire
 		(pts
@@ -7685,7 +7685,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3435a65b-5fb7-4fc7-a5f7-273c1c086184")
+		(uuid "b40d8e19-3b2c-4b62-bdc1-8933c4c94263")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -7695,7 +7695,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "370c5710-83ce-4868-a256-d5bba46686b9")
+		(uuid "a0339acd-d958-49c4-93ee-2a9c8a8ba977")
 		(property "Reference" "#PWR019"
 			(at 62.89 165.37 0)
 			(hide yes)
@@ -7746,7 +7746,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "b0df63fe-fb84-41c3-988d-3018e842fba6")
+			(uuid "cc9540b0-e83a-4241-9867-f57be7e8dc3e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7825,10 +7825,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "0a7bca9f-7e3a-4e3e-aac2-e31eda4885c6")
+			(uuid "2533f4f1-f855-4aee-ac7a-342a59906fa7")
 		)
 		(pin "2"
-			(uuid "34cced15-e6e3-411d-a308-864aeeb17e58")
+			(uuid "bcfe1b49-7301-4a9d-b07a-c5cdd400e558")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -7848,7 +7848,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "03a4187e-cfd1-486b-b525-55287da3c953")
+		(uuid "e561189b-d0f7-4b24-b32c-06ad9ef5d7b1")
 	)
 	(label "CV"
 		(at 74.93 153.67 90)
@@ -7859,7 +7859,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ef2700e6-6eed-4374-988f-c9e8c3b0d887")
+		(uuid "c799b744-24c7-48af-8332-f553ef672cd8")
 	)
 	(wire
 		(pts
@@ -7870,7 +7870,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "8f9c44da-f822-42e0-958a-36bd3b2610cd")
+		(uuid "9f8f7ce0-c68b-4e01-8141-7ac95fa61d0a")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -7880,7 +7880,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "673a6094-6baf-4005-936c-482ced051d73")
+		(uuid "47ab6feb-ff81-4086-a2ee-1cdef9d38163")
 		(property "Reference" "#PWR020"
 			(at 78.13 165.37 0)
 			(hide yes)
@@ -7931,7 +7931,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "306cf669-fdb6-4583-870e-703525b0751c")
+			(uuid "fe6230bb-c6f6-4051-9eb6-a4ed9198408b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8010,10 +8010,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "c7a0f7e8-d6dd-4490-bb6a-e328c2e46b9c")
+			(uuid "deb7b9c3-a141-4656-b4e9-c6098ab93fb2")
 		)
 		(pin "2"
-			(uuid "7197926e-f675-4f00-80f9-171a0ea0685f")
+			(uuid "91a36f29-3130-4b3a-8289-be46fd39dbf1")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8033,7 +8033,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d6331415-afee-4600-ae9c-7bfef512c452")
+		(uuid "35b7eb1c-f67b-4a86-ae5d-6f5e6fd7397f")
 	)
 	(label "CLK555"
 		(at 99.06 147.32 180)
@@ -8044,7 +8044,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "9c5748b9-10d0-42cc-afd2-296095595a42")
+		(uuid "0aea4d65-a68a-4c83-ba12-16499d92dadc")
 	)
 	(wire
 		(pts
@@ -8055,7 +8055,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3a7ad30a-4ca6-4db6-829d-7a3a1d049ffb")
+		(uuid "943f8291-077a-49b4-89b0-4b00a392853e")
 	)
 	(label "CLK"
 		(at 111.76 147.32 0)
@@ -8066,7 +8066,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "44747bdb-2b7c-48b0-ad8c-611100299316")
+		(uuid "8c33ad46-544e-440d-9a41-808db6250388")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -8136,10 +8136,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "69cd3a3c-9c8c-4358-ae7f-302dac4b8f12")
+			(uuid "c6cd4f5a-ebc9-4faf-8c7e-1075f90d7513")
 		)
 		(pin "2"
-			(uuid "ea1c103f-2563-4d6c-a032-0a4b662c6f18")
+			(uuid "ca3d76ad-dc78-4f6c-a429-28150276708e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8159,7 +8159,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "178d3182-e881-4d97-9691-2ff3fa067e5e")
+		(uuid "c6d440c8-d0b3-4501-ae6e-8ef0a6bdda6f")
 	)
 	(label "CLK555"
 		(at 119.38 151.13 90)
@@ -8170,7 +8170,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "c249ce58-d5ce-4ac8-99b2-469387695285")
+		(uuid "1ee42f16-7069-436c-91fd-830bb53fe91a")
 	)
 	(wire
 		(pts
@@ -8181,7 +8181,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "5e9bad36-54d0-41c4-9321-eceede71678f")
+		(uuid "32540bb1-f76c-4427-8280-98559ebba9f6")
 	)
 	(label "LED6A"
 		(at 119.38 163.83 270)
@@ -8192,7 +8192,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "6931c2fe-0149-460b-ac88-ecd93b040931")
+		(uuid "2967b216-3c31-4ab1-ba9f-1071ea5f812c")
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -8262,10 +8262,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "932af29c-b57b-427d-89ed-30e91e56980e")
+			(uuid "9b148ec6-8eea-4f36-8c3a-78ecafd0d54c")
 		)
 		(pin "2"
-			(uuid "5015747f-2c01-46e9-baef-7422242b44c7")
+			(uuid "f8f8c592-1875-436e-a53d-982c2ac36f8d")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8285,7 +8285,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "cb57df38-cad7-49f8-8df8-ea4042474b9d")
+		(uuid "fe3a74e9-9d55-4fc1-8e84-352e243a1c67")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8295,7 +8295,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "3baa0aeb-4f36-484b-8bd3-06efd1ba581d")
+		(uuid "93b61ac1-f588-4643-b1fd-10b0a9d76783")
 		(property "Reference" "#PWR021"
 			(at 122.58 180.61 0)
 			(hide yes)
@@ -8346,7 +8346,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "cd193b29-5777-4040-ae02-88538661708f")
+			(uuid "d2d1c7e3-bf38-4368-8314-17099dbc729e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8366,7 +8366,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3046d7ea-7063-4b6e-acff-94cedbb646ce")
+		(uuid "b85ca086-1547-45f0-8cc5-ce1be6060cf7")
 	)
 	(label "LED6A"
 		(at 119.38 168.91 90)
@@ -8377,7 +8377,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1f322bb0-1744-4e63-9308-1879e86f9e3a")
+		(uuid "8456ec45-cc18-4b7c-9cfe-9c20743b891e")
 	)
 	(symbol
 		(lib_id "4xxx:4017")
@@ -8447,52 +8447,52 @@
 			)
 		)
 		(pin "14"
-			(uuid "e1492503-3f94-4dfe-8314-7be09353e989")
+			(uuid "21e50b72-bb90-413d-8155-fb6d555fe71f")
 		)
 		(pin "13"
-			(uuid "42dd6b19-c96c-401c-9278-4a511d5c00cb")
+			(uuid "c2ae28be-faf7-4706-b8ea-5f51c3f06921")
 		)
 		(pin "15"
-			(uuid "de4aecb1-462a-4051-86fd-69d7ed0cb932")
+			(uuid "b1eede45-273b-45f2-a7c5-f01979db5996")
 		)
 		(pin "16"
-			(uuid "94aec0ea-e609-406b-9485-46bf52d91c08")
+			(uuid "959cb1c5-d041-40a0-a897-f74c289db469")
 		)
 		(pin "8"
-			(uuid "2bbae73d-c213-4526-8a9a-b92cbe03b9af")
+			(uuid "87c6110d-0442-4e2b-87be-38ca6dda2b41")
 		)
 		(pin "3"
-			(uuid "159b9fec-5d38-4855-8121-b06422a02f32")
+			(uuid "3a8325a9-2adc-4ac3-b7e6-e0495ddcb0f6")
 		)
 		(pin "2"
-			(uuid "309f059b-3854-4fc6-b312-0300ad8ed2e7")
+			(uuid "d96f7315-b595-49a9-8e8c-3e0af86239fb")
 		)
 		(pin "4"
-			(uuid "a8d308dc-bd07-4a26-adf8-06b8179a6e62")
+			(uuid "883cafe4-15b9-4b9d-9d9c-8d97566546a5")
 		)
 		(pin "7"
-			(uuid "6007cf91-2420-44b8-9e19-132f44610963")
+			(uuid "cc59d636-2abf-4488-85a7-896d999f62cc")
 		)
 		(pin "10"
-			(uuid "cfb4446b-1759-4354-8de2-a38dba4a917f")
+			(uuid "ffc17831-6235-462c-b575-f6b8d9c6a7a6")
 		)
 		(pin "1"
-			(uuid "19c92f86-aab2-442a-b44b-a346d2c94901")
+			(uuid "5ee279bb-d417-4ac8-a0e3-88ef0a8c535b")
 		)
 		(pin "5"
-			(uuid "9b1fa8ab-c30b-4795-89cc-eb7a78cd56bc")
+			(uuid "b23631d1-0eea-4f59-a336-4f6f04557426")
 		)
 		(pin "6"
-			(uuid "9adc2769-4170-4f01-b38e-af67d1bef83e")
+			(uuid "eebd7f63-c367-4906-9f27-600e9985ee17")
 		)
 		(pin "9"
-			(uuid "c95756d8-4e58-4004-a286-4b1d888963e1")
+			(uuid "779d4df9-0a91-4532-833f-eaea7712d234")
 		)
 		(pin "11"
-			(uuid "acfb0e35-df3a-47d1-8de5-c09582bf873c")
+			(uuid "bcf733eb-77c9-46ba-8c35-efddbb53254a")
 		)
 		(pin "12"
-			(uuid "68ca0431-b64a-4bf2-8a51-74382cac257a")
+			(uuid "7ea8676d-7d71-4e5a-8e46-0829306448c7")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8512,7 +8512,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "70c9e572-b775-4730-9a1a-a324352a066d")
+		(uuid "86d301bc-6aa7-440b-87f2-2e13a102567b")
 	)
 	(label "CLK"
 		(at 219.71 120.65 180)
@@ -8523,7 +8523,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5f56ff1a-c07e-4969-b5bd-1c13962b3969")
+		(uuid "f3834bd7-b53c-4d5e-a47e-88af10dc8dca")
 	)
 	(wire
 		(pts
@@ -8534,7 +8534,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b6d24f07-4d1f-451d-a7ea-d0e95ce75208")
+		(uuid "1f75000e-51c2-4117-9247-ad7b5ba740b8")
 	)
 	(label "INH"
 		(at 219.71 123.19 180)
@@ -8545,7 +8545,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e2c0452f-145b-4697-99e0-84ff9a802d40")
+		(uuid "fe3dac7d-dbe6-410b-a415-597a6068c4da")
 	)
 	(wire
 		(pts
@@ -8556,7 +8556,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ad00d243-da71-4155-9cc6-344e24184330")
+		(uuid "7b343dac-3174-40fc-ade6-d4fe0bff62c3")
 	)
 	(label "RST"
 		(at 219.71 128.27 180)
@@ -8567,7 +8567,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b8b7cf5e-50b7-4f73-b89a-df21ca92acb2")
+		(uuid "1a5e1d9a-2744-4a97-8352-dc429a1a71d1")
 	)
 	(wire
 		(pts
@@ -8578,7 +8578,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b8acd7f5-584a-40bd-9b21-41d1b082610a")
+		(uuid "60287ca3-b843-41a8-9191-794430bb42c7")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -8588,7 +8588,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "70e38859-683b-49e5-9e75-fa7f7d8e09b1")
+		(uuid "ff5d2240-48e8-404c-8010-c7744e9b7339")
 		(property "Reference" "#PWR022"
 			(at 238.15 109.49 0)
 			(hide yes)
@@ -8639,7 +8639,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "6703c004-58f3-4e66-8679-dc4f5d5015f7")
+			(uuid "8e0358c5-a4d6-472b-8d08-4ca1d758ae69")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8659,7 +8659,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e7a39496-20be-4c94-bc2f-e5b5e1f74872")
+		(uuid "69a80034-0469-44bd-a50a-ef03abb73461")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8669,7 +8669,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "63bdc672-e58e-4b1b-8eb3-9d6c676b10fc")
+		(uuid "66a615bd-e778-4185-a31b-a7196303dde5")
 		(property "Reference" "#PWR023"
 			(at 238.15 157.75 0)
 			(hide yes)
@@ -8720,7 +8720,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "c8875a37-fa44-4680-bc63-d8d566b3384e")
+			(uuid "d9562e21-bf02-4b35-aeb3-e19073f8f798")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8740,7 +8740,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "9ae50588-5696-4284-baa8-ba93453e6728")
+		(uuid "54cfaa7c-47fe-42ca-a463-5d7cbb3d1530")
 	)
 	(label "Q0"
 		(at 250.19 120.65 0)
@@ -8751,7 +8751,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "5b157ac9-e827-4dd3-bf1a-1ff790f5e536")
+		(uuid "a67e6e2e-c6d0-4128-9e35-baddbfa3300f")
 	)
 	(wire
 		(pts
@@ -8762,7 +8762,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "f1ec23a0-53e9-4745-bee6-c65bdc15389b")
+		(uuid "42afc27b-3a41-4062-b211-ed3263bf1efc")
 	)
 	(label "Q1"
 		(at 250.19 123.19 0)
@@ -8773,7 +8773,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "58354646-1fcb-478b-ad62-ec87a99c3de7")
+		(uuid "f9cbaf6d-ba8d-4696-848c-17eae2eb329c")
 	)
 	(wire
 		(pts
@@ -8784,7 +8784,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ba2e40e9-1103-48bb-ab46-9a2ff16483c6")
+		(uuid "c570659b-e2ae-4a3e-82ed-e13fa6072ec9")
 	)
 	(label "Q2"
 		(at 250.19 125.73 0)
@@ -8795,7 +8795,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "6b699edd-b73f-4109-b67d-25137d79c504")
+		(uuid "d0989f2e-396a-4ac9-b083-51638273da00")
 	)
 	(wire
 		(pts
@@ -8806,7 +8806,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4abc9f5d-a2d4-4e01-955d-21437c973bb2")
+		(uuid "18324352-eca9-4863-baa1-574f4a7b9cf9")
 	)
 	(label "Q3"
 		(at 250.19 128.27 0)
@@ -8817,35 +8817,35 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "bd8697ce-d374-4607-a17e-cdf0f7fd879f")
+		(uuid "f87b41d1-dfd0-4b81-bb71-ac9e9998b8b2")
 	)
 	(no_connect
 		(at 247.65 130.81)
-		(uuid "f7211aa8-b849-42e7-a1e3-0c6b86de9ee4")
+		(uuid "f02f0ce6-938c-491f-bbcf-6101bd3dec3a")
 	)
 	(no_connect
 		(at 247.65 133.35)
-		(uuid "90b9d700-d9d4-40f8-a4f2-d0f7f85f9772")
+		(uuid "092da659-29b4-48d9-9d0d-ea8ca2c4743d")
 	)
 	(no_connect
 		(at 247.65 135.89)
-		(uuid "f58b9ec6-1b55-487f-a74a-4f17c0f7f5fd")
+		(uuid "e07cfaad-a1a5-4efc-98bd-c461705bd8a9")
 	)
 	(no_connect
 		(at 247.65 138.43)
-		(uuid "7ef377d6-cbb2-4837-b146-22de4519a75c")
+		(uuid "321f49c1-49aa-4068-996d-6b07bdb9bdae")
 	)
 	(no_connect
 		(at 247.65 140.97)
-		(uuid "1507b497-d820-4afe-887d-d4347611fcf9")
+		(uuid "b6f02fd3-1933-4321-bf2a-17cbb5029046")
 	)
 	(no_connect
 		(at 247.65 143.51)
-		(uuid "4f1de093-efef-4d44-abc7-267e264cc3fa")
+		(uuid "61b303bc-f397-42a3-85c9-b278ea9ae91e")
 	)
 	(no_connect
 		(at 247.65 148.59)
-		(uuid "ba251176-5efb-4355-955a-104c8010cbee")
+		(uuid "32750c3a-4d48-4297-bccc-4e2061c7a648")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -8915,10 +8915,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "615b5bfb-8a7b-4b59-8b53-9005c6c6e3cb")
+			(uuid "03f6c2f6-888a-4bed-ba82-21facdc9970c")
 		)
 		(pin "2"
-			(uuid "c65a085c-76b8-4449-852f-096af507096f")
+			(uuid "fd51e810-417e-4edf-bef3-4372649ddc9e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -8938,7 +8938,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ab37de95-2fbd-46be-b106-f4f7e2c140f5")
+		(uuid "f4818fbb-8f8e-4d7d-af1f-6eddf9456fd3")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -8948,7 +8948,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "9620b6f0-2448-4565-9152-1b106d29d8f8")
+		(uuid "a29599e5-e2f2-407e-8cdc-77379b198c41")
 		(property "Reference" "#PWR024"
 			(at 268.63 99.33 0)
 			(hide yes)
@@ -8999,7 +8999,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "d62fead4-3861-4769-b527-bdeb23414d0f")
+			(uuid "19bee07f-822f-4d0c-a696-14a21488bb9a")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9019,7 +9019,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "bb91337f-0975-4801-b475-e5233f44f6c6")
+		(uuid "d2335067-4b09-4f69-bd77-833f39d933f8")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9029,7 +9029,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "e8cd3744-cfa9-4630-bc1d-8f3fbce3a2f0")
+		(uuid "ff5f263c-f3c4-485b-8e1b-abe30b51123b")
 		(property "Reference" "#PWR025"
 			(at 268.63 112.03 0)
 			(hide yes)
@@ -9080,7 +9080,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "48e2190a-db4d-4a27-87af-443827eb42a3")
+			(uuid "a314dfd5-3c3c-411f-8038-69cc8f6d707b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9159,10 +9159,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "3d7e5686-c89d-4887-974e-5979b6caa2a2")
+			(uuid "d8f94d46-d078-46d8-9766-8931d698d496")
 		)
 		(pin "2"
-			(uuid "0199fd8e-562a-4465-8e89-461ff1e09ee5")
+			(uuid "1bd31a99-1511-4dd6-a5ea-537e0d5c6a82")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9182,7 +9182,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "da18a786-6062-41c3-b59d-ba8b1375be13")
+		(uuid "2482c9d2-0847-40a1-af29-a0d2156ba5a6")
 	)
 	(label "INH"
 		(at 185.42 123.19 90)
@@ -9193,7 +9193,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "478eca72-7415-4d04-bcf7-65f4a725dc76")
+		(uuid "c338d0cb-65d4-4764-8a5b-111abfa3a043")
 	)
 	(wire
 		(pts
@@ -9204,7 +9204,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4b448ca3-6e1f-4b04-9c26-cea46d8ce4a3")
+		(uuid "f1a77b61-49c8-4b87-a0b9-d4381123d7a6")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9214,7 +9214,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "b481bafa-bf1e-4ced-a5a5-660e2f8d76b6")
+		(uuid "db477c29-86e3-48b5-8a9e-5ef20fad0b70")
 		(property "Reference" "#PWR026"
 			(at 188.62 134.89 0)
 			(hide yes)
@@ -9265,7 +9265,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "4b6aa86b-10d5-4fd8-b6da-2746534ed314")
+			(uuid "a513b011-0c73-4210-9d97-91362dec7eca")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9344,10 +9344,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "37654bac-0bdb-4962-bc66-219121bf9ed1")
+			(uuid "c4c4d709-391b-4c0b-bcae-94a80ee138ac")
 		)
 		(pin "2"
-			(uuid "026cb1e1-fe09-4bd8-8646-c08a05c82060")
+			(uuid "42d7d6af-c46e-4801-86fe-46e31686b10a")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9367,7 +9367,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "94b18dd7-db72-437a-b8a2-b958ae1e23da")
+		(uuid "746a3f98-1933-454b-9c84-2284c3ab893e")
 	)
 	(wire
 		(pts
@@ -9378,7 +9378,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "36f4f20f-27af-4f31-8a51-0be4a31cf470")
+		(uuid "39ae4dcd-1e3c-408a-b73d-acbe3185a9d3")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -9388,7 +9388,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "b6cdc382-4169-42c9-8862-d75d6476cb35")
+		(uuid "c830b475-268f-4010-bb4c-15c2d2574b80")
 		(property "Reference" "#PWR027"
 			(at 79.4 172.99 0)
 			(hide yes)
@@ -9439,7 +9439,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "2ec59e92-e944-4f02-b498-59b82d2ce5f9")
+			(uuid "b98637ad-6dfd-425d-9903-d67c72556c8f")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9459,7 +9459,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d4940e27-4593-4dfd-a0e5-fc83420e6194")
+		(uuid "79168a46-3517-403b-b345-5e16a6372b74")
 	)
 	(label "RST555"
 		(at 91.44 176.53 0)
@@ -9470,7 +9470,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "baaf8f76-f652-4b0b-9825-e6bb4223d9d1")
+		(uuid "1930d996-131a-4eb6-82bb-24f3ac801f7a")
 	)
 	(symbol
 		(lib_id "Device:C_Polarized")
@@ -9540,10 +9540,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "b6c75b2b-c394-49cd-8396-e8b86d5927cc")
+			(uuid "100818cf-70f1-4c04-b182-03af3feec6db")
 		)
 		(pin "2"
-			(uuid "1b2909c1-3153-4f61-96d6-9eca838047fa")
+			(uuid "40a7fb2c-d0fd-4049-b266-94cc7bea79d3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9563,7 +9563,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "f92eec55-ebb4-4d51-aece-a2460f81875d")
+		(uuid "57d5f989-6318-48b1-a5fc-d27672bff9e6")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -9573,7 +9573,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "722a93c7-d7e4-44f8-8ffe-d5954ca24642")
+		(uuid "1dcb9cdb-20dd-491e-8ccc-0c5265cdf493")
 		(property "Reference" "#PWR028"
 			(at 153.06 136.16 0)
 			(hide yes)
@@ -9624,7 +9624,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "13bd4f21-db52-4c77-a6a3-f3796354f74b")
+			(uuid "c75f5379-f463-4f92-977a-8fe9f31fb6a7")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9644,7 +9644,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a38dc87b-613f-4513-b668-58b01dbfb969")
+		(uuid "bace2f9f-f262-4639-96ae-585c29633690")
 	)
 	(label "POR"
 		(at 149.86 149.86 270)
@@ -9655,7 +9655,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "af644be1-734b-4e12-974d-a7b0e2b6d76d")
+		(uuid "6a47c3d0-a517-408c-b3bd-2d2aea36832e")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -9725,10 +9725,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "9ab2ecd5-6479-473b-b4cd-e62dbc93dd4c")
+			(uuid "084ac507-5f59-4a08-9800-7571c56ebca0")
 		)
 		(pin "2"
-			(uuid "02f979b4-62e9-4579-a53f-ffc8eb37f8e5")
+			(uuid "fc3b89ab-00d1-4e13-809a-3f06ac500cb9")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9748,7 +9748,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "909bf985-5307-45e3-8fc2-bd139ce866fa")
+		(uuid "9f96a03f-4397-4a49-858b-78bbff8e020c")
 	)
 	(label "POR"
 		(at 149.86 158.75 90)
@@ -9759,7 +9759,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "87561ab9-f1a7-4398-8b16-df37d6e10db7")
+		(uuid "f48d15eb-9b5c-4e42-b670-f5b12400bfc4")
 	)
 	(wire
 		(pts
@@ -9770,7 +9770,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4b8c8853-624b-4608-a006-354acf3d93b6")
+		(uuid "b9300c40-2d60-48a9-8b7a-84b1249a6bfa")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9780,7 +9780,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "953bdb9c-f895-43a4-9b9f-d9f54917313f")
+		(uuid "3c9e3902-bb29-4a18-b8c9-2a6736dfdab6")
 		(property "Reference" "#PWR029"
 			(at 153.06 170.45 0)
 			(hide yes)
@@ -9831,7 +9831,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "ce773c2f-535a-4fca-91ef-57660e2d4f9c")
+			(uuid "e6227e4f-7c8b-48c0-ad63-c74faa9c778b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9910,10 +9910,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "d9872612-c723-4610-9b8a-6ef86005c726")
+			(uuid "6584e0e3-bf61-4d78-84b5-81d5b0729bb5")
 		)
 		(pin "2"
-			(uuid "2c29def7-8a90-4026-b7e8-2bffabe242e1")
+			(uuid "cebcddc7-4e60-4949-ac54-192d2549f0fd")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -9933,7 +9933,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "558fb035-1332-4857-89ad-43b45885efb8")
+		(uuid "8ceb1aed-2fac-4898-b021-9649e59d20cd")
 	)
 	(label "RST"
 		(at 168.91 154.94 180)
@@ -9944,7 +9944,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "4a9f32c7-9411-4957-b786-e462dd4e7b06")
+		(uuid "87c9d448-ed40-4109-a87b-fe7fe02b59ad")
 	)
 	(wire
 		(pts
@@ -9955,7 +9955,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0788968d-43b0-4aa9-bb1f-4f965baf3737")
+		(uuid "283e2282-51d5-4964-965e-edd8bf8446ac")
 	)
 	(label "POR"
 		(at 181.61 154.94 0)
@@ -9966,7 +9966,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "42061196-d651-484e-8501-dc6d950a75b3")
+		(uuid "0c231cf8-b1f1-41f6-8730-2d83f44cc845")
 	)
 	(symbol
 		(lib_id "Device:D")
@@ -10036,10 +10036,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "3388b966-22d2-4018-9b3b-5796288bb25c")
+			(uuid "e08ef84f-ef2e-47e8-8f9d-cd1c74eec1a2")
 		)
 		(pin "2"
-			(uuid "eba0f0e0-a998-4f90-bc10-df37e542929f")
+			(uuid "b410a848-e028-4732-8fbb-d6e087998e6b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10059,7 +10059,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "339d4261-b43d-492d-87eb-1d01c4d0e06d")
+		(uuid "291caff2-9a48-4adf-a5b9-8751c6da2a50")
 	)
 	(label "RST"
 		(at 276.86 152.4 0)
@@ -10070,7 +10070,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1dc728fc-b64f-447f-a3ba-7f9c57fc414c")
+		(uuid "11b819ec-3bb1-481c-9719-99c7bbf660d5")
 	)
 	(wire
 		(pts
@@ -10081,7 +10081,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "9124a0a3-4591-48a5-9aee-6b878da74eb4")
+		(uuid "c2b1567c-abf4-4270-a794-f0b7c19177ae")
 	)
 	(label "Q3"
 		(at 264.16 152.4 180)
@@ -10092,7 +10092,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "17fdef30-46eb-4131-8dfd-1400d55c0458")
+		(uuid "cc3e0c6c-10fe-44d8-ac9c-c6fca16da47c")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10162,10 +10162,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "ec23abbf-211a-4e14-b1ac-6e669ac87d78")
+			(uuid "89b4a0da-16b2-4fdb-a670-96e9b50a5f50")
 		)
 		(pin "2"
-			(uuid "0cf1045b-db57-4206-b7c4-83af1c8291fe")
+			(uuid "7d264b54-c658-4079-874f-2c5cd672d9a4")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10185,7 +10185,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "341175bd-ff69-441f-ad56-47a23bf64e17")
+		(uuid "ee86eb0a-2af3-45e4-9f45-4051dba33d85")
 	)
 	(label "RST"
 		(at 195.58 158.75 90)
@@ -10196,7 +10196,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "db70bda4-5f80-4357-b047-7901de7d365d")
+		(uuid "22a00c5a-6b7b-439a-b420-50d8c0cde520")
 	)
 	(wire
 		(pts
@@ -10207,7 +10207,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "24599cb8-78e8-4346-b911-3b471766ebd7")
+		(uuid "6f2f9baf-29d0-4f2d-bcd5-e986c4662e2c")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10217,7 +10217,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "2c468567-99fb-47cb-95d7-48619f870a55")
+		(uuid "68248a43-bbda-4e47-9808-8de111b8d711")
 		(property "Reference" "#PWR030"
 			(at 198.78 170.45 0)
 			(hide yes)
@@ -10268,7 +10268,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "5c5c07cd-fcfd-47cd-b841-1a0f3c1748a2")
+			(uuid "5636b8c1-f62e-497c-a710-2712818b00e7")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10347,10 +10347,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "c7440c7f-d422-4a94-8174-281ce4f89805")
+			(uuid "aca8035a-9c2b-45b5-b6c9-96ca6cd63395")
 		)
 		(pin "2"
-			(uuid "fd6d295d-e5d3-4078-930b-96cc23d536f9")
+			(uuid "5d820ce8-246b-4da4-80e8-a1b09008d230")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10370,7 +10370,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "37d8d07a-c2e0-424d-b792-3a83237140e2")
+		(uuid "4dc48087-77b5-4925-8e51-5bd7372d1387")
 	)
 	(wire
 		(pts
@@ -10381,7 +10381,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "35208f30-4ece-4c1c-865c-241830977c5e")
+		(uuid "21401575-3b8e-448d-8362-ef3c0654b46e")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -10391,7 +10391,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "1c3983d3-05e1-463e-9739-ea2f70916d75")
+		(uuid "957d5e0a-10c8-43e9-9185-1fa8b75d2e4e")
 		(property "Reference" "#PWR031"
 			(at 202.59 175.53 0)
 			(hide yes)
@@ -10442,7 +10442,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "ff5fda29-3479-47b9-90f3-d6b9ff735974")
+			(uuid "02b5e84e-7679-457a-ba0a-fb23b20a277c")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10462,7 +10462,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "56f7e870-bca1-4659-bba7-aaffa6ea8f27")
+		(uuid "cdd7e7bb-8f0d-40ab-8934-9758526ecf20")
 	)
 	(label "POR"
 		(at 217.17 179.07 0)
@@ -10473,7 +10473,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4cddfd02-d59f-4a70-8ac2-017056532f5c")
+		(uuid "68b3d740-c963-4193-9f27-f2622d2f56cf")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10543,10 +10543,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "22b54f45-b2f4-47dd-86e9-06f92ef0e8ba")
+			(uuid "e7475188-4e49-48c0-a80f-c00cca4275f7")
 		)
 		(pin "2"
-			(uuid "5c9628a8-b454-4824-b883-eda3b928b217")
+			(uuid "26841291-06bd-4480-b426-460f68daaf30")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10566,7 +10566,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "903742df-5494-4a3d-b038-6b6123e713a7")
+		(uuid "8dfa1fb1-eaf5-4e8c-9f85-abbdb9f78433")
 	)
 	(label "Q0"
 		(at 278.13 116.84 180)
@@ -10577,7 +10577,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "37272969-6dd1-459a-a23a-8cecaafefe9d")
+		(uuid "03f9ee96-4e06-4152-9227-9747b395ddec")
 	)
 	(wire
 		(pts
@@ -10588,7 +10588,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d1ec3a68-e953-4d85-820c-e41be4551dfc")
+		(uuid "d8cf3472-4e1b-4981-9b14-5a7626799502")
 	)
 	(label "LED3A"
 		(at 290.83 116.84 0)
@@ -10599,7 +10599,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "14f2eaca-ef4d-4d18-a8c3-a25d24469a56")
+		(uuid "a9f1dd1f-5a85-4e82-8a0c-2e79131f3c89")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10669,10 +10669,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "7f06a34f-16af-42c5-b6ef-28644afa8990")
+			(uuid "5e7b1ba7-ae62-48bf-bf74-37cb7a2cc281")
 		)
 		(pin "2"
-			(uuid "8cf0fcfa-be13-4c5e-acf5-9c0ad567c313")
+			(uuid "76eb21de-b5b9-4605-ac40-89b4bf60eb1b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10692,7 +10692,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c9acfb99-b589-400e-9f05-4b9be340d8db")
+		(uuid "05097b1b-6a59-47c3-88a1-df534d3bd341")
 	)
 	(label "Q1"
 		(at 278.13 129.54 180)
@@ -10703,7 +10703,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "12d28406-0433-4660-8f2d-f4338fb2d991")
+		(uuid "929354ed-2a99-4ccd-8ace-081207567a32")
 	)
 	(wire
 		(pts
@@ -10714,7 +10714,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "22dd4142-5660-4a07-97b2-c5cc3e8eb3cd")
+		(uuid "2ea3f410-3eff-4b49-909a-32ab093b08c4")
 	)
 	(label "LED4A"
 		(at 290.83 129.54 0)
@@ -10725,7 +10725,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "5ab9d64f-abd8-4ec8-b537-2614c4b419f9")
+		(uuid "211f43fe-75e5-4020-a99a-3ee9fc80e65e")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10795,10 +10795,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "4f6960a7-a161-4b95-8e6f-8736a33b5eb1")
+			(uuid "d0ab02f4-3781-43a9-8eb4-8082337da8bb")
 		)
 		(pin "2"
-			(uuid "ee5544a7-0ebe-43bb-9bb5-7b252a709c0a")
+			(uuid "feb5f520-6d87-4603-a003-64b658e3f5bf")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10818,7 +10818,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e5480d61-2e88-4168-8b66-2102f53c2f0b")
+		(uuid "d76818cb-6f26-4240-b803-6132b8853d64")
 	)
 	(label "Q2"
 		(at 278.13 140.97 180)
@@ -10829,7 +10829,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "6d7e138b-61b7-46dd-aba5-71cdaf26caea")
+		(uuid "76323a27-6246-4dee-9745-b2fcfd41711a")
 	)
 	(wire
 		(pts
@@ -10840,7 +10840,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "cd890b01-acc0-45e7-a606-ce913cbef4ca")
+		(uuid "3e5f564e-f041-4638-9be6-51683b25717e")
 	)
 	(label "LED5A"
 		(at 290.83 140.97 0)
@@ -10851,7 +10851,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "6c76066d-3fa3-47fc-9c8a-1b555e413627")
+		(uuid "133e5be9-80be-4e38-9ba0-fc944b62af60")
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -10921,10 +10921,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "3029807c-832f-4de6-abfd-e9d6d36f10d9")
+			(uuid "36ba217c-da37-492a-bad9-47651e452fce")
 		)
 		(pin "2"
-			(uuid "dbcbb6b4-5fbb-49d0-8296-2d978e76d883")
+			(uuid "ab35dbda-74f2-485e-a72b-0ad325afdc50")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -10944,7 +10944,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "1cd3821d-9a85-4ad0-9bfa-cc71f5be20fc")
+		(uuid "b98686e1-d1fa-40aa-8076-ecd7b8f757a5")
 	)
 	(wire
 		(pts
@@ -10955,7 +10955,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ae412544-900e-4c08-9db6-9e021b64f7d0")
+		(uuid "0ad30f77-7f14-4e82-b8d3-c5751eba19e3")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10965,7 +10965,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "9ac4dd84-40ad-42cb-a406-a3aa841c2846")
+		(uuid "3f57b0d0-07bf-4c61-a50d-69b9e8c0379f")
 		(property "Reference" "#PWR032"
 			(at 329.59 118.38 0)
 			(hide yes)
@@ -11016,7 +11016,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "e949dfa3-bd42-47e2-929f-aa01162a30fe")
+			(uuid "58bedf6f-eb85-4fed-a737-8b7af201c581")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11036,7 +11036,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "918ef1ef-7c11-4895-b803-af7da7621c7f")
+		(uuid "76c63bc3-1e74-4478-80a9-b0f53c7a7cca")
 	)
 	(label "LED3A"
 		(at 311.15 116.84 180)
@@ -11047,7 +11047,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "1a0f7037-d008-4e18-96aa-709f111b173e")
+		(uuid "30497616-fb31-46d2-afd8-193ba644f21f")
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -11117,10 +11117,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "7afc8ef1-0232-4bc1-9bf6-e67328659b42")
+			(uuid "69e8dd0b-aae3-4447-b05a-76486ff13dc8")
 		)
 		(pin "2"
-			(uuid "c87c654f-128f-4aff-b110-99db34c3e5a4")
+			(uuid "c1312fc6-1877-4e88-8dc0-49ceafc72235")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11140,7 +11140,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "293f26e3-c089-487d-b1ca-12fe63ae0fab")
+		(uuid "fcd08570-0a74-4a1e-af54-8aac565d3f19")
 	)
 	(wire
 		(pts
@@ -11151,7 +11151,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0c62d6d9-bdc3-4a4d-a393-c90e2ed4f647")
+		(uuid "cb3e1121-d804-4074-82e1-8026c03efaab")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11161,7 +11161,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "1faae60c-4f09-481e-8358-1d49320e3e97")
+		(uuid "b0dd440f-1b75-4676-a0e0-6ee1f5a03cf6")
 		(property "Reference" "#PWR033"
 			(at 329.59 131.08 0)
 			(hide yes)
@@ -11212,7 +11212,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "a257da2f-ea91-4d22-a97e-3c7e3f255769")
+			(uuid "797ebf5b-07de-4b1d-8e3c-6fb2057daf10")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11232,7 +11232,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a985c6d5-e15d-47b0-b3b1-1e42c6d6bf61")
+		(uuid "5c4f2625-6e0e-4b33-903f-9bbbbd2ad156")
 	)
 	(label "LED4A"
 		(at 311.15 129.54 180)
@@ -11243,7 +11243,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "2d1cb052-0d3b-466d-8c09-142dbdf32e31")
+		(uuid "ea247bef-f44e-4974-bdc6-f9ba0d817f1f")
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -11313,10 +11313,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "d68c83b6-7cf1-45e9-890d-3d015515ce81")
+			(uuid "956dec5b-4319-4b6b-b051-a01770ea8bed")
 		)
 		(pin "2"
-			(uuid "6dd4ba24-7311-4f75-93d1-98a0588ed2fa")
+			(uuid "c35fd773-8b21-44c2-bcf7-881e1bca4358")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11336,7 +11336,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "35159ec3-0dc2-485a-9021-52f526f39858")
+		(uuid "50dd4b5a-770b-4511-a268-6c970672afe6")
 	)
 	(wire
 		(pts
@@ -11347,7 +11347,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3f9b5d36-39f4-484e-8f1e-31dc5ca94b6b")
+		(uuid "819222ff-b08b-499c-9742-d2525a1516a8")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11357,7 +11357,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "d8d1888c-b3ab-4d88-b00d-9c3521a8a214")
+		(uuid "7f3833a2-f9df-4c0b-b76e-57170497086c")
 		(property "Reference" "#PWR034"
 			(at 329.59 142.51 0)
 			(hide yes)
@@ -11408,7 +11408,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "b48c5657-8eed-4fec-8d9c-8763a4021b9f")
+			(uuid "313e88ee-6976-4ca9-b309-44ec9f7aba01")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11428,7 +11428,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "258de270-4e56-42ec-9d2e-0b46df1a2c01")
+		(uuid "4924f845-c6c3-41fe-8bce-996ff307f9ed")
 	)
 	(label "LED5A"
 		(at 311.15 140.97 180)
@@ -11439,7 +11439,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "af49f782-64b5-45fc-9cfc-4d751e251b3e")
+		(uuid "d14391ec-f61a-400f-b8c9-fd595feddd36")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -11509,10 +11509,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "0564d75b-4482-40c4-a0db-62b2e216a766")
+			(uuid "b91395f8-b2d0-45d5-90ba-1f48c10e4777")
 		)
 		(pin "2"
-			(uuid "0f880ccf-41e7-43b3-9249-f40ee9568110")
+			(uuid "a72ca039-a2f5-4a0e-88ba-4a5b03a2bd3e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11532,7 +11532,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c21be66a-437d-4256-a38e-2e3f78aff226")
+		(uuid "8b11c8f4-3462-4c1d-8b5b-8bc47441cfa0")
 	)
 	(label "Q0"
 		(at 53.34 255.27 180)
@@ -11543,7 +11543,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "c155c0ff-d1d0-41a9-96a9-b1579c929bf5")
+		(uuid "786c85e0-74ed-4cfe-bd55-5592ad534353")
 	)
 	(wire
 		(pts
@@ -11554,7 +11554,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b54ed981-9897-4d32-be81-345f8f750e1e")
+		(uuid "a6e4be7b-b7ba-4697-8bd4-7a9a3c5b0dec")
 	)
 	(label "G1"
 		(at 66.04 255.27 0)
@@ -11565,7 +11565,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "e8ee24b7-6a69-4088-85d9-2877de960119")
+		(uuid "df2b8457-81b7-449f-960e-f95d9dbaccf1")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -11635,10 +11635,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "eb35590c-b10e-4e18-9064-7a9ceff5bf72")
+			(uuid "7b59e584-a656-4f26-9a2e-3dee61bb0700")
 		)
 		(pin "2"
-			(uuid "f31f6566-84f1-4aa3-b911-b709ce0af0be")
+			(uuid "0e4c0c6b-3802-413e-8955-37d09c93d28d")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11658,7 +11658,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "7b3dc696-383a-4330-b8b2-94f59b7ec33f")
+		(uuid "5a8c3d02-6052-4b89-b2e6-f0be3dde636c")
 	)
 	(label "G1"
 		(at 77.47 255.27 90)
@@ -11669,7 +11669,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4c2c6b4a-3fbd-4e12-b928-c3646fd4ea63")
+		(uuid "faa485f2-fa30-46ef-a8cb-130597fe7e8d")
 	)
 	(wire
 		(pts
@@ -11680,7 +11680,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "58390df5-b343-46ea-89d0-a897f9b20db6")
+		(uuid "4b5e51ee-84d3-49e8-8344-46c5533daec7")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11690,7 +11690,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "b00aa404-37ac-4153-bbb7-4d3aa2bec69b")
+		(uuid "0cd3c20e-416e-4302-98b9-630f96e43b0b")
 		(property "Reference" "#PWR035"
 			(at 80.67 266.97 0)
 			(hide yes)
@@ -11741,7 +11741,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "079aa339-87ca-467e-a6a7-dfc5badb1148")
+			(uuid "8a2cab5d-a27e-495f-8e5f-67d5c32079e9")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11820,13 +11820,13 @@
 			)
 		)
 		(pin "2"
-			(uuid "24403179-06f6-4f31-a529-aced6522b26f")
+			(uuid "883b75a2-6315-47e3-bcc3-c551a7985965")
 		)
 		(pin "3"
-			(uuid "16b8bb7e-7a35-4a8c-bad8-4f5ed09b7686")
+			(uuid "be271a03-9cc2-49ec-9120-f2a390bd74bc")
 		)
 		(pin "1"
-			(uuid "e52e647e-e3de-4415-93d6-d260b7105bf7")
+			(uuid "6081b03b-53b4-4bf6-90be-b6c48c7187e0")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -11846,7 +11846,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "20685d4c-1cff-454c-a203-232282b6b055")
+		(uuid "b2fadf05-dfd7-4e88-b35e-613f3c9f925b")
 	)
 	(label "G1"
 		(at 85.09 252.73 180)
@@ -11857,7 +11857,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "136ed9b4-342c-4b3f-a333-82a6ca2d84d5")
+		(uuid "99891ad4-9564-4343-a78d-1d069651ca04")
 	)
 	(wire
 		(pts
@@ -11868,7 +11868,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "fe61c0f4-d01e-4234-bd3a-a2ec8f8086f4")
+		(uuid "7acbd8a3-7909-4f39-bb58-7384c33f8c48")
 	)
 	(label "DRN1"
 		(at 95.25 245.11 90)
@@ -11879,7 +11879,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "7f777ac4-dd96-49b2-992b-6bf4516a86a2")
+		(uuid "20579169-f9a4-4c29-a4f9-7ae1e9a91547")
 	)
 	(wire
 		(pts
@@ -11890,7 +11890,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "02388fcd-36c7-4376-b2d2-b06d121cc4d2")
+		(uuid "6ef07651-6569-409e-ab41-89158e7907ae")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11900,7 +11900,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "25f6082d-15b2-4759-aed3-78d9a65b7aa0")
+		(uuid "80893011-cc22-45b5-a957-25d4ec158e8a")
 		(property "Reference" "#PWR036"
 			(at 98.45 259.35 0)
 			(hide yes)
@@ -11951,7 +11951,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "acbeeb5f-4705-41c6-8f88-6e1dd2e9bac9")
+			(uuid "f67a68bb-692a-4e66-ac84-2a878bec717b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12030,13 +12030,13 @@
 			)
 		)
 		(pin "3"
-			(uuid "9f2f1c2d-8ff0-48dc-9373-9e52fcf1a67e")
+			(uuid "e5c4d0d4-c802-43c3-96dd-7f30cfb44c8d")
 		)
 		(pin "1"
-			(uuid "71669992-5ffd-4eac-9c09-138a4c2b994b")
+			(uuid "9162c420-e258-4af4-b974-9e1be0bf1f35")
 		)
 		(pin "2"
-			(uuid "81c6994c-b8f9-4d07-8bc0-175fd873154c")
+			(uuid "cf9716ef-003b-4417-b1d8-25513dcc952f")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12056,7 +12056,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a6e65050-c5c2-49d5-9752-e7219fac7875")
+		(uuid "12bfed6e-185f-40b8-a923-e413048e0fa1")
 	)
 	(label "F1N"
 		(at 74.93 214.63 180)
@@ -12067,7 +12067,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "4bfa293b-1d38-4694-845d-b4bc0ec09dc4")
+		(uuid "1b548fcc-5a55-4aa2-9057-361639226937")
 	)
 	(wire
 		(pts
@@ -12078,7 +12078,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "9c6fe90a-4c1e-443f-a0ac-ff205e270fe9")
+		(uuid "30526895-73d3-4af0-a2a7-ebdf960dfc08")
 	)
 	(label "DRN1"
 		(at 85.09 224.79 270)
@@ -12089,7 +12089,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "1b5bb81c-3f9f-4455-a927-13509e9aa5bc")
+		(uuid "5d8360c4-6671-439a-aa56-40da0162ec12")
 	)
 	(wire
 		(pts
@@ -12100,7 +12100,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "2422676b-ae72-45c8-92d7-3e8caad91e08")
+		(uuid "b3b7df98-e035-47fe-95e3-68552c02c62f")
 	)
 	(label "I1A"
 		(at 95.25 214.63 0)
@@ -12111,7 +12111,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "35daddbb-f6f4-4210-8b5a-fba4113188b8")
+		(uuid "3c4f55e6-2374-4a92-8879-4752e48f7957")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12181,10 +12181,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "9ff59a3e-6cc6-4cf2-838d-7bb5c4087a23")
+			(uuid "fd87e22f-60b4-4262-8d3d-ed40ad9a1333")
 		)
 		(pin "2"
-			(uuid "76f00b89-6c53-4cfa-b8f5-fd381c5296a8")
+			(uuid "d9d7ae71-d9d5-4c4f-92a3-dcc7742417cf")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12204,7 +12204,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "49d3b097-15e9-4bb6-b0bc-b77f30530857")
+		(uuid "30e7e1de-f9a9-4ec7-8d7f-1f4584b93a6a")
 	)
 	(label "I1A"
 		(at 110.49 212.09 90)
@@ -12215,7 +12215,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a899e228-7067-4794-ada4-61e2ab70a36f")
+		(uuid "6f4b47e6-2c73-4dad-9e81-9b39746dc14f")
 	)
 	(wire
 		(pts
@@ -12226,7 +12226,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b49027ad-212f-4da1-9758-c9d7a3a48208")
+		(uuid "3ae7001d-968c-4e87-9547-8320436f1c51")
 	)
 	(label "I1B"
 		(at 110.49 224.79 270)
@@ -12237,7 +12237,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "eb92f4a3-3fcf-4756-bbfc-dcd4e190ed9e")
+		(uuid "06df8134-6563-47db-9803-5f63247c7207")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12307,10 +12307,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "ab245412-d475-40ab-adde-3a90dc28aea8")
+			(uuid "62bf37e7-7df8-4a16-9200-f13e8e28ce44")
 		)
 		(pin "2"
-			(uuid "49d2e2ee-c788-4db8-9ba7-b7fb1be8a3bb")
+			(uuid "141cbaeb-4445-4016-ad8a-4f457c0ce743")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12330,7 +12330,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "9ec29feb-34cf-4493-9e18-9cfbc4c6529b")
+		(uuid "a65500e6-a92b-4b96-8bfc-4a4912469461")
 	)
 	(label "I1B"
 		(at 110.49 231.14 90)
@@ -12341,7 +12341,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "7ab94072-3389-494d-8434-6031dbd5d615")
+		(uuid "cabc3352-f156-4985-ba4f-4b940dd359bd")
 	)
 	(wire
 		(pts
@@ -12352,7 +12352,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d6c9c136-4ce8-49b6-9547-fbd9f8c87087")
+		(uuid "a1b00ccf-eca0-492b-af7b-9ca7c5a4a696")
 	)
 	(label "DRN1"
 		(at 110.49 243.84 270)
@@ -12363,7 +12363,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "0908f951-8e6c-4181-ab6f-99a6c3ce92fd")
+		(uuid "043f4754-3a2d-45fc-85f5-976cf4728189")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12433,10 +12433,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "09cc6ee0-ed3c-4879-bf0f-4dac0cca118b")
+			(uuid "5ea93853-6a84-4e9b-b41b-b5c30226997c")
 		)
 		(pin "2"
-			(uuid "e93c869a-063c-439d-af8b-d6c6e89f28d2")
+			(uuid "e25651ce-8536-4c1d-b17a-41b36be56d73")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12456,7 +12456,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "18f8fe89-03b6-43d5-9648-6ba8482daeef")
+		(uuid "eac6b467-8020-4310-8236-13597a943749")
 	)
 	(label "Q1"
 		(at 128.27 255.27 180)
@@ -12467,7 +12467,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ae3f9b55-fdda-45a8-87e9-4b11e6d88f48")
+		(uuid "a5a02ce4-a9db-4875-a3d8-4453d981d3a8")
 	)
 	(wire
 		(pts
@@ -12478,7 +12478,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "794025e6-a3fe-4265-aace-46ae58f663e4")
+		(uuid "be35f12a-05f5-4773-9587-81b203e15069")
 	)
 	(label "G2"
 		(at 140.97 255.27 0)
@@ -12489,7 +12489,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "6c5deaf6-bf75-4044-889c-f0ef7439fbca")
+		(uuid "12842c72-d827-4b57-b80e-c264bd7493a6")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -12559,10 +12559,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "0118acee-7000-4be8-8547-13a160fe0011")
+			(uuid "ccb4da38-88a2-4744-a874-6112cbbf2d75")
 		)
 		(pin "2"
-			(uuid "a0b08f79-4f68-4fcb-ae8b-339bcaa8956d")
+			(uuid "2d0ae866-bc25-4633-8240-6068cc2eac74")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12582,7 +12582,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "568fb05a-c0d0-449b-8b57-f6ea013a131c")
+		(uuid "7832f381-b3c0-4f63-92dc-628bd16e7822")
 	)
 	(label "G2"
 		(at 152.4 255.27 90)
@@ -12593,7 +12593,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "97393859-5517-4f3d-96e1-b0ee3b3cdb1d")
+		(uuid "d1aa0524-8362-454d-884d-ebb90fa2bbf4")
 	)
 	(wire
 		(pts
@@ -12604,7 +12604,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ba30df63-bb3f-4d28-8d3c-9094468826d6")
+		(uuid "a5eaf6a9-8aa7-4970-8448-e959655cf2ae")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -12614,7 +12614,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "f875adf7-d2ce-45d6-a542-0fc0ca82b666")
+		(uuid "bf064774-fe79-4a95-82bc-72ac7ccf5cf6")
 		(property "Reference" "#PWR037"
 			(at 155.6 266.97 0)
 			(hide yes)
@@ -12665,7 +12665,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "d48764fa-74fa-49cd-8820-a781dd8e5d30")
+			(uuid "a501e491-123e-440d-84cc-998189d9b041")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12744,13 +12744,13 @@
 			)
 		)
 		(pin "2"
-			(uuid "bc0f2842-c853-4d73-a476-c08ff268613b")
+			(uuid "5d315cef-9483-45ff-bc03-7eb875d02793")
 		)
 		(pin "3"
-			(uuid "380344aa-b1e6-4ed6-9a23-9e8243a32e72")
+			(uuid "46758c08-f9d0-4699-b349-83536b1f64c0")
 		)
 		(pin "1"
-			(uuid "10ebfc84-fa93-478d-a359-fdbb607d61c8")
+			(uuid "e5cfcfe8-abb0-4a5e-8400-8c4135eeb481")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12770,7 +12770,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d4f0c5b6-61c4-4570-adb7-dc1f4d849ef0")
+		(uuid "2b395519-dfb0-4d48-9b73-4dda39187cdd")
 	)
 	(label "G2"
 		(at 160.02 252.73 180)
@@ -12781,7 +12781,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b349d87c-0d12-477c-8f63-a8455de01a4d")
+		(uuid "bb7d6fa4-a3d2-42e1-8c16-d2bb4e689a90")
 	)
 	(wire
 		(pts
@@ -12792,7 +12792,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ef7ecd9e-a4e2-4b86-8703-9b2d7d4556d2")
+		(uuid "76333261-c32a-450d-bc87-0232e7be611c")
 	)
 	(label "DRN2"
 		(at 170.18 245.11 90)
@@ -12803,7 +12803,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "7b128a34-fc4a-47e2-b9d7-c57566f33312")
+		(uuid "80cf2304-e569-49b3-b43d-98e8e03f48ec")
 	)
 	(wire
 		(pts
@@ -12814,7 +12814,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "53e2b6b8-2191-4e63-ae4d-99f0c305cd1c")
+		(uuid "2e5f4170-525e-409f-8a12-d899d4d0b2fe")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -12824,7 +12824,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "3620ae7e-2cfc-4b89-833a-06a9b340029a")
+		(uuid "78e65d23-2ede-463d-a3f2-137c206c698c")
 		(property "Reference" "#PWR038"
 			(at 173.38 259.35 0)
 			(hide yes)
@@ -12875,7 +12875,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "3154dda5-228e-48b6-b81d-ea7640752e2e")
+			(uuid "0b3045fd-202b-4d43-9024-cc1a659b0c8f")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12954,13 +12954,13 @@
 			)
 		)
 		(pin "3"
-			(uuid "ccd3f0e9-6393-4968-80a2-199bd4ab4846")
+			(uuid "fb4817ef-5bdb-49b1-83d9-c6448a25c864")
 		)
 		(pin "1"
-			(uuid "6d4de470-58de-41dc-9f25-a386818b0918")
+			(uuid "82fc6a9b-485a-4b61-9a90-87d160826e88")
 		)
 		(pin "2"
-			(uuid "6f7e43c2-b39e-437a-82c0-8ab071c2f797")
+			(uuid "314624ab-0f17-40f0-a052-9ebb016b758b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -12980,7 +12980,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e6bac1ab-3e93-44a5-a00f-416699ae06c7")
+		(uuid "b1c436f9-02fb-4c86-b49e-581e06fa0456")
 	)
 	(label "F2N"
 		(at 149.86 214.63 180)
@@ -12991,7 +12991,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "25c348bb-7a88-4eef-944b-ab0a55817202")
+		(uuid "64f53a6b-997f-475f-83c4-02e392016d64")
 	)
 	(wire
 		(pts
@@ -13002,7 +13002,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0cca0c3c-1734-4f32-8ba1-66ce550cbada")
+		(uuid "97787c03-fbae-4e5a-b294-ea05964e77c8")
 	)
 	(label "DRN2"
 		(at 160.02 224.79 270)
@@ -13013,7 +13013,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "3eb9221f-af67-455c-82df-652583ecea08")
+		(uuid "39624187-ac06-4e3d-b531-97157f27283d")
 	)
 	(wire
 		(pts
@@ -13024,7 +13024,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "fef7a0bb-a617-4450-8e45-bf0767d24a19")
+		(uuid "0d3628c0-ac2e-441c-86ba-0cae43d0175c")
 	)
 	(label "I2A"
 		(at 170.18 214.63 0)
@@ -13035,7 +13035,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4d18bc24-9d48-4d39-ad3b-64e708e0c833")
+		(uuid "d25d6b8e-7bfd-416e-a7a5-0bf0401583e7")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -13105,10 +13105,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "36e66a5a-f864-401e-8638-a0d81c4bebe4")
+			(uuid "851cd112-73eb-4e41-95bc-7f45eaf6b550")
 		)
 		(pin "2"
-			(uuid "e06a5322-9d3e-4693-9cfb-0d53a76461c5")
+			(uuid "28582bb0-2dc1-4a3f-9804-49d03c3cb132")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13128,7 +13128,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4065c0e8-dace-4ede-8a05-c5bb020d1507")
+		(uuid "6849969f-ea0a-4273-85f3-f5a4a55530c1")
 	)
 	(label "I2A"
 		(at 185.42 212.09 90)
@@ -13139,7 +13139,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "8bdc807a-3299-4552-a308-15bd07c24b0c")
+		(uuid "41cb66ed-9db3-4daa-afce-8172c58d32be")
 	)
 	(wire
 		(pts
@@ -13150,7 +13150,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e3f67f23-51b2-4bca-9a32-7983d631fe45")
+		(uuid "8d86c28d-6c3b-4c19-a4f1-50c2fb64b8d5")
 	)
 	(label "I2B"
 		(at 185.42 224.79 270)
@@ -13161,7 +13161,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "baa4465b-4080-4a01-b27b-f60881a634c8")
+		(uuid "6147e60e-c16b-4be3-b4ea-197f4fb133b9")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -13231,10 +13231,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "8f48667f-20fa-48ca-8e52-7d6ecbcdebc0")
+			(uuid "ec4db59f-baa0-47db-9f8f-04b2f11b4bde")
 		)
 		(pin "2"
-			(uuid "76e44020-a17a-433b-b656-abc7886e5855")
+			(uuid "aee18f78-829c-4f21-9bb9-2c9895605f1e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13254,7 +13254,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "530cd05f-b472-4a28-a600-2ba35a1d65f2")
+		(uuid "6c2fe065-2194-445f-81b3-396b103e353c")
 	)
 	(label "I2B"
 		(at 185.42 231.14 90)
@@ -13265,7 +13265,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "028b3efa-7d33-474e-9ba2-0d40cc6be94e")
+		(uuid "25d8fb7f-3624-4cb0-8c71-d843aac4faa6")
 	)
 	(wire
 		(pts
@@ -13276,7 +13276,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a9baaba5-a33a-48d5-b253-3cd146a4e424")
+		(uuid "5024e72f-5277-40f0-b09c-e7e36251c88a")
 	)
 	(label "DRN2"
 		(at 185.42 243.84 270)
@@ -13287,7 +13287,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "074b480c-462e-43ac-9bac-aa5e8a3eb359")
+		(uuid "c5d18355-d5d3-4d4a-8214-38ca1fd6d14e")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -13357,10 +13357,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "fa14a8aa-19fb-4064-b4df-e085e825c872")
+			(uuid "83bca4fa-97b3-426c-8bb6-280d4a4567c8")
 		)
 		(pin "2"
-			(uuid "44cb4af5-9011-4ca9-a305-15ee91ab590e")
+			(uuid "a6bc2d20-d8b9-4901-9f77-6a4c6702c8cf")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13380,7 +13380,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c2319409-809e-407c-b969-9e59dd539fdc")
+		(uuid "537d3043-5f08-4a61-81db-53689f99fc48")
 	)
 	(label "Q2"
 		(at 203.2 255.27 180)
@@ -13391,7 +13391,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "a97f4f94-1535-40a0-8115-2351ec38a916")
+		(uuid "38d3a201-3e33-4601-8e53-afa4ade0b559")
 	)
 	(wire
 		(pts
@@ -13402,7 +13402,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "7e55cb67-1d32-4a75-a725-dd938c530806")
+		(uuid "65e6fe09-309f-4531-a60a-43ecb0891cc4")
 	)
 	(label "G3"
 		(at 215.9 255.27 0)
@@ -13413,7 +13413,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "2c5f45b1-52f9-4b16-9521-06f5473a3a9a")
+		(uuid "b161ac44-faf5-406f-a206-e6ebb4174dbb")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -13483,10 +13483,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "8e0f7598-d9c4-4d50-9139-283c886f2c0c")
+			(uuid "06e9d616-5abd-437b-805e-10789db76d9d")
 		)
 		(pin "2"
-			(uuid "57ffb226-1841-4ecc-ac4a-c48c4dc858bb")
+			(uuid "aceb97f2-f87e-45bd-9b18-591ae507e505")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13506,7 +13506,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "8cf8a9b3-3f3d-4ccb-8a50-90f7bd22ce57")
+		(uuid "7b9b7dc0-6dd7-4fce-a7ad-3e1678424aa7")
 	)
 	(label "G3"
 		(at 227.33 255.27 90)
@@ -13517,7 +13517,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ba8c2bd3-563f-4378-a923-cf3be8131dd7")
+		(uuid "0b9d0f8e-dbec-4e8f-8b8d-4c433a1bdb2d")
 	)
 	(wire
 		(pts
@@ -13528,7 +13528,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "64887191-2fcd-40d3-89f1-04b72d35425f")
+		(uuid "388c8bdf-55b2-46e6-b395-a96a0e9ab2d8")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -13538,7 +13538,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "0d4c35b9-d324-47ba-8021-ae5638d6c269")
+		(uuid "b459c7ef-292a-4f80-94f1-ff26eab0d17d")
 		(property "Reference" "#PWR039"
 			(at 230.53 266.97 0)
 			(hide yes)
@@ -13589,7 +13589,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "3f61cf82-a0c7-4747-8bac-8a1416e00b5f")
+			(uuid "8e1bb347-8d4b-4905-b319-4f407abce268")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13668,13 +13668,13 @@
 			)
 		)
 		(pin "2"
-			(uuid "dc4d11ce-bdf0-40e0-acc3-36fe644b700c")
+			(uuid "cd669192-4408-40d3-9afc-341283c43f7c")
 		)
 		(pin "3"
-			(uuid "ec30295a-07f8-4795-826d-fe512a3bc422")
+			(uuid "1c033720-708c-4998-93dc-0f718f1b3493")
 		)
 		(pin "1"
-			(uuid "1c0438ac-b8e6-4164-937c-01f560eaaef5")
+			(uuid "4958f921-0204-4a9d-9c8c-f8d22eb8e68a")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13694,7 +13694,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3fa287a4-65ce-4658-9f8c-76f4201ec46e")
+		(uuid "8ce5633a-b935-43ff-91ef-5a642b1e7abc")
 	)
 	(label "G3"
 		(at 234.95 252.73 180)
@@ -13705,7 +13705,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "c8d10c47-074f-4740-9e86-14c44b789907")
+		(uuid "1dbbf102-6637-46ee-ad1f-0d7d9d3e544d")
 	)
 	(wire
 		(pts
@@ -13716,7 +13716,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "80e69ff0-7eca-43e8-8a20-8c813deff656")
+		(uuid "fbfc0683-e061-4fa3-9777-8791abb7d692")
 	)
 	(label "DRN3"
 		(at 245.11 245.11 90)
@@ -13727,7 +13727,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "cc3834f0-aa45-42b5-9ab0-7a48302562b7")
+		(uuid "cbe88172-8779-4a8e-82e9-afc66cd337b4")
 	)
 	(wire
 		(pts
@@ -13738,7 +13738,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3c782c5a-a992-4181-8ac9-3ef3968b4145")
+		(uuid "30b73e9f-a816-4439-9abe-0a0060b430ac")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -13748,7 +13748,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "82c24227-18ec-4466-80a7-0d2d67155887")
+		(uuid "ee781d36-c191-43b2-b323-f26797a51f96")
 		(property "Reference" "#PWR040"
 			(at 248.31 259.35 0)
 			(hide yes)
@@ -13799,7 +13799,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "295a0620-d7a9-4211-a43a-5e8ba81e6399")
+			(uuid "58bcaca7-727f-4c81-a80b-95ab41af45b4")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13878,13 +13878,13 @@
 			)
 		)
 		(pin "3"
-			(uuid "1f23e198-4cdf-47f0-b51d-aa0e7db6b777")
+			(uuid "9d56b383-9b05-4227-bf81-2513d1a6434f")
 		)
 		(pin "1"
-			(uuid "ee127ca0-7645-4a16-aa7c-0e6f379cdf3b")
+			(uuid "313b4b9e-c941-419b-9b80-12886031b03c")
 		)
 		(pin "2"
-			(uuid "f7008c61-027e-4a1e-baaf-d203b2f9efb5")
+			(uuid "3af48a93-ad84-4592-bd7d-a875c2501786")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -13904,7 +13904,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "10ef9130-c6f2-4648-9da1-1d61adf905e8")
+		(uuid "f93e630c-ad5f-4fbc-b171-4fe8f06f5726")
 	)
 	(label "F3N"
 		(at 224.79 214.63 180)
@@ -13915,7 +13915,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "87027b59-de01-4961-87d9-1721294e4de1")
+		(uuid "4d3fb589-8099-45f9-84ea-5fac0cc8fff8")
 	)
 	(wire
 		(pts
@@ -13926,7 +13926,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "97fa47d1-8ef2-47e4-a7f0-5fc18d48c9d1")
+		(uuid "cea154c2-403c-475f-81e2-79f7f80fbab0")
 	)
 	(label "DRN3"
 		(at 234.95 224.79 270)
@@ -13937,7 +13937,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d1133739-873b-4b37-96b9-84af30dd9894")
+		(uuid "ef852f9d-c3f5-4b88-95d0-4520ba4deaed")
 	)
 	(wire
 		(pts
@@ -13948,7 +13948,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ee926b76-fe3b-450b-b9d0-9dab0723ce57")
+		(uuid "b112a38b-c619-49ba-927e-fcfe5b51fdaf")
 	)
 	(label "I3A"
 		(at 245.11 214.63 0)
@@ -13959,7 +13959,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "57fb192e-a18b-4bd5-8231-20eab74a91cc")
+		(uuid "0690cb7b-9ef0-4920-9461-99cca758a977")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -14029,10 +14029,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "69f1a858-a058-45b3-b5b1-eabd40c99714")
+			(uuid "8408dd9b-a318-4161-b3e3-70c40ed083d9")
 		)
 		(pin "2"
-			(uuid "f70b03be-b308-48e8-8121-cb482ec5db9c")
+			(uuid "970b04fc-df82-415a-bf73-54b70af6ea48")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -14052,7 +14052,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "61f4f94f-504c-49f2-80a9-75775a03596e")
+		(uuid "5ad1942d-9be4-491d-84e7-63ca8d73a13c")
 	)
 	(label "I3A"
 		(at 260.35 212.09 90)
@@ -14063,7 +14063,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "f066223e-4f9c-42bd-8d07-ceb654b69c3f")
+		(uuid "5a393962-75b9-4f06-9572-2727409d5986")
 	)
 	(wire
 		(pts
@@ -14074,7 +14074,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ec5b12f7-8659-4752-a16b-c7fb12fb22d7")
+		(uuid "80bdf293-1520-4f34-93da-fde7f1f5c0a8")
 	)
 	(label "I3B"
 		(at 260.35 224.79 270)
@@ -14085,7 +14085,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "709a144e-703a-4cf0-9693-b92033df5bf8")
+		(uuid "257a3734-ef06-4e98-adad-b9ecd19eb1e9")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -14155,10 +14155,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "6c02a908-4fb9-4bda-a448-e72d8604443a")
+			(uuid "71011885-9ac3-42de-9fa4-3b39bad9126f")
 		)
 		(pin "2"
-			(uuid "999793d6-64fc-454d-a4a5-6181ac480cbb")
+			(uuid "c87fbc32-8ff4-4635-a92b-2c86b2cd2558")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -14178,7 +14178,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "053618af-21e6-46c9-96fb-3ae9665dfc89")
+		(uuid "25ef2ddb-6d70-4620-a703-8af192e31cff")
 	)
 	(label "I3B"
 		(at 260.35 231.14 90)
@@ -14189,7 +14189,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "b4f73158-8707-43c7-9319-bbecc8b7f69d")
+		(uuid "7036114b-5b15-49b5-8493-459f03a1df2f")
 	)
 	(wire
 		(pts
@@ -14200,7 +14200,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d3675552-f202-4466-bd86-4534ed3e14ab")
+		(uuid "6d46a1d5-b279-4220-be5f-bccc9b8f933f")
 	)
 	(label "DRN3"
 		(at 260.35 243.84 270)
@@ -14211,7 +14211,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e0506377-65ba-4a4c-aab9-2756b54705ac")
+		(uuid "5b10ea81-74dd-46dd-ba96-71c39276a1bf")
 	)
 	(symbol
 		(lib_id "Connector:Screw_Terminal_01x04")
@@ -14260,7 +14260,7 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Salida a las 3 flechas: pin 4 = +36V (ánodo común), 3 = F1-, 2 = F2-, 1 = F3-"
+		(property "Description" "Salida a las 3 flechas: pin 1 = +36V (ánodo común), 2 = F1-, 3 = F2-, 4 = F3-"
 			(at 33.02 219.71 0)
 			(hide yes)
 			(effects
@@ -14270,7 +14270,7 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Salida a las 3 flechas: pin 4 = +36V (ánodo común), 3 = F1-, 2 = F2-, 1 = F3-"
+		(property "Funcion" "Salida a las 3 flechas: pin 1 = +36V (ánodo común), 2 = F1-, 3 = F2-, 4 = F3-"
 			(at 33.02 219.71 0)
 			(hide yes)
 			(effects
@@ -14281,16 +14281,16 @@
 			)
 		)
 		(pin "1"
-			(uuid "c9937d01-9d13-4254-83af-8b49ab226704")
+			(uuid "607b5fff-15b7-4dbc-b40f-caee4c244c91")
 		)
 		(pin "2"
-			(uuid "5d22df91-2193-4776-8066-bb4d889d8a01")
+			(uuid "5629eab6-6910-451f-837f-f370ea5cb7f4")
 		)
 		(pin "3"
-			(uuid "982d8139-0cd2-4948-967b-c21a3888568b")
+			(uuid "3426ecaf-c90d-4b14-978f-5176170a2be5")
 		)
 		(pin "4"
-			(uuid "eb39dba2-abbb-4ed6-84e8-210291cbcdd5")
+			(uuid "ca5eca45-7b34-4cc2-aae1-ddeb5c8cdb50")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -14304,24 +14304,94 @@
 	(wire
 		(pts
 			(xy 27.94 217.17)
-			(xy 25.4 217.17)
+			(xy 22.86 217.17)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "ea6a693d-e182-4720-8bb9-874f01dbccd9")
+		(uuid "d45fb241-383d-403e-9475-adb9447d259b")
 	)
-	(label "F3N"
-		(at 25.4 217.17 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
+	(wire
+		(pts
+			(xy 22.86 217.17)
+			(xy 22.86 214.63)
 		)
-		(uuid "160162e2-d87c-48ba-9e2e-8d68191c3908")
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3333834e-5f10-4719-b7d1-e442386a8972")
+	)
+	(symbol
+		(lib_id "power:+36V")
+		(at 22.86 214.63 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid "b2bedd0f-5906-405b-9051-5c5c4fdbc19b")
+		(property "Reference" "#PWR041"
+			(at 26.06 213.63 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "+36V"
+			(at 26.06 216.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 22.86 214.63 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 22.86 214.63 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Símbolo de alimentación"
+			(at 22.86 214.63 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "728a18a5-72fa-4dff-8bed-45d22e489c98")
+		)
+		(instances
+			(project "ControladorFlechas"
+				(path "/6f1c1e2a-3b4d-4c5e-8f60-7a8b9c0d1e2f"
+					(reference "#PWR041")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -14332,9 +14402,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "67c884af-5fca-4357-9751-3c060720cdf5")
+		(uuid "90985eae-22e6-4089-9a65-b18d7f226402")
 	)
-	(label "F2N"
+	(label "F1N"
 		(at 25.4 219.71 180)
 		(fields_autoplaced yes)
 		(effects
@@ -14343,7 +14413,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d9c0a38f-d0b8-4951-a5e0-decd77ff3ee0")
+		(uuid "73fd5820-7186-4bbb-aca7-257aab7acf21")
 	)
 	(wire
 		(pts
@@ -14354,9 +14424,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c3f83391-af15-4e80-b264-906df174739b")
+		(uuid "3bd17f31-9be6-4a9f-aae3-7f63f94be7fd")
 	)
-	(label "F1N"
+	(label "F2N"
 		(at 25.4 222.25 180)
 		(fields_autoplaced yes)
 		(effects
@@ -14365,99 +14435,29 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "008e5db1-8a0c-4d20-9a29-a0106a4bf1e2")
+		(uuid "ea85ede2-8b2f-4512-abe9-6b79092cdae6")
 	)
 	(wire
 		(pts
 			(xy 27.94 224.79)
-			(xy 22.86 224.79)
+			(xy 25.4 224.79)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "8310ee94-8f63-4fbd-8503-0417c0dcdf59")
+		(uuid "3d77c15c-e05a-4513-9ba3-309e7158ea40")
 	)
-	(wire
-		(pts
-			(xy 22.86 224.79)
-			(xy 22.86 222.25)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "616b71a9-a84d-47af-8555-e5c2d1ad6ac4")
-	)
-	(symbol
-		(lib_id "power:+36V")
-		(at 22.86 222.25 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(dnp no)
-		(uuid "ebfb854b-d3da-4d6d-b5a4-418ed0021083")
-		(property "Reference" "#PWR041"
-			(at 26.06 221.25 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
+	(label "F3N"
+		(at 25.4 224.79 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
+			(justify right bottom)
 		)
-		(property "Value" "+36V"
-			(at 26.06 223.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 22.86 222.25 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 22.86 222.25 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Description" "Símbolo de alimentación"
-			(at 22.86 222.25 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "1"
-			(uuid "7baaf956-c9c0-4f90-885d-e8b22bf7e21b")
-		)
-		(instances
-			(project "ControladorFlechas"
-				(path "/6f1c1e2a-3b4d-4c5e-8f60-7a8b9c0d1e2f"
-					(reference "#PWR041")
-					(unit 1)
-				)
-			)
-		)
+		(uuid "09e8d50b-18e7-4900-917c-fe3e83025563")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -14527,10 +14527,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "67c2b941-c6c0-4f93-9e00-607d3cb2bb64")
+			(uuid "4a649d34-7cb3-4625-a7f7-e64b66842044")
 		)
 		(pin "2"
-			(uuid "d11602d2-00cc-4816-b4f3-235cbf035591")
+			(uuid "84843d28-0e81-4132-b5dc-7d6de28d0678")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -14550,7 +14550,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "93bf76b3-54e8-4d22-b88a-5e89742f944a")
+		(uuid "3eda7648-d5a0-4f7c-8d5b-3c8ab05dd5fb")
 	)
 	(label "CLK555"
 		(at 283.21 229.87 180)
@@ -14561,7 +14561,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "f2871d9a-2d1d-4c1b-a89f-993ea8a2b51d")
+		(uuid "9b9a6aff-0304-4e6c-9112-f85e65076720")
 	)
 	(wire
 		(pts
@@ -14572,7 +14572,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "435419c7-e11a-48bb-8514-095421163a44")
+		(uuid "15186131-39c1-4ff6-a4d8-1294b31157d6")
 	)
 	(label "G4"
 		(at 295.91 229.87 0)
@@ -14583,7 +14583,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ec1ccf8d-97ff-41ad-95d6-82bea0289a3c")
+		(uuid "035eb095-680c-408d-88a0-7fa8a30ae20e")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -14653,10 +14653,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "6d0133a6-0032-4ecd-a8e5-01f4c2d50686")
+			(uuid "aa55e91f-7c02-4793-a1fa-cb86be6d69bb")
 		)
 		(pin "2"
-			(uuid "6119b939-4e4d-43e8-87e1-f24ea400792c")
+			(uuid "3ff9df25-7bf3-49ac-800d-def51728a006")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -14676,7 +14676,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "bbc2599e-dcbc-44e2-b9a6-fef20c661a88")
+		(uuid "b1a9ff93-c3ff-4661-911f-90c4f7abcf59")
 	)
 	(label "G4"
 		(at 304.8 233.68 90)
@@ -14687,7 +14687,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "3054cc33-946e-434c-abb3-26cfd29732ab")
+		(uuid "22e0e5f3-3e5e-4adf-99be-e62fdc162b40")
 	)
 	(wire
 		(pts
@@ -14698,7 +14698,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "be1a43ed-ff60-41a6-a43e-02ccfd23d232")
+		(uuid "483a789b-e362-4a35-a81b-68cb18aaaf91")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14708,7 +14708,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "43628007-9c08-4ca1-963d-66cb74aa36aa")
+		(uuid "0c41a5b4-758b-4cda-ab80-a23f79fce672")
 		(property "Reference" "#PWR042"
 			(at 308 245.38 0)
 			(hide yes)
@@ -14759,7 +14759,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "ea83108d-98e9-4276-9150-39e2b045614f")
+			(uuid "ab4cfbcc-4cd8-4e11-9918-e7fc8c608f25")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -14838,13 +14838,13 @@
 			)
 		)
 		(pin "2"
-			(uuid "1e5704fd-1ffc-4b73-a58a-f5a345bab4c7")
+			(uuid "5a3b9e6b-b4bb-4502-bb5d-1e6a80652482")
 		)
 		(pin "3"
-			(uuid "7b1e552a-ecfb-405e-9cfa-6e845ea16dc3")
+			(uuid "d592b83e-734e-4800-815c-e85ed2231b4b")
 		)
 		(pin "1"
-			(uuid "cf7972af-dc0f-46da-a3b3-126aa21fa64b")
+			(uuid "1261faba-7bba-41d9-a8a9-5591289e10d3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -14864,7 +14864,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ad0485e2-c192-47f8-8ae2-6cecb592baa0")
+		(uuid "31a8552d-d82e-426a-9102-2b87ba9835bc")
 	)
 	(label "G4"
 		(at 312.42 229.87 180)
@@ -14875,7 +14875,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e7e69f09-b8a4-467c-a462-f3bd17254859")
+		(uuid "76ab312c-6729-49fe-9fb3-3eea14623c07")
 	)
 	(wire
 		(pts
@@ -14886,7 +14886,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "bae8bdde-3980-4394-99d3-d4e9e16168f9")
+		(uuid "3b393391-1573-4703-a3e8-957540cfe87d")
 	)
 	(label "CENT_D"
 		(at 322.58 222.25 90)
@@ -14897,7 +14897,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ff50afa0-007f-4aac-9716-cb09241b14a4")
+		(uuid "0e601e05-ffbc-470c-98e8-9200ce53e3dc")
 	)
 	(wire
 		(pts
@@ -14908,7 +14908,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "9f069fa1-8ae3-42ed-bad3-bd5489799e41")
+		(uuid "042cd7ff-8aa6-460d-94c3-697b1643d84e")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14918,7 +14918,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "12bdb352-aba3-4a49-8fb6-6239eab00931")
+		(uuid "6c06e2f1-ddb6-4efd-b8db-a71b27ded8ab")
 		(property "Reference" "#PWR043"
 			(at 325.78 236.49 0)
 			(hide yes)
@@ -14969,7 +14969,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "14855648-37bf-4757-b373-48b3ed056b91")
+			(uuid "e0b519d9-7804-4a4f-9f7b-f4c6cca00aae")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15048,10 +15048,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "08720361-97a4-4fab-8fb8-36d06e663289")
+			(uuid "4672bbc2-1d98-4527-ac54-6259fb5426af")
 		)
 		(pin "2"
-			(uuid "37bbf96c-e6d6-4cfa-8a17-6c6257c30b7e")
+			(uuid "fc8240f1-bd39-48fe-aca2-31e1fca9d6b3")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15071,7 +15071,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "915eff3c-e941-49f6-9185-211c24f63945")
+		(uuid "167335b2-c03a-4fd7-a506-53d5b008a381")
 	)
 	(wire
 		(pts
@@ -15082,7 +15082,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "e3be688d-5f6b-40ee-995d-964151f0311e")
+		(uuid "6652269c-cef8-4ed5-82c5-b3487d0b873a")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -15092,7 +15092,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "163bb9a5-de96-4720-9fa0-7bac32479582")
+		(uuid "8bbdbede-2f83-42aa-a4de-12ef73b1145c")
 		(property "Reference" "#PWR044"
 			(at 323.24 200.93 0)
 			(hide yes)
@@ -15143,7 +15143,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "099e1f00-6c90-452b-b649-14721bc14633")
+			(uuid "79bce301-e976-4496-98c6-d4c9ee956a59")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15163,7 +15163,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "93e7a52c-6304-420b-93d1-9f59185801d3")
+		(uuid "15272425-efd7-4717-ad29-5ac5d23a1063")
 	)
 	(label "V_FLOR"
 		(at 337.82 204.47 0)
@@ -15174,7 +15174,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4f011cae-03c1-4688-ba68-5831e40f669c")
+		(uuid "4fc3a508-5f18-4c30-bb49-99bd791e1423")
 	)
 	(symbol
 		(lib_id "Jumper:Jumper_2_Open")
@@ -15244,10 +15244,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "fd0cd4d6-09ac-4b6c-a81a-1798e415c181")
+			(uuid "d071ef8f-b5ce-4a2c-8440-c864ce9b1fc7")
 		)
 		(pin "2"
-			(uuid "1b480622-a1f2-48ec-83f0-66fcc93d5686")
+			(uuid "d05844e3-6f91-4952-9b99-69fce7d400c4")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15267,7 +15267,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "811cd26b-f3d1-4084-ad44-5dd757da8f9f")
+		(uuid "9f36dbd2-54e6-4415-8372-77e39ed9d951")
 	)
 	(wire
 		(pts
@@ -15278,7 +15278,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b787aa55-8723-4e3b-bc49-99f5c58060cb")
+		(uuid "91cd6708-89f8-4e07-a04d-f794f92116ee")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -15288,7 +15288,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "0715ed58-b828-427d-92f4-0c7f7c01d0a8")
+		(uuid "97d7bee4-fea8-4edc-b733-17ecafc89996")
 		(property "Reference" "#PWR045"
 			(at 362.61 200.93 0)
 			(hide yes)
@@ -15339,7 +15339,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "3e98cd0c-b9c4-4f36-80df-76b3f11352af")
+			(uuid "673b02ad-849c-4b10-8ce3-5cc1cfb09af6")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15359,7 +15359,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "2fed6deb-91ee-4f53-a7d2-fe076272cec5")
+		(uuid "bf3e3b02-9b94-4c5a-b283-fae7c43803f2")
 	)
 	(label "V_BANO"
 		(at 377.19 204.47 0)
@@ -15370,7 +15370,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "344f7ef4-737e-450b-ba30-ea31e3b39133")
+		(uuid "935c4d5c-6739-4720-a9c3-6051474b0fd9")
 	)
 	(symbol
 		(lib_id "Connector:Screw_Terminal_01x02")
@@ -15419,7 +15419,7 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Salida opcional CENTROS: pin 1 = retorno conmutado (-), pin 2 = GND de referencia. El + de las ramas se toma de J3 +36V"
+		(property "Description" "Salida opcional CENTROS: pin 2 = retorno conmutado (-), pin 1 = GND de referencia. El + de las ramas se toma de J3 +36V"
 			(at 345.44 228.6 0)
 			(hide yes)
 			(effects
@@ -15429,7 +15429,7 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Salida opcional CENTROS: pin 1 = retorno conmutado (-), pin 2 = GND de referencia. El + de las ramas se toma de J3 +36V"
+		(property "Funcion" "Salida opcional CENTROS: pin 2 = retorno conmutado (-), pin 1 = GND de referencia. El + de las ramas se toma de J3 +36V"
 			(at 345.44 228.6 0)
 			(hide yes)
 			(effects
@@ -15440,10 +15440,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "c7f476f1-67b7-4077-9574-90fc44e3ddd1")
+			(uuid "6d35d7a7-e80d-4631-8fa7-1fe11204e330")
 		)
 		(pin "2"
-			(uuid "730dbfdc-a6a0-4854-b1f1-41226866a553")
+			(uuid "fe9ff9a2-fd18-48aa-bad9-9842f6219ab5")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15457,58 +15457,36 @@
 	(wire
 		(pts
 			(xy 340.36 228.6)
-			(xy 337.82 228.6)
+			(xy 335.28 228.6)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "992a0a34-ce8b-4262-b251-8e855cda6aa5")
-	)
-	(label "CENT_D"
-		(at 337.82 228.6 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "9cd74f64-92e1-4073-aa03-1feebb130715")
+		(uuid "7dbc9581-388f-4c5b-a108-4835b5b841cc")
 	)
 	(wire
 		(pts
-			(xy 340.36 231.14)
+			(xy 335.28 228.6)
 			(xy 335.28 231.14)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "f37aab1e-e93a-484e-8d0d-ab9ecbbd4068")
-	)
-	(wire
-		(pts
-			(xy 335.28 231.14)
-			(xy 335.28 233.68)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2899d49a-bffa-475e-bccb-90f89a7fedbe")
+		(uuid "af171afd-7015-4466-8aad-5c60fb83ca26")
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 335.28 233.68 0)
+		(at 335.28 231.14 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "2df6c92e-e188-404d-8afb-715b8eab1586")
+		(uuid "c32fb22e-a5a3-4e0a-9cac-d1f5f7223fab")
 		(property "Reference" "#PWR046"
-			(at 338.48 232.68 0)
+			(at 338.48 230.14 0)
 			(hide yes)
 			(effects
 				(font
@@ -15518,7 +15496,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 338.48 235.28 0)
+			(at 338.48 232.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15527,7 +15505,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 335.28 233.68 0)
+			(at 335.28 231.14 0)
 			(hide yes)
 			(effects
 				(font
@@ -15537,7 +15515,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 335.28 233.68 0)
+			(at 335.28 231.14 0)
 			(hide yes)
 			(effects
 				(font
@@ -15547,7 +15525,7 @@
 			)
 		)
 		(property "Description" "Símbolo de alimentación"
-			(at 335.28 233.68 0)
+			(at 335.28 231.14 0)
 			(hide yes)
 			(effects
 				(font
@@ -15557,7 +15535,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "3b277696-535f-4718-8ad6-43e0dd52700e")
+			(uuid "33f10077-0ba0-4f8e-b6ab-ffe475271579")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15567,6 +15545,28 @@
 				)
 			)
 		)
+	)
+	(wire
+		(pts
+			(xy 340.36 231.14)
+			(xy 337.82 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3e9bfaed-d778-4892-afe1-140e21be8550")
+	)
+	(label "CENT_D"
+		(at 337.82 231.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "09afe175-8bb1-4f3a-b7e2-51d5b3b0428a")
 	)
 	(symbol
 		(lib_id "Connector:Screw_Terminal_01x02")
@@ -15615,7 +15615,7 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Salida fija opcional FLORES (pin 1 = GND, pin 2 = +), resistencias en el panel"
+		(property "Description" "Salida fija opcional FLORES (pin 1 = +, pin 2 = GND), resistencias en el panel"
 			(at 379.73 223.52 0)
 			(hide yes)
 			(effects
@@ -15625,7 +15625,7 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Salida fija opcional FLORES (pin 1 = GND, pin 2 = +), resistencias en el panel"
+		(property "Funcion" "Salida fija opcional FLORES (pin 1 = +, pin 2 = GND), resistencias en el panel"
 			(at 379.73 223.52 0)
 			(hide yes)
 			(effects
@@ -15636,10 +15636,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "ff98917d-662b-499a-b6f3-1129d6840230")
+			(uuid "c4c9da61-8f2f-4821-9f98-39fd71c87134")
 		)
 		(pin "2"
-			(uuid "baaaa770-b6b1-4f4e-a57c-090b11f057d9")
+			(uuid "30e24e7d-fcac-49c9-a6e2-a051294cbb4e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15653,36 +15653,58 @@
 	(wire
 		(pts
 			(xy 374.65 223.52)
-			(xy 369.57 223.52)
+			(xy 372.11 223.52)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "14baeb17-d634-4a16-be42-854a823db0a7")
+		(uuid "f49a6fe3-8369-4c2b-a2cc-9e3859632092")
+	)
+	(label "V_FLOR"
+		(at 372.11 223.52 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "172af1cf-a988-46e1-9217-399f7dc898bd")
 	)
 	(wire
 		(pts
-			(xy 369.57 223.52)
+			(xy 374.65 226.06)
 			(xy 369.57 226.06)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "992f7e37-a12d-4db6-ac34-57761c41dfbe")
+		(uuid "634cc7ef-c9e2-40aa-b34b-60558a3a1b1d")
+	)
+	(wire
+		(pts
+			(xy 369.57 226.06)
+			(xy 369.57 228.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "358af4b4-b6a5-40f8-a2c8-c6999494e2eb")
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 369.57 226.06 0)
+		(at 369.57 228.6 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "48f7fa78-15e8-4521-9ed5-90038b28e06f")
+		(uuid "3a6ad8b6-b6fa-4958-95f0-2d6132dca66c")
 		(property "Reference" "#PWR047"
-			(at 372.77 225.06 0)
+			(at 372.77 227.6 0)
 			(hide yes)
 			(effects
 				(font
@@ -15692,7 +15714,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 372.77 227.66 0)
+			(at 372.77 230.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15701,7 +15723,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 369.57 226.06 0)
+			(at 369.57 228.6 0)
 			(hide yes)
 			(effects
 				(font
@@ -15711,7 +15733,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 369.57 226.06 0)
+			(at 369.57 228.6 0)
 			(hide yes)
 			(effects
 				(font
@@ -15721,7 +15743,7 @@
 			)
 		)
 		(property "Description" "Símbolo de alimentación"
-			(at 369.57 226.06 0)
+			(at 369.57 228.6 0)
 			(hide yes)
 			(effects
 				(font
@@ -15731,7 +15753,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "cae16a67-979a-45cd-878e-904ae1ef92e9")
+			(uuid "1ce143ad-5bcc-4ea2-ad03-1e9ce5bb9504")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15741,28 +15763,6 @@
 				)
 			)
 		)
-	)
-	(wire
-		(pts
-			(xy 374.65 226.06)
-			(xy 372.11 226.06)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a284bbd9-cd8b-4d36-8369-d1af11b6416c")
-	)
-	(label "V_FLOR"
-		(at 372.11 226.06 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "ce5d714a-a7eb-47b8-abba-98d9aa1db7fb")
 	)
 	(symbol
 		(lib_id "Connector:Screw_Terminal_01x02")
@@ -15811,7 +15811,7 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Salida fija opcional BAÑOS (pin 1 = GND, pin 2 = +), resistencias en el panel"
+		(property "Description" "Salida fija opcional BAÑOS (pin 1 = +, pin 2 = GND), resistencias en el panel"
 			(at 379.73 237.49 0)
 			(hide yes)
 			(effects
@@ -15821,7 +15821,7 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Salida fija opcional BAÑOS (pin 1 = GND, pin 2 = +), resistencias en el panel"
+		(property "Funcion" "Salida fija opcional BAÑOS (pin 1 = +, pin 2 = GND), resistencias en el panel"
 			(at 379.73 237.49 0)
 			(hide yes)
 			(effects
@@ -15832,10 +15832,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "3a0c1f13-2a28-41b0-85b4-1f71f7b46626")
+			(uuid "d313d752-cb52-48f4-84dd-c30cc54a357f")
 		)
 		(pin "2"
-			(uuid "acdd4c30-b237-4ee6-be08-d2789f29bcc8")
+			(uuid "6154e5b1-c540-4a49-a5a5-e7f225ee79be")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15849,36 +15849,58 @@
 	(wire
 		(pts
 			(xy 374.65 237.49)
-			(xy 369.57 237.49)
+			(xy 372.11 237.49)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "647f7975-cd4b-43a5-806a-0e33358d192f")
+		(uuid "41e02828-58dd-492e-b71f-2dd5f06232bc")
+	)
+	(label "V_BANO"
+		(at 372.11 237.49 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "09ae56c9-fbdc-4f93-a1a2-d72a730e6958")
 	)
 	(wire
 		(pts
-			(xy 369.57 237.49)
+			(xy 374.65 240.03)
 			(xy 369.57 240.03)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "7e507fa7-3f4f-4b4d-bcec-6b38788dfbca")
+		(uuid "c824d7a7-c96a-4f64-b163-3e6404000a64")
+	)
+	(wire
+		(pts
+			(xy 369.57 240.03)
+			(xy 369.57 242.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0ab95587-1ab3-4c18-8077-ae80cc4726f2")
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 369.57 240.03 0)
+		(at 369.57 242.57 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "83d26236-38d6-4444-b9f9-58e1128e22b7")
+		(uuid "9325fe84-64e4-4e01-995c-c88a44e0b4d7")
 		(property "Reference" "#PWR048"
-			(at 372.77 239.03 0)
+			(at 372.77 241.57 0)
 			(hide yes)
 			(effects
 				(font
@@ -15888,7 +15910,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 372.77 241.63 0)
+			(at 372.77 244.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15897,7 +15919,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 369.57 240.03 0)
+			(at 369.57 242.57 0)
 			(hide yes)
 			(effects
 				(font
@@ -15907,7 +15929,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 369.57 240.03 0)
+			(at 369.57 242.57 0)
 			(hide yes)
 			(effects
 				(font
@@ -15917,7 +15939,7 @@
 			)
 		)
 		(property "Description" "Símbolo de alimentación"
-			(at 369.57 240.03 0)
+			(at 369.57 242.57 0)
 			(hide yes)
 			(effects
 				(font
@@ -15927,7 +15949,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "9004cd67-fbe9-4674-abc0-96145dcf9371")
+			(uuid "adc7c16c-36bb-425e-a24b-1eec2a2b385b")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -15937,28 +15959,6 @@
 				)
 			)
 		)
-	)
-	(wire
-		(pts
-			(xy 374.65 240.03)
-			(xy 372.11 240.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8b9debda-39da-4ee9-b63d-7f4e12d8b0ea")
-	)
-	(label "V_BANO"
-		(at 372.11 240.03 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "3ccea449-66d4-4be3-8f2e-e01eb8d47a45")
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
@@ -16291,7 +16291,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "ControladorFlechas:Puente_Alambre_P15.24mm"
+		(property "Footprint" "ControladorFlechas:Puente_Alambre_P7.62mm"
 			(at 346.71 44.45 0)
 			(hide yes)
 			(effects
@@ -16332,10 +16332,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "576320d6-92d1-4ad6-ad3c-ad0ef9b12193")
+			(uuid "968de0e3-6ac6-450f-9fc3-d610d897c250")
 		)
 		(pin "2"
-			(uuid "e1bffd1f-91b4-4eef-9382-9db7e0719018")
+			(uuid "3b8a1cd0-6436-44d8-a4dd-8a5f889c326d")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16355,7 +16355,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "5ea7f2ca-5f94-49bd-9ade-dcf160a63ae1")
+		(uuid "d2bd86d6-f705-45cd-8c18-bb8509ac53f4")
 	)
 	(label "+12V_W1"
 		(at 339.09 44.45 180)
@@ -16366,7 +16366,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "613c99b2-5531-4c2a-b494-6ddd2c44e854")
+		(uuid "c65fda5e-85be-4e6b-85ce-1dab605d5326")
 	)
 	(wire
 		(pts
@@ -16377,7 +16377,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "1eadcce4-8901-4507-be12-f591033a205f")
+		(uuid "e67be522-f3b8-4332-9fe8-bc6b1376b697")
 	)
 	(wire
 		(pts
@@ -16388,7 +16388,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "52ae8694-05ae-48da-9fd8-a267aee62bf6")
+		(uuid "1e0f0e97-57f4-4cbb-9f40-baa6574da7c6")
 	)
 	(symbol
 		(lib_id "power:+12V")
@@ -16398,7 +16398,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "c386cb48-441e-41d5-a3c9-8eebe37ffbb7")
+		(uuid "35932d9c-c4fd-43a9-84ed-4281ec0a005b")
 		(property "Reference" "#PWR049"
 			(at 360.07 40.91 0)
 			(hide yes)
@@ -16449,7 +16449,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "a0e9f7ef-e350-49c4-9684-85b8df797f7f")
+			(uuid "f0310999-3965-4f68-af97-05415dc6b9d6")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16468,7 +16468,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "7103b737-6147-4364-9276-0822a9a2a3c3")
+		(uuid "c55b8a9a-705e-4e47-a949-01271b1d4d92")
 		(property "Reference" "#FLG01"
 			(at 178.46 37.1 0)
 			(hide yes)
@@ -16519,7 +16519,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "8ab20163-0070-40fc-932d-ea6d93833b34")
+			(uuid "3034794c-5192-4d71-81a4-c4bd68a04194")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16539,7 +16539,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c2afee1f-03ed-4ecc-983c-979963a4c4d8")
+		(uuid "e7fd3584-faf9-446a-9429-bd51bc129edd")
 	)
 	(wire
 		(pts
@@ -16550,7 +16550,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d3ec4a6d-8b5d-46e7-8c24-861a20ca908d")
+		(uuid "d9dcd0ad-9599-42fe-90fa-e71d57cff344")
 	)
 	(symbol
 		(lib_id "power:+36V")
@@ -16560,7 +16560,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "49fef06a-f9bd-440f-9e32-5d228dad2ee8")
+		(uuid "c23865af-1f8f-41fb-9aba-eb5275c122c4")
 		(property "Reference" "#PWR050"
 			(at 181 39.64 90)
 			(hide yes)
@@ -16611,7 +16611,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "b5b50eca-41d0-4612-90ba-4f86287f97ea")
+			(uuid "70758585-1c64-4f20-920d-905d6f38723d")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16630,7 +16630,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "62451142-674e-4e3d-8496-a6ab0dcdaa9f")
+		(uuid "c2b35bb0-49cd-4d6a-86b9-3bb0d41985e2")
 		(property "Reference" "#FLG02"
 			(at 193.7 37.1 0)
 			(hide yes)
@@ -16681,7 +16681,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "11e588d7-1fc6-4566-a7ab-6ee2747b8ad2")
+			(uuid "7849a423-5da5-4473-81c4-b96ffcfd5ad2")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16701,7 +16701,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "769eac9c-c239-4fbf-a909-7f65035a35dd")
+		(uuid "02fbc722-f18f-4a30-9620-1c5bad2b47be")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -16711,7 +16711,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "ab488def-339a-4ccd-89b4-52989d3e7c45")
+		(uuid "db607f30-b878-4599-82f2-f7fc9090bb28")
 		(property "Reference" "#PWR051"
 			(at 193.7 39.64 0)
 			(hide yes)
@@ -16762,7 +16762,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "d10beb49-53d7-4a83-9557-cc70cce749a7")
+			(uuid "513de806-e7a4-4641-9d22-d2d68aacde4e")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16781,7 +16781,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "315aa9c5-daf3-40e8-8ef3-0440e4a2996d")
+		(uuid "d7549293-e5c6-458d-8856-adec9e324a18")
 		(property "Reference" "#FLG03"
 			(at 33.68 254.27 0)
 			(hide yes)
@@ -16832,7 +16832,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "51ec72fb-1f9a-4fb6-a105-b1139e9d5b7f")
+			(uuid "01403874-af0d-403a-aa97-74c9c7db97c6")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16852,7 +16852,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a89c8e3f-952f-42bb-a163-442322628242")
+		(uuid "3456adb4-e877-4e3c-a7fc-e0e4a23928db")
 	)
 	(label "F1N"
 		(at 30.48 257.81 0)
@@ -16863,7 +16863,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "9bb6c787-3258-40bb-98cd-9146b4c883cb")
+		(uuid "ec5efbbc-414a-4ae5-9fa1-f354fde2d1a9")
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
@@ -16873,7 +16873,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "50fbb531-794c-411e-8fd7-2ff44e44c586")
+		(uuid "ba4c95b6-8a60-4bbf-9c3a-93dd659055db")
 		(property "Reference" "#FLG04"
 			(at 33.68 261.89 0)
 			(hide yes)
@@ -16924,7 +16924,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "e716a9de-c09b-4ef9-9012-2750ba027d20")
+			(uuid "c3a32063-3341-47ea-8b52-54d63c559cd9")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -16944,7 +16944,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "76ff902c-8cd1-44bd-b179-52782ef5f6ea")
+		(uuid "c23d4bc4-daf9-416a-ad82-c27f32f2945d")
 	)
 	(label "F2N"
 		(at 30.48 265.43 0)
@@ -16955,7 +16955,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "90323035-7ee9-402e-94df-341d04542620")
+		(uuid "03d44c25-e7b8-4f60-99bf-9172b3bc0ba5")
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
@@ -16965,7 +16965,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "1ddac765-99d1-4761-a052-bf6a60fcf1af")
+		(uuid "2b8cfed4-eb7f-4fd5-bdf9-a53adfc00396")
 		(property "Reference" "#FLG05"
 			(at 33.68 269.51 0)
 			(hide yes)
@@ -17016,7 +17016,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "67df2d5c-b3c0-4516-975d-4f2ca9f7681e")
+			(uuid "491a52c8-27c0-436e-9be2-04c6d41144e6")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -17036,7 +17036,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "151acaf0-a868-44db-bace-e97aedb64d0a")
+		(uuid "ab3b0090-3e3e-4759-a049-e1c53076cacb")
 	)
 	(label "F3N"
 		(at 30.48 273.05 0)
@@ -17047,7 +17047,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1a3ceccb-316b-4167-b43a-1b6bcae94931")
+		(uuid "0b8967c9-ecde-48ca-8fc1-7bce4aac21f0")
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
@@ -17057,7 +17057,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid "dba09a88-79c6-46f7-baab-588adcf998bf")
+		(uuid "be5eac17-7b3e-4a0c-abcf-956b82980851")
 		(property "Reference" "#FLG06"
 			(at 346.1 51.07 0)
 			(hide yes)
@@ -17108,7 +17108,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "15b79d71-d095-4bba-8c64-37d9cd2c1d5d")
+			(uuid "5a9f765c-8c87-4e41-8a9e-c40865beebd0")
 		)
 		(instances
 			(project "ControladorFlechas"
@@ -17128,7 +17128,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "793c5ba0-2625-4a26-8260-87aae654fe8d")
+		(uuid "80a30e60-bf21-498d-858f-dd16b773579e")
 	)
 	(label "+12V_W1"
 		(at 342.9 54.61 0)
@@ -17139,7 +17139,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "97a65a88-1ecd-4272-b563-d5cb9c431351")
+		(uuid "58ae6a98-5bae-4ca5-908a-ecda3ccc557c")
 	)
 	(rectangle
 		(start 15 20)
@@ -17151,7 +17151,7 @@
 		(fill
 			(type none)
 		)
-		(uuid "6cb8569d-ffe7-4243-9c73-0d5be24d2715")
+		(uuid "0806e5b9-f2df-49f0-8c5b-568f6f8e83c9")
 	)
 	(text "1. ENTRADA 36 V Y PROTECCIONES (zona de potencia)"
 		(exclude_from_sim no)
@@ -17163,7 +17163,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "3af016f1-000e-4060-8d6a-c5c646045955")
+		(uuid "1afc9d9f-b21d-40a9-aef3-dbf5bb4f13eb")
 	)
 	(rectangle
 		(start 205 20)
@@ -17175,7 +17175,7 @@
 		(fill
 			(type none)
 		)
-		(uuid "98cd54b9-576b-4cda-9462-dba0347a81df")
+		(uuid "eff1912b-b8d9-46d7-88dd-608e13ec8efa")
 	)
 	(text "2. REGULADOR LÓGICO 36 V -> 11.5 V (LM317T)"
 		(exclude_from_sim no)
@@ -17187,7 +17187,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "d1992be2-91d4-4c4b-8579-4ba2e62e526c")
+		(uuid "d8026564-e4e3-41b6-bc3d-fa7f4731599e")
 	)
 	(rectangle
 		(start 15 95)
@@ -17199,7 +17199,7 @@
 		(fill
 			(type none)
 		)
-		(uuid "ae01950f-df9e-467f-934f-0bcac7bf5013")
+		(uuid "37d73bc5-c676-4e9b-b188-9805c6c795b8")
 	)
 	(text "3. OSCILADOR NE555 (0.24-1.6 s por paso)"
 		(exclude_from_sim no)
@@ -17211,7 +17211,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "a9e05837-3d52-42ac-bb1c-f37f15371389")
+		(uuid "6cc512e3-ed1a-4f01-a190-b8b4eb7d139c")
 	)
 	(rectangle
 		(start 140 95)
@@ -17223,7 +17223,7 @@
 		(fill
 			(type none)
 		)
-		(uuid "5fc936af-0996-43a2-abba-37040afbda5f")
+		(uuid "2cda5af1-c13e-4cb0-bfae-a5ec41e45333")
 	)
 	(text "4. CONTADOR CD4017, RESET DE ENCENDIDO, PAUSA Y REINICIO"
 		(exclude_from_sim no)
@@ -17235,7 +17235,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "65d33f35-22a4-43de-8488-0d562bd04d93")
+		(uuid "b65bf8c0-1adc-4319-929a-fe3ca2a6a44f")
 	)
 	(rectangle
 		(start 15 190)
@@ -17247,7 +17247,7 @@
 		(fill
 			(type none)
 		)
-		(uuid "63737492-2b63-40f8-8099-64f6adc8c722")
+		(uuid "dcd832f5-e55a-4cdf-a3c3-0d831185dcd3")
 	)
 	(text "5. SALIDAS DE LAS FLECHAS: MOSFET + FUENTE DE CORRIENTE 9 mA"
 		(exclude_from_sim no)
@@ -17259,7 +17259,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "92a50e17-5e55-4dcc-98b0-050a84417886")
+		(uuid "b0a78ae0-b616-4339-9437-36d39cd07270")
 	)
 	(rectangle
 		(start 280 190)
@@ -17271,7 +17271,7 @@
 		(fill
 			(type none)
 		)
-		(uuid "9ae9ad59-f903-419e-b1c1-561d870ece44")
+		(uuid "0f1437ac-a367-40ce-9946-a5f9e689bf6d")
 	)
 	(text "6. SALIDAS OPCIONALES (NO CONECTAR hasta medir las series)"
 		(exclude_from_sim no)
@@ -17283,7 +17283,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "476d0786-2757-4146-95d7-525ed14b8656")
+		(uuid "3b8e6b5c-ec51-4a6d-9862-78d2330b100e")
 	)
 	(rectangle
 		(start 335 20)
@@ -17295,7 +17295,7 @@
 		(fill
 			(type none)
 		)
-		(uuid "f5cf77d0-d327-400c-86b1-5a2728f589b7")
+		(uuid "280c0fd9-f177-49ac-a9b1-ec3e00fba976")
 	)
 	(text "7. PUENTES DE ALAMBRE (PCB)"
 		(exclude_from_sim no)
@@ -17307,7 +17307,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "a2e17f38-5299-4a67-8a4d-4a15a7aa7058")
+		(uuid "02ec2ce0-9656-4c2e-851f-810c835e1678")
 	)
 	(text "Orden: J1 -> interruptor externo (J2) -> PTC -> diodo serie -> TVS/C1/C2.\nFuente externa CERTIFICADA y AISLADA de 36 VCC >= 0.5 A. Nunca 127 VCA en esta PCB."
 		(exclude_from_sim no)
@@ -17318,7 +17318,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "932d368b-7f09-4c53-89b7-6e91283b4b3a")
+		(uuid "a540d5ca-33fe-4f30-899d-bf41c263805c")
 	)
 	(text "Vout = 1.25 V x (1 + R3/R2) = 1.25 x (1 + 8.2k/1k) = 11.5 V\nPdis(U3) <= (36.25-11.5) V x 23 mA = 0.57 W (TO-220 sin disipador: +30 C)"
 		(exclude_from_sim no)
@@ -17329,7 +17329,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "81f6e732-c94a-4bb9-a3ee-1e1d6a7bb9ea")
+		(uuid "770c6544-565a-4e6a-b592-b24bcab99c21")
 	)
 	(text "T = 0.693 x C5 x (R5 + 2 x (R6 + RV1))\nRV1 = 0: 0.24 s   RV1 = 100k: 1.63 s"
 		(exclude_from_sim no)
@@ -17340,7 +17340,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "e21345ea-c0d6-4b7d-96f8-90d22860d3ab")
+		(uuid "fc2a7226-db0e-4f83-84be-eecbc0123419")
 	)
 	(text "Q3 (pin 7) -> D7 -> RESET (pin 15): solo 3 pasos Q0-Q1-Q2.\nPOR: C8/R10 mantiene RESET ~0.6 s al encender (arranca en flecha 1).\nPAUSA: SW1 lleva CLOCK INHIBIT (pin 13) a 12 V. REINICIO: SW2 fuerza RESET.\nSalidas Q4-Q9 y CARRY sin conexión."
 		(exclude_from_sim no)
@@ -17351,7 +17351,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "5787bfc2-a327-4760-b122-3c0d87b4da05")
+		(uuid "55b00c59-2328-4efe-ac6e-09960f742a96")
 	)
 	(text "I = 1.25 V / (68+68 ohm) + Iadj = 9.2 mA (8.8-9.8 mA en el peor caso), independiente de Vf y de la fuente.\nCada flecha: 9 LED verdes en serie, ánodo común a J3-1 (+36V), cátodo a F1-/F2-/F3-."
 		(exclude_from_sim no)
@@ -17362,7 +17362,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "7208e59b-4295-4c58-a1b3-002e7c543f6d")
+		(uuid "e213e0e7-efbc-4b8f-b29a-dd329536210b")
 	)
 	(text "Puentes de alambre desnudo en el lado de\ncomponentes (W1, W2...). Ambos extremos\nde cada puente pertenecen a la misma red.\nSe sueldan ANTES que los demás componentes."
 		(exclude_from_sim no)
@@ -17373,7 +17373,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "9e440947-a139-436e-9898-8f4ca5fb11b0")
+		(uuid "da8c39ea-0a0f-4dca-be51-12f64f2daeee")
 	)
 	(text "JP1-JP3 NO SE MONTAN hasta conocer: número de LED por rama, color,\nVf medida, polaridad, corriente deseada y división de ramas.\nLas resistencias de cada rama van en el panel (no en esta PCB)."
 		(exclude_from_sim no)
@@ -17384,7 +17384,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "096dbf32-6c94-4767-b609-b41e7dfc9e95")
+		(uuid "26d610c6-42c9-48fd-a44e-30d1ad3c9717")
 	)
 	(sheet_instances
 		(path "/"

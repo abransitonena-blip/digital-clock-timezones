@@ -19,9 +19,9 @@ def put(ref, x, y, r=0):
 
 
 # ---- entrada (borde derecho) y banda superior ----
-put("J2", 99.06, 12.7, 270)      # 1 VSW (arriba), 2 VIN
-put("J1", 99.06, 25.4, 270)      # 1 VIN (36V+), 2 GND
-put("F1", 92.075, 12.7, 180)     # VSW 86.995, VF 81.915
+put("J2", 99.06, 17.78, 90)      # 1 VIN (abajo, 17.78), 2 VSW (12.7); entrada de cable hacia el borde
+put("J1", 99.06, 30.48, 90)      # 1 GND (30.48), 2 VIN = 36V+ (25.4)
+put("F1", 91.44, 12.7, 180)     # VSW 86.995, VF 81.915
 put("D1", 68.58, 12.7, 0)        # K(+36V) 68.58, A(VF) 78.74
 put("D2", 64.77, 5.08, 270)      # K 5.08 (+36V), A 17.78 (GND)
 put("C1", 58.1, 5.08, 270)       # + 5.08, - 8.89
@@ -46,16 +46,16 @@ for n, y0, u, ra, rb, q, rp, rg, ri, led in ROWS:
     put(rg, 53.34, y0 - 3.81, 180)         # Qk 53.34, Gn 43.18 (puente sobre el bus GND)
     put(ri, 53.34, y0 + 0.9525, 270)       # Qk, LEDA abajo
     put(led, BUS_X, y0 + 6.0325, 0)        # K sobre el bus, A a la derecha
-put("J3", 6.35, 27.94, 90)                 # 1 F3N 27.94, 2 F2N, 3 F1N, 4 +36V 12.7
+put("J3", 6.35, 12.7, 270)                 # 1 +36V 12.7, 2 F1N, 3 F2N, 4 F3N 27.94
 
 # ---- CENTROS y salidas fijas (abajo a la izquierda) ----
 put("R28", 77.47, 60.96, 0)              # CLK 53.34, G4 43.18 (puente sobre el bus GND)
 put("Q4", 83.82, 64.77, 0)               # S 44.45, G 41.91, D 39.37
 put("R29", 90.17, 60.325, 0)               # G4 41.91, GND 46.99
-put("J4", 91.44, 73.66, 180)               # 1 CENT_D 44.45, 2 V_CENT 39.37
-put("J6", 31.75, 73.66, 180)               # 1 GND 31.75, 2 V_BANO 26.67
-put("J5", 19.05, 73.66, 180)               # 1 GND 19.05, 2 V_FLOR 13.97
-put("JP3", 15.24, 66.04, 0)                # +36V 16.51, V_BANO 24.13
+put("J4", 86.36, 73.66, 0)               # 1 GND 86.36, 2 CENT_D 91.44
+put("J6", 26.67, 73.66, 0)               # 1 V_BANO 26.67, 2 GND 31.75
+put("J5", 13.97, 73.66, 0)               # 1 V_FLOR 13.97, 2 GND 19.05
+put("JP3", 15.24, 62.865, 0)                # +36V 16.51, V_BANO 24.13
 put("JP2", 8.255, 62.23, 270)              # +36V 62.23, V_FLOR 69.85
 
 # ---- lógica ----
@@ -64,7 +64,7 @@ put("C7", 61.595, 26.67, 90)                # +12V 26.67, GND 21.59
 put("U1", 87.63, 40.64, 0)                 # izq 1 GND,2 TRIG,3 OUT,4 RST; der 8 VCC,7 DIS,6 THR,5 CV
 put("R7", 80.01, 35.56, 180)               # CLK555 80.01, CLK 69.85 (puente sobre el bus +12V)
 put("C4", 96.52, 36.83, 180)               # +12V 87.63, GND 82.55
-put("C3", 88.9, 23.495, 270)              # + 27.305, - 31.115
+put("C3", 82.55, 23.495, 270)              # + 27.305, - 31.115
 put("R5", 100.33, 38.1, 270)                # +12V, DIS
 put("R6", 100.33, 46.99, 270)               # DIS, RB
 put("RV1", 100.33, 57.15, 90)              # RB 58.42, TIM 55.88, TIM 53.34
@@ -114,7 +114,28 @@ CHAINS += [("+36V", [(2.54, 60.325), ("VX", 15.24), "JP3.1"]),
            ("Q3", ["U2.7", (60.96, 48.26), "D7.2"])]
 
 REF_POS = {}
-TEXTS = []
+# (texto, x, y, tamaño, ángulo, capa)
+TEXTS = [
+    ("CONTROLADOR FLECHAS 36V  v1.0", 24.5, 3.4, 1.2, 0, "F.SilkS"),
+    ("FLECHAS", 8.0, 8.4, 0.9, 0, "F.SilkS"),
+    ("+36V", 14.0, 12.7, 0.9, 0, "F.SilkS"),
+    ("F1-", 13.9, 17.78, 0.9, 0, "F.SilkS"),
+    ("F2-", 13.9, 22.86, 0.9, 0, "F.SilkS"),
+    ("F3-", 13.9, 27.94, 0.9, 0, "F.SilkS"),
+    ("INTERRUPTOR", 96.5, 8.7, 0.9, 0, "F.SilkS"),
+    ("SW", 91.6, 15.24, 0.9, 0, "F.SilkS"),
+    ("36V+", 91.3, 23.6, 1.0, 0, "F.SilkS"),
+    ("GND", 97.0, 33.9, 1.0, 0, "F.SilkS"),
+    ("+ FLORES -", 16.51, 67.4, 1.0, 0, "F.SilkS"),
+    ("+ BAÑOS -", 29.21, 67.4, 1.0, 0, "F.SilkS"),
+    ("G  CENTROS  -", 88.9, 67.3, 0.8, 0, "F.SilkS"),
+    ("VELOCIDAD", 97.2, 59.7, 0.9, 90, "F.SilkS"),
+    ("REINICIO", 71.4, 75.4, 0.9, 0, "F.SilkS"),
+    ("ZONA 36 V (POTENCIA)", 25.0, 55.5, 1.4, 0, "F.SilkS"),
+    ("LOGICA 12 V", 57.0, 76.2, 1.1, 0, "F.SilkS"),
+    ("JP2/JP3: NO MONTAR", 27.0, 58.8, 0.9, 0, "F.SilkS"),
+    ("FLECHAS 36V v1.0", 27.0, 53.3, 1.5, 0, "B.Cu"),
+]
 LINES = []
 ORDER = None
 FIRST = ["+36V", "+12V"]

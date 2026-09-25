@@ -245,6 +245,7 @@ def make_board(comps, jpos):
         t.SetTextAngleDegrees(ang)
         if layer == "B.Cu":
             t.SetMirrored(True)
+            t.SetNet(None) if hasattr(t, "SetNet") else None
         board.Add(t)
     for (x1, y1, x2, y2, wdt) in PL.LINES:
         s = pcbnew.PCB_SHAPE(board)

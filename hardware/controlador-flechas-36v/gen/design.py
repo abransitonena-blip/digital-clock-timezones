@@ -37,9 +37,9 @@ T2, T4 = "Connector:Screw_Terminal_01x02", "Connector:Screw_Terminal_01x04"
 TB2, TB4 = "Clema_2P_P5.08mm", "Clema_4P_P5.08mm"
 
 # ---------------- 1. Entrada y protecciones ----------------
-add("J1", "36V ENTRADA", T2, TB2, {"1": "VIN", "2": "GND"}, "PWR", (0, 15, 0),
-    "Entrada de la fuente aislada de 36 VCC (pin 1 = 36V+, pin 2 = GND)")
-add("J2", "INTERRUPTOR", T2, TB2, {"1": "VSW", "2": "VIN"}, "PWR", (0, 40, 0),
+add("J1", "36V ENTRADA", T2, TB2, {"1": "GND", "2": "VIN"}, "PWR", (0, 15, 0),
+    "Entrada de la fuente aislada de 36 VCC (pin 2 = 36V+, pin 1 = GND)")
+add("J2", "INTERRUPTOR", T2, TB2, {"1": "VIN", "2": "VSW"}, "PWR", (0, 40, 0),
     "Interruptor de encendido externo (palanca/balancín). Si no se usa, puentear con alambre")
 add("F1", "RXEF025 0.25A", "Device:Polyfuse", "PTC_Radial_P5.08mm", {"1": "VSW", "2": "VF"}, "PWR", (30, 15, 0),
     "Fusible rearmable PTC 0.25 A hold / 0.5 A trip, 72 V")
@@ -113,8 +113,8 @@ for n, q, x in ((1, "Q0", 30), (2, "Q1", 105), (3, "Q2", 180)):
         "Programación de corriente flecha %d (68+68 = 136 ohm)" % n)
     add("R%d" % rb, "68 1%", R, RAX, {"1": "I%dB" % n, "2": "DRN%d" % n}, "OUT", (x + 55, 38, 0),
         "Programación de corriente flecha %d (68+68 = 136 ohm)" % n)
-add("J3", "FLECHAS", T4, TB4, {"1": "F3N", "2": "F2N", "3": "F1N", "4": "+36V"}, "OUT", (8, 20, 0),
-    "Salida a las 3 flechas: pin 4 = +36V (ánodo común), 3 = F1-, 2 = F2-, 1 = F3-")
+add("J3", "FLECHAS", T4, TB4, {"1": "+36V", "2": "F1N", "3": "F2N", "4": "F3N"}, "OUT", (8, 20, 0),
+    "Salida a las 3 flechas: pin 1 = +36V (ánodo común), 2 = F1-, 3 = F2-, 4 = F3-")
 
 # ---------------- 6. Opcionales ----------------
 add("R28", "1k", R, RAX, {"1": "CLK555", "2": "G4"}, "OPT", (0, 30, 90), "Resistencia de compuerta CENTROS")
@@ -125,12 +125,12 @@ add("JP2", "NO MONTAR", "Jumper:Jumper_2_Open", "Enlace_Opcional_P7.62mm", {"1":
     "Habilita +36V en FLORES. Montar solo después de medir la serie", dnp=True)
 add("JP3", "NO MONTAR", "Jumper:Jumper_2_Open", "Enlace_Opcional_P7.62mm", {"1": "+36V", "2": "V_BANO"}, "OPT", (80, 5, 0),
     "Habilita +36V en BAÑOS. Montar solo después de medir la serie", dnp=True)
-add("J4", "CENTROS", T2, TB2, {"1": "CENT_D", "2": "GND"}, "OPT", (55, 28, 0),
-    "Salida opcional CENTROS: pin 1 = retorno conmutado (-), pin 2 = GND de referencia. El + de las ramas se toma de J3 +36V")
-add("J5", "FLORES", T2, TB2, {"1": "GND", "2": "V_FLOR"}, "OPT", (90, 24, 0),
-    "Salida fija opcional FLORES (pin 1 = GND, pin 2 = +), resistencias en el panel")
-add("J6", "BAÑOS", T2, TB2, {"1": "GND", "2": "V_BANO"}, "OPT", (90, 38, 0),
-    "Salida fija opcional BAÑOS (pin 1 = GND, pin 2 = +), resistencias en el panel")
+add("J4", "CENTROS", T2, TB2, {"1": "GND", "2": "CENT_D"}, "OPT", (55, 28, 0),
+    "Salida opcional CENTROS: pin 2 = retorno conmutado (-), pin 1 = GND de referencia. El + de las ramas se toma de J3 +36V")
+add("J5", "FLORES", T2, TB2, {"1": "V_FLOR", "2": "GND"}, "OPT", (90, 24, 0),
+    "Salida fija opcional FLORES (pin 1 = +, pin 2 = GND), resistencias en el panel")
+add("J6", "BAÑOS", T2, TB2, {"1": "V_BANO", "2": "GND"}, "OPT", (90, 38, 0),
+    "Salida fija opcional BAÑOS (pin 1 = +, pin 2 = GND), resistencias en el panel")
 
 for i in range(1, 5):
     add("H%d" % i, "M3", "Mechanical:MountingHole", "Barreno_M3_3.2mm", {}, "REG", (75 + i * 12, 10, 0),
