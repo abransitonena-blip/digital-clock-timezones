@@ -1,0 +1,8 @@
+"Referencia","Valor","Huella","Cantidad","Funcion"
+"C1","334J 400V","FuenteOS:C_Poliester_P15mm","1","Capacitor de poliéster 0.33 uF 400 V: fija la corriente de los LED (~11 mA)"
+"D1,D2,D3,D4","1N4007","FuenteOS:D_DO-41_P10.16mm","4","Puente rectificador (1000 V 1 A)"
+"J1","127 VCA","FuenteOS:Clema_2P_P5.08mm","1","Entrada de red 127 VCA (pin 1 = L fase, pin 2 = N neutro). Tomar del mismo cable que la placa Radox"
+"J2","SALIDA OS","FuenteOS:Clema_2P_P5.08mm","1","Salida a la palabra OS: 20 LED amarillos en serie (pin 1 = + ánodo, pin 2 = - cátodo)"
+"R1","220R 1W fusible","FuenteOS:R_1W_P15.24mm","1","Resistencia fusible (flameproof): limita el pico al enchufar (180 V / 220 = 0.8 A) y actúa como fusible"
+"R2","1M 1/2W","FuenteOS:R_Axial_P15.24mm","1","Descarga C1 al desenchufar (tau = 1M x 0.33uF = 0.33 s)"
+"RV1","07D201K","FuenteOS:Varistor_D7mm_P5mm","1","Varistor 200 V (MOV): recorta picos de la red. Va después de R1 para que R1 lo proteja"
