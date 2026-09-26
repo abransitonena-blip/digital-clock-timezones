@@ -1,4 +1,4 @@
-# Fuente capacitiva para la palabra "OS" (20 LED amarillos), 127 VCA
+# Fuente capacitiva para la palabra "OS" (O 13 + S 14 = 27 LED ámbar/amarillos), 127 VCA
 
 Placa de **50 × 50 mm**, una cara y con componentes de patas (THT), hecha para transferencia de tóner. Es el mismo principio que la placa Radox: **no aislada**.
 
@@ -8,39 +8,32 @@ Placa de **50 × 50 mm**, una cara y con componentes de patas (THT), hecha para 
 ## Circuito
 
 ```
-L ─ R1 220Ω 1W ─┬─ C1 334J 400V ─┬─ AC1 ┐
-                │   (R2 1M ‖ C1)  │      ├─ puente 4×1N4007 ─► J2 + / −  →  20 LED amarillos en serie
-                RV1 07D201K       │      │
-N ──────────────┴─────────────────┴──────┘
+L ─┬─ C1 334J 400V ─ R1 220Ω 1W fusible ─ ~ 2W10 ─► + ── 27 LED en serie ── − ◄─ 2W10
+   └─ R2 1M ─┘                                  N ── ~ 2W10
 ```
 
 ## Cálculo
 
 Fórmula de corriente: `I = 4·f·C·(Vpico − Vtira)`.
 
+**LED ámbar o amarillo (2 V):** la tira suma 27 × 2 = 54 V, así que va C1 = **334J**.
+
 | Caso | Corriente |
 |---|---|
-| Nominal: 127 V (pico 180 V), tira de 40 V | **11.1 mA** |
-| Red a 115 V, Vf alto (44 V) | 9.3 mA |
-| Red a 140 V, Vf bajo (38 V) | 12.7 mA |
+| Nominal (127 V) | 240 × 0.33 µF × 126 = **10 mA** |
+| Red baja y Vf alto | 8.1 mA |
+| Red alta y Vf bajo | 11.6 mA |
 
-Otros capacitores posibles:
-
-| C1 | Corriente |
-|---|---|
-| 224J | 7.4 mA (más tenue) |
-| 474J | 15.8 mA (más brillante) |
-| 224J + 104 en paralelo | 10.8 mA |
+**LED blanco cálido (3 V):** la tira suma 81 V, así que va C1 = **474J**, con unos 11 mA.
 
 ## Materiales
 
 | Ref | Valor | Nota |
 |---|---|---|
+| C1 | **334J 400 V** poliéster | El footprint acepta paso 10 o 15 mm. 474J si los LED son blanco cálido |
 | R1 | 220 Ω 1 W **fusible** (flameproof) | Limita el pico al enchufar y actúa como fusible |
-| RV1 | Varistor 07D201K | Opcional, recomendado |
-| C1 | **334J 400 V** poliéster (paso 15 mm) | Fija la corriente |
 | R2 | 1 MΩ ½ W | Descarga C1 |
-| D1–D4 | 1N4007 | Puente rectificador |
+| BR1 | **2W10** (o W10M/W06M) | El + del cuerpo va al pad cuadrado |
 | J1, J2 | Clema 2 polos 5.08 mm | Entrada 127 V y salida a los LED |
 
 ## Archivos (`fabricacion/`)
@@ -52,7 +45,7 @@ Otros capacitores posibles:
 ## Armado y prueba
 
 1. Mide la regla de 100 mm del PDF impreso antes de planchar.
-2. Perfora con broca de 1.0 mm (0.8 mm para R2, 1.3 mm para las clemas). Suelda primero los diodos, respetando la **franja = K**.
+2. Perfora con broca de 1.0 mm (0.8 mm para R2, 1.3 mm para las clemas). Orienta el 2W10 con su **+** en el pad cuadrado.
 3. Conecta J1 al **mismo cable de 127 V** que la placa Radox, en paralelo. No lo tomes del + o del − de la placa Radox.
-4. Conecta J2 a la tira de la palabra OS: el + va al ánodo del primer LED y el − al cátodo del último.
+4. Conecta J2 a la tira O + S: el + va al ánodo del primer LED y el − al cátodo del último.
 5. Enchufa con las manos fuera. Si no enciende, desenchufa y revisa que ningún LED esté al revés.

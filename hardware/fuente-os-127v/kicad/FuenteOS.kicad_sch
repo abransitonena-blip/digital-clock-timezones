@@ -5,12 +5,12 @@
 	(uuid "9a2b7c4d-1e3f-4a5b-8c6d-7e8f9a0b1c2d")
 	(paper "A4")
 	(title_block
-		(title "Fuente capacitiva 127 VCA para la palabra OS (20 LED amarillos)")
+		(title "Fuente capacitiva 127 VCA para la palabra OS (27 LED)")
 		(date "2026-09-26")
 		(rev "1.0")
 		(company "PCB 50 x 50 mm, una cara, THT, transferencia de toner")
 		(comment 1 "NO AISLADA: todo el circuito queda a potencial de red (igual que la placa Radox)")
-		(comment 2 "I LED = 11 mA con C1 = 334J 400V")
+		(comment 2 "C1 = 334J -> 10 mA con LED ambar (474J si son blanco calido)")
 	)
 	(lib_symbols
 		(symbol "Connector:Screw_Terminal_01x02"
@@ -207,323 +207,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Device:R"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "R"
-				(at 2.032 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "R"
-				(at 0 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at -1.778 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Resistor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "R res resistor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "R_*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "R_0_1"
-				(rectangle
-					(start -1.016 -2.54)
-					(end 1.016 2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "R_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "Device:Varistor"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "RV"
-				(at 3.175 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "Varistor"
-				(at -3.175 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at -1.778 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Voltage dependent resistor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Sim.Name" "kicad_builtin_varistor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Sim.Device" "SUBCKT"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Sim.Pins" "1=A 2=B"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Sim.Params" "threshold=1k"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Sim.Library" "${KICAD9_SYMBOL_DIR}/Simulation_SPICE.sp"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "VDR resistance"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "RV_* Varistor*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "Varistor_0_0"
-				(text "U"
-					(at -1.778 -2.032 0)
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(symbol "Varistor_0_1"
-				(polyline
-					(pts
-						(xy -1.905 2.54)
-						(xy -1.905 1.27)
-						(xy 1.905 -1.27)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start -1.016 -2.54)
-					(end 1.016 2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "Varistor_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Device:C"
 			(pin_numbers
 				(hide yes)
@@ -665,31 +348,153 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Device:D"
+		(symbol "Device:R"
 			(pin_numbers
 				(hide yes)
 			)
 			(pin_names
-				(offset 1.016)
-				(hide yes)
+				(offset 0)
 			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "D"
-				(at 0 2.54 0)
+			(property "Reference" "R"
+				(at 2.032 0 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "D"
-				(at 0 -2.54 0)
+			(property "Value" "R"
+				(at 0 0 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:D_Bridge_+-AA"
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 2.54 6.985 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "D_Bridge_+-AA"
+				(at 2.54 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
 				)
 			)
 			(property "Footprint" ""
@@ -710,7 +515,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Diode"
+			(property "Description" "Diode bridge, +ve/-ve/AC/AC"
 				(at 0 0 0)
 				(effects
 					(font
@@ -719,7 +524,7 @@
 					(hide yes)
 				)
 			)
-			(property "Sim.Device" "D"
+			(property "ki_keywords" "rectifier ACDC"
 				(at 0 0 0)
 				(effects
 					(font
@@ -728,7 +533,7 @@
 					(hide yes)
 				)
 			)
-			(property "Sim.Pins" "1=K 2=A"
+			(property "ki_fp_filters" "D*Bridge* D*Rectifier*"
 				(at 0 0 0)
 				(effects
 					(font
@@ -737,57 +542,25 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "diode"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "D_0_1"
-				(polyline
-					(pts
-						(xy -1.27 1.27)
-						(xy -1.27 -1.27)
-					)
+			(symbol "D_Bridge_+-AA_0_1"
+				(circle
+					(center -5.08 0)
+					(radius 0.254)
 					(stroke
-						(width 0.254)
+						(width 0)
 						(type default)
 					)
 					(fill
-						(type none)
+						(type outline)
 					)
 				)
 				(polyline
 					(pts
-						(xy 1.27 1.27)
-						(xy 1.27 -1.27)
-						(xy -1.27 0)
-						(xy 1.27 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 0)
-						(xy -1.27 0)
+						(xy -5.08 0)
+						(xy 0 -5.08)
+						(xy 5.08 0)
+						(xy 0 5.08)
+						(xy -5.08 0)
 					)
 					(stroke
 						(width 0)
@@ -797,30 +570,157 @@
 						(type none)
 					)
 				)
-			)
-			(symbol "D_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
+				(polyline
+					(pts
+						(xy -3.81 2.54)
+						(xy -2.54 1.27)
+						(xy -1.905 3.175)
+						(xy -3.81 2.54)
 					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
 					)
 				)
+				(polyline
+					(pts
+						(xy -2.54 3.81)
+						(xy -1.27 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 -1.27)
+						(xy -3.81 -2.54)
+						(xy -1.905 -3.175)
+						(xy -2.54 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -2.54)
+						(xy -2.54 -3.81)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 5.08)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(circle
+					(center 0 -5.08)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 2.54)
+						(xy 2.54 3.81)
+						(xy 3.175 1.905)
+						(xy 1.27 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 1.27)
+						(xy 3.81 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 -1.27)
+						(xy 3.81 -2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.175 -1.905)
+						(xy 1.27 -2.54)
+						(xy 2.54 -3.81)
+						(xy 3.175 -1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 5.08 0)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+			)
+			(symbol "D_Bridge_+-AA_1_1"
 				(pin passive line
-					(at 3.81 0 180)
+					(at -7.62 0 0)
 					(length 2.54)
-					(name "A"
+					(name "-"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -835,13 +735,67 @@
 						)
 					)
 				)
+				(pin passive line
+					(at 0 7.62 270)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 			)
 			(embedded_fonts no)
 		)
 	)
 	(symbol
 		(lib_id "Connector:Screw_Terminal_01x02")
-		(at 35.56 76.2 180)
+		(at 35.56 71.12 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -849,7 +803,7 @@
 		(dnp no)
 		(uuid "1342bf7f-13f0-5831-bd2b-adbd496f4bff")
 		(property "Reference" "J1"
-			(at 38.76 75.2 0)
+			(at 38.76 70.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -858,7 +812,7 @@
 			)
 		)
 		(property "Value" "127 VCA"
-			(at 38.76 77.8 0)
+			(at 38.76 72.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -867,7 +821,7 @@
 			)
 		)
 		(property "Footprint" "FuenteOS:Clema_2P_P5.08mm"
-			(at 35.56 76.2 0)
+			(at 35.56 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -877,7 +831,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 35.56 76.2 0)
+			(at 35.56 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -886,8 +840,8 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Entrada de red 127 VCA (pin 1 = L fase, pin 2 = N neutro). Tomar del mismo cable que la placa Radox"
-			(at 35.56 76.2 0)
+		(property "Description" "Entrada de red 127 VCA (pin 1 = L fase, pin 2 = N neutro). Del mismo cable que la placa Radox"
+			(at 35.56 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -896,8 +850,8 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Entrada de red 127 VCA (pin 1 = L fase, pin 2 = N neutro). Tomar del mismo cable que la placa Radox"
-			(at 35.56 76.2 0)
+		(property "Funcion" "Entrada de red 127 VCA (pin 1 = L fase, pin 2 = N neutro). Del mismo cable que la placa Radox"
+			(at 35.56 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -907,10 +861,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "5f1735ef-0643-40f7-b4e7-b99a22f1d7d3")
+			(uuid "78518285-7930-41a3-8802-baf762036a75")
 		)
 		(pin "2"
-			(uuid "b99ada1c-2379-4c07-b3bd-5aa62d585719")
+			(uuid "130c344d-14f5-4688-a7d3-ed5bb4dc488b")
 		)
 		(instances
 			(project "FuenteOS"
@@ -923,17 +877,17 @@
 	)
 	(wire
 		(pts
-			(xy 40.64 76.2)
-			(xy 43.18 76.2)
+			(xy 40.64 71.12)
+			(xy 43.18 71.12)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "1cf059fb-2052-4007-b812-d14af0a1bb90")
+		(uuid "6e0a7d97-cd51-435b-a421-28896129fa60")
 	)
 	(label "L"
-		(at 43.18 76.2 0)
+		(at 43.18 71.12 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -941,21 +895,21 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "12560b07-55ef-4e52-aa14-8cf4caa3d510")
+		(uuid "23f4abd3-6cb1-4970-8c17-f3e89e476bff")
 	)
 	(wire
 		(pts
-			(xy 40.64 73.66)
-			(xy 43.18 73.66)
+			(xy 40.64 68.58)
+			(xy 43.18 68.58)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "7abb3ea6-ce39-4ea6-bafa-8a71130647cb")
+		(uuid "da8385f7-5e08-438b-8991-290014086076")
 	)
 	(label "N"
-		(at 43.18 73.66 0)
+		(at 43.18 68.58 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -963,263 +917,11 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "f58ee545-0b9e-406f-be75-299fb735f3de")
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 60.96 60.96 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "feb2ecde-b5db-5086-9965-0938b39f2c4f")
-		(property "Reference" "R1"
-			(at 59.15 57.76 270)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "220R 1W fusible"
-			(at 59.15 65.36 270)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "FuenteOS:R_1W_P15.24mm"
-			(at 60.96 60.96 270)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 60.96 60.96 270)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Description" "Resistencia fusible (flameproof): limita el pico al enchufar (180 V / 220 = 0.8 A) y actúa como fusible"
-			(at 60.96 60.96 270)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Funcion" "Resistencia fusible (flameproof): limita el pico al enchufar (180 V / 220 = 0.8 A) y actúa como fusible"
-			(at 60.96 60.96 270)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "1"
-			(uuid "fc4d036b-4323-4824-aab7-74729e6234a3")
-		)
-		(pin "2"
-			(uuid "3b69f470-b379-4d77-9921-b1fa7a4a428f")
-		)
-		(instances
-			(project "FuenteOS"
-				(path "/9a2b7c4d-1e3f-4a5b-8c6d-7e8f9a0b1c2d"
-					(reference "R1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 57.15 60.96)
-			(xy 54.61 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "887b6e24-c6e3-477a-ae39-824a8e69e512")
-	)
-	(label "L"
-		(at 54.61 60.96 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "3b4640d2-2263-43e8-8c8a-556a3b518d79")
-	)
-	(wire
-		(pts
-			(xy 64.77 60.96)
-			(xy 67.31 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e570491c-eccd-456b-bd7f-63ffd43c91d4")
-	)
-	(label "A"
-		(at 67.31 60.96 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "f09e6d99-1be8-4f43-9f77-f6e399756f72")
-	)
-	(symbol
-		(lib_id "Device:Varistor")
-		(at 76.2 91.44 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "7626e523-975b-55fd-96d7-c42c4e3ce727")
-		(property "Reference" "RV1"
-			(at 79.4 90.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "07D201K"
-			(at 79.4 93.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "FuenteOS:Varistor_D7mm_P5mm"
-			(at 76.2 91.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 76.2 91.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Description" "Varistor 200 V (MOV): recorta picos de la red. Va después de R1 para que R1 lo proteja"
-			(at 76.2 91.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Funcion" "Varistor 200 V (MOV): recorta picos de la red. Va después de R1 para que R1 lo proteja"
-			(at 76.2 91.44 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "1"
-			(uuid "ba4abafb-3efe-4e68-8029-11142defee90")
-		)
-		(pin "2"
-			(uuid "cee3ae23-edc7-43a5-b47e-17b323062cbf")
-		)
-		(instances
-			(project "FuenteOS"
-				(path "/9a2b7c4d-1e3f-4a5b-8c6d-7e8f9a0b1c2d"
-					(reference "RV1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 76.2 87.63)
-			(xy 76.2 85.09)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "495b9e77-79e8-42d4-b0bc-eaae41755db9")
-	)
-	(label "N"
-		(at 76.2 85.09 90)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "803f4597-fa40-490d-945d-7e8b1605199e")
-	)
-	(wire
-		(pts
-			(xy 76.2 95.25)
-			(xy 76.2 97.79)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f55056d3-9dfd-4bce-8870-5d5d5c53ce9f")
-	)
-	(label "A"
-		(at 76.2 97.79 270)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "93691c22-c2cd-467e-8f88-53ae0ab1d781")
+		(uuid "89a34932-5062-400b-b132-6d41e6f3a474")
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 99.06 60.96 90)
+		(at 63.5 60.96 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1227,7 +929,7 @@
 		(dnp no)
 		(uuid "a7a2b247-6765-5d87-aa25-43ebc55e2056")
 		(property "Reference" "C1"
-			(at 97.25 57.76 270)
+			(at 61.69 57.76 270)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1236,7 +938,7 @@
 			)
 		)
 		(property "Value" "334J 400V"
-			(at 97.25 65.36 270)
+			(at 61.69 65.36 270)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1244,8 +946,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "FuenteOS:C_Poliester_P15mm"
-			(at 99.06 60.96 270)
+		(property "Footprint" "FuenteOS:C_Poliester_P10-15mm"
+			(at 63.5 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1255,7 +957,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 99.06 60.96 270)
+			(at 63.5 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1264,8 +966,8 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Capacitor de poliéster 0.33 uF 400 V: fija la corriente de los LED (~11 mA)"
-			(at 99.06 60.96 270)
+		(property "Description" "Poliester 0.33 uF 400 V (paso 10 o 15 mm): fija la corriente (~10 mA con 27 LED ambar). Si los LED son blanco calido usar 474J"
+			(at 63.5 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1274,8 +976,8 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Capacitor de poliéster 0.33 uF 400 V: fija la corriente de los LED (~11 mA)"
-			(at 99.06 60.96 270)
+		(property "Funcion" "Poliester 0.33 uF 400 V (paso 10 o 15 mm): fija la corriente (~10 mA con 27 LED ambar). Si los LED son blanco calido usar 474J"
+			(at 63.5 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1285,10 +987,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "c539a606-50a7-4081-9dfb-887ec844d711")
+			(uuid "5dc1cfb2-cad0-4dca-ae04-e95ab7c35514")
 		)
 		(pin "2"
-			(uuid "7ec3c8df-c747-4f45-8869-6928fdd64593")
+			(uuid "595dbbc7-5664-4693-8635-c5380a9050f3")
 		)
 		(instances
 			(project "FuenteOS"
@@ -1301,17 +1003,17 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 60.96)
-			(xy 92.71 60.96)
+			(xy 59.69 60.96)
+			(xy 57.15 60.96)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "d0d52626-45c7-4e93-b3ac-15c6363079fd")
+		(uuid "34a7c464-68bd-419e-9211-a24f740fdba3")
 	)
-	(label "A"
-		(at 92.71 60.96 180)
+	(label "L"
+		(at 57.15 60.96 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1319,21 +1021,21 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d4ecaf76-d884-4508-b46c-fd463214f6f8")
+		(uuid "ecb77205-af3b-4809-9451-4a5727d21644")
 	)
 	(wire
 		(pts
-			(xy 102.87 60.96)
-			(xy 105.41 60.96)
+			(xy 67.31 60.96)
+			(xy 69.85 60.96)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "cc168f2b-7a67-4909-b8a8-11e2d07ade07")
+		(uuid "cdb5705f-6ae9-42c4-9325-74fd575db6ca")
 	)
-	(label "AC1"
-		(at 105.41 60.96 0)
+	(label "X"
+		(at 69.85 60.96 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1341,11 +1043,11 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "605a8005-a989-4267-9316-2d20d843a70c")
+		(uuid "f6261b59-3975-4b04-84ba-2ae353a1544f")
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 99.06 76.2 90)
+		(at 63.5 78.74 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1353,7 +1055,7 @@
 		(dnp no)
 		(uuid "dab372e5-2626-5fcd-b0b3-fa46a0045a1d")
 		(property "Reference" "R2"
-			(at 97.25 73 270)
+			(at 61.69 75.54 270)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1362,7 +1064,7 @@
 			)
 		)
 		(property "Value" "1M 1/2W"
-			(at 97.25 80.6 270)
+			(at 61.69 83.14 270)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1370,8 +1072,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "FuenteOS:R_Axial_P15.24mm"
-			(at 99.06 76.2 270)
+		(property "Footprint" "FuenteOS:R_Axial_P10.16mm"
+			(at 63.5 78.74 270)
 			(hide yes)
 			(effects
 				(font
@@ -1381,7 +1083,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 99.06 76.2 270)
+			(at 63.5 78.74 270)
 			(hide yes)
 			(effects
 				(font
@@ -1391,7 +1093,7 @@
 			)
 		)
 		(property "Description" "Descarga C1 al desenchufar (tau = 1M x 0.33uF = 0.33 s)"
-			(at 99.06 76.2 270)
+			(at 63.5 78.74 270)
 			(hide yes)
 			(effects
 				(font
@@ -1401,7 +1103,7 @@
 			)
 		)
 		(property "Funcion" "Descarga C1 al desenchufar (tau = 1M x 0.33uF = 0.33 s)"
-			(at 99.06 76.2 270)
+			(at 63.5 78.74 270)
 			(hide yes)
 			(effects
 				(font
@@ -1411,10 +1113,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "81591960-cfec-4a76-a5fd-37999027106c")
+			(uuid "e68375ee-68da-4b0d-b9ff-e7602a630f67")
 		)
 		(pin "2"
-			(uuid "471f00e6-e0d5-4078-b405-e495f47285ce")
+			(uuid "b476d702-ac40-400d-a857-4fca04dcdc29")
 		)
 		(instances
 			(project "FuenteOS"
@@ -1427,17 +1129,17 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 76.2)
-			(xy 92.71 76.2)
+			(xy 59.69 78.74)
+			(xy 57.15 78.74)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "6b69e6cd-0495-4b12-8a15-7192c6fee25b")
+		(uuid "2d15a4eb-e951-4ca3-a084-f9521c0d0b28")
 	)
-	(label "A"
-		(at 92.71 76.2 180)
+	(label "L"
+		(at 57.15 78.74 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1445,21 +1147,21 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "4cd701bd-354f-4ff8-81e0-a1085649e149")
+		(uuid "e6788861-6462-47ed-9e11-7bf508064b10")
 	)
 	(wire
 		(pts
-			(xy 102.87 76.2)
-			(xy 105.41 76.2)
+			(xy 67.31 78.74)
+			(xy 69.85 78.74)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "9795925c-bca2-41bf-9c05-3c6f417d40c8")
+		(uuid "707cd968-0bc6-4adb-91ba-ba5db699645f")
 	)
-	(label "AC1"
-		(at 105.41 76.2 0)
+	(label "X"
+		(at 69.85 78.74 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1467,19 +1169,19 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "bd30b61e-f625-40fa-aa9a-4ff9a7cc0b86")
+		(uuid "43afa39e-b477-43e3-932f-feaa90f7984c")
 	)
 	(symbol
-		(lib_id "Device:D")
-		(at 137.16 55.88 0)
+		(lib_id "Device:R")
+		(at 93.98 60.96 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "68795a4c-968e-51f6-936a-bfb15086efc7")
-		(property "Reference" "D1"
-			(at 135.35 52.68 0)
+		(uuid "feb2ecde-b5db-5086-9965-0938b39f2c4f")
+		(property "Reference" "R1"
+			(at 92.17 57.76 270)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1487,8 +1189,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1N4007"
-			(at 135.35 60.28 0)
+		(property "Value" "220R 1W fusible"
+			(at 92.17 65.36 270)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1496,8 +1198,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "FuenteOS:D_DO-41_P10.16mm"
-			(at 137.16 55.88 0)
+		(property "Footprint" "FuenteOS:R_1W_Vertical_P7.62mm"
+			(at 93.98 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1507,7 +1209,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 137.16 55.88 0)
+			(at 93.98 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1516,8 +1218,8 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 55.88 0)
+		(property "Description" "Resistencia fusible (flameproof): limita el pico al enchufar (180 V / 220 = 0.8 A) y actua como fusible"
+			(at 93.98 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1526,8 +1228,8 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 55.88 0)
+		(property "Funcion" "Resistencia fusible (flameproof): limita el pico al enchufar (180 V / 220 = 0.8 A) y actua como fusible"
+			(at 93.98 60.96 270)
 			(hide yes)
 			(effects
 				(font
@@ -1537,15 +1239,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "adec80d8-f56f-477d-a152-c0c28e3ffdce")
+			(uuid "0794c49f-19a0-4471-83ce-4f7b247106f1")
 		)
 		(pin "2"
-			(uuid "90fcc1b9-700c-4416-8421-645e93611a5c")
+			(uuid "5f100422-2638-4ffb-82d0-1ff063a6472b")
 		)
 		(instances
 			(project "FuenteOS"
 				(path "/9a2b7c4d-1e3f-4a5b-8c6d-7e8f9a0b1c2d"
-					(reference "D1")
+					(reference "R1")
 					(unit 1)
 				)
 			)
@@ -1553,17 +1255,17 @@
 	)
 	(wire
 		(pts
-			(xy 133.35 55.88)
-			(xy 130.81 55.88)
+			(xy 90.17 60.96)
+			(xy 87.63 60.96)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "5bc48e32-0410-4d6a-b6b1-d707c651b8ca")
+		(uuid "31c84459-6ff6-4bc1-b3b5-ee826d260a2b")
 	)
-	(label "OS+"
-		(at 130.81 55.88 180)
+	(label "X"
+		(at 87.63 60.96 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1571,21 +1273,21 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e0d1b181-24f3-41e2-8bbf-6bbf9b8ab8d7")
+		(uuid "1457ff90-64b6-4c99-8ce2-5cb5e92ed8b8")
 	)
 	(wire
 		(pts
-			(xy 140.97 55.88)
-			(xy 143.51 55.88)
+			(xy 97.79 60.96)
+			(xy 100.33 60.96)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "311c396c-5b16-4714-876d-05ce9f476097")
+		(uuid "b44ac57b-9857-486d-8c68-f3d5c026e593")
 	)
-	(label "AC1"
-		(at 143.51 55.88 0)
+	(label "AC"
+		(at 100.33 60.96 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1593,19 +1295,19 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "cb2735a0-f12c-4d4b-b929-d7e9bdea138a")
+		(uuid "75529047-eed2-4c3b-a381-b295592f19b1")
 	)
 	(symbol
-		(lib_id "Device:D")
-		(at 137.16 71.12 0)
+		(lib_id "Device:D_Bridge_+-AA")
+		(at 132.08 71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "59ea6c57-82b5-5774-ac46-73c4c54705c8")
-		(property "Reference" "D2"
-			(at 135.35 67.92 0)
+		(uuid "86e48899-b38b-527c-9890-e07a51f68d48")
+		(property "Reference" "BR1"
+			(at 151.7 70.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1613,8 +1315,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1N4007"
-			(at 135.35 75.52 0)
+		(property "Value" "2W10"
+			(at 151.7 72.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1622,8 +1324,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "FuenteOS:D_DO-41_P10.16mm"
-			(at 137.16 71.12 0)
+		(property "Footprint" "FuenteOS:Puente_2W10"
+			(at 132.08 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -1633,7 +1335,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 137.16 71.12 0)
+			(at 132.08 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -1642,8 +1344,8 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 71.12 0)
+		(property "Description" "Puente rectificador redondo 2W10 (1000 V 2 A). Tambien W10M/W06M"
+			(at 132.08 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -1652,8 +1354,8 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 71.12 0)
+		(property "Funcion" "Puente rectificador redondo 2W10 (1000 V 2 A). Tambien W10M/W06M"
+			(at 132.08 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -1661,17 +1363,23 @@
 				)
 				(justify left)
 			)
-		)
-		(pin "1"
-			(uuid "0de7dacd-23ea-48e3-a2e4-790b0ee71058")
 		)
 		(pin "2"
-			(uuid "99fbb9e2-1d05-4d4b-a1bd-8390ab28ba84")
+			(uuid "4b82c0f5-b3fb-4114-96da-2943e6b36516")
+		)
+		(pin "3"
+			(uuid "c1dc754d-32fa-4b68-85b2-7f9f531906c9")
+		)
+		(pin "4"
+			(uuid "8a5cd448-749d-46be-8652-438eff1f4627")
+		)
+		(pin "1"
+			(uuid "8cb90f5e-e8b0-4251-a861-aa545fa18b25")
 		)
 		(instances
 			(project "FuenteOS"
 				(path "/9a2b7c4d-1e3f-4a5b-8c6d-7e8f9a0b1c2d"
-					(reference "D2")
+					(reference "BR1")
 					(unit 1)
 				)
 			)
@@ -1679,269 +1387,17 @@
 	)
 	(wire
 		(pts
-			(xy 133.35 71.12)
-			(xy 130.81 71.12)
+			(xy 124.46 71.12)
+			(xy 121.92 71.12)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "1f90c152-425b-40dc-a55a-56d2fbb8a73b")
-	)
-	(label "OS+"
-		(at 130.81 71.12 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "0dd02067-2fc9-4bf6-8203-932cf2ab99f5")
-	)
-	(wire
-		(pts
-			(xy 140.97 71.12)
-			(xy 143.51 71.12)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a2b5cf56-f387-41bb-9d16-645a94f11b19")
-	)
-	(label "N"
-		(at 143.51 71.12 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "5201872c-0eaf-45de-95e1-34262543f124")
-	)
-	(symbol
-		(lib_id "Device:D")
-		(at 137.16 86.36 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "3555597e-4c79-5953-b8b1-311146a10941")
-		(property "Reference" "D3"
-			(at 135.35 83.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "1N4007"
-			(at 135.35 90.76 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "FuenteOS:D_DO-41_P10.16mm"
-			(at 137.16 86.36 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 137.16 86.36 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Description" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 86.36 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Funcion" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 86.36 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "1"
-			(uuid "b0026d75-de4b-4919-a0d2-2e046871e931")
-		)
-		(pin "2"
-			(uuid "1cefdbf6-522e-42e4-9c75-74fb6808a80c")
-		)
-		(instances
-			(project "FuenteOS"
-				(path "/9a2b7c4d-1e3f-4a5b-8c6d-7e8f9a0b1c2d"
-					(reference "D3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 133.35 86.36)
-			(xy 130.81 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8d2f0034-c8ea-45e0-bdd9-4afca0b32381")
-	)
-	(label "AC1"
-		(at 130.81 86.36 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "83ddbc93-149d-44d2-b1b3-b23f2cf79ba5")
-	)
-	(wire
-		(pts
-			(xy 140.97 86.36)
-			(xy 143.51 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fcdd5f94-d7f3-40b2-8cc4-7c1e292bfdc8")
+		(uuid "5e14fb39-adb4-414e-b6a0-a8c84348b12c")
 	)
 	(label "OS-"
-		(at 143.51 86.36 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e95da464-42e3-4552-940d-9d9157d7dfea")
-	)
-	(symbol
-		(lib_id "Device:D")
-		(at 137.16 101.6 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "4b6e741b-d712-5134-9acc-e6b030fd4148")
-		(property "Reference" "D4"
-			(at 135.35 98.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "1N4007"
-			(at 135.35 106 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "FuenteOS:D_DO-41_P10.16mm"
-			(at 137.16 101.6 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 137.16 101.6 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Description" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 101.6 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Funcion" "Puente rectificador (1000 V 1 A)"
-			(at 137.16 101.6 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "1"
-			(uuid "847c18f2-9e6e-4fd3-91c5-660116245411")
-		)
-		(pin "2"
-			(uuid "2e2c3a50-4942-4e68-b8be-7b96c34eeb80")
-		)
-		(instances
-			(project "FuenteOS"
-				(path "/9a2b7c4d-1e3f-4a5b-8c6d-7e8f9a0b1c2d"
-					(reference "D4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 133.35 101.6)
-			(xy 130.81 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2005fb6d-572f-405d-b479-9f19ef3a4702")
-	)
-	(label "N"
-		(at 130.81 101.6 180)
+		(at 121.92 71.12 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1949,21 +1405,21 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "524a467f-aaec-4246-ac62-624d7f638b2b")
+		(uuid "283a6d94-2f36-458c-97f7-3516b8ee92bd")
 	)
 	(wire
 		(pts
-			(xy 140.97 101.6)
-			(xy 143.51 101.6)
+			(xy 132.08 63.5)
+			(xy 132.08 60.96)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "a1232cb6-6c45-4048-abdf-f0a36feb3c7d")
+		(uuid "9aee7566-d2bc-439e-8662-e1086eca6f85")
 	)
-	(label "OS-"
-		(at 143.51 101.6 0)
+	(label "N"
+		(at 132.08 60.96 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1971,11 +1427,55 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "94e8afb9-4467-4609-b1cb-d5f73b37450e")
+		(uuid "5e70081a-a06b-42dd-b60b-574585af579f")
+	)
+	(wire
+		(pts
+			(xy 132.08 78.74)
+			(xy 132.08 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "04681a10-13d6-4ed2-8db7-8cd214cd4206")
+	)
+	(label "AC"
+		(at 132.08 81.28 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "966c15b7-ad1a-459a-afcd-d6c5664e91a7")
+	)
+	(wire
+		(pts
+			(xy 139.7 71.12)
+			(xy 142.24 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "76d3140a-23b3-4dd7-a32c-debf3679be7a")
+	)
+	(label "OS+"
+		(at 142.24 71.12 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "50b90957-c01b-47ff-b09a-ebf361b5d05b")
 	)
 	(symbol
 		(lib_id "Connector:Screw_Terminal_01x02")
-		(at 180.34 78.74 0)
+		(at 170.18 71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1983,7 +1483,7 @@
 		(dnp no)
 		(uuid "aa47955f-5527-5df8-b86a-3e42c2baef6a")
 		(property "Reference" "J2"
-			(at 183.54 77.74 0)
+			(at 173.38 70.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1992,7 +1492,7 @@
 			)
 		)
 		(property "Value" "SALIDA OS"
-			(at 183.54 80.34 0)
+			(at 173.38 72.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2001,7 +1501,7 @@
 			)
 		)
 		(property "Footprint" "FuenteOS:Clema_2P_P5.08mm"
-			(at 180.34 78.74 0)
+			(at 170.18 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -2011,7 +1511,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 180.34 78.74 0)
+			(at 170.18 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -2020,8 +1520,8 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Salida a la palabra OS: 20 LED amarillos en serie (pin 1 = + ánodo, pin 2 = - cátodo)"
-			(at 180.34 78.74 0)
+		(property "Description" "Salida a O+S (27 LED en serie): pin 2 = + (anodo del primer LED), pin 1 = - (catodo del ultimo)"
+			(at 170.18 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -2030,8 +1530,8 @@
 				(justify left)
 			)
 		)
-		(property "Funcion" "Salida a la palabra OS: 20 LED amarillos en serie (pin 1 = + ánodo, pin 2 = - cátodo)"
-			(at 180.34 78.74 0)
+		(property "Funcion" "Salida a O+S (27 LED en serie): pin 2 = + (anodo del primer LED), pin 1 = - (catodo del ultimo)"
+			(at 170.18 71.12 0)
 			(hide yes)
 			(effects
 				(font
@@ -2041,10 +1541,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "82d73074-23d7-46de-8f7f-726dc52d5962")
+			(uuid "d7cee1fc-4b22-4b07-885f-ac0611b3bd38")
 		)
 		(pin "2"
-			(uuid "7da106e8-7d25-4102-895c-1f1f8ec85df2")
+			(uuid "f61ef013-00bf-4b9a-a7b4-1313931d1024")
 		)
 		(instances
 			(project "FuenteOS"
@@ -2057,17 +1557,17 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 78.74)
-			(xy 172.72 78.74)
+			(xy 165.1 71.12)
+			(xy 162.56 71.12)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "56d25912-4e2c-423e-b995-ad45145989ba")
+		(uuid "0f565177-5021-4c56-a8bc-84e79ea21270")
 	)
-	(label "OS+"
-		(at 172.72 78.74 180)
+	(label "OS-"
+		(at 162.56 71.12 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2075,21 +1575,21 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "aaa96d9d-2e3c-47e6-a4b5-30d5872e2f1d")
+		(uuid "d148fcfc-e1e1-4984-a3c1-4d8b5a15e30a")
 	)
 	(wire
 		(pts
-			(xy 175.26 81.28)
-			(xy 172.72 81.28)
+			(xy 165.1 73.66)
+			(xy 162.56 73.66)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "a5367eb6-8d98-4b1e-ba18-25e15131142a")
+		(uuid "fea31a6a-75bd-4714-b91c-548c249811a1")
 	)
-	(label "OS-"
-		(at 172.72 81.28 180)
+	(label "OS+"
+		(at 162.56 73.66 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2097,33 +1597,33 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "a1bf4aeb-7c67-4b85-ac0a-9759ce2196fe")
+		(uuid "2dea817e-fada-44bb-a2c2-3c87c9e11dd8")
 	)
-	(text "FUENTE CAPACITIVA NO AISLADA - PALABRA 'OS' (20 LED AMARILLOS EN SERIE) - 127 VCA 60 Hz\nPELIGRO: TODO el circuito (placa, cables y LED) queda a potencial de red. No tocar con la placa enchufada.\nMontar dentro de la caja del letrero, LED detrás del acrílico, sin partes metálicas accesibles."
+	(text "FUENTE CAPACITIVA NO AISLADA - PALABRA 'OS' (O 13 + S 14 = 27 LED EN SERIE) - 127 VCA 60 Hz\nPELIGRO: TODO el circuito (placa, cables y LED) queda a potencial de red. No tocar con la placa enchufada.\nMontar dentro de la caja del letrero, LED detras del acrilico, sin partes metalicas accesibles."
 		(exclude_from_sim no)
-		(at 20.32 20.32 0)
+		(at 20.32 22.86 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left top)
 		)
-		(uuid "13d7e837-5d77-4df6-b954-6ee14cc10554")
+		(uuid "71c1f56c-8c75-41e3-88ad-dc3ed8cc10b0")
 	)
-	(text "CÁLCULO (I = 4 f C (Vpico - Vtira)):\n  Vpico = 127 x 1.414 = 180 V      Vtira = 20 x 2.0 V = 40 V (38-44 V con Vf 1.9-2.2 V)\n  C1 = 334J (0.33 uF):  I = 240 x 0.33e-6 x (180 - 40) = 11.1 mA\n  Red 115 V / Vf alto:  I = 240 x 0.33e-6 x (162 - 44) =  9.3 mA\n  Red 140 V / Vf bajo:  I = 240 x 0.33e-6 x (198 - 38) = 12.7 mA   (LED 5 mm: máx 20 mA)\n  Alternativas: 224J -> 7.4 mA (más tenue)   474J -> 15.8 mA (más brillante)   224J + 104 en paralelo -> 10.8 mA\n  Potencia: LED 40 V x 11 mA = 0.44 W (22 mW c/u)   R1: (15 mA rms)^2 x 220 = 0.05 W   C1: ~0 W (reactiva)\nSIN electrolítico a la salida (igual que Radox): si la tira se abre no hay nada que reviente."
+	(text "CALCULO (I = 4 f C (Vpico - Vtira)),  Vpico = 127 x 1.414 = 180 V:\n  LED ambar/amarillo (2.0 V): Vtira = 27 x 2.0 = 54 V -> C1 = 334J:  I = 240 x 0.33e-6 x (180 - 54) = 10.0 mA\n      red 115 V y Vf 2.2 V: 240 x 0.33e-6 x (162 - 59) = 8.1 mA     red 140 V y Vf 1.9 V: 240 x 0.33e-6 x (198 - 51) = 11.6 mA\n  LED blanco calido (3.0 V): Vtira = 27 x 3.0 = 81 V -> C1 = 474J:  I = 240 x 0.47e-6 x (180 - 81) = 11.2 mA\n  (LED 5 mm: maximo 20 mA)   R1: (15 mA rms)^2 x 220 = 0.05 W   C1: ~0 W (reactiva)\nSin electrolitico a la salida (igual que Radox): si la tira se abre no hay nada que reviente."
 		(exclude_from_sim no)
-		(at 20.32 120.65 0)
+		(at 20.32 101.6 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left top)
 		)
-		(uuid "2b2c2758-bde1-4446-a2e8-a355161dc349")
+		(uuid "ae370c80-4811-41e2-beec-164f2e4f2b7e")
 	)
-	(text "Bloque: entrada y limitación"
+	(text "Entrada y limitacion de corriente"
 		(exclude_from_sim no)
-		(at 45.72 45.72 0)
+		(at 40.64 48.26 0)
 		(effects
 			(font
 				(size 1.8 1.8)
@@ -2131,11 +1631,11 @@
 			)
 			(justify left top)
 		)
-		(uuid "650692e6-5d79-491b-ab11-5d0271c1214a")
+		(uuid "e519ab02-e69e-4c13-979d-fb6ace0ad842")
 	)
-	(text "Bloque: puente rectificador (4 x 1N4007)"
+	(text "Puente 2W10 y salida"
 		(exclude_from_sim no)
-		(at 124.46 43.18 0)
+		(at 119.38 48.26 0)
 		(effects
 			(font
 				(size 1.8 1.8)
@@ -2143,19 +1643,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "70b141bf-5fb9-4a3d-b584-c3b050754d63")
-	)
-	(text "Bloque: salida a la tira"
-		(exclude_from_sim no)
-		(at 167.64 66.04 0)
-		(effects
-			(font
-				(size 1.8 1.8)
-				(bold yes)
-			)
-			(justify left top)
-		)
-		(uuid "51340b24-5489-4a15-8e04-bccc346d3d4d")
+		(uuid "bcc3bfb8-a622-4f4b-a605-c57c01337cdc")
 	)
 	(sheet_instances
 		(path "/"

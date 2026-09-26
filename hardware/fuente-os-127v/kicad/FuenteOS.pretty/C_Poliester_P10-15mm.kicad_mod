@@ -1,0 +1,152 @@
+(footprint "C_Poliester_P10-15mm"
+	(version 20241229)
+	(generator "kicad-footprint-generator")
+	(layer "F.Cu")
+	(descr "C, Rect series, Radial, pin pitch=15.00mm, length*width=18*6mm^2, Capacitor, http://www.wima.com/EN/WIMA_FKS_3.pdf (pads ampliados para transferencia de toner, cobre solo en B.Cu)")
+	(tags "C Rect series Radial pin pitch 15.00mm length 18mm width 6mm Capacitor")
+	(property "Reference" "REF**"
+		(at 7.5 -4.25 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "C_Poliester_P10-15mm"
+		(at 7.5 4.25 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -1.62 -3.12)
+		(end 16.62 -3.12)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start -1.62 3.12)
+		(end -1.62 -3.12)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 16.62 -3.12)
+		(end 16.62 3.12)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 16.62 3.12)
+		(end -1.62 3.12)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -1.75 -3.25)
+		(end 16.75 3.25)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+	)
+	(fp_rect
+		(start -1.5 -3)
+		(end 16.5 3)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 7.5 0 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(embedded_fonts no)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.6 2.6)
+		(drill 1)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "5916c2cd-00b4-445c-82b9-2351724fb7c1")
+	)
+	(pad "2" thru_hole circle
+		(at 15 0)
+		(size 2.6 2.6)
+		(drill 1)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "2a5d3c57-5474-4b31-90af-6de80d4300da")
+	)
+	(pad "2" thru_hole circle
+		(at 10 0)
+		(size 2.6 2.6)
+		(drill 1)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "c291c7dd-ef70-4812-85b8-a60f25d0d5d0")
+	)
+	(fp_text user "10"
+		(at 10 2.2 0)
+		(layer "F.SilkS")
+		(uuid "f1fe86e5-39d4-4c64-bc1c-471c53a5338b")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.18)
+			)
+		)
+	)
+	(fp_text user "15"
+		(at 15 2.2 0)
+		(layer "F.SilkS")
+		(uuid "958d317b-cfac-4e19-b584-541c6253c848")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.18)
+			)
+		)
+	)
+	(model "${KIPRJMOD}/3d/C_Rect_L18.0mm_W6.0mm_P15.00mm_FKS3_FKP3.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

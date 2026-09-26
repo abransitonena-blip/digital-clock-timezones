@@ -1,0 +1,114 @@
+(footprint "R_1W_Vertical_P7.62mm"
+	(version 20241229)
+	(generator "kicad-footprint-generator")
+	(layer "F.Cu")
+	(descr "Resistor, Axial_DIN0411 series, Axial, Vertical, pin pitch=7.62mm, 1W, length*diameter=9.9*3.6mm^2 (pads ampliados para transferencia de toner, cobre solo en B.Cu)")
+	(tags "Resistor Axial_DIN0411 series Axial Vertical pin pitch 7.62mm 1W length 9.9mm diameter 3.6mm")
+	(property "Reference" "REF**"
+		(at 3.81 -2.92 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "R_1W_Vertical_P7.62mm"
+		(at 3.81 2.92 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start 1.92 0)
+		(end 6.12 0)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 1.92 0)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -2.05 -2.05)
+		(end 9.07 2.05)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+	)
+	(fp_line
+		(start 0 0)
+		(end 7.62 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 1.8 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 3.81 -2.92 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(embedded_fonts no)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.6 2.6)
+		(drill 1)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "3aacf783-3065-4055-8951-0938b2045837")
+	)
+	(pad "2" thru_hole circle
+		(at 7.62 0)
+		(size 2.6 2.6)
+		(drill 1)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "86ba2552-09a9-454c-b3b7-5a019438a302")
+	)
+	(model "${KIPRJMOD}/3d/R_Axial_DIN0411_L9.9mm_D3.6mm_P7.62mm_Vertical.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

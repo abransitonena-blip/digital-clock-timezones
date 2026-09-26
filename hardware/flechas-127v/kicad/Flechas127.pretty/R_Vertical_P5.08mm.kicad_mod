@@ -1,11 +1,11 @@
-(footprint "R_1W_P15.24mm"
+(footprint "R_Vertical_P5.08mm"
 	(version 20241229)
 	(generator "kicad-footprint-generator")
 	(layer "F.Cu")
-	(descr "Resistor, Axial_DIN0411 series, Axial, Horizontal, pin pitch=15.24mm, 1W, length*diameter=9.9*3.6mm^2 (pads ampliados para transferencia de toner, cobre solo en B.Cu)")
-	(tags "Resistor Axial_DIN0411 series Axial Horizontal pin pitch 15.24mm 1W length 9.9mm diameter 3.6mm")
+	(descr "Resistor, Axial_DIN0207 series, Axial, Vertical, pin pitch=5.08mm, 0.25W = 1/4W, length*diameter=6.3*2.5mm^2, http://cdn-reichelt.de/documents/datenblatt/B400/1_4W%23YAG.pdf (pads ampliados para transferencia de toner, cobre solo en B.Cu)")
+	(tags "Resistor Axial_DIN0207 series Axial Vertical pin pitch 5.08mm 0.25W = 1/4W length 6.3mm diameter 2.5mm")
 	(property "Reference" "REF**"
-		(at 7.62 -2.92 0)
+		(at 2.54 -2.37 0)
 		(layer "F.SilkS")
 		(effects
 			(font
@@ -14,8 +14,8 @@
 			)
 		)
 	)
-	(property "Value" "R_1W_P15.24mm"
-		(at 7.62 2.92 0)
+	(property "Value" "R_Vertical_P5.08mm"
+		(at 2.54 2.37 0)
 		(layer "F.Fab")
 		(effects
 			(font
@@ -26,26 +26,17 @@
 	)
 	(attr through_hole)
 	(fp_line
-		(start 1.44 0)
-		(end 2.55 0)
+		(start 1.37 0)
+		(end 3.98 0)
 		(stroke
 			(width 0.12)
 			(type solid)
 		)
 		(layer "F.SilkS")
 	)
-	(fp_line
-		(start 13.8 0)
-		(end 12.69 0)
-		(stroke
-			(width 0.12)
-			(type solid)
-		)
-		(layer "F.SilkS")
-	)
-	(fp_rect
-		(start 2.55 -1.92)
-		(end 12.69 1.92)
+	(fp_circle
+		(center 0 0)
+		(end 1.37 0)
 		(stroke
 			(width 0.12)
 			(type solid)
@@ -54,8 +45,8 @@
 		(layer "F.SilkS")
 	)
 	(fp_rect
-		(start -1.45 -2.05)
-		(end 16.69 2.05)
+		(start -1.5 -1.5)
+		(end 6.13 1.5)
 		(stroke
 			(width 0.05)
 			(type solid)
@@ -65,25 +56,16 @@
 	)
 	(fp_line
 		(start 0 0)
-		(end 2.67 0)
+		(end 5.08 0)
 		(stroke
 			(width 0.1)
 			(type solid)
 		)
 		(layer "F.Fab")
 	)
-	(fp_line
-		(start 15.24 0)
-		(end 12.57 0)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.Fab")
-	)
-	(fp_rect
-		(start 2.67 -1.8)
-		(end 12.57 1.8)
+	(fp_circle
+		(center 0 0)
+		(end 1.25 0)
 		(stroke
 			(width 0.1)
 			(type solid)
@@ -92,7 +74,7 @@
 		(layer "F.Fab")
 	)
 	(fp_text user "${REFERENCE}"
-		(at 7.62 0 0)
+		(at 2.54 -2.37 0)
 		(layer "F.Fab")
 		(effects
 			(font
@@ -104,21 +86,21 @@
 	(embedded_fonts no)
 	(pad "1" thru_hole circle
 		(at 0 0)
-		(size 2.6 2.6)
-		(drill 1)
+		(size 2.4 2.4)
+		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "1f5fbdcd-91f0-4a9e-bd18-b586d27c82cd")
+		(uuid "d0d9e684-5fdd-4145-8c95-9331a1120a61")
 	)
 	(pad "2" thru_hole circle
-		(at 15.24 0)
-		(size 2.6 2.6)
-		(drill 1)
+		(at 5.08 0)
+		(size 2.4 2.4)
+		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "88bf2c73-c3f6-4846-afec-083693650ae4")
+		(uuid "e0ebddb5-3c21-4864-91e6-e27c19412547")
 	)
-	(model "${KIPRJMOD}/3d/R_Axial_DIN0411_L9.9mm_D3.6mm_P15.24mm_Horizontal.step"
+	(model "${KIPRJMOD}/3d/R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical.step"
 		(offset
 			(xyz 0 0 0)
 		)

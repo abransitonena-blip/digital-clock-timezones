@@ -1,0 +1,224 @@
+(footprint "DIP-8_W7.62mm"
+	(version 20241229)
+	(generator "kicad-footprint-generator")
+	(layer "F.Cu")
+	(descr "8-lead though-hole mounted DIP package, row spacing 7.62mm (300 mils) (pads ampliados para transferencia de toner, cobre solo en B.Cu)")
+	(tags "THT DIP DIL PDIP 2.54mm 7.62mm 300mil")
+	(property "Reference" "REF**"
+		(at 3.81 -2.33 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "DIP-8_W7.62mm"
+		(at 3.81 9.95 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start 1.16 -1.33)
+		(end 1.16 8.95)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 1.16 8.95)
+		(end 6.46 8.95)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 2.81 -1.33)
+		(end 1.16 -1.33)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 6.46 -1.33)
+		(end 4.81 -1.33)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 6.46 8.95)
+		(end 6.46 -1.33)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_arc
+		(start 4.81 -1.33)
+		(mid 3.81 -0.33)
+		(end 2.81 -1.33)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -1.06 -1.52)
+		(end 8.67 9.14)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+	)
+	(fp_line
+		(start 0.635 -0.27)
+		(end 1.635 -1.27)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+	)
+	(fp_line
+		(start 0.635 8.89)
+		(end 0.635 -0.27)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+	)
+	(fp_line
+		(start 1.635 -1.27)
+		(end 6.985 -1.27)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+	)
+	(fp_line
+		(start 6.985 -1.27)
+		(end 6.985 8.89)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+	)
+	(fp_line
+		(start 6.985 8.89)
+		(end 0.635 8.89)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 3.81 3.81 90)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(embedded_fonts no)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "109b1c8f-bf70-4c84-b699-07fa1f3e7a8c")
+	)
+	(pad "2" thru_hole oval
+		(at 0 2.54)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "0ce6ea94-5cbd-498e-96ba-51e9de27be6c")
+	)
+	(pad "3" thru_hole oval
+		(at 0 5.08)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "57378b17-36c3-4b05-8e66-250454d7c73d")
+	)
+	(pad "4" thru_hole oval
+		(at 0 7.62)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "a1364e17-e59c-4abe-9353-eb011aab3da2")
+	)
+	(pad "5" thru_hole oval
+		(at 7.62 7.62)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "634492ac-6153-4c63-8ea3-da32f9758e90")
+	)
+	(pad "6" thru_hole oval
+		(at 7.62 5.08)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "b315e2fd-a07e-4190-9703-40a2cfec580f")
+	)
+	(pad "7" thru_hole oval
+		(at 7.62 2.54)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "89151baf-b601-4e50-a5cf-286babc629b2")
+	)
+	(pad "8" thru_hole oval
+		(at 7.62 0)
+		(size 2.6 1.6)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "a06054ff-146d-46d1-929b-7a29505f97f5")
+	)
+	(model "${KIPRJMOD}/3d/DIP-8_W7.62mm.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

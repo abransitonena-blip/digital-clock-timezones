@@ -1,0 +1,7 @@
+(version 1)
+(rule "Red 127 V: separacion minima 1.2 mm"
+  (condition "A.NetClass == 'Red127V'")
+  (constraint clearance (min 1.2mm)))
+(rule "Pistas >= 0.8 mm"
+  (condition "A.Type == 'track'")
+  (constraint track_width (min 0.8mm)))

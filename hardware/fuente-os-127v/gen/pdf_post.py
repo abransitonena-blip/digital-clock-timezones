@@ -13,7 +13,7 @@ NOTAS = {
     "1_cobre_para_planchado_1a1.pdf": [
         "COBRE (B.Cu) PARA TRANSFERENCIA DE TONER - ESCALA 1:1",
         "Imprimir al 100 % (desactivar 'Ajustar a la pagina'). Verificar la regla de 100 mm antes de planchar.",
-        "La imagen YA esta en la orientacion correcta para planchar: el texto 'FUENTE OS 127V v1' debe verse AL REVES",
+        "La imagen YA esta en la orientacion correcta para planchar: el texto 'FUENTE OS 127V v2' debe verse AL REVES",
         "en el papel. Coloque el lado del toner contra el cobre. Los puntos blancos marcan el centro de cada barreno.",
     ],
     "2_cobre_vista_desde_lado_soldadura_1a1.pdf": [
@@ -58,13 +58,13 @@ def main():
         for i, t in enumerate(lines):
             page.insert_text((15 * MM, y), t, fontsize=10 if i == 0 else 8, fontname="hebo" if i == 0 else "helv")
             y += (6 if i == 0 else 4.5) * MM
-        page.insert_text((15 * MM, 200 * MM), "Fuente capacitiva OS 127 VCA (20 LED amarillos) - placa 50 x 50 mm - v1.0 - NO AISLADA: PELIGRO 127 V",
+        page.insert_text((15 * MM, 200 * MM), "Fuente capacitiva OS 127 VCA (27 LED ambar, C1 334J) - placa 50 x 50 mm - v2 - NO AISLADA: PELIGRO 127 V",
                          fontsize=7, fontname="helv")
         ruler(page, 20, 170)
         if name.startswith("4_"):
             yy = 170
             page.insert_text((160 * MM, 165 * MM), "Barrenos (diametro : cantidad)", fontsize=9, fontname="hebo")
-            usos = {"0.8": "R2 (1M 1/2W)", "1.0": "R1 1W, C1, RV1, 1N4007",
+            usos = {"0.8": "R2 (1M 1/2W)", "1.0": "R1 1W, C1, puente 2W10",
                     "1.3": "clemas de 5.08 mm", "3.2": "montaje M3"}
             yy = 171
             for d, n in holes.items():
