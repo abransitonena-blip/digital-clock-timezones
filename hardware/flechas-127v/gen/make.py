@@ -127,7 +127,7 @@ TEXTS = [  # (texto, x, y, tamaño, ángulo, capa)
     ("+", 49.0, 30.0, 1.4, 0, "F.SilkS"), ("F3", 49.0, 35.08, 1.0, 90, "F.SilkS"),
     ("F1", 49.0, 40.16, 1.0, 90, "F.SilkS"), ("F2", 49.0, 45.24, 1.0, 90, "F.SilkS"),
     ("FLECHAS", 45.9, 48.8, 0.9, 0, "F.SilkS"),
-    ("W1 W2: CABLE FORRADO", 36.0, 58.4, 0.9, 0, "F.SilkS"),
+    ("W1 W2: CABLE FORRADO DEL LADO DEL COBRE", 33.0, 58.4, 0.7, 0, "F.SilkS"),
     ("PELIGRO 127V - NO TOCAR ENCHUFADA", 31.0, 27.3, 0.8, 0, "F.SilkS"),
     ("R6 velocidad: 47k=0.66s", 12.5, 58.6, 0.7, 0, "F.SilkS"),
     ("FLECHAS 127V v1", 13.0, 58.5, 1.2, 0, "B.Cu"),
@@ -160,9 +160,9 @@ def main():
                           sp, func))
         for i, (wref, na, nb, pa, pb) in enumerate(wires):
             L = round(abs(pb[0] - pa[0]) + abs(pb[1] - pa[1]), 2)
-            comps.append((wref, "PUENTE", "Jumper:Jumper_2_Bridged", "Puente_Alambre_P%.2fmm" % L,
+            comps.append((wref, "PUENTE", "Jumper:Jumper_2_Bridged", "Puente_Abajo_P%.2fmm" % L,
                           {"1": na, "2": nb}, (40.64 + 30.48 * i, 127.0, 0),
-                          "Puente de alambre (lado componentes) que une %s con %s" % (na, nb)))
+                          "Puente de cable forrado del lado del cobre (sin agujero) que une %s con %s" % (na, nb)))
             rot = {(1, 0): 0, (-1, 0): 180, (0, 1): 270, (0, -1): 90}[
                 (int(round((pb[0] - pa[0]) / L)), int(round((pb[1] - pa[1]) / L)))]
             pos[wref] = (pa[0], pa[1], rot)
@@ -171,9 +171,9 @@ def main():
         comun.make_footprints(KI, LIB, names)
         for wref, na, nb, pa, pb in wires:
             L = abs(pb[0] - pa[0]) + abs(pb[1] - pa[1])
-            fpn = "Puente_Alambre_P%.2fmm" % L
+            fpn = "Puente_Abajo_P%.2fmm" % L
             open(os.path.join(KI, LIB + ".pretty", fpn + ".kicad_mod"), "w").write(
-                comun.dump(comun.fplib.build_jumper(L, fpn)) + "\n")
+                comun.dump(comun.build_jumper_bottom(L, fpn)) + "\n")
     else:
         comun.make_footprints(KI, LIB, sorted({c[3] for c in C}))
     comun.make_schematic(KI, PROJECT, LIB, ROOT_UUID, NS, comps, NOTES, TEXTS_SCH,

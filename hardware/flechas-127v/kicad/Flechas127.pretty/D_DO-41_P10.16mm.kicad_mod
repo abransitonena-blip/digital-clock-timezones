@@ -182,7 +182,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "4a3b3ea6-2f2c-4817-a39d-0a42ab7ea3e8")
+		(uuid "cb180bb5-9ef1-44f1-8c90-086de621ed6b")
 	)
 	(pad "2" thru_hole circle
 		(at 10.16 0)
@@ -190,7 +190,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "d287d018-c8b6-465e-8ae8-4f1b68d41606")
+		(uuid "c1e1c883-b53e-4a7b-b7eb-489623b6588d")
 	)
 	(model "${KIPRJMOD}/3d/D_DO-41_SOD81_P10.16mm_Horizontal.step"
 		(offset

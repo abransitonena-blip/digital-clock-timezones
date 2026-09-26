@@ -198,7 +198,7 @@
 		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "2abee627-aa8f-468c-ba9d-667de544233e")
+		(uuid "d2f05182-4b73-4154-8316-eda16b00d1f4")
 	)
 	(pad "2" thru_hole oval
 		(at 2.54 0)
@@ -206,7 +206,7 @@
 		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "a541d505-4d16-4af8-8bf1-4605fcb152e9")
+		(uuid "d5662172-63e3-4b54-82e1-277daa129a94")
 	)
 	(pad "3" thru_hole oval
 		(at 5.08 0)
@@ -214,12 +214,12 @@
 		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "72df965d-0a2b-4e53-bf8b-73dff6243afb")
+		(uuid "965faf40-1229-494f-a2f5-2743933ba270")
 	)
 	(fp_text user "K G A"
 		(at 2.54 3.4 0)
 		(layer "F.SilkS")
-		(uuid "8c3bec4e-4687-477d-9754-a91e336e5300")
+		(uuid "754e0d8f-7104-47bd-9fe2-b531b69c22b5")
 		(effects
 			(font
 				(size 0.8 0.8)

@@ -15,6 +15,7 @@ NOTAS = {
         "Imprimir al 100 % (desactivar 'Ajustar a la pagina'). Verificar la regla de 100 mm antes de planchar.",
         "La imagen YA esta en la orientacion correcta para planchar: el texto 'FLECHAS 127V v1' debe verse AL REVES",
         "en el papel. Coloque el lado del toner contra el cobre. Los puntos blancos marcan el centro de cada barreno.",
+        "W1 y W2 son pads SIN agujero: ahi se suelda un cable forrado por el lado del cobre (pasa por encima de las pistas).",
     ],
     "2_cobre_vista_desde_lado_soldadura_1a1.pdf": [
         "COBRE VISTO DESDE EL LADO DE SOLDADURA (solo para revision) - ESCALA 1:1",

@@ -77,6 +77,26 @@ def build_cables(n, P=5.08):
     return fp
 
 
+def build_jumper_bottom(L, name):
+    """Puente de cable forrado soldado del lado del cobre: dos pads sin barreno en B.Cu (no se perfora)."""
+    S = lambda *a: [Sym(a[0])] + list(a[1:])
+
+    def smd(num, x):
+        return [Sym("pad"), num, Sym("smd"), Sym("circle"), S("at", x, 0), S("size", 2.4, 2.4),
+                S("layers", "B.Cu", "B.Mask"), S("uuid", str(uuid.uuid4()))]
+    return [Sym("footprint"), name, S("version", Sym("20241229")), S("generator", "pcbnew"),
+            S("generator_version", "9.0"), S("layer", "F.Cu"),
+            S("descr", "Puente de cable forrado del lado del cobre, %.2f mm, sin barrenos" % L),
+            [Sym("property"), "Reference", "W**", S("at", L / 2, -1.8, 0), S("layer", "F.SilkS"),
+             S("uuid", str(uuid.uuid4())), S("effects", S("font", S("size", 0.9, 0.9), S("thickness", 0.15)))],
+            [Sym("property"), "Value", "Puente abajo", S("at", L / 2, 1.8, 0), S("layer", "F.Fab"),
+             S("uuid", str(uuid.uuid4())), S("effects", S("font", S("size", 0.8, 0.8), S("thickness", 0.12)))],
+            S("attr", Sym("smd")),
+            [Sym("fp_line"), S("start", 1.4, 0), S("end", L - 1.4, 0), S("stroke", S("width", 0.3), S("type", Sym("dash"))),
+             S("layer", "F.SilkS"), S("uuid", str(uuid.uuid4()))],
+            smd("1", 0), smd("2", L)]
+
+
 def build_fp(name):
     if name.startswith("Cables_"):
         return build_cables(int(name.split("_")[1][0]))
