@@ -60,6 +60,7 @@ def build_cables(n, P=5.08):
     """Pads para soldar cables (columna de n pads, paso P): más chico que una clema."""
     S = lambda *a: [Sym(a[0])] + list(a[1:])
     L = (n - 1) * P
+    m, c = (1.6, 1.75) if n == 1 else (2.0, 2.25)      # silueta y courtyard
     fp = [Sym("footprint"), "Cables_%dP_P5.08mm" % n, S("version", Sym("20241229")), S("generator", "pcbnew"),
           S("generator_version", "9.0"), S("layer", "F.Cu"),
           S("descr", "%d pads para soldar cable (1.3 mm), paso %.2f mm, pads para toner" % (n, P)),
@@ -68,9 +69,9 @@ def build_cables(n, P=5.08):
           [Sym("property"), "Value", "Cables", S("at", 0, L + 3.0, 0), S("layer", "F.Fab"),
            S("uuid", str(uuid.uuid4())), S("effects", S("font", S("size", 1, 1), S("thickness", 0.15)))],
           S("attr", Sym("through_hole")),
-          [Sym("fp_rect"), S("start", -2.0, -2.0), S("end", 2.0, L + 2.0), S("stroke", S("width", 0.12), S("type", Sym("solid"))),
+          [Sym("fp_rect"), S("start", -m, -m), S("end", m, L + m), S("stroke", S("width", 0.12), S("type", Sym("solid"))),
            S("fill", Sym("no")), S("layer", "F.SilkS"), S("uuid", str(uuid.uuid4()))],
-          [Sym("fp_rect"), S("start", -2.25, -2.25), S("end", 2.25, L + 2.25), S("stroke", S("width", 0.05), S("type", Sym("solid"))),
+          [Sym("fp_rect"), S("start", -c, -c), S("end", c, L + c), S("stroke", S("width", 0.05), S("type", Sym("solid"))),
            S("fill", Sym("no")), S("layer", "F.CrtYd"), S("uuid", str(uuid.uuid4()))]]
     for i in range(n):
         fp.append(fplib.pad(str(i + 1), "rect" if i == 0 else RND, 0, i * P, (3.0, 3.0), 1.3))
@@ -99,7 +100,10 @@ def build_jumper_bottom(L, name):
 
 def build_fp(name):
     if name.startswith("Cables_"):
-        return build_cables(int(name.split("_")[1][0]))
+        P = float(name.split("_P")[1].replace("mm", ""))
+        fp = build_cables(int(name.split("_")[1][0]), P)
+        fp[1] = name
+        return fp
     fp = fplib.build(name, FOOTPRINTS[name])
     if name == "C_Poliester_P10-15mm":
         # segundo barreno para el pin 2 a 10 mm: sirve para capacitores de paso 10 mm o 15 mm
