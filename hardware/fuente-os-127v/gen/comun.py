@@ -144,10 +144,35 @@ def build_fp(name):
         fp.insert(idx + 1, fplib.pad("2", RND, 10.0, 0.0, (2.6, 2.6), 1.0))
         fp.insert(idx + 2, _silk("10", 10.0, 2.2, 0.8))
         fp.insert(idx + 3, _silk("15", 15.0, 2.2, 0.8))
+    if name == "Arduino_Nano_Zocalo":
+        # 3D: dos tiras hembra 1x15 (modelos de KiCad) + el Nano encima (modelo simple en VRML)
+        fp = [e for e in fp if not (isinstance(e, list) and e and e[0] == "model")]
+        S = lambda *a: [Sym(a[0])] + list(a[1:])
+        for mdl, x in (("PinSocket_1x15_P2.54mm_Vertical.step", 0), ("PinSocket_1x15_P2.54mm_Vertical.step", 15.24),
+                       ("Arduino_Nano_simple.wrl", 0)):
+            fp.append([Sym("model"), "${KIPRJMOD}/3d/" + mdl, S("offset", S("xyz", x, 0, 0)),
+                       S("scale", S("xyz", 1, 1, 1)), S("rotate", S("xyz", 0, 0, 0))])
     if name == "Puente_2W10":
         for t, x, y in (("+", -2.2, -1.2), ("-", 7.3, 6.3), ("~", -2.2, 6.3), ("~", 7.3, -1.2)):
             fp.insert(-1, _silk(t, x, y, 1.2))
     return fp
+
+
+def nano_wrl():
+    """Arduino Nano simplificado (placa, ATmega, USB) sobre las tiras hembra, en VRML (1 unidad = 2.54 mm)."""
+    boxes = [  # (x0, x1, y0, y1, z0, z1, color) en mm, coordenadas de la huella (pin 1 en 0,0; y hacia abajo)
+        (-1.38, 16.62, -3.82, 39.38, 11.0, 12.6, (0.05, 0.25, 0.6)),     # placa azul del Nano
+        (4.12, 11.12, 14.3, 21.3, 12.6, 13.6, (0.1, 0.1, 0.1)),        # ATmega328P
+        (3.77, 11.47, 32.18, 41.38, 12.6, 16.6, (0.75, 0.75, 0.78)),   # conector USB
+        (4.62, 10.62, 4.0, 9.0, 12.6, 14.0, (0.85, 0.85, 0.85)),      # botón reset / regulador
+    ]
+    out = ["#VRML V2.0 utf8"]
+    for x0, x1, y0, y1, z0, z1, c in boxes:
+        cx, cy, cz = (x0 + x1) / 2 / 2.54, -(y0 + y1) / 2 / 2.54, (z0 + z1) / 2 / 2.54
+        out.append("Transform { translation %.4f %.4f %.4f children [ Shape { appearance Appearance { material "
+                   "Material { diffuseColor %.2f %.2f %.2f } } geometry Box { size %.4f %.4f %.4f } } ] }"
+                   % (cx, cy, cz, c[0], c[1], c[2], (x1 - x0) / 2.54, (y1 - y0) / 2.54, (z1 - z0) / 2.54))
+    return "\n".join(out) + "\n"
 
 
 def make_footprints(ki, lib, names):
@@ -158,6 +183,8 @@ def make_footprints(ki, lib, names):
     open(os.path.join(d, "Barreno_M3_3.2mm.kicad_mod"), "w").write(dump(fplib.build_hole()) + "\n")
     d3 = os.path.join(ki, "3d")
     os.makedirs(d3, exist_ok=True)
+    if "Arduino_Nano_Zocalo" in names:
+        open(os.path.join(d3, "Arduino_Nano_simple.wrl"), "w").write(nano_wrl())
     for name in names:
         if name not in FOOTPRINTS:
             continue

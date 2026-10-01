@@ -59,17 +59,18 @@ def main():
         for i, t in enumerate(lines):
             page.insert_text((15 * MM, y), t, fontsize=10 if i == 0 else 8, fontname="hebo" if i == 0 else "helv")
             y += (6 if i == 0 else 4.5) * MM
-        page.insert_text((15 * MM, 200 * MM), "Placa base LetreroLab 12 V (3 canales MOSFET + Arduino Nano + HC-05) - placa 50 x 60 mm - v1.0 - bajo voltaje aislado",
+        page.insert_text((15 * MM, 200 * MM), "Placa base LetreroLab 12 V (3 canales MOSFET + Arduino Nano + HC-05) - placa 60 x 72 mm - v1.1 - bajo voltaje aislado",
                          fontsize=7, fontname="helv")
-        ruler(page, 20, 170)
+        ruler(page, 20, 188)
         if name.startswith("4_"):
             yy = 170
-            page.insert_text((160 * MM, 165 * MM), "Barrenos (diametro : cantidad)", fontsize=9, fontname="hebo")
+            page.insert_text((175 * MM, 165 * MM), "Barrenos (diametro : cantidad)", fontsize=9, fontname="hebo")
             usos = {"0.8": "resistencias 1/4 W, C1, PTC", "1.0": "tiras hembra (Nano, HC-05), diodo",
-                    "1.1": "MOSFET TO-220", "1.3": "clemas y pads del boton MODO"}
+                    "1.1": "MOSFET TO-220", "1.3": "clemas y pads del boton MODO",
+                    "3.2": "montaje M3 (gabinete)"}
             yy = 171
             for d, n in holes.items():
-                page.insert_text((160 * MM, yy * MM), "%s mm : %d   (%s)" % (d, n, usos.get(d, "")), fontsize=8,
+                page.insert_text((175 * MM, yy * MM), "%s mm : %d   (%s)" % (d, n, usos.get(d, "")), fontsize=8,
                                  fontname="helv")
                 yy += 5
         doc.save(path + ".tmp", garbage=3, deflate=True)

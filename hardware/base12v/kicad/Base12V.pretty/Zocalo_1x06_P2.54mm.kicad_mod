@@ -177,7 +177,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "b0de4b66-c105-4e0d-967f-94d581781c99")
+		(uuid "a0929866-3f4c-45be-86d3-5175a83f2774")
 	)
 	(pad "2" thru_hole oval
 		(at 0 2.54)
@@ -185,7 +185,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "769ecb1d-8ef0-4b10-8b73-86a8839ba2ce")
+		(uuid "0de3511c-749c-4fdb-b330-03ffeea2aa3d")
 	)
 	(pad "3" thru_hole oval
 		(at 0 5.08)
@@ -193,7 +193,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "7b707000-5f88-4fd4-a6c1-232fec941ca4")
+		(uuid "3ef0eefd-b50a-4faa-b6ff-65cb8c61de23")
 	)
 	(pad "4" thru_hole oval
 		(at 0 7.62)
@@ -201,7 +201,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "a813c676-302e-4b10-9197-efddb36aa796")
+		(uuid "dcbc45e7-fd34-44bf-ba9d-527036762c30")
 	)
 	(pad "5" thru_hole oval
 		(at 0 10.16)
@@ -209,7 +209,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "d09c8cbd-0a08-4cf8-8f24-b06594b81764")
+		(uuid "5956137a-5034-41b2-8073-66e044ed92e6")
 	)
 	(pad "6" thru_hole oval
 		(at 0 12.7)
@@ -217,7 +217,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "a5ab4719-a2bf-444c-a763-b687b1dcc832")
+		(uuid "91f9cfa5-fd2b-4694-8a93-343acac22d62")
 	)
 	(model "${KIPRJMOD}/3d/PinSocket_1x06_P2.54mm_Vertical.step"
 		(offset

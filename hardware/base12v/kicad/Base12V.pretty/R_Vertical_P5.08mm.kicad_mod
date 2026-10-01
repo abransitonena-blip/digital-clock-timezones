@@ -90,7 +90,7 @@
 		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "f80eec01-1df4-46c8-bdea-dd73dfbe7782")
+		(uuid "098d4a91-e53f-4432-9315-85dca5174c36")
 	)
 	(pad "2" thru_hole circle
 		(at 5.08 0)
@@ -98,7 +98,7 @@
 		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "3a88c70f-4c34-4117-a440-b966244d52be")
+		(uuid "0e573ffb-3b90-4480-82b1-00323d304a40")
 	)
 	(model "${KIPRJMOD}/3d/R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical.step"
 		(offset

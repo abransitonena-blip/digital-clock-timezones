@@ -110,7 +110,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "965a878f-0275-421e-a94b-7365b44785c0")
+		(uuid "36e7b742-7cd8-40a1-933e-593580ec7580")
 	)
 	(pad "2" thru_hole circle
 		(at 5.08 0)
@@ -118,7 +118,7 @@
 		(drill 1)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "0b682bf9-61ba-46c0-bba8-d93486310d5b")
+		(uuid "df651735-15b4-4864-966c-c62de8aabb02")
 	)
 	(model "${KIPRJMOD}/3d/D_DO-41_SOD81_P5.08mm_Vertical_KathodeUp.step"
 		(offset

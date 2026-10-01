@@ -265,7 +265,7 @@
 		(drill 1.3)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "e14ee6ed-5f8d-42ca-820a-97199d3438b4")
+		(uuid "05e8e19f-a8bd-4b21-8ccf-29dd56a3584a")
 	)
 	(pad "2" thru_hole circle
 		(at 5.08 0)
@@ -273,7 +273,7 @@
 		(drill 1.3)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "f390d699-2f23-4073-981e-486c356320b2")
+		(uuid "64033d05-e671-4b55-a726-11e9b6b669ee")
 	)
 	(model "${KIPRJMOD}/3d/TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal.step"
 		(offset

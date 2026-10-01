@@ -1,12 +1,12 @@
 (export (version "E")
   (design
     (source "/work/hardware/base12v/kicad/Base12V.kicad_sch")
-    (date "2026-10-01T01:36:39+0000")
+    (date "2026-10-01T01:41:40+0000")
     (tool "Eeschema 9.0.9")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block
         (title "Placa base LetreroLab 12 V: 3 canales MOSFET + Arduino Nano + Bluetooth")
-        (company "PCB 50 x 60 mm, una cara, THT, transferencia de toner")
+        (company "PCB 60 x 72 mm, una cara, THT, 4 barrenos M3, transferencia de toner")
         (rev "1.0")
         (date "2026-10-01")
         (source "Base12V.kicad_sch")

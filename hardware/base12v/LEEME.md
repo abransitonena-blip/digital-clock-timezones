@@ -6,7 +6,8 @@ Una sola placa base sirve para **todos los letreros**: LED de 5 mm, tiras LED de
 - **Cerebro enchufable:** Arduino Nano clon en 2 tiras hembra. Se quita y se reprograma.
 - **Bluetooth opcional:** el módulo HC-05 o HC-06 se enchufa **directo** en su zócalo J3 de 6 pines.
 - **3 canales de potencia** con MOSFET IRLZ44N. Cada uno da hasta 2 A sin disipador.
-- **Placa de 50 × 60 mm, una cara, sin puentes**, hecha para planchado de tóner. ERC y DRC sin errores.
+- **Placa de 60 × 72 mm (v1.1), una cara, sin puentes**, hecha para planchado de tóner. ERC y DRC sin errores.
+- **4 barrenos M3** para fijarla dentro del **gabinete de seguridad** (ver [`gabinete/`](gabinete/LEEME.md)): se cierra con tornillos especiales y solo salen los cables de entrada y de salida.
 
 ## Distribución
 
@@ -104,7 +105,7 @@ Los precios son aproximados, en pesos mexicanos.
 | 3 | Clema de 2 polos de 5.08 mm: una para la entrada y dos enganchadas para las 4 salidas | J1, J2 | $8 c/u |
 | 1 | Botón pulsador de 2 patas, o uno de panel con 2 cables | J4 | $3–10 |
 | 1 | **Eliminador switching de 12 V 1 A regulado** (2–3 A si vas a usar tiras) | — | $70–150 |
-| 1 | Placa fenólica de una cara de 10×10 (alcanza para 2 placas base) | — | $25–35 |
+| 1 | Placa fenólica de una cara de 10×10 (alcanza para 1 placa base de 60 × 72) | — | $25–35 |
 | ~10 | Resistencias de 220 Ω ¼ W para los grupos de LED de las tiras (una por cada grupo de 3) | — | $1 c/u |
 | *Opcional* | Módulo Bluetooth **HC-05** (o HC-06) | J3 | $90–130 |
 
@@ -116,7 +117,8 @@ Los precios son aproximados, en pesos mexicanos.
 - Plancha.
 - Fibra o lija fina.
 - Marcador indeleble para retoques.
-- Brocas de 0.8, 1.0, 1.1 y 1.3 mm.
+- Brocas de 0.8, 1.0, 1.1, 1.3 y 3.2 mm.
+- Para el gabinete: ver la lista en [`gabinete/LEEME.md`](gabinete/LEEME.md).
 
 ## Fabricación
 
@@ -136,6 +138,10 @@ Todo está en `fabricacion/`:
 
 **Otros:** esquema (`esquema/`), BOM, Gerber, 3D y reportes ERC/DRC (0 errores, el esquema coincide con la placa).
 
+**3D:** `3d/Base12V.step` y renders con los componentes (Nano, MOSFET, clemas…), útiles para diseñar cajas.
+
+**Para mandarla a fabricar:** `jlcpcb/Base12V_v1.1_gerber_JLCPCB.zip` se sube tal cual a JLCPCB o PCBWay. Opciones: 2 capas, 1.6 mm, HASL. Llegan placas profesionales con máscara verde y serigrafía; tú solo sueldas. El cobre va en la cara inferior y la serigrafía en la superior, igual que la versión planchada.
+
 **Brocas:**
 
 | Broca | Cantidad | Para |
@@ -144,6 +150,7 @@ Todo está en `fabricacion/`:
 | 1.0 mm | 38 | Tiras hembra del Nano y del HC-05, y diodo |
 | 1.1 mm | 9 | MOSFET |
 | 1.3 mm | 8 | Clemas y pads MODO |
+| 3.2 mm | 4 | Barrenos de montaje M3 (esquinas) |
 
 **Orden de armado:**
 1. Resistencias. Van **paradas**, con el cuerpo sobre el círculo de la serigrafía.
@@ -164,5 +171,6 @@ Todo está en `fabricacion/`:
 ```
 docker exec -w /work/hardware/base12v kc python3 gen/make.py --manual   # esquema + PCB con las pistas a mano
 docker exec -w /work/hardware/base12v kc python3 gen/outputs.py         # PDF, Gerber, BOM, ERC/DRC
-python3 gen/pdf_post.py && python3 gen/imprimir.py                      # notas, regla y hoja de 4 copias
+python3 gen/pdf_post.py && python3 gen/imprimir.py                      # notas, regla, hoja de 4 copias y zip Gerber
+python3 gen/caja.py                                                     # gabinete (STL, vista y plantilla)
 ```

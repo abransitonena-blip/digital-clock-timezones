@@ -6,7 +6,7 @@ Bajo voltaje AISLADO (eliminador/fuente switching de 12 V regulada): se puede to
     o una tira RGB de 12 V (ánodo común) para cambio de color.
   - El Arduino Nano (enchufable) se alimenta por VIN con los 12 V; su 5 V alimenta al HC-05.
   - HC-05: TXD -> D2, RXD <- D3 por divisor 1k / 2.2k (3.3 V).  Botón MODO en D7.
-PCB 50 x 60 mm, una cara; puentes (si hacen falta) con cable forrado del lado del cobre.
+PCB 60 x 72 mm, una cara, sin puentes, con 4 barrenos M3 para el gabinete.
 
     python3 gen/make.py          (dentro del contenedor de KiCad 9)
 """
@@ -75,7 +75,6 @@ NOTES = [
 TEXTS_SCH = [(25.4, 30.48, "Entrada 12 V"), (101.6, 30.48, "Cerebro enchufable (Arduino Nano) y Bluetooth"),
              (160.02, 101.6, "Canales de potencia")]
 
-W, H = 50.0, 60.0
 YT, YB = 12.5, 27.74            # filas del Nano (arriba: VIN..D13, abajo: D1..D12)
 YQ = 43.45                      # patas de los MOSFET
 YRG, YRP, YBUS = YQ - 4.92, YQ + 3.5, 35.99   # R de compuerta (pad 1), R a GND, bus de GND
@@ -123,9 +122,18 @@ TEXTS = [  # (texto, x, y, tamaño, ángulo, capa)
     ("CH2", 12.66, 51.2, 0.8, 0, "F.SilkS"), ("CH3", 17.74, 51.2, 0.8, 0, "F.SilkS"),
     ("+12V", 40.92, 51.4, 0.8, 0, "F.SilkS"), ("GND", 46.0, 51.4, 0.8, 0, "F.SilkS"),
     ("HC-05", 6.2, 4.6, 0.8, 0, "F.SilkS"), ("EN", 12.52, 2.3, 0.8, 0, "F.SilkS"), ("STATE", 25.22, 2.3, 0.8, 0, "F.SilkS"), ("MODO", 37.9, 8.8, 0.8, 0, "F.SilkS"),
-    ("LETREROLAB BASE 12V v1", 25.0, 23.5, 1.0, 0, "F.SilkS"),
+    ("LETREROLAB BASE 12V v1.1", 25.0, 23.5, 1.0, 0, "F.SilkS"),
     ("LETREROLAB 12V", 25.0, 19.0, 1.6, 0, "B.Cu"),
 ]
+# v1.1: margen de 5 mm alrededor para 4 barrenos M3 (fijar la placa dentro del gabinete de seguridad)
+OFF = 5.0
+W, H = 60.0, 72.0
+HOLES = [(3.5, 3.5), (W - 3.5, 3.5), (3.5, H - 3.5), (W - 3.5, H - 3.5)]
+POS = {k: (x + OFF, y + OFF, r) for k, (x, y, r) in POS.items()}
+TRACKS = {n: [[(x + OFF, y + OFF) for x, y in pl] for pl in pls] for n, pls in TRACKS.items()}
+TEXTS = [(t, x + OFF, y + OFF, sz, a, ly) for t, x, y, sz, a, ly in TEXTS]
+
+
 def main():
     os.makedirs(KI, exist_ok=True)
     comps, pos, tracks, wires = list(C), dict(POS), None, []
@@ -175,8 +183,8 @@ def main():
                           "Canales: tira 12 V, LED 5 mm con resistencia o tira RGB anodo comun"], paper="A3",
                          flags=[("V12", 45.72, 71.12), ("GND", 60.96, 71.12)] +
                          [(w[2], 106.68 + 15.24 * i, 22.86) for i, w in enumerate(wires) if w[1] in ("V12", "GND")],
-                         company="PCB 50 x 60 mm, una cara, THT, transferencia de toner")
-    b = comun.Board(W, H, LIB, KI, NS, comps, pos)
+                         company="PCB 60 x 72 mm, una cara, THT, 4 barrenos M3, transferencia de toner")
+    b = comun.Board(W, H, LIB, KI, NS, comps, pos, holes=HOLES)
     if tracks:
         b.add_tracks(tracks, widths)
     b.texts(TEXTS)

@@ -1503,7 +1503,7 @@
 		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "a98c704b-c3ab-48c9-b4d8-e04d4222eb76")
+		(uuid "522d9115-3ea9-4e64-820e-c2dd25adf3f8")
 	)
 	(pad "2" thru_hole circle
 		(at 3.81 0)
@@ -1511,7 +1511,7 @@
 		(drill 0.8)
 		(layers "B.Cu" "B.Mask")
 		(remove_unused_layers no)
-		(uuid "e6c227bc-744c-498a-8d5d-a32f7ad28e93")
+		(uuid "1d21304d-863f-43bd-9e70-b7cb51d8f58b")
 	)
 	(model "${KIPRJMOD}/3d/CP_Radial_D8.0mm_P3.50mm.step"
 		(offset
