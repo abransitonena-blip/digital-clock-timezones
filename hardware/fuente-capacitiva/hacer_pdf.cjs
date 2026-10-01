@@ -25,6 +25,24 @@ h1{font-size:15pt;margin:0 0 2mm} p{font-size:9.5pt;margin:1mm 0} .row{display:f
 <div class="row">${co}</div>
 <p><b>C1</b> tiene 3 agujeros: usa el de 15 mm o el de 22.5 mm según el tamaño de tu capacitor. <b>Fusible</b>: va en el cable de entrada (portafusible de cable, 500 mA lento).</p>
 </div>
+<div class="pg">
+<h1>Lista de material (versión 1, 5 salidas en serie)</h1>
+<table style="border-collapse:collapse;width:100%;font-size:9.5pt" border="1" cellpadding="6">
+<tr style="background:#eee"><th>Ref</th><th>Cant.</th><th>Cómo pedirlo en mostrador</th></tr>
+<tr><td>C1</td><td>1</td><td>Capacitor <b>X2 275 VAC 0.56 µF (564J)</b>. Si no hay, 0.47 µF (474J)</td></tr>
+<tr><td>R1</td><td>1</td><td>Resistencia <b>1 MΩ ½ W</b></td></tr>
+<tr><td>R2</td><td>1</td><td>Resistencia <b>150 Ω 1 W antiflama</b></td></tr>
+<tr><td>D1–D4</td><td>4</td><td>Diodo <b>1N4007</b></td></tr>
+<tr><td>C2</td><td>1</td><td>Electrolítico <b>47 µF 250 V</b> (13 mm, patas a 5 mm)</td></tr>
+<tr><td>R3</td><td>1</td><td>Resistencia <b>220 kΩ ½ W</b></td></tr>
+<tr><td>J0–J5</td><td>6</td><td>Bornera de 2 polos <b>KF301 paso 5 mm</b></td></tr>
+<tr><td>F1</td><td>1+1</td><td>Portafusible de cable + fusible 5×20 <b>lento 500 mA</b></td></tr>
+<tr><td>LED</td><td>15</td><td>LED de 5 mm (3 por salida)</td></tr>
+<tr><td>—</td><td>1</td><td>Placa fenólica de una cara 10×10 cm, cloruro férrico, plumón, fibra verde</td></tr>
+<tr><td>—</td><td>1</td><td>Caja de plástico, cable con clavija, termofit, soldadura; foco de 60 W para probar</td></tr>
+</table>
+<p style="font-size:9.5pt">En esta versión las 5 salidas van en serie: todas llevan la misma corriente. Si una se desconecta, se apagan todas. Si quieres salidas independientes, usa la versión de 5 canales.</p>
+</div>
 <div><h1>Acomodo ampliado 2× (para ver mejor, no es para planchar)</h1>${big}</div>`;
 (async () => {
   const b = await chromium.launch();
