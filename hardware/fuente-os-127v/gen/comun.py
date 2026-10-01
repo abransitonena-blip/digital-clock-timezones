@@ -247,7 +247,7 @@ def make_schematic(ki, project, lib, root_uuid, ns, comps, notes, texts, title, 
     sch.PROJECT, sch.ROOT_UUID, sch.NS = project, root_uuid, ns
     sh = sch.Sheet()
     for ref, val, sym, fp, pins, (x, y, th), func in comps:
-        pp = sh.symbol(sym, ref, val, x, y, th, fp=lib + ":" + fp, props_extra={"Funcion": func}, desc=func)
+        pp = sh.symbol(sym, ref, val, x, y, th, fp=fp if ":" in fp else lib + ":" + fp, props_extra={"Funcion": func}, desc=func)
         for pn, (px, py, ux, uy) in pp.items():
             net = pins.get(pn)
             if net is None:
