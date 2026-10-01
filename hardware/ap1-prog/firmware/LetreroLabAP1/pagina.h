@@ -147,7 +147,7 @@ function pinta(){
  $("info").textContent=E.v+" · IP "+E.ip+" · http://"+E.nom+".local"+(E.k?" · con clave":" · SIN clave");
  if(!document.querySelector("#progs :focus"))progs();
  $("cons").style.display=E.med?"block":"none";$("falla").style.display=E.f?"block":"none";
- $("fn").textContent=E.fn;$("fd").textContent=`Medido: ${E.vin} V, ${E.i} A, ${E.tc??"--"} °C. `+(E.f==1?"Revisa cortos o la carga total.":E.f==2?"Mejora la ventilación; vuelve sola al enfriarse.":"Revisa la fuente (máx. 30 V).");
+ $("fn").textContent=E.fn;$("fd").textContent=`Medido: ${E.vin} V, ${E.i} A, ${E.tc??"--"} °C. `+(E.f==1?"Revisa cortos o la carga total.":E.f==2?"Mejora la ventilación; vuelve sola al enfriarse.":"Revisa la fuente (máx. 26 V).");
  $("mw").textContent=Math.round(E.w);$("ma").textContent=E.i.toFixed(1);$("mv").textContent=E.vin.toFixed(1);
  $("mt").textContent=E.tc==null?"--":E.tc.toFixed(0);$("mh").textContent=E.hoy.toFixed(2);$("mk").textContent=E.kwh.toFixed(1);
  $("mbar").style.width=Math.min(100,E.i/E.lim*100)+"%";$("mbar").style.background=E.i>E.lim*.85?"var(--r)":E.i>E.lim*.6?"var(--y)":"var(--a)";

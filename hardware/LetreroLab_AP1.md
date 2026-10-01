@@ -26,7 +26,7 @@ El sistema tiene tres partes:
 |---|---|---|---|
 | Tamaño | 88 × 56 mm, esquinas redondeadas | 52 × 42 mm | 88 × 56 mm de planta |
 | Capas / cobre | **4 capas**: exteriores 2 oz, interiores 1 oz | 2 capas, 1 oz | |
-| Piezas | 65 (todo SMD, salvo clemas, portafusible y zócalo) | 41 | |
+| Piezas | 67 (todo SMD, salvo clemas, portafusible y zócalo) | 41 | |
 
 Frente a la AP-0.2 (90 × 70 mm, 6300 mm²), la base ocupa **4928 mm² (22 % menos)** y además trae los 2 canales de corriente constante, la memoria de identidad y la salida AUX.
 
@@ -69,11 +69,18 @@ Señales del conector (iguales en las dos placas):
 
 ![Base](ap1-base/fabricacion/3d/render_superior.png)
 
-**Entrada (J1, 12–24 V, hasta 20 A):**
+**Entrada (J1, 12–24 V, máximo 26 V, hasta 20 A):**
 - **Fusible mini de auto (ATM)**: se cambia sin soldar; se consigue en cualquier refaccionaria.
 - Protección de polaridad invertida sin pérdidas: un MOSFET de 1.6 mΩ (0.6 W a 20 A).
-- TVS contra picos.
+- **Supresor SMBJ26A contra picos:** empieza a conducir a 28.9 V y limita a 42 V, que es lo máximo que aguantan los AL8860. El SMBJ33A anterior dejaba pasar hasta 53 V: una fuente de 24 V conectada en caliente podía quemarlos. Por eso la entrada máxima es 26 V (una fuente de 24 V ajustada al tope da 26.4 V).
 - **Medidor INA238** de 85 V con shunt Kelvin de 1 mΩ: V, A, W y kWh, y alerta por sobrecorriente.
+
+**Protección por hardware (no depende del programa):**
+- La línea ALERTA del INA238 (sobrecorriente, sobrevoltaje de 28 V) y del TMP1075 (85 °C) llega a los **EN de los dos UCC27524** a través de D8 y D9 (1N4148WS).
+- Al dispararse, los 4 MOSFET se apagan en unos 20 ns después de la alerta, aunque el ESP32 esté trabado o reiniciándose.
+- El medidor compara cada conversión sin promediar, así que la alerta llega en menos de 1 ms. La alerta queda retenida hasta que el programa la atiende; después reintenta como antes (3 veces, cada 10 s).
+- Los diodos son necesarios: los EN del UCC27524 tienen un pull-up interno a 12 V que, sin ellos, metería 12 V a la línea de 3.3 V del ESP32 y del TMP1075.
+- Los focos CC no se cortan por hardware: su corriente ya está limitada (1 A) y tienen su fusible F2.
 
 **Salidas, todas en el borde de abajo para cablear por un solo lado de la caja:**
 
@@ -138,6 +145,13 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
 | ![](ap1-prog/firmware/capturas/1_control.png) | ![](ap1-prog/firmware/capturas/2_salidas.png) |
 
 **Compilación y grabación:**
+- **Home Assistant (fw 1.1):** con MQTT configurado, el equipo **aparece solo** en Home Assistant (descubrimiento MQTT, igual que Shelly, Tasmota o WLED). Aparecen:
+  - la luz, con brillo y los 10 efectos;
+  - el interruptor AUX;
+  - los dos focos CC (0–100 %);
+  - el botón "Probar salidas";
+  - los sensores de voltaje, corriente, potencia, energía, temperatura, señal y falla.
+  `HA 0` lo retira de Home Assistant y `HA 1` lo vuelve a anunciar. Por MQTT se pueden mandar varias órdenes en un mensaje, una por renglón.
 - **Estado:** compila sin advertencias (1.35 MB, 68 % de la flash). La app se probó en navegador contra un simulador.
 - **Compilar:** `bash hardware/tools/compilar_esp32.sh ap1`. Los binarios quedan en `ap1-prog/firmware/binarios/`.
 - **Grabar:** el archivo `_completo_0x0.bin` va por USB-C en la dirección 0x0; el `_actualizacion_OTA.bin` va por Wi-Fi.
@@ -163,7 +177,8 @@ Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/`
 
 **Primera tanda sugerida:** 5 bases y 5 programadores. Pruebas antes de pedir más:
 - temperatura a 20 A durante 1 h;
-- corte de la protección con carga electrónica;
+- corte de la protección con carga electrónica, también con el botón RESET del programador apretado (el corte por hardware debe actuar sin el programa);
+- pico de conexión en caliente con fuente de 24 V: medir con osciloscopio en VCC de los AL8860 (debe quedar bajo 42 V);
 - diagnóstico con salidas abiertas, en corto (con fuente limitada) y con un tramo desconectado;
 - focos CC a 1 A durante 72 h;
 - Wi-Fi con el programador montado dentro de la caja.
@@ -181,7 +196,7 @@ Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/`
 - **Piezas Extended desde KiCad:** el complemento **JLCPCB Tools** (Bouni/kicad-jlcpcb-tools) busca en todo el catálogo de JLCPCB y escribe el código LCSC en la placa.
 - **Cambios por la biblioteca:**
   - los diodos SS14 del programador pasaron a **B5819W** (Preferred, misma huella SOD-123, 40 V 1 A);
-  - el resto de pasivos, LED, SS34, SS210, SMBJ33A, MMSZ5242B, 1N4148W y AO3400A ya eran Basic/Preferred.
+  - el resto de pasivos, LED, SS34, SS210, SMBJ26A, MMSZ5242B, 1N4148WS y AO3400A ya eran Basic/Preferred.
 
 ## Cómo se diseñó y se revisa
 
