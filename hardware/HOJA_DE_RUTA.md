@@ -15,6 +15,7 @@ Lo que ya existe en este repositorio:
 | **Programa**: 7 modos, Bluetooth, memoria EEPROM | `base12v/firmware/` | Escrito, falta probarlo en el Nano |
 | Fuentes capacitivas 127 V (OS, 3 salidas, flechas) | `fuente-os-127v/`, `fuente3-127v/`, `flechas-127v/` | Listas. No aisladas: solo dentro del letrero |
 | Modelo 3D de la placa | `base12v/fabricacion/3d/` | STEP y renders con componentes |
+| **LetreroLab AP-0.1**: placa de potencia (fuente 100-240 V integrada, 4 canales, relevador para focos) + placa cabezal con **chip propio ATmega328P**, Bluetooth, reloj, IR y LDR | `ap01-potencia/`, `ap01-cabezal/`, `ap01-gabinete/`, guía en `LetreroLab_AP01.md` | Listas para planchar (2 placas sin puentes, ERC/DRC 0); programa compilado; app web probada en modo demo |
 
 **Tareas de esta fase:**
 1. Armar la placa base, cargar el programa y probarla en el letrero BAÑOS.
@@ -50,6 +51,8 @@ Lo que JLCPCB pide para ensamblar:
 **Programa y aplicación:** el ESP32 permite una **app propia** (o página web en el mismo módulo) con modos, colores, horarios, brillo y escenas. Además se puede **actualizar el programa por Wi-Fi (OTA)**, sin abrir la caja; eso respeta el gabinete sellado.
 
 Ese "programador de funciones especiales" queda como una pantalla de la app: modos personalizados y secuencias guardadas en la memoria del módulo.
+
+**Sobre "módulo propio" e internacional:** para vender en otros países, la parte de radio (Bluetooth o Wi-Fi) debe estar **certificada**: FCC, CE, IFT en México, etc. Certificar un diseño de radio propio cuesta miles de dólares. Por eso las marcas, incluso las grandes, usan un **módulo de radio ya certificado** (BLE o Wi-Fi) soldado en **su propia placa**, con su marca, su programa y su app. Así es el AP-0.1: el cerebro (ATmega328P), la potencia, el programa, la app y el protocolo son nuestros, y el Bluetooth es un módulo enchufable y reemplazable.
 
 ## Fase 4: productos propios (focos y lámparas LED, tiras, letreros)
 

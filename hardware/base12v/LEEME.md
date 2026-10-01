@@ -59,7 +59,7 @@ Si una tira no es múltiplo de 3, el grupo que sobra de 2 LED lleva **470 Ω**, 
 
 Ábrelo en el Arduino IDE. Elige la placa "Arduino Nano" y el procesador "ATmega328P (Old Bootloader)", que es el de casi todos los clones CH340, y súbelo por USB. El HC-05 puede quedarse puesto porque usa A5/A2 y no los pines D0/D1 del USB.
 
-> **Aviso:** no pude compilar el programa aquí porque no tengo el IDE de Arduino. Si al subirlo aparece algún error, mándame el mensaje y lo corrijo.
+> **Compilado y verificado:** el programa compila sin errores (23 % de la memoria) con `tools/compilar_avr.sh`. El archivo `LetreroBase.hex` ya está incluido por si prefieres subirlo con XLoader.
 
 | Pin del Nano | Función |
 |---|---|

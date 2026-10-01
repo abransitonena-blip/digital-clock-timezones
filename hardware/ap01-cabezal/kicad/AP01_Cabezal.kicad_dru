@@ -1,0 +1,4 @@
+(version 1)
+(rule "Pistas >= 0.8 mm"
+  (condition "A.Type == 'track'")
+  (constraint track_width (min 0.8mm)))

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "AP01_Cabezal")(type "KiCad")(uri "${KIPRJMOD}/AP01_Cabezal.pretty")(options "")(descr "Huellas THT con pads para transferencia de toner"))
+)
