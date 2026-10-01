@@ -1,0 +1,3117 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d")
+	(paper "A4")
+	(title_block
+		(title "Placa B: fuente capacitiva de 3 salidas para letreros fijos 127 VCA")
+		(date "2026-09-26")
+		(rev "1.0")
+		(company "PCB 50 x 50 mm, una cara, THT, transferencia de toner, sin puentes")
+		(comment 1 "NO AISLADA: todo el circuito queda a potencial de red (igual que la placa Radox)")
+		(comment 2 "Capacitor de cada salida segun la tira: 224J / 334J / 474J")
+	)
+	(lib_symbols
+		(symbol "Connector:Screw_Terminal_01x02"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Screw_Terminal_01x02"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "screw terminal"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TerminalBlock*:*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Screw_Terminal_01x02_1_1"
+				(rectangle
+					(start -1.27 1.27)
+					(end 1.27 -3.81)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 0.3302)
+						(xy 0.3302 -0.508)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 -2.2098)
+						(xy 0.3302 -3.048)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 0.508)
+						(xy 0.508 -0.3302)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 -2.032)
+						(xy 0.508 -2.8702)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 0)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 -2.54)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:C"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762)
+						(xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762)
+						(xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:D_Bridge_+-AA"
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 2.54 6.985 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "D_Bridge_+-AA"
+				(at 2.54 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Diode bridge, +ve/-ve/AC/AC"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "rectifier ACDC"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "D*Bridge* D*Rectifier*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "D_Bridge_+-AA_0_1"
+				(circle
+					(center -5.08 0)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy -5.08 0)
+						(xy 0 -5.08)
+						(xy 5.08 0)
+						(xy 0 5.08)
+						(xy -5.08 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -3.81 2.54)
+						(xy -2.54 1.27)
+						(xy -1.905 3.175)
+						(xy -3.81 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 3.81)
+						(xy -1.27 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 -1.27)
+						(xy -3.81 -2.54)
+						(xy -1.905 -3.175)
+						(xy -2.54 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -2.54)
+						(xy -2.54 -3.81)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 5.08)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(circle
+					(center 0 -5.08)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 2.54)
+						(xy 2.54 3.81)
+						(xy 3.175 1.905)
+						(xy 1.27 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 1.27)
+						(xy 3.81 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 -1.27)
+						(xy 3.81 -2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.175 -1.905)
+						(xy 1.27 -2.54)
+						(xy 2.54 -3.81)
+						(xy 3.175 -1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 5.08 0)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+			)
+			(symbol "D_Bridge_+-AA_1_1"
+				(pin passive line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 7.62 270)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Connector:Screw_Terminal_01x01"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Screw_Terminal_01x01"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic screw terminal, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "screw terminal"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TerminalBlock*:*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Screw_Terminal_01x01_1_1"
+				(rectangle
+					(start -1.27 1.27)
+					(end 1.27 -1.27)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 0.3302)
+						(xy 0.3302 -0.508)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 0.508)
+						(xy 0.508 -0.3302)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 0)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x02")
+		(at 20.32 45.72 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "080cb126-3507-53f9-8afb-0fb6124b5cf0")
+		(property "Reference" "J1"
+			(at 23.52 44.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "127 VCA"
+			(at 23.52 47.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Clema_2P_P5.08mm"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Entrada 127 VCA (pin 1 = N, pin 2 = L; se pueden intercambiar). Del mismo cable que las otras placas"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Entrada 127 VCA (pin 1 = N, pin 2 = L; se pueden intercambiar). Del mismo cable que las otras placas"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "779b2b3a-74f3-4170-8db4-27339f0cafb5")
+		)
+		(pin "2"
+			(uuid "28367ba5-2d44-4ae8-ab93-fa03e015675f")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 25.4 45.72)
+			(xy 27.94 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f4d155a1-6479-4bdc-add6-98a195076afe")
+	)
+	(label "N"
+		(at 27.94 45.72 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a8209458-2162-4698-a2a8-69e391d10764")
+	)
+	(wire
+		(pts
+			(xy 25.4 43.18)
+			(xy 27.94 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2b57ce78-35ce-4851-9e70-9d097995a2bc")
+	)
+	(label "L"
+		(at 27.94 43.18 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6caac317-ddac-4697-8f3c-884ab77ee799")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 20.32 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "52c8423f-4c53-5dcd-aef1-f8c48be4739b")
+		(property "Reference" "R10"
+			(at 23.52 65.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1M 1/2W"
+			(at 23.52 67.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:R_Vertical_P5.08mm"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Descarga los capacitores al desenchufar (entre L y N)"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Descarga los capacitores al desenchufar (entre L y N)"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "3e16ffae-3c7a-4e0c-bae6-eb26c0fa3d04")
+		)
+		(pin "2"
+			(uuid "dae5bff8-3533-469a-9bee-57864783b220")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "R10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 20.32 62.23)
+			(xy 20.32 59.69)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cf493022-db6e-4355-9666-d5f18751f1f1")
+	)
+	(label "L"
+		(at 20.32 59.69 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b76d3ce4-da6d-4fa6-8f56-d175bf367465")
+	)
+	(wire
+		(pts
+			(xy 20.32 69.85)
+			(xy 20.32 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f30fc4af-39e8-4aef-9661-976a1f68e8bc")
+	)
+	(label "N"
+		(at 20.32 72.39 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "84a6043e-6764-4b45-a488-6154158565bd")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 45.72 30.48 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "401dc8c1-6ca0-581e-9dd3-cba3dea9f1dd")
+		(property "Reference" "C1"
+			(at 43.91 27.28 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "224J 400V"
+			(at 43.91 34.88 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:C_Poliester_P10-15mm"
+			(at 45.72 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 45.72 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Capacitor de la salida 1: fija la corriente (ver tabla). Poliester 400 V, paso 10 o 15 mm"
+			(at 45.72 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Capacitor de la salida 1: fija la corriente (ver tabla). Poliester 400 V, paso 10 o 15 mm"
+			(at 45.72 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "6cc441e8-075e-4078-b089-06bdbd184f9b")
+		)
+		(pin "2"
+			(uuid "8d6a1390-9d21-4f1e-b7fb-c24077a7f60b")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 41.91 30.48)
+			(xy 39.37 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b343dda4-2620-439e-a8d6-b4754ebef1e3")
+	)
+	(label "L"
+		(at 39.37 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "cdbef0eb-8734-4810-8417-752518b68a13")
+	)
+	(wire
+		(pts
+			(xy 49.53 30.48)
+			(xy 52.07 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "528957e5-19e8-4529-824b-4a0111f99c5f")
+	)
+	(label "X1"
+		(at 52.07 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "eee47ee5-7368-44b5-a9ac-f531254b03d8")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 68.58 30.48 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "def3db4b-296a-53da-997b-2964b746030b")
+		(property "Reference" "R1"
+			(at 66.77 27.28 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220R 1W fusible"
+			(at 66.77 34.88 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:R_1W_Vertical_P7.62mm"
+			(at 68.58 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 68.58 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia fusible de la salida 1 (limita el pico al enchufar)"
+			(at 68.58 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia fusible de la salida 1 (limita el pico al enchufar)"
+			(at 68.58 30.48 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "e13bdcac-7d87-41e9-9e09-36f9a1273891")
+		)
+		(pin "2"
+			(uuid "991a01df-01ff-4a2d-b529-0efe3d26b227")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 64.77 30.48)
+			(xy 62.23 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d1cb34a5-f5f4-4acb-a00e-c4b95dbc036c")
+	)
+	(label "X1"
+		(at 62.23 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "03f23e3f-484f-46fc-892d-4e7c1fd45f8c")
+	)
+	(wire
+		(pts
+			(xy 72.39 30.48)
+			(xy 74.93 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "340fbbb7-3afc-4349-9834-3425bf290fb6")
+	)
+	(label "AC1"
+		(at 74.93 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a43f7814-7cdf-40da-b134-52c1be720069")
+	)
+	(symbol
+		(lib_id "Device:D_Bridge_+-AA")
+		(at 96.52 30.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0bb42fd5-187c-59bc-945c-ae1d73eec701")
+		(property "Reference" "BR1"
+			(at 116.14 29.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "2W10"
+			(at 116.14 32.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Puente_2W10"
+			(at 96.52 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 96.52 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Puente 2W10 de la salida 1"
+			(at 96.52 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Puente 2W10 de la salida 1"
+			(at 96.52 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "66aa1e7b-cebf-499a-b206-ca7e285f448f")
+		)
+		(pin "3"
+			(uuid "14694362-332a-4618-b751-31a5bf67afa9")
+		)
+		(pin "4"
+			(uuid "2f7288c3-530d-4f82-bc0f-14ed4f030858")
+		)
+		(pin "1"
+			(uuid "ba57712a-6d04-4419-bcd1-97aacf51d3e7")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "BR1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 88.9 30.48)
+			(xy 86.36 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "077d0dad-bfbd-46a4-ba6e-e98346a307d2")
+	)
+	(label "S1-"
+		(at 86.36 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "cf646bd3-b4cc-484a-a6ee-29246cd438d8")
+	)
+	(wire
+		(pts
+			(xy 96.52 22.86)
+			(xy 96.52 20.32)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a156cc74-f402-4a58-bc6f-27845b75f0bb")
+	)
+	(label "AC1"
+		(at 96.52 20.32 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "23fbb4db-499d-48f4-9130-14b05dec0303")
+	)
+	(wire
+		(pts
+			(xy 96.52 38.1)
+			(xy 96.52 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7a35438f-90d1-49ac-8227-d085944e910e")
+	)
+	(label "N"
+		(at 96.52 40.64 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a4e31621-49f5-482d-891c-eb7e15f6dbe5")
+	)
+	(wire
+		(pts
+			(xy 104.14 30.48)
+			(xy 106.68 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ef6236b0-815c-4d1b-b9da-8adfb944b35c")
+	)
+	(label "S1+"
+		(at 106.68 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3117dc86-2221-427f-8d6e-6634736ed47c")
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x01")
+		(at 124.46 27.94 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9aecc546-0fb5-5946-a5af-aa2eef84f3a7")
+		(property "Reference" "J2"
+			(at 127.66 26.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "S1 +"
+			(at 127.66 29.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Cables_1P_P5.08mm"
+			(at 124.46 27.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 27.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Salida 1 +: anodo del primer LED de la tira"
+			(at 124.46 27.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Salida 1 +: anodo del primer LED de la tira"
+			(at 124.46 27.94 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "13bda1df-21e7-4b93-b9cc-c5e634e1fe6d")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 119.38 27.94)
+			(xy 116.84 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3e588e88-e9e5-4b47-b24b-684ff00f9d19")
+	)
+	(label "S1+"
+		(at 116.84 27.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "e9dc7801-f1de-483f-846d-a6616eab8b24")
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x01")
+		(at 124.46 35.56 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "87640f7e-cc99-5f1e-aed9-2535eb794113")
+		(property "Reference" "J3"
+			(at 127.66 34.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "S1 -"
+			(at 127.66 37.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Cables_1P_P5.08mm"
+			(at 124.46 35.56 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 35.56 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Salida 1 -: catodo del ultimo LED de la tira"
+			(at 124.46 35.56 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Salida 1 -: catodo del ultimo LED de la tira"
+			(at 124.46 35.56 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "52d891ba-7767-465a-8c6d-00c96810ffae")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 119.38 35.56)
+			(xy 116.84 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "30457b54-6d5a-476e-b331-6cad3c34bb31")
+	)
+	(label "S1-"
+		(at 116.84 35.56 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "814ce733-b6c6-4fce-b3b2-bb1f9152d884")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 45.72 55.88 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b8f7f61a-88ba-5ae1-b91d-348726f68792")
+		(property "Reference" "C2"
+			(at 43.91 52.68 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "334J 400V"
+			(at 43.91 60.28 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:C_Poliester_P10-15mm"
+			(at 45.72 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 45.72 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Capacitor de la salida 2: fija la corriente (ver tabla). Poliester 400 V, paso 10 o 15 mm"
+			(at 45.72 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Capacitor de la salida 2: fija la corriente (ver tabla). Poliester 400 V, paso 10 o 15 mm"
+			(at 45.72 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "eb13a975-6c2a-4088-b02f-b3a0a677ce13")
+		)
+		(pin "2"
+			(uuid "819bb5f2-4a1b-472a-8c52-032edc4894c9")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "C2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 41.91 55.88)
+			(xy 39.37 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b2ba7079-974d-414a-990c-99416e6d6f5d")
+	)
+	(label "L"
+		(at 39.37 55.88 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "435f467a-9088-4d40-b99d-fb9c6735faa0")
+	)
+	(wire
+		(pts
+			(xy 49.53 55.88)
+			(xy 52.07 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e59b30a7-67ae-43cf-80df-3b5024969082")
+	)
+	(label "X2"
+		(at 52.07 55.88 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "77f21411-7d17-42b5-90bb-ef95c85bf09e")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 68.58 55.88 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0fa7e96e-a2ec-5bf3-9a4c-4e17a084880c")
+		(property "Reference" "R2"
+			(at 66.77 52.68 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220R 1W fusible"
+			(at 66.77 60.28 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:R_1W_Vertical_P7.62mm"
+			(at 68.58 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 68.58 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia fusible de la salida 2 (limita el pico al enchufar)"
+			(at 68.58 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia fusible de la salida 2 (limita el pico al enchufar)"
+			(at 68.58 55.88 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "d797ab90-a284-41f4-aff5-77ac59f35ad3")
+		)
+		(pin "2"
+			(uuid "1d95b257-4478-4fa5-ad72-004a68ff1a55")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 64.77 55.88)
+			(xy 62.23 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bb68dfcf-5e4d-41cb-a40d-4fd15f1315b6")
+	)
+	(label "X2"
+		(at 62.23 55.88 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "8f53b561-4f2e-45a9-9a6c-78328af66d40")
+	)
+	(wire
+		(pts
+			(xy 72.39 55.88)
+			(xy 74.93 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b479c6f9-2239-4387-a7cb-ac08fc4f19a5")
+	)
+	(label "AC2"
+		(at 74.93 55.88 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ec0a19a6-56d8-4786-8cec-b439c0319b9a")
+	)
+	(symbol
+		(lib_id "Device:D_Bridge_+-AA")
+		(at 96.52 55.88 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fcd5384a-b638-5c2c-b7eb-9121428f37e8")
+		(property "Reference" "BR2"
+			(at 116.14 54.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "2W10"
+			(at 116.14 57.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Puente_2W10"
+			(at 96.52 55.88 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 96.52 55.88 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Puente 2W10 de la salida 2"
+			(at 96.52 55.88 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Puente 2W10 de la salida 2"
+			(at 96.52 55.88 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "cdd38f88-cd8c-4f05-b1a0-5cfd8e522bb6")
+		)
+		(pin "3"
+			(uuid "105cd315-9d57-47fe-8c43-4f26034da6f0")
+		)
+		(pin "4"
+			(uuid "c18ba180-8b35-498f-80db-d5e52cc25424")
+		)
+		(pin "1"
+			(uuid "e3636d3d-9a64-4f85-983d-a1338e0ab4c6")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "BR2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 88.9 55.88)
+			(xy 86.36 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "77f195e0-db3a-41e1-b7f1-a69b6bde4249")
+	)
+	(label "S2-"
+		(at 86.36 55.88 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "408db3fe-907e-4453-8ed8-4a66d56440cd")
+	)
+	(wire
+		(pts
+			(xy 96.52 48.26)
+			(xy 96.52 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f0698ab7-1be9-4aeb-8375-5dd6a1912d7c")
+	)
+	(label "AC2"
+		(at 96.52 45.72 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "44abaf26-cec1-421d-8eb7-72ba28f543ae")
+	)
+	(wire
+		(pts
+			(xy 96.52 63.5)
+			(xy 96.52 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a423a48d-2221-46a2-bb06-86ef1d761c3b")
+	)
+	(label "N"
+		(at 96.52 66.04 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "89d113aa-872f-47cf-8af9-0d5b50b717f9")
+	)
+	(wire
+		(pts
+			(xy 104.14 55.88)
+			(xy 106.68 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "996c9f68-767b-4f6c-b02e-d9b2675b097e")
+	)
+	(label "S2+"
+		(at 106.68 55.88 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "df3d3f84-784d-4969-9863-e261b3a64ac7")
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x01")
+		(at 124.46 53.34 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e7cb0c4f-7e17-5268-86d0-ab9c14ddbc0f")
+		(property "Reference" "J4"
+			(at 127.66 52.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "S2 +"
+			(at 127.66 54.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Cables_1P_P5.08mm"
+			(at 124.46 53.34 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 53.34 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Salida 2 +: anodo del primer LED de la tira"
+			(at 124.46 53.34 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Salida 2 +: anodo del primer LED de la tira"
+			(at 124.46 53.34 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "c849dcd9-db9c-49b2-827e-157aa8f11aac")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 119.38 53.34)
+			(xy 116.84 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "99b4a498-15e7-408c-9e3b-f97c61b3a18d")
+	)
+	(label "S2+"
+		(at 116.84 53.34 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9cccc6c6-4eb0-4eb0-aac0-6f6ce5dae0a7")
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x01")
+		(at 124.46 60.96 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5888b655-fee6-55b5-a0e3-5a209fa2ea42")
+		(property "Reference" "J5"
+			(at 127.66 59.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "S2 -"
+			(at 127.66 62.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Cables_1P_P5.08mm"
+			(at 124.46 60.96 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 60.96 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Salida 2 -: catodo del ultimo LED de la tira"
+			(at 124.46 60.96 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Salida 2 -: catodo del ultimo LED de la tira"
+			(at 124.46 60.96 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "17751115-8c20-498b-9106-251a29313b3f")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "J5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 119.38 60.96)
+			(xy 116.84 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "88966998-e5fc-4156-b6ec-e3759f51e723")
+	)
+	(label "S2-"
+		(at 116.84 60.96 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "8f35e93f-de4a-4bfa-a06c-f76b5f69ad2a")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 45.72 81.28 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a9fed807-09d7-5748-919f-25eb02a81213")
+		(property "Reference" "C3"
+			(at 43.91 78.08 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "474J 400V"
+			(at 43.91 85.68 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:C_Poliester_P10-15mm"
+			(at 45.72 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 45.72 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Capacitor de la salida 3: fija la corriente (ver tabla). Poliester 400 V, paso 10 o 15 mm"
+			(at 45.72 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Capacitor de la salida 3: fija la corriente (ver tabla). Poliester 400 V, paso 10 o 15 mm"
+			(at 45.72 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "a2012042-ddf8-4e19-9c44-84a76f930289")
+		)
+		(pin "2"
+			(uuid "c36df91e-a34e-4746-ac04-2685e1efe95a")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 41.91 81.28)
+			(xy 39.37 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "257c39b5-25e6-4530-8f0c-deacd1df5c29")
+	)
+	(label "L"
+		(at 39.37 81.28 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c732af2a-27a1-406a-acf4-734802b0f5ca")
+	)
+	(wire
+		(pts
+			(xy 49.53 81.28)
+			(xy 52.07 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "571f5193-b9e5-49c2-b6e0-9974fbe5c6ef")
+	)
+	(label "X3"
+		(at 52.07 81.28 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d1f9a1f2-360f-4106-8eb4-234ad5d403f7")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 68.58 81.28 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "aa3fa7c8-01f3-5cbf-95b6-c11735ad44a3")
+		(property "Reference" "R3"
+			(at 66.77 78.08 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220R 1W fusible"
+			(at 66.77 85.68 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:R_1W_Vertical_P7.62mm"
+			(at 68.58 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 68.58 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia fusible de la salida 3 (limita el pico al enchufar)"
+			(at 68.58 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia fusible de la salida 3 (limita el pico al enchufar)"
+			(at 68.58 81.28 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "f0a941c8-cd03-4389-abd3-05079971b023")
+		)
+		(pin "2"
+			(uuid "339849fd-23bf-41de-92da-5123f212dde3")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "R3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 64.77 81.28)
+			(xy 62.23 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f1e96c58-2ee5-42ae-8d6f-8c7a2e37e74d")
+	)
+	(label "X3"
+		(at 62.23 81.28 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "743af32f-0381-4ae2-9d7a-0909b99ae55e")
+	)
+	(wire
+		(pts
+			(xy 72.39 81.28)
+			(xy 74.93 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "edcc52b4-4f95-4dad-925f-c26bd48eb349")
+	)
+	(label "AC3"
+		(at 74.93 81.28 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "c9535a62-843c-459b-acfb-8808cf701f0f")
+	)
+	(symbol
+		(lib_id "Device:D_Bridge_+-AA")
+		(at 96.52 81.28 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c17d6c25-b305-5cf3-8501-a158e569451a")
+		(property "Reference" "BR3"
+			(at 116.14 80.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "2W10"
+			(at 116.14 82.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Puente_2W10"
+			(at 96.52 81.28 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 96.52 81.28 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Puente 2W10 de la salida 3"
+			(at 96.52 81.28 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Puente 2W10 de la salida 3"
+			(at 96.52 81.28 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "f1944f77-a9b9-4c1c-b76c-be0b19aed137")
+		)
+		(pin "3"
+			(uuid "eb97c64c-1710-4231-9601-7fc6fd14c8c3")
+		)
+		(pin "4"
+			(uuid "bb2c761f-62ff-4e6d-a985-10d1515471f7")
+		)
+		(pin "1"
+			(uuid "1cd5a453-59a8-42ff-acab-98db8f491ccb")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "BR3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 88.9 81.28)
+			(xy 86.36 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c3a18320-cca7-4798-a5b2-902317e6c561")
+	)
+	(label "S3-"
+		(at 86.36 81.28 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ae89465c-2ed2-4348-a365-d33a81e6fbf9")
+	)
+	(wire
+		(pts
+			(xy 96.52 73.66)
+			(xy 96.52 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d7ba84fe-d0ba-4227-8dee-0a27b1f498e4")
+	)
+	(label "AC3"
+		(at 96.52 71.12 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "510fbe58-d5df-40f9-902e-18d5cb66da56")
+	)
+	(wire
+		(pts
+			(xy 96.52 88.9)
+			(xy 96.52 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "995156bb-2c6f-4bff-b0a3-2fbf5b158950")
+	)
+	(label "N"
+		(at 96.52 91.44 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b0918e80-cd05-4fd2-852d-eb4257991db9")
+	)
+	(wire
+		(pts
+			(xy 104.14 81.28)
+			(xy 106.68 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "41c7b958-3301-4021-b00f-29bee3b00e7a")
+	)
+	(label "S3+"
+		(at 106.68 81.28 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "055e1959-9363-4735-a8ea-e0fd0f842d44")
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x01")
+		(at 124.46 78.74 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6417d594-bad0-5270-9cff-e77b09ef9f18")
+		(property "Reference" "J6"
+			(at 127.66 77.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "S3 +"
+			(at 127.66 80.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Cables_1P_P5.08mm"
+			(at 124.46 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Salida 3 +: anodo del primer LED de la tira"
+			(at 124.46 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Salida 3 +: anodo del primer LED de la tira"
+			(at 124.46 78.74 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "bbc32a76-662d-40e8-943b-6994469da11b")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "J6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 119.38 78.74)
+			(xy 116.84 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ccb692a9-3537-4057-9722-112d5cd13430")
+	)
+	(label "S3+"
+		(at 116.84 78.74 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "944e3718-4db2-4217-b373-860f64877b45")
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x01")
+		(at 124.46 86.36 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0f8fd9e8-8603-5705-b2fe-95ceaf881b6f")
+		(property "Reference" "J7"
+			(at 127.66 85.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "S3 -"
+			(at 127.66 87.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Fuente3:Cables_1P_P5.08mm"
+			(at 124.46 86.36 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 86.36 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Salida 3 -: catodo del ultimo LED de la tira"
+			(at 124.46 86.36 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Salida 3 -: catodo del ultimo LED de la tira"
+			(at 124.46 86.36 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "cc7f5f4a-655a-4d0a-bd71-890944cf9189")
+		)
+		(instances
+			(project "Fuente3"
+				(path "/5e7a9c1e-3f5b-4d7f-9b1d-3f5b7d9f1b3d"
+					(reference "J7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 119.38 86.36)
+			(xy 116.84 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "31749904-6f51-4734-b5a3-717be57687a1")
+	)
+	(label "S3-"
+		(at 116.84 86.36 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "de1c734d-ede1-4ae3-b999-1458242ab3f5")
+	)
+	(text "PLACA B - FUENTE CAPACITIVA DE 3 SALIDAS PARA LETREROS FIJOS - 127 VCA - NO AISLADA (principio Radox)\nPELIGRO: TODO el circuito (placa, cables y LED) queda a potencial de red. No tocar con la placa enchufada."
+		(exclude_from_sim no)
+		(at 20.32 17.78 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "38185b64-9e3e-47b6-bac4-5f8ffbf10cb1")
+	)
+	(text "ELEGIR EL CAPACITOR DE CADA SALIDA:  I = 240 x C x (180 V - Vtira)   (Vtira = suma de los LED, max ~100 V)\n  Tira hasta 30 V (p. ej. 9-10 verdes/blancos o 15 ambar):  224J -> 8 mA\n  Tira 40-60 V (p. ej. 27 ambar = 54 V, 20 blancos = 60 V): 334J -> 9-10 mA\n  Tira 60-100 V (p. ej. 27 blancos = 81 V, 45 ambar = 90 V): 474J -> 9-11 mA\nUna salida sin filtro sirve tambien para alimentar las flechas del secuenciador (anodo comun al +).\nSin electrolitico a la salida: si la tira se abre, no hay nada que reviente."
+		(exclude_from_sim no)
+		(at 20.32 106.68 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "7fbdaf8f-ba2f-4556-a066-7c799b14de3c")
+	)
+	(text "Salidas 1 a 3 (iguales; solo cambia el capacitor)"
+		(exclude_from_sim no)
+		(at 38.1 25.4 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left top)
+		)
+		(uuid "d7d72f09-d275-4556-99b8-40b820c2e8ce")
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

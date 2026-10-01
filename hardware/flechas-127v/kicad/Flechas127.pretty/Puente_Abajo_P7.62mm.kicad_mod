@@ -1,0 +1,52 @@
+(footprint "Puente_Abajo_P7.62mm"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "Puente de cable forrado del lado del cobre, 7.62 mm, sin barrenos")
+	(property "Reference" "W**"
+		(at 3.81 -1.8 0)
+		(layer "F.SilkS")
+		(uuid "4538b33f-373e-44c8-877b-61b29df845b4")
+		(effects
+			(font
+				(size 0.9 0.9)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Puente abajo"
+		(at 3.81 1.8 0)
+		(layer "F.Fab")
+		(uuid "449eed4c-5570-47f5-9ff0-7829aa5527e1")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start 1.4 0)
+		(end 6.22 0)
+		(stroke
+			(width 0.3)
+			(type dash)
+		)
+		(layer "F.SilkS")
+		(uuid "07f290d9-e529-4c3e-ae77-e980bb2fb658")
+	)
+	(pad "1" smd circle
+		(at 0 0)
+		(size 2.4 2.4)
+		(layers "B.Cu" "B.Mask")
+		(uuid "73de1e91-e3f1-4674-9a92-cd961bc09708")
+	)
+	(pad "2" smd circle
+		(at 7.62 0)
+		(size 2.4 2.4)
+		(layers "B.Cu" "B.Mask")
+		(uuid "a7e3b919-a1f8-4d6b-96ec-5c2a11df08f8")
+	)
+)

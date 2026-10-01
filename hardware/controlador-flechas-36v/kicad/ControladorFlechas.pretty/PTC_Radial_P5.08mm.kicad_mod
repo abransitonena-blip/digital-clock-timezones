@@ -1,0 +1,122 @@
+(footprint "PTC_Radial_P5.08mm"
+	(version 20241229)
+	(generator "kicad-footprint-generator")
+	(layer "F.Cu")
+	(descr "C, Disc series, Radial, pin pitch=5.00mm, diameter*width=7.5*5.0mm^2, Capacitor, http://www.vishay.com/docs/28535/vy2series.pdf (pads ampliados para transferencia de toner, cobre solo en B.Cu)")
+	(tags "C Disc series Radial pin pitch 5.00mm diameter 7.5mm width 5.0mm Capacitor")
+	(property "Reference" "REF**"
+		(at 2.5 -3.75 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "PTC_Radial_P5.08mm"
+		(at 2.5 3.75 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -1.37 -2.62)
+		(end 6.37 -2.62)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start -1.37 2.62)
+		(end -1.37 -2.62)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 6.37 -2.62)
+		(end 6.37 2.62)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 6.37 2.62)
+		(end -1.37 2.62)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -1.5 -2.75)
+		(end 6.5 2.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+	)
+	(fp_rect
+		(start -1.25 -2.5)
+		(end 6.25 2.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 2.5 0 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(embedded_fonts no)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.4 2.4)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "3a4556ea-b3f4-4f32-babe-e9bb0d05412a")
+	)
+	(pad "2" thru_hole circle
+		(at 5.08 0)
+		(size 2.4 2.4)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "8bebc6fe-d4fe-49a1-a7eb-c08d12a9a7ae")
+	)
+	(model "${KIPRJMOD}/3d/C_Disc_D7.5mm_W5.0mm_P5.00mm.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

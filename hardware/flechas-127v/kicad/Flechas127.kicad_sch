@@ -1,0 +1,6287 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f")
+	(paper "A3")
+	(title_block
+		(title "Secuenciador de 3 flechas 127 VCA (NE555 + CD4017 + SCR)")
+		(date "2026-09-26")
+		(rev "1.0")
+		(company "PCB 50 x 60 mm, una cara, THT, transferencia de toner, 2 puentes de alambre")
+		(comment 1 "NO AISLADO: todo el circuito queda a potencial de red (igual que la placa Radox)")
+		(comment 2 "Flechas: 9 LED verdes c/u, ~8 mA con 224J; paso 0.66 s (R6 = 47k)")
+	)
+	(lib_symbols
+		(symbol "Connector:Screw_Terminal_01x02"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Screw_Terminal_01x02"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "screw terminal"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TerminalBlock*:*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Screw_Terminal_01x02_1_1"
+				(rectangle
+					(start -1.27 1.27)
+					(end 1.27 -3.81)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 0.3302)
+						(xy 0.3302 -0.508)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 -2.2098)
+						(xy 0.3302 -3.048)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 0.508)
+						(xy 0.508 -0.3302)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 -2.032)
+						(xy 0.508 -2.8702)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 0)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 -2.54)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:C"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762)
+						(xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762)
+						(xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:D_Bridge_+-AA"
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 2.54 6.985 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "D_Bridge_+-AA"
+				(at 2.54 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Diode bridge, +ve/-ve/AC/AC"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "rectifier ACDC"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "D*Bridge* D*Rectifier*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "D_Bridge_+-AA_0_1"
+				(circle
+					(center -5.08 0)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy -5.08 0)
+						(xy 0 -5.08)
+						(xy 5.08 0)
+						(xy 0 5.08)
+						(xy -5.08 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -3.81 2.54)
+						(xy -2.54 1.27)
+						(xy -1.905 3.175)
+						(xy -3.81 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 3.81)
+						(xy -1.27 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 -1.27)
+						(xy -3.81 -2.54)
+						(xy -1.905 -3.175)
+						(xy -2.54 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -2.54)
+						(xy -2.54 -3.81)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 5.08)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(circle
+					(center 0 -5.08)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 2.54)
+						(xy 2.54 3.81)
+						(xy 3.175 1.905)
+						(xy 1.27 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 1.27)
+						(xy 3.81 2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 -1.27)
+						(xy 3.81 -2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.175 -1.905)
+						(xy 1.27 -2.54)
+						(xy 2.54 -3.81)
+						(xy 3.175 -1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 5.08 0)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+			)
+			(symbol "D_Bridge_+-AA_1_1"
+				(pin passive line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 7.62 270)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:D_Zener"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "D_Zener"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Zener diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "D_Zener_0_1"
+				(polyline
+					(pts
+						(xy -1.27 -1.27)
+						(xy -1.27 1.27)
+						(xy -0.762 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0)
+						(xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27)
+						(xy 1.27 1.27)
+						(xy -1.27 0)
+						(xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "D_Zener_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:C_Polarized"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C_Polarized"
+				(at 0.635 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Polarized capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "CP_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_Polarized_0_1"
+				(rectangle
+					(start -2.286 0.508)
+					(end 2.286 1.016)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.778 2.286)
+						(xy -0.762 2.286)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 2.794)
+						(xy -1.27 1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start 2.286 -0.508)
+					(end -2.286 -1.016)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+			)
+			(symbol "C_Polarized_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Timer:NE555P"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at -10.16 8.89 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "NE555P"
+				(at 2.54 8.89 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_DIP:DIP-8_W7.62mm"
+				(at 0 -24.13 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/ne555.pdf"
+				(at 0 -26.67 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Precision Timers, 555 compatible, PDIP-8"
+				(at 0 -21.59 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "single timer 555"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "DIP*W7.62mm*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "NE555P_0_0"
+				(pin power_in line
+					(at 0 -10.16 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 2.54 10.16 270)
+					(length 2.54)
+					(name "VCC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "NE555P_0_1"
+				(rectangle
+					(start -7.62 7.62)
+					(end 7.62 -7.62)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "NE555P_1_1"
+				(pin input line
+					(at -10.16 5.08 0)
+					(length 2.54)
+					(name "~{RST}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "DISCH"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -2.54 0)
+					(length 2.54)
+					(name "THRES"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -5.08 0)
+					(length 2.54)
+					(name "TRIG"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin open_collector line
+					(at 0 10.16 270)
+					(length 2.54)
+					(name "CONT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 0 180)
+					(length 2.54)
+					(name "OUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "4xxx:4017"
+			(pin_names
+				(offset 1.016)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at -7.62 16.51 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "4017"
+				(at -7.62 -19.05 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.intersil.com/content/dam/Intersil/documents/cd40/cd4017bms-22bms.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Johnson Counter ( 10 outputs )"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_locked" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "CNT CNT10"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "DIP?16*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "4017_1_0"
+				(pin input clock
+					(at -12.7 12.7 0)
+					(length 5.08)
+					(name "CLK"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input inverted
+					(at -12.7 10.16 0)
+					(length 5.08)
+					(name "CKEN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -12.7 5.08 0)
+					(length 5.08)
+					(name "Reset"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "15"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 20.32 270)
+					(length 5.08)
+					(name "VDD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "16"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -22.86 90)
+					(length 5.08)
+					(name "VSS"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 12.7 180)
+					(length 5.08)
+					(name "Q0"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 10.16 180)
+					(length 5.08)
+					(name "Q1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 7.62 180)
+					(length 5.08)
+					(name "Q2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 5.08 180)
+					(length 5.08)
+					(name "Q3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 2.54 180)
+					(length 5.08)
+					(name "Q4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 0 180)
+					(length 5.08)
+					(name "Q5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 -2.54 180)
+					(length 5.08)
+					(name "Q6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 -5.08 180)
+					(length 5.08)
+					(name "Q7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 -7.62 180)
+					(length 5.08)
+					(name "Q8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 -10.16 180)
+					(length 5.08)
+					(name "Q9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 12.7 -15.24 180)
+					(length 5.08)
+					(name "Cout"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "4017_1_1"
+				(rectangle
+					(start -7.62 15.24)
+					(end 7.62 -17.78)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Triac_Thyristor:BT169D"
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "Q"
+				(at 2.54 1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "BT169D"
+				(at 2.54 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_THT:TO-92_Inline"
+				(at 2.54 -1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+						(italic yes)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://media.digikey.com/pdf/Data%20Sheets/NXP%20PDFs/BT169_Series.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Description" "0.5A Ion, 400V Voff, Thyristors logic level, Silicon Controlled Rectifier (Thyristor), TO-92"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "thyristor logic level"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TO?92*Inline*Narrow*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "BT169D_0_1"
+				(polyline
+					(pts
+						(xy -1.27 1.27)
+						(xy 1.27 1.27)
+						(xy 0 -1.27)
+						(xy -1.27 1.27)
+					)
+					(stroke
+						(width 0.2032)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -1.27)
+						(xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.2032)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -2.54)
+						(xy -0.635 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 -2.54)
+						(xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "BT169D_1_1"
+				(pin input line
+					(at -3.81 -2.54 0)
+					(length 2.54)
+					(name "G"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Connector:Screw_Terminal_01x04"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Screw_Terminal_01x04"
+				(at 0 -7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic screw terminal, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "screw terminal"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TerminalBlock*:*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Screw_Terminal_01x04_1_1"
+				(rectangle
+					(start -1.27 3.81)
+					(end 1.27 -6.35)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 2.8702)
+						(xy 0.3302 2.032)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 0.3302)
+						(xy 0.3302 -0.508)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 -2.2098)
+						(xy 0.3302 -3.048)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.5334 -4.7498)
+						(xy 0.3302 -5.588)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 3.048)
+						(xy 0.508 2.2098)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 0.508)
+						(xy 0.508 -0.3302)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 -2.032)
+						(xy 0.508 -2.8702)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.3556 -4.572)
+						(xy 0.508 -5.4102)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 2.54)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 0)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 -2.54)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 0 -5.08)
+					(radius 0.635)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Jumper:Jumper_2_Bridged"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "JP"
+				(at 0 1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Jumper_2_Bridged"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Jumper, 2-pole, closed/bridged"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "Jumper SPST"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Jumper* TestPoint*2Pads* TestPoint*Bridge*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Jumper_2_Bridged_0_0"
+				(circle
+					(center -2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Jumper_2_Bridged_0_1"
+				(arc
+					(start -1.524 0.254)
+					(mid 0 0.762)
+					(end 1.524 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Jumper_2_Bridged_1_1"
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 0 180)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:PWR_FLAG"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 1.27)
+						(xy -1.016 1.905)
+						(xy 0 2.54)
+						(xy 1.016 1.905)
+						(xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x02")
+		(at 20.32 45.72 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e759606b-a771-5b5e-89a2-0975a606cc7f")
+		(property "Reference" "J1"
+			(at 23.52 44.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "127 VCA"
+			(at 23.52 47.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:Clema_2P_P5.08mm"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Entrada 127 VCA (pin 1 = N neutro, pin 2 = L fase; se pueden intercambiar). Del mismo cable que la placa Radox"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Entrada 127 VCA (pin 1 = N neutro, pin 2 = L fase; se pueden intercambiar). Del mismo cable que la placa Radox"
+			(at 20.32 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "cae669a8-e291-4e63-b762-1b7d9d2aab36")
+		)
+		(pin "2"
+			(uuid "28c9383d-c5ce-49e4-9e9d-d703198b914c")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 25.4 45.72)
+			(xy 27.94 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f00e2f93-d758-4ef4-80d5-8fbe3fa13c29")
+	)
+	(label "N"
+		(at 27.94 45.72 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5a93f799-55eb-4e2b-8261-d57266a1a230")
+	)
+	(wire
+		(pts
+			(xy 25.4 43.18)
+			(xy 27.94 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "18757f0b-e735-4522-9d00-ed7ae3f84b46")
+	)
+	(label "L"
+		(at 27.94 43.18 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "11c15035-5d20-4789-990d-03273cd22368")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 20.32 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "50653b9f-6701-56e3-9cab-70b79b15259a")
+		(property "Reference" "R3"
+			(at 23.52 65.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1M 1/2W"
+			(at 23.52 67.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:R_Vertical_P5.08mm"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Descarga los capacitores al desenchufar (entre L y N)"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Descarga los capacitores al desenchufar (entre L y N)"
+			(at 20.32 66.04 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "7f93811e-662b-43ce-bab7-0485093a90d3")
+		)
+		(pin "2"
+			(uuid "36711c3c-9910-4b56-b158-7a691ab93917")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "R3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 20.32 62.23)
+			(xy 20.32 59.69)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "de46a5b6-59dc-44d0-9e1e-89868ed021af")
+	)
+	(label "L"
+		(at 20.32 59.69 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d6022f6f-2e78-4286-8381-8b727d41a35b")
+	)
+	(wire
+		(pts
+			(xy 20.32 69.85)
+			(xy 20.32 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "aae182dd-fe92-4b23-9f07-7e9b045ae4f1")
+	)
+	(label "N"
+		(at 20.32 72.39 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "12a548ec-0f35-45e9-8142-7f699c8a0040")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 40.64 38.1 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "66e2131b-7c91-590c-a018-d6c2e41d28e4")
+		(property "Reference" "C1"
+			(at 38.83 34.9 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "474J 400V"
+			(at 38.83 42.5 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:C_Poliester_P10-15mm"
+			(at 40.64 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 40.64 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Poliester 0.47 uF 400 V (paso 10 o 15 mm): fuente de la logica, ~19 mA"
+			(at 40.64 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Poliester 0.47 uF 400 V (paso 10 o 15 mm): fuente de la logica, ~19 mA"
+			(at 40.64 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "ce1af29e-c54b-4258-8609-905801f8330b")
+		)
+		(pin "2"
+			(uuid "befabff0-44fc-494d-bfc2-f13988023b43")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 36.83 38.1)
+			(xy 34.29 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "93230b0b-449e-4e3b-a075-ebc497f74c50")
+	)
+	(label "L"
+		(at 34.29 38.1 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "928b92da-079a-4f46-ba93-39497a613ba5")
+	)
+	(wire
+		(pts
+			(xy 44.45 38.1)
+			(xy 46.99 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8e92dfbb-f31f-4902-9ce6-e8d2832b65c0")
+	)
+	(label "X1"
+		(at 46.99 38.1 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "843d7fa8-6f1e-44a2-99b0-bbd1d5e3c5cb")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 58.42 38.1 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "698fe6de-2f69-57f2-bdab-2c81505f2f5c")
+		(property "Reference" "R1"
+			(at 56.61 34.9 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220R 1W fusible"
+			(at 56.61 42.5 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:R_1W_Vertical_P7.62mm"
+			(at 58.42 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 58.42 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia fusible de la fuente logica (limita el pico al enchufar)"
+			(at 58.42 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia fusible de la fuente logica (limita el pico al enchufar)"
+			(at 58.42 38.1 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "bf31387c-a22a-4668-bb25-3bd18292ab3b")
+		)
+		(pin "2"
+			(uuid "08d819ae-d542-417d-98bc-8e35dc08e8fe")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 54.61 38.1)
+			(xy 52.07 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5170d287-8391-4768-b38e-b16b8d8736fc")
+	)
+	(label "X1"
+		(at 52.07 38.1 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "5160ef06-ae04-4a05-8a13-545e98f5bcc3")
+	)
+	(wire
+		(pts
+			(xy 62.23 38.1)
+			(xy 64.77 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ea577f89-6ef6-47c6-89ac-4148be7c7bde")
+	)
+	(label "ACL"
+		(at 64.77 38.1 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a5996444-89e6-485c-b570-2a01f9a3a200")
+	)
+	(symbol
+		(lib_id "Device:D_Bridge_+-AA")
+		(at 83.82 45.72 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ad6c57a3-212e-5af2-babc-c5e970404465")
+		(property "Reference" "BR1"
+			(at 103.44 44.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "2W10"
+			(at 103.44 47.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:Puente_2W10"
+			(at 83.82 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 83.82 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Puente 2W10 de la fuente logica"
+			(at 83.82 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Puente 2W10 de la fuente logica"
+			(at 83.82 45.72 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "4a29bca0-9e5f-4424-868c-2259938607e3")
+		)
+		(pin "3"
+			(uuid "1f465bfd-fec9-4545-a9d5-4ed2619441ef")
+		)
+		(pin "4"
+			(uuid "7b4691ec-0be3-4cce-b2d4-bb19fa7dfde0")
+		)
+		(pin "1"
+			(uuid "002b70a4-6e52-4f21-a4f8-685a6932a624")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "BR1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 76.2 45.72)
+			(xy 73.66 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2334ee97-bb6f-4791-82c7-ffc3f0c00a4c")
+	)
+	(label "GND"
+		(at 73.66 45.72 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "617b7f4e-d967-42ac-8b6c-b521dee179fd")
+	)
+	(wire
+		(pts
+			(xy 83.82 38.1)
+			(xy 83.82 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "04d48df0-c7df-40c1-8879-a86979831ef1")
+	)
+	(label "ACL"
+		(at 83.82 35.56 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d84e3f4f-1b77-42b4-a987-6ca87a5e3533")
+	)
+	(wire
+		(pts
+			(xy 83.82 53.34)
+			(xy 83.82 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7a213d1d-2906-417c-b518-a4e7c70d79dc")
+	)
+	(label "N"
+		(at 83.82 55.88 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "1aff4c28-588a-42ed-a434-7c6fa994aa73")
+	)
+	(wire
+		(pts
+			(xy 91.44 45.72)
+			(xy 93.98 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "abc5e5c2-a371-4f13-8fea-6156e85c4816")
+	)
+	(label "V12"
+		(at 93.98 45.72 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fc65e03f-b45c-41c5-86a5-85bc15cd4143")
+	)
+	(symbol
+		(lib_id "Device:D_Zener")
+		(at 116.84 43.18 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5e2e800b-4af8-585d-9480-5c6c85074586")
+		(property "Reference" "DZ1"
+			(at 120.04 42.18 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1N4742A 12V 1W"
+			(at 120.04 44.78 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:D_DO-41_P10.16mm"
+			(at 116.84 43.18 90)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 116.84 43.18 90)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Zener 12 V: fija el voltaje de la logica y absorbe la corriente sobrante"
+			(at 116.84 43.18 90)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Zener 12 V: fija el voltaje de la logica y absorbe la corriente sobrante"
+			(at 116.84 43.18 90)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "08f73cbd-b0dd-4af0-9f8c-ca00f89fa54f")
+		)
+		(pin "2"
+			(uuid "3b9bc735-6154-4ed2-ad07-790bdcf5d699")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "DZ1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 116.84 39.37)
+			(xy 116.84 36.83)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a37ce7c7-45c8-4862-9884-6036ae085421")
+	)
+	(label "V12"
+		(at 116.84 36.83 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ba2efd66-e07e-4011-a81d-3a8f87127221")
+	)
+	(wire
+		(pts
+			(xy 116.84 46.99)
+			(xy 116.84 49.53)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f595fef7-70c9-4e82-bf34-66c19feda192")
+	)
+	(label "GND"
+		(at 116.84 49.53 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "dce9fb51-0d38-4b17-86c5-bb353f9488f8")
+	)
+	(symbol
+		(lib_id "Device:C_Polarized")
+		(at 134.62 43.18 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c2043763-f789-5f09-bfb4-0c1aadb4657d")
+		(property "Reference" "C3"
+			(at 137.82 42.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220uF 25V"
+			(at 137.82 44.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:CP_Radial_D8.0mm_P3.81mm"
+			(at 134.62 43.18 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 134.62 43.18 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Filtro de 12 V"
+			(at 134.62 43.18 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Filtro de 12 V"
+			(at 134.62 43.18 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "0778ee55-dd5e-4b7c-bb8a-1fa162c67a85")
+		)
+		(pin "2"
+			(uuid "41fa7321-1b0a-4b37-87f2-e5c2687dc7c7")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 134.62 39.37)
+			(xy 134.62 36.83)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c3962974-f9b3-452c-aba3-5e6c66833802")
+	)
+	(label "V12"
+		(at 134.62 36.83 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "028d595b-87e2-4523-990a-cd2145065c34")
+	)
+	(wire
+		(pts
+			(xy 134.62 46.99)
+			(xy 134.62 49.53)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "62522668-9037-424a-bac3-ac3805c4e43b")
+	)
+	(label "GND"
+		(at 134.62 49.53 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c3a150a2-2573-4e26-b6bc-9e906ac317b3")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 40.64 60.96 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b92c82e8-f847-599f-83a3-9bffcdd01c71")
+		(property "Reference" "C2"
+			(at 38.83 57.76 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "224J 400V"
+			(at 38.83 65.36 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:C_Poliester_P10-15mm"
+			(at 40.64 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 40.64 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Poliester 0.22 uF 400 V (paso 10 o 15 mm): corriente de las flechas, ~8 mA"
+			(at 40.64 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Poliester 0.22 uF 400 V (paso 10 o 15 mm): corriente de las flechas, ~8 mA"
+			(at 40.64 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "be5e9998-acc8-48a6-a5c3-45558ac3a53d")
+		)
+		(pin "2"
+			(uuid "0f4a10b9-efe1-42d7-8b50-9138e750765a")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "C2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 36.83 60.96)
+			(xy 34.29 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5eb671a1-137b-4515-b9da-8562bd322e51")
+	)
+	(label "L"
+		(at 34.29 60.96 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "81d12f4b-1112-40e1-921a-6711c2b47f52")
+	)
+	(wire
+		(pts
+			(xy 44.45 60.96)
+			(xy 46.99 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c6cd7d16-4859-49e7-8e77-765dbc85db00")
+	)
+	(label "X2"
+		(at 46.99 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a92b291b-cd67-47c9-b980-b4b1366dd0c3")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 58.42 60.96 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "cc6b35c5-4c33-5a7f-a963-d828c66ba79e")
+		(property "Reference" "R2"
+			(at 56.61 57.76 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220R 1W fusible"
+			(at 56.61 65.36 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:R_1W_Vertical_P7.62mm"
+			(at 58.42 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 58.42 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia fusible de la fuente de flechas"
+			(at 58.42 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia fusible de la fuente de flechas"
+			(at 58.42 60.96 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "c5d605f0-183a-461f-b37e-a8ce909790db")
+		)
+		(pin "2"
+			(uuid "bacfa9fb-3b2f-4c4c-bc7e-36d925d81b01")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 54.61 60.96)
+			(xy 52.07 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c4a92393-9955-400e-9f60-9c3b9638a8cf")
+	)
+	(label "X2"
+		(at 52.07 60.96 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b33aa1ab-8b1c-4d7c-a108-aa550b557ce3")
+	)
+	(wire
+		(pts
+			(xy 62.23 60.96)
+			(xy 64.77 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bca52557-1ea6-4847-a118-0d37899b6dae")
+	)
+	(label "ACF"
+		(at 64.77 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "187e453f-e810-4a38-bb0a-c00c3b86f2a5")
+	)
+	(symbol
+		(lib_id "Device:D_Bridge_+-AA")
+		(at 83.82 68.58 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d96a3853-6058-5be3-ac9f-94f4dea0ff6f")
+		(property "Reference" "BR2"
+			(at 103.44 67.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "2W10"
+			(at 103.44 70.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:Puente_2W10"
+			(at 83.82 68.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 83.82 68.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Puente 2W10 de las flechas (+ = anodo comun, sin filtrar)"
+			(at 83.82 68.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Puente 2W10 de las flechas (+ = anodo comun, sin filtrar)"
+			(at 83.82 68.58 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "a38ce17f-7b8c-4ff9-958b-810fed48a76c")
+		)
+		(pin "3"
+			(uuid "02033026-acec-40c4-bf66-58b9ca943691")
+		)
+		(pin "4"
+			(uuid "9b01dff9-b50e-4c66-ae05-ac9d87a2c45c")
+		)
+		(pin "1"
+			(uuid "e237d787-e466-4597-b453-fda551cd5e8a")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "BR2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 76.2 68.58)
+			(xy 73.66 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a325988f-5fe0-4594-a7dc-bcefac8df5e6")
+	)
+	(label "GND"
+		(at 73.66 68.58 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a286b291-3a51-448a-9a05-b7d4edb8ee1c")
+	)
+	(wire
+		(pts
+			(xy 83.82 60.96)
+			(xy 83.82 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9eef25f8-4c21-473a-b891-b08b7b6e9335")
+	)
+	(label "N"
+		(at 83.82 58.42 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "0749a862-ae12-4094-bb00-444d2c5bbd65")
+	)
+	(wire
+		(pts
+			(xy 83.82 76.2)
+			(xy 83.82 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3793c2eb-81b9-4f5f-976b-08f1d8950327")
+	)
+	(label "ACF"
+		(at 83.82 78.74 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "08d1d6aa-8e26-4190-8118-1d460ad293dc")
+	)
+	(wire
+		(pts
+			(xy 91.44 68.58)
+			(xy 93.98 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ff8e833f-09e5-467f-8476-142ea63bbfc4")
+	)
+	(label "VF"
+		(at 93.98 68.58 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8183941f-65e7-465d-80f3-d9f50d1f1ee8")
+	)
+	(symbol
+		(lib_id "Timer:NE555P")
+		(at 40.64 99.06 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9338e88a-3af0-542d-b9a0-066b3277efc7")
+		(property "Reference" "U1"
+			(at 62.8 98.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "NE555P"
+			(at 62.8 100.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:DIP-8_W7.62mm"
+			(at 40.64 99.06 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 40.64 99.06 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Reloj (astable con la salida): T = 1.4 x R6 x C5 = 0.66 s por flecha"
+			(at 40.64 99.06 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Reloj (astable con la salida): T = 1.4 x R6 x C5 = 0.66 s por flecha"
+			(at 40.64 99.06 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "6da14584-eac3-43ea-9413-4890e70abdd3")
+		)
+		(pin "8"
+			(uuid "fe5c3ba0-2a12-4174-b2ea-c4437374b68d")
+		)
+		(pin "4"
+			(uuid "f94095fc-c06e-4ed9-9201-9f1181216ff2")
+		)
+		(pin "7"
+			(uuid "dde1a74e-c226-4c5b-86fa-dc8471ebacca")
+		)
+		(pin "6"
+			(uuid "3c658ed8-6a97-405d-8b2c-16d55434ce10")
+		)
+		(pin "2"
+			(uuid "206cc5a4-9b25-4f3e-819b-2cfb2ea97b84")
+		)
+		(pin "5"
+			(uuid "fbaa8f45-8127-4c2a-92ca-18b1adacd7ad")
+		)
+		(pin "3"
+			(uuid "468c33f4-f13b-41f9-b3c3-7d8715cfb96c")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "U1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 40.64 109.22)
+			(xy 40.64 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9587abcd-fd32-4af3-a81a-54c4025feb66")
+	)
+	(label "GND"
+		(at 40.64 111.76 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "35598309-8779-4f9e-914d-987e253f41f9")
+	)
+	(wire
+		(pts
+			(xy 43.18 88.9)
+			(xy 43.18 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "43a784de-56d1-4153-a500-b37d32b36ea3")
+	)
+	(label "V12"
+		(at 43.18 86.36 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "62a48efa-6c77-434c-bfbc-cc6b8cbefb8a")
+	)
+	(wire
+		(pts
+			(xy 30.48 93.98)
+			(xy 27.94 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "28ab4a76-6b51-4649-b222-bf064f1c14af")
+	)
+	(label "V12"
+		(at 27.94 93.98 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "529f92bb-b543-4a17-8fb3-6ddf47f53ec4")
+	)
+	(no_connect
+		(at 30.48 96.52)
+		(uuid "99f1f684-0bca-42db-b95b-4ca5b40b39a7")
+	)
+	(wire
+		(pts
+			(xy 30.48 101.6)
+			(xy 27.94 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9230f3e0-fbfe-476e-80e1-a25a0844b879")
+	)
+	(label "TIM"
+		(at 27.94 101.6 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "805be7a2-ee29-4201-a319-74fb7f9f43e7")
+	)
+	(wire
+		(pts
+			(xy 30.48 104.14)
+			(xy 27.94 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fb83b06c-9b82-4af3-a97c-e162a1651848")
+	)
+	(label "TIM"
+		(at 27.94 104.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "f061602d-c76c-4b1d-ab88-04c39af2bc2a")
+	)
+	(no_connect
+		(at 40.64 88.9)
+		(uuid "b8eafaef-4f1e-4b17-a418-6f321b0d49ea")
+	)
+	(wire
+		(pts
+			(xy 50.8 99.06)
+			(xy 53.34 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b41f83db-b2ae-4cdd-8075-84070f0962b4")
+	)
+	(label "CLK_W1"
+		(at 53.34 99.06 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3ed64119-160e-41f2-acc6-5c5bb18e19fd")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 17.78 104.14 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a186aa6d-e8a6-5d9b-8739-18cafd5ec4aa")
+		(property "Reference" "R6"
+			(at 15.97 100.94 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "47k"
+			(at 15.97 108.54 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:R_Vertical_P5.08mm"
+			(at 17.78 104.14 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 17.78 104.14 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Salida -> capacitor de tiempo (velocidad: 33k = 0.46 s, 47k = 0.66 s, 68k = 0.95 s, 100k = 1.4 s)"
+			(at 17.78 104.14 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Salida -> capacitor de tiempo (velocidad: 33k = 0.46 s, 47k = 0.66 s, 68k = 0.95 s, 100k = 1.4 s)"
+			(at 17.78 104.14 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "d9c34868-6f57-4659-bb0f-fb926fd7af67")
+		)
+		(pin "2"
+			(uuid "c6a75f55-28c9-40b0-b862-e6285a715ac1")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "R6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 13.97 104.14)
+			(xy 11.43 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "56ef7fa5-30b0-427d-bf7d-0b33f038211d")
+	)
+	(label "CLK"
+		(at 11.43 104.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "5424739a-fbb1-4b90-8827-e11ab9498619")
+	)
+	(wire
+		(pts
+			(xy 21.59 104.14)
+			(xy 24.13 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "86a56f70-a9c7-4152-a41a-7074f7b0fbd7")
+	)
+	(label "TIM"
+		(at 24.13 104.14 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "472deaed-d47e-4354-a939-b09adbc7d035")
+	)
+	(symbol
+		(lib_id "Device:C_Polarized")
+		(at 27.94 116.84 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d55acb1b-6e6c-5474-976d-3332bec273ec")
+		(property "Reference" "C5"
+			(at 31.14 115.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10uF 25V"
+			(at 31.14 118.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:CP_Radial_D5.0mm_P2.54mm"
+			(at 27.94 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 27.94 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Capacitor de tiempo del 555"
+			(at 27.94 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Capacitor de tiempo del 555"
+			(at 27.94 116.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "a756241d-9828-433f-967e-e05eb9def5f2")
+		)
+		(pin "2"
+			(uuid "1d461932-be54-4d3a-8066-9255a50148a2")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "C5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 27.94 113.03)
+			(xy 27.94 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c13da900-b5a4-4b46-aaa8-555cf7def295")
+	)
+	(label "TIM"
+		(at 27.94 110.49 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f982e86a-3fab-4f59-9878-4a0829728508")
+	)
+	(wire
+		(pts
+			(xy 27.94 120.65)
+			(xy 27.94 123.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1f3e8a56-6071-4239-a2c3-26ace4049fdc")
+	)
+	(label "GND"
+		(at 27.94 123.19 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "bbb50486-d271-4406-aed2-e769766749cb")
+	)
+	(symbol
+		(lib_id "4xxx:4017")
+		(at 86.36 104.14 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "80857cbe-4af8-54c3-8a2f-49fe089aa941")
+		(property "Reference" "U2"
+			(at 111.06 103.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "CD4017BE"
+			(at 111.06 105.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:DIP-16_W7.62mm"
+			(at 86.36 104.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 86.36 104.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Contador: Q0-Q2 = flechas 1-3, Q3 -> RESET (3 pasos). INH (13) va a RESET: siempre en bajo salvo el pulso de reset"
+			(at 86.36 104.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Contador: Q0-Q2 = flechas 1-3, Q3 -> RESET (3 pasos). INH (13) va a RESET: siempre en bajo salvo el pulso de reset"
+			(at 86.36 104.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "14"
+			(uuid "824cf172-733f-4037-9990-1c62e58fa5e7")
+		)
+		(pin "13"
+			(uuid "480adfa9-a4f9-4793-b700-d94490283209")
+		)
+		(pin "15"
+			(uuid "34f6f904-ae6c-46bb-b06a-220b23440745")
+		)
+		(pin "16"
+			(uuid "57503077-6416-4d73-83f8-78099524f7f4")
+		)
+		(pin "8"
+			(uuid "003f8541-2bc4-4069-b638-70fa47ae78cc")
+		)
+		(pin "3"
+			(uuid "3c6b97fc-006a-4634-8411-3f1750cc245f")
+		)
+		(pin "2"
+			(uuid "857d306a-902e-4167-8058-0b9d8d0a18c9")
+		)
+		(pin "4"
+			(uuid "d4ea9827-ef46-4ab0-9e07-2c8e04f407d8")
+		)
+		(pin "7"
+			(uuid "c6bc407a-e871-4b62-91af-d60e43639fc8")
+		)
+		(pin "10"
+			(uuid "8bb702b3-263e-4406-8c36-e7c301c83a7d")
+		)
+		(pin "1"
+			(uuid "aff1a60c-49b4-48cf-aff3-d58a0dd8547b")
+		)
+		(pin "5"
+			(uuid "c27caf67-f19d-4c08-b1dd-4400ef2af04f")
+		)
+		(pin "6"
+			(uuid "c9729856-a165-46c2-a9fb-15f261e8dbb9")
+		)
+		(pin "9"
+			(uuid "3b11ccc0-95e2-476e-9f0c-f45b4c021b21")
+		)
+		(pin "11"
+			(uuid "d545cd24-894c-45de-b03e-aa8ff9e86b23")
+		)
+		(pin "12"
+			(uuid "f7a28554-abaa-436c-b586-89ec2ab3df22")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 73.66 91.44)
+			(xy 71.12 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9566c384-158e-402b-80b5-719245447b94")
+	)
+	(label "CLK"
+		(at 71.12 91.44 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "fcd6269c-1746-4465-815f-5bac2abf15d8")
+	)
+	(wire
+		(pts
+			(xy 73.66 93.98)
+			(xy 71.12 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d6b0746c-2cb8-42fe-800b-638dcd455f3b")
+	)
+	(label "RST"
+		(at 71.12 93.98 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ab4e2e0b-7b9a-4790-9b92-6acf64649ad8")
+	)
+	(wire
+		(pts
+			(xy 73.66 99.06)
+			(xy 71.12 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "914626c7-b6cd-48b5-b545-79d323fa900e")
+	)
+	(label "RST"
+		(at 71.12 99.06 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a7956b3f-4a0e-473c-9d69-52c06896973b")
+	)
+	(wire
+		(pts
+			(xy 86.36 83.82)
+			(xy 86.36 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "66f27179-6707-4657-bda5-65cbc58e7034")
+	)
+	(label "V12_W2"
+		(at 86.36 81.28 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f2c1c40d-b7fd-4ddf-9d68-dd87ecf6ea2b")
+	)
+	(wire
+		(pts
+			(xy 86.36 127)
+			(xy 86.36 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4bec469f-753d-4159-a236-080e773bd38d")
+	)
+	(label "GND"
+		(at 86.36 129.54 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "55003621-b3fb-485c-b6b9-b23396a5ac62")
+	)
+	(wire
+		(pts
+			(xy 99.06 91.44)
+			(xy 101.6 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9fa643b1-244c-4634-87db-68c5d2a01650")
+	)
+	(label "Q0"
+		(at 101.6 91.44 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d1110771-f05d-487a-9a05-0081a0455264")
+	)
+	(wire
+		(pts
+			(xy 99.06 93.98)
+			(xy 101.6 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f390e1f3-42a5-4dd4-9515-591c0ad14f69")
+	)
+	(label "Q1"
+		(at 101.6 93.98 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "0c002c3e-eb94-4756-8ed4-75e74f4b7bc8")
+	)
+	(wire
+		(pts
+			(xy 99.06 96.52)
+			(xy 101.6 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b69361a4-fb22-4b0d-b69e-e3a0dd4f4512")
+	)
+	(label "Q2"
+		(at 101.6 96.52 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f8d4c889-54cd-4b67-a2e6-4da8ca11cfc7")
+	)
+	(wire
+		(pts
+			(xy 99.06 99.06)
+			(xy 101.6 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b56c5e2d-98b4-4f97-9997-6d974c433043")
+	)
+	(label "RST"
+		(at 101.6 99.06 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9b16286a-23b9-4487-8ec4-99d535ec255d")
+	)
+	(no_connect
+		(at 99.06 101.6)
+		(uuid "ee03aadb-5c7e-4a38-93c3-19cc5a77e599")
+	)
+	(no_connect
+		(at 99.06 104.14)
+		(uuid "b72c56ef-b3bb-40d6-b5a8-d203adedd5ad")
+	)
+	(no_connect
+		(at 99.06 106.68)
+		(uuid "74de6a1d-41ee-4dcc-8a02-54c535fca6a9")
+	)
+	(no_connect
+		(at 99.06 109.22)
+		(uuid "03928535-794c-41de-936f-b02f8a7a2dcd")
+	)
+	(no_connect
+		(at 99.06 111.76)
+		(uuid "6528d816-6e77-4ccf-ac14-428cb17d8bfe")
+	)
+	(no_connect
+		(at 99.06 114.3)
+		(uuid "5e9ffdfc-c8db-46a7-b7e3-e7ffe88b82a3")
+	)
+	(no_connect
+		(at 99.06 119.38)
+		(uuid "59322705-1945-4bc8-a9af-eb82d4a24b15")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 114.3 88.9 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "cb05f771-1134-5d65-b0b8-118b9ff3d423")
+		(property "Reference" "R8"
+			(at 112.49 85.7 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4.7k"
+			(at 112.49 93.3 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:R_Vertical_P5.08mm"
+			(at 114.3 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 114.3 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia de compuerta del SCR 1 (2.4 mA)"
+			(at 114.3 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia de compuerta del SCR 1 (2.4 mA)"
+			(at 114.3 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "738b19cb-651a-4638-b5af-a97b94ebf0f3")
+		)
+		(pin "2"
+			(uuid "73a1896f-6a80-431a-9038-db10c2bcff7e")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "R8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 110.49 88.9)
+			(xy 107.95 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "88a91184-571a-4355-9b55-d8ebede63e74")
+	)
+	(label "Q0"
+		(at 107.95 88.9 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "141551d9-2f95-4900-8df0-5e44f8ae98b2")
+	)
+	(wire
+		(pts
+			(xy 118.11 88.9)
+			(xy 120.65 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d423567f-c376-48a2-af6b-49b5692953e4")
+	)
+	(label "G1"
+		(at 120.65 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d785cb8-33cf-4409-a20d-69dae349be01")
+	)
+	(symbol
+		(lib_id "Triac_Thyristor:BT169D")
+		(at 124.46 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "82385c31-aa14-537a-aade-964bd6d8fcc6")
+		(property "Reference" "SCR1"
+			(at 136.46 95.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MCR100-6"
+			(at 136.46 98.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:TO-92_SCR"
+			(at 124.46 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "SCR de la flecha 1 (0.8 A 400 V; tambien PCR606J). Patas: K G A"
+			(at 124.46 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "SCR de la flecha 1 (0.8 A 400 V; tambien PCR606J). Patas: K G A"
+			(at 124.46 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "c877a2ca-a018-4c9c-8732-8c4599438bbb")
+		)
+		(pin "1"
+			(uuid "6c147cf8-f8a1-4430-8650-1f0ee82adf82")
+		)
+		(pin "3"
+			(uuid "eccfe0a5-4de6-4bf4-93be-aaa0572d49ed")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "SCR1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 120.65 99.06)
+			(xy 118.11 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5bd3fa8a-0642-4381-9b38-d22235f93ebc")
+	)
+	(label "G1"
+		(at 118.11 99.06 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9a1ed67f-911c-40e3-8e3f-8b558029e0eb")
+	)
+	(wire
+		(pts
+			(xy 124.46 92.71)
+			(xy 124.46 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "68680fa3-b286-4f16-bc47-6650d23831cc")
+	)
+	(label "GND"
+		(at 124.46 90.17 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "741763cb-056e-4881-a7e4-13765e83aa2b")
+	)
+	(wire
+		(pts
+			(xy 124.46 100.33)
+			(xy 124.46 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4f2f89d0-a311-4b89-aca6-55d3a5a9edcd")
+	)
+	(label "F1N"
+		(at 124.46 102.87 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ea95efa1-a592-4f07-9550-21895b636a2f")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 139.7 88.9 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8f78d724-3a5b-599e-b42c-f16d3db82d14")
+		(property "Reference" "R9"
+			(at 137.89 85.7 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4.7k"
+			(at 137.89 93.3 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:R_Vertical_P5.08mm"
+			(at 139.7 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 139.7 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia de compuerta del SCR 2 (2.4 mA)"
+			(at 139.7 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia de compuerta del SCR 2 (2.4 mA)"
+			(at 139.7 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "0f460082-dc0c-47d1-ac3b-651caa3672c6")
+		)
+		(pin "2"
+			(uuid "2e917eba-ec25-4232-9264-6711c1733b29")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "R9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 135.89 88.9)
+			(xy 133.35 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "84a849a5-6584-44fc-9892-e0d5d0ccfc9e")
+	)
+	(label "Q1"
+		(at 133.35 88.9 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "2206cd84-7ecb-492e-8162-e79fe067f813")
+	)
+	(wire
+		(pts
+			(xy 143.51 88.9)
+			(xy 146.05 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b24243bb-46be-4bfd-a605-ea1bbe9d52a4")
+	)
+	(label "G2"
+		(at 146.05 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fccc52e0-4836-420b-99dd-6c6899da3fd7")
+	)
+	(symbol
+		(lib_id "Triac_Thyristor:BT169D")
+		(at 149.86 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "24cc2606-0b21-5c04-ba6a-cf0000428527")
+		(property "Reference" "SCR2"
+			(at 161.86 95.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MCR100-6"
+			(at 161.86 98.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:TO-92_SCR"
+			(at 149.86 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 149.86 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "SCR de la flecha 2 (0.8 A 400 V; tambien PCR606J). Patas: K G A"
+			(at 149.86 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "SCR de la flecha 2 (0.8 A 400 V; tambien PCR606J). Patas: K G A"
+			(at 149.86 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "fff73e45-028f-477c-8884-bb5fde1bbbd4")
+		)
+		(pin "1"
+			(uuid "1ccd67ef-a9a9-4b95-970c-71a733154a3a")
+		)
+		(pin "3"
+			(uuid "f33fce2c-674a-459b-bcf7-ab27f6e55193")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "SCR2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 146.05 99.06)
+			(xy 143.51 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f0980bde-ba83-42e1-9c49-bba04ca36b4e")
+	)
+	(label "G2"
+		(at 143.51 99.06 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "0802a40c-4173-4e50-b7f1-10564fa5391c")
+	)
+	(wire
+		(pts
+			(xy 149.86 92.71)
+			(xy 149.86 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6c737c32-5538-48b1-adbb-3368baf101fb")
+	)
+	(label "GND"
+		(at 149.86 90.17 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d1d890fe-4c66-41dc-9544-ac469a8200df")
+	)
+	(wire
+		(pts
+			(xy 149.86 100.33)
+			(xy 149.86 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "04fa9abc-cf54-4c71-a3f9-878cc8d11937")
+	)
+	(label "F2N"
+		(at 149.86 102.87 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a79b9c14-77a3-4ca6-86b6-41610a3fa61e")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 165.1 88.9 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2e3e1bab-2cf3-5263-ae00-da5cffd0428d")
+		(property "Reference" "R10"
+			(at 163.29 85.7 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4.7k"
+			(at 163.29 93.3 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:R_Vertical_P5.08mm"
+			(at 165.1 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 165.1 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Resistencia de compuerta del SCR 3 (2.4 mA)"
+			(at 165.1 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Resistencia de compuerta del SCR 3 (2.4 mA)"
+			(at 165.1 88.9 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "929c54e0-6590-4f78-9d13-d31b42db61e9")
+		)
+		(pin "2"
+			(uuid "41935d55-11da-4c43-9a50-365ab171b951")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "R10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 161.29 88.9)
+			(xy 158.75 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c36837f3-ccc1-41b6-acb5-509915988675")
+	)
+	(label "Q2"
+		(at 158.75 88.9 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "872434b8-9461-4ff1-88c2-c6aeb5f6dc97")
+	)
+	(wire
+		(pts
+			(xy 168.91 88.9)
+			(xy 171.45 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f9489c99-3dbb-4897-870f-c813696fdce9")
+	)
+	(label "G3"
+		(at 171.45 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a74b3e1b-a7bd-44dd-b07d-7c9a6fc8d76f")
+	)
+	(symbol
+		(lib_id "Triac_Thyristor:BT169D")
+		(at 175.26 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7b4db873-30f6-50e6-9919-a3f8cf92955f")
+		(property "Reference" "SCR3"
+			(at 187.26 95.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MCR100-6"
+			(at 187.26 98.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:TO-92_SCR"
+			(at 175.26 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 175.26 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "SCR de la flecha 3 (0.8 A 400 V; tambien PCR606J). Patas: K G A"
+			(at 175.26 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "SCR de la flecha 3 (0.8 A 400 V; tambien PCR606J). Patas: K G A"
+			(at 175.26 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "2"
+			(uuid "0ac338cd-2a8f-4c20-994d-972c038f89e6")
+		)
+		(pin "1"
+			(uuid "8142e596-19fa-410c-aade-040bf7ff87ef")
+		)
+		(pin "3"
+			(uuid "d8cc8366-b320-461c-82f6-e9d06031d696")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "SCR3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 171.45 99.06)
+			(xy 168.91 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5f8e686f-930a-48d8-a5a1-ce29e040a63e")
+	)
+	(label "G3"
+		(at 168.91 99.06 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3bd61435-63e0-4fe4-b51e-73d4132bc8b8")
+	)
+	(wire
+		(pts
+			(xy 175.26 92.71)
+			(xy 175.26 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dc51e272-88a2-4aa0-86f9-77cb274e302c")
+	)
+	(label "GND"
+		(at 175.26 90.17 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b64a099d-1e58-4807-9c66-6b9acc9165ec")
+	)
+	(wire
+		(pts
+			(xy 175.26 100.33)
+			(xy 175.26 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2009117f-0276-4521-8f92-0e991b22d40e")
+	)
+	(label "F3N"
+		(at 175.26 102.87 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "0c32f135-76e6-42b8-8960-33192be04869")
+	)
+	(symbol
+		(lib_id "Connector:Screw_Terminal_01x04")
+		(at 218.44 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "64b75bad-ac81-5923-a15f-96c14b514d64")
+		(property "Reference" "J2"
+			(at 225.36 95.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "FLECHAS"
+			(at 225.36 98.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:Cables_4P_P5.08mm"
+			(at 218.44 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 218.44 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Cables a las flechas: 1 = + comun (anodos), 2 = F3-, 3 = F1-, 4 = F2- (catodos). Rotulado en la placa como +, F3, F1, F2"
+			(at 218.44 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Cables a las flechas: 1 = + comun (anodos), 2 = F3-, 3 = F1-, 4 = F2- (catodos). Rotulado en la placa como +, F3, F1, F2"
+			(at 218.44 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "28a66283-f8fa-433a-92ee-d2ff35f1d742")
+		)
+		(pin "2"
+			(uuid "04b0acaa-2ab2-48e0-9db2-db9f6e8c268e")
+		)
+		(pin "3"
+			(uuid "5cbf4b49-9e16-4f03-a2c6-6b679ee7627b")
+		)
+		(pin "4"
+			(uuid "e6f46d03-222e-467f-ac09-ce547027ba71")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 213.36 93.98)
+			(xy 210.82 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d480f3c-6514-4b48-b682-c11b0278ecd9")
+	)
+	(label "VF"
+		(at 210.82 93.98 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a466e6cc-069b-45d2-a61c-01e1570145b0")
+	)
+	(wire
+		(pts
+			(xy 213.36 96.52)
+			(xy 210.82 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3477de70-9c6a-45bf-aba1-bca2840d15a0")
+	)
+	(label "F3N"
+		(at 210.82 96.52 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "751896ee-e1a1-4034-a243-6bc04b182243")
+	)
+	(wire
+		(pts
+			(xy 213.36 99.06)
+			(xy 210.82 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e28b76b-e2aa-49f2-9e2a-c00bb609578f")
+	)
+	(label "F1N"
+		(at 210.82 99.06 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "6c84fc47-980f-4aa0-8781-48191561aa68")
+	)
+	(wire
+		(pts
+			(xy 213.36 101.6)
+			(xy 210.82 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b218ee0e-66ba-4b7b-a267-cf1eadfe5731")
+	)
+	(label "F2N"
+		(at 210.82 101.6 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "40c4c8ca-a75f-4cb6-a653-964afcb375b0")
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_2_Bridged")
+		(at 40.64 127 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e08934c6-8521-5b46-b1ff-20dc356a5f7d")
+		(property "Reference" "W1"
+			(at 37.56 123.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "PUENTE"
+			(at 37.56 131.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:Puente_Abajo_P7.62mm"
+			(at 40.64 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 40.64 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Puente de cable forrado del lado del cobre (sin agujero) que une CLK con CLK_W1"
+			(at 40.64 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Puente de cable forrado del lado del cobre (sin agujero) que une CLK con CLK_W1"
+			(at 40.64 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "39b6cd86-55b9-4e4d-a62b-cf30ede7fe28")
+		)
+		(pin "2"
+			(uuid "062be793-95a8-4320-874f-d50f42ecca02")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "W1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 35.56 127)
+			(xy 33.02 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4849351-14f0-447f-bf2c-d7f4e6815624")
+	)
+	(label "CLK"
+		(at 33.02 127 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a071919b-ab37-4436-bb29-995d487c8750")
+	)
+	(wire
+		(pts
+			(xy 45.72 127)
+			(xy 48.26 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b26ae80d-45d1-4a56-8fb3-24988aa6e88b")
+	)
+	(label "CLK_W1"
+		(at 48.26 127 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8b9ffa94-db7d-4c64-bab2-0e04e6ef05db")
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_2_Bridged")
+		(at 71.12 127 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ccb9a9c4-5f6c-55eb-871e-c05fb21ca1de")
+		(property "Reference" "W2"
+			(at 68.04 123.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "PUENTE"
+			(at 68.04 131.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Flechas127:Puente_Abajo_P10.16mm"
+			(at 71.12 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 71.12 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Puente de cable forrado del lado del cobre (sin agujero) que une V12 con V12_W2"
+			(at 71.12 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Funcion" "Puente de cable forrado del lado del cobre (sin agujero) que une V12 con V12_W2"
+			(at 71.12 127 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "e1e90efa-a46f-42bb-bce5-a7bbfb608a1f")
+		)
+		(pin "2"
+			(uuid "2635fe2e-b01d-4f83-91d4-e862dc820ad2")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "W2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 66.04 127)
+			(xy 63.5 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d5a6e841-ae74-4f2c-af95-234cef7b19d3")
+	)
+	(label "V12"
+		(at 63.5 127 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "116dd02b-0dc5-4c19-b0b2-69356df9b132")
+	)
+	(wire
+		(pts
+			(xy 76.2 127)
+			(xy 78.74 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8b570b76-9913-40c6-bb9b-d87a3454212c")
+	)
+	(label "V12_W2"
+		(at 78.74 127 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5ccf1d23-fa74-407f-bbc8-18ddb8f46c5f")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 147.32 30.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid "3bb975aa-8355-4867-b1b1-6f896d5acb14")
+		(property "Reference" "#FLG01"
+			(at 150.52 29.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 150.52 32.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 147.32 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 147.32 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Bandera de alimentación para ERC"
+			(at 147.32 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "46226dd5-24c4-4ff7-b6ff-aec0a1ed3f7b")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "#FLG01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 147.32 30.48)
+			(xy 147.32 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a90b219b-ab37-4fe9-bb76-826c180e67b5")
+	)
+	(label "V12"
+		(at 147.32 33.02 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "af548ba2-64bf-4f39-8fe0-1f588980bbde")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 162.56 30.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid "781c8dc2-d7e1-4328-9f69-1b6de1c7c920")
+		(property "Reference" "#FLG02"
+			(at 165.76 29.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 165.76 32.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 162.56 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 162.56 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Bandera de alimentación para ERC"
+			(at 162.56 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "2ea1fbc5-546b-4994-9d20-200c6b4b2011")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "#FLG02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 162.56 30.48)
+			(xy 162.56 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ec8c4e83-463e-4f96-b47f-09033d4ed4ef")
+	)
+	(label "GND"
+		(at 162.56 33.02 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a63a4bed-2ec3-407b-89c8-265578929cbd")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 193.04 30.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid "9b38d583-01fe-45b9-b735-bf5201a1c349")
+		(property "Reference" "#FLG03"
+			(at 196.24 29.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 196.24 32.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 193.04 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 193.04 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Bandera de alimentación para ERC"
+			(at 193.04 30.48 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "9eb235be-d490-4ec4-9e4e-5a01d5de6b6d")
+		)
+		(instances
+			(project "Flechas127"
+				(path "/3c5e7a9b-2d4f-4e6a-9c8b-0a1b2c3d4e5f"
+					(reference "#FLG03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 193.04 30.48)
+			(xy 193.04 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "df4d913a-dcb1-4fdb-ad75-dd85afe1bfff")
+	)
+	(label "V12_W2"
+		(at 193.04 33.02 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "eac87cce-0bda-4f84-a75a-9889ea690fe6")
+	)
+	(text "SECUENCIADOR DE 3 FLECHAS (9 LED VERDES c/u) - 127 VCA - NO AISLADO (mismo principio que la placa Radox)\nPELIGRO: TODO el circuito (placa, LED, 555, 4017) queda a potencial de red. Desenchufar antes de tocar."
+		(exclude_from_sim no)
+		(at 20.32 20.32 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "d18e0f7f-7eb7-4eae-a60d-436d22f25c2f")
+	)
+	(text "Logica: I = 240 x 0.47uF x (180 - 13) = 19 mA; consumo 555 + 4017 + compuerta ~9 mA; el zener absorbe el resto (< 0.25 W).\nFlechas: I = 240 x 0.22uF x (180 - 27) = 8.1 mA por flecha (9 LED verdes x 3.0 V = 27 V). Siempre hay una flecha encendida.\nLinea de flechas SIN capacitor de filtro: el SCR se apaga en cada cruce por cero (120 veces/s) y el 4017 decide cual vuelve a encender.\nVelocidad: T = 1.4 x R6 x 10uF (R6 de la salida pin 3 a pines 2-6):  33k -> 0.46 s   47k -> 0.66 s   68k -> 0.95 s   100k -> 1.4 s"
+		(exclude_from_sim no)
+		(at 20.32 135.89 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "d121bc25-409a-48e7-ba10-ee999cb34bed")
+	)
+	(text "Fuentes capacitivas"
+		(exclude_from_sim no)
+		(at 38.1 30.48 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left top)
+		)
+		(uuid "ca02a11b-2270-466c-bf1b-7da1dfb7d414")
+	)
+	(text "Reloj NE555"
+		(exclude_from_sim no)
+		(at 15.24 83.82 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left top)
+		)
+		(uuid "9737ebfe-cefd-4179-910f-5089f9ab4078")
+	)
+	(text "Contador CD4017"
+		(exclude_from_sim no)
+		(at 78.74 83.82 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left top)
+		)
+		(uuid "41c9ecc5-b004-4000-bc3a-a3e07dd0d156")
+	)
+	(text "SCR de las flechas y salida"
+		(exclude_from_sim no)
+		(at 114.3 83.82 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left top)
+		)
+		(uuid "c9288ad7-2abb-432e-bbda-49baba34386f")
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

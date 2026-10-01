@@ -1,0 +1,56 @@
+(footprint "Puente_Alambre_P30.48mm"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "Puente de alambre desnudo, paso 30.48 mm, pads para toner")
+	(property "Reference" "JP**"
+		(at 15.24 -2.2 0)
+		(layer "F.SilkS")
+		(uuid "b6610894-9fc0-4969-9f16-7d52e8e313dd")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Puente"
+		(at 15.24 2.2 0)
+		(layer "F.Fab")
+		(uuid "50ddfe26-b476-4037-b10a-9518ff653aed")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start 1.6 0)
+		(end 28.88 0)
+		(stroke
+			(width 0.3)
+			(type dash)
+		)
+		(layer "F.SilkS")
+		(uuid "61841a1d-2248-4ea5-81ac-55b99a62f0ec")
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.4 2.4)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "e0030a44-a7c3-4388-95ec-255a3b58bb41")
+	)
+	(pad "2" thru_hole circle
+		(at 30.48 0)
+		(size 2.4 2.4)
+		(drill 0.8)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "ee047ddb-bb68-4a1c-a769-26ca9ade2e74")
+	)
+)

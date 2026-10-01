@@ -1,0 +1,7 @@
+"Referencia","Valor","Huella","Cantidad","Funcion"
+"BR1","2W10","FuenteOS:Puente_2W10","1","Puente rectificador redondo 2W10 (1000 V 2 A). Tambien W10M/W06M"
+"C1","334J 400V","FuenteOS:C_Poliester_P10-15mm","1","Poliester 0.33 uF 400 V (paso 10 o 15 mm): fija la corriente (~10 mA con 27 LED ambar). Si los LED son blanco calido usar 474J"
+"J1","127 VCA","FuenteOS:Clema_2P_P5.08mm","1","Entrada de red 127 VCA (pin 1 = L fase, pin 2 = N neutro). Del mismo cable que la placa Radox"
+"J2","SALIDA OS","FuenteOS:Clema_2P_P5.08mm","1","Salida a O+S (27 LED en serie): pin 2 = + (anodo del primer LED), pin 1 = - (catodo del ultimo)"
+"R1","220R 1W fusible","FuenteOS:R_1W_Vertical_P7.62mm","1","Resistencia fusible (flameproof): limita el pico al enchufar (180 V / 220 = 0.8 A) y actua como fusible"
+"R2","1M 1/2W","FuenteOS:R_Axial_P10.16mm","1","Descarga C1 al desenchufar (tau = 1M x 0.33uF = 0.33 s)"

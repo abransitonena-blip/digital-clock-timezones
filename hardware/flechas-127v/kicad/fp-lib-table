@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Flechas127")(type "KiCad")(uri "${KIPRJMOD}/Flechas127.pretty")(options "")(descr "Huellas THT con pads para transferencia de toner"))
+)
