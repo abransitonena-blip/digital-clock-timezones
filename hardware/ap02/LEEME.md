@@ -1,8 +1,21 @@
 # LetreroLab AP-0.2: controlador Wi-Fi de alta potencia
 
+> Para un sistema modular (base universal + programador que se enclava) ver [AP-1](../LetreroLab_AP1.md).
+
 Una sola placa de **90 × 70 mm**, 2 capas, armada en fábrica (JLCPCB). Sirve para letreros, tiras LED y focos normales, y se controla desde el celular en toda la casa, o desde fuera con MQTT.
 
 ![render](fabricacion/3d/render_perspectiva.png)
+
+## Rev C: dos correcciones (pedir esta versión, no la rev B)
+
+Al revisar la rev B para diseñar el sistema AP-1 encontré dos errores. Los dos ya están corregidos:
+
+| Error en la rev B | Corrección en la rev C |
+|---|---|
+| El LMR16006 (12 V) **no es síncrono** y la rev B **no tenía su diodo de rueda libre**: el regulador de 12 V no habría funcionado | **D6 SS210** (100 V, 2 A) del nodo SW a tierra, junto a la bobina |
+| Al reiniciar, IO4–IO7 del ESP32-C3 pueden tener pull-up débil: los canales de 8 A podían encenderse unos 0.3 s al conectar | **RPD1–RPD4**: pull-down de 10 k en cada PWM |
+
+Se verificó con ERC y DRC (incluidas advertencias): 0 errores, 0 sin conectar, 0 diferencias. La serigrafía dice "rev C".
 
 ## Novedades de la rev B (revisión a fondo de la rev A)
 

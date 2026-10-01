@@ -83,6 +83,8 @@ C_ = [
     ("U2", "LMR16006XDDC", "Regulator_Switching:LMR16006YQ", "Package_TO_SOT_SMD:SOT-23-6",
      {"1": "BST2", "2": "GND", "3": "FB2", "4": "VFUS", "5": "VFUS", "6": "SW2"},
      "Buck 12 V de 60 V / 0.6 A, 700 kHz (drivers, relevador y logica): aguanta picos de la entrada"),
+    ("D6", "SS210", "Device:D_Schottky", "Diode_SMD:D_SMA", {"1": "SW2", "2": "GND"},
+     "Rueda libre del buck de 12 V (LMR16006 no es síncrono) - rev C"),
     ("L2", "47uH", "Device:L", "Inductor_SMD:L_Changjiang_FNR4030S", {"1": "SW2", "2": "V12G"}, "Bobina buck 12 V"),
     ("C8", "100nF", C, C06, {"1": "BST2", "2": "SW2"}, "Bootstrap"),
     ("C9", "10uF 50V", C, C12, {"1": "VFUS", "2": "GND"}, "Entrada buck 12 V"),
@@ -101,6 +103,10 @@ C_ = [
      "Temperatura junto a drivers y MOSFET (I2C 0x48); alerta a 85 C"),
     ("C18", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo TMP1075"),
     ("R15", "10k", R, R06, {"1": "3V3", "2": "ALERT"}, "Pull-up de la alerta (IO20)"),
+    ("RPD1", "10k", R, R06, {"1": "PWM1", "2": "GND"}, "PWM1 apagado mientras arranca el ESP32 - rev C"),
+    ("RPD2", "10k", R, R06, {"1": "PWM2", "2": "GND"}, "PWM2 apagado mientras arranca el ESP32 - rev C"),
+    ("RPD3", "10k", R, R06, {"1": "PWM3", "2": "GND"}, "PWM3 apagado mientras arranca el ESP32 - rev C"),
+    ("RPD4", "10k", R, R06, {"1": "PWM4", "2": "GND"}, "PWM4 apagado mientras arranca el ESP32 - rev C"),
     ("C11", "1uF 25V", C, C06, {"1": "V12G", "2": "GND"}, "Desacoplo driver 1"),
     ("C12", "1uF 25V", C, C06, {"1": "V12G", "2": "GND"}, "Desacoplo driver 2"),
 ]
@@ -169,7 +175,8 @@ QX = (33.5, 40.5, 47.5, 54.5)             # MOSFET de canal (rot 270: drenaje ha
 POS = {
     "J3": (5.0, YT, 0), "J1": (17.5, YT, 0), "J4": (36.0, YT, 0), "J5": (77.0, YT, 0),
     "F1": (17.5, 50.0, 90), "RS1": (10.9, 40.8, 0), "U7": (6.0, 36.3, 180), "C17": (4.0, 33.5, 0),
-    "U8": (44.0, 37.0, 90), "C18": (44.0, 32.0, 0), "R15": (44.0, 30.3, 0),
+    "U8": (44.0, 37.0, 90), "D6": (30.5, 27.0, 0),
+    "RPD1": (55.6, 15.0, 0), "RPD2": (55.6, 16.8, 0), "RPD3": (55.6, 18.6, 0), "RPD4": (55.6, 20.4, 0), "C18": (44.0, 32.0, 0), "R15": (44.0, 30.3, 0),
     "TP1": (5.5, 47.5, 0), "TP2": (38.5, 26.0, 0), "TP3": (54.0, 23.5, 0), "TP4": (54.0, 26.3, 0),
     "TP5": (56.6, 23.5, 0), "TP6": (56.6, 26.3, 0),
     "QR1": (26.0, 53.0, 0), "QR2": (26.0, 46.0, 0), "RG0": (23.6, 41.6, 0), "DZ1": (28.0, 40.4, 0),
@@ -313,6 +320,10 @@ PRE = [  # pistas fijas: contactos del relevador (127 V) y bobina (que se aleje 
     ("COM", 2.5, [(68.0, 47.0), (76.9, 47.0), (76.9, 61.0), (77.0, 63.5)]),
     ("NO", 2.5, [(82.15, 53.05), (82.08, 63.5)]),
     ("3V3", 0.6, [(59.25, 13.5), (53.3, 13.5), (53.3, 9.3), (50.72, 9.3), (50.72, 10.5)]),
+    ("3V3", 0.4, [(50.72, 10.5), (50.72, 13.0)]),                     # C14 -> R6 (pull-up de EN)
+    # 3.3 V del INA238 desde la salida del buck de 3.3 V, por abajo y junto al borde izquierdo
+    ("3V3", 0.3, [(3.225, 33.5), (2.2, 31.8)]), ("3V3", 0.4, [(2.2, 31.8), (2.2, 8.5), (21.6, 8.5)], "B"),
+    ("3V3", 0.4, [(21.6, 8.5), (22.86, 9.05)]),
     ("V12G", 0.8, [(69.95, 41.05), (69.95, 38.3), (63.5, 38.3)]),   # bobina: su pata esta a < 5 mm del COM
     ("RLYD", 0.8, [(69.95, 53.05), (69.95, 56.0), (60.9, 56.0), (60.9, 47.6), (60.44, 47.0)]),
     ("RLYD", 0.8, [(60.9, 50.35), (59.5, 50.35)]),
@@ -329,7 +340,7 @@ PRE = [  # pistas fijas: contactos del relevador (127 V) y bobina (que se aleje 
     ("VFUS", 0.4, [(19.5, 23.47), (21.5, 24.4), (26.4, 24.4), (26.4, 22.0), (25.14, 22.0)]),  # pata VIN del buck
     ("VFUS", 0.8, [(14.0, 23.6), (19.5, 23.6), (19.5, 23.47)]), ("VFUS", 0.4, [(25.14, 22.0), (25.14, 22.95)]),   # buck 12 V
 ]
-PREVIAS = [("V12G", 63.5, 38.3), ("ISN", 1.5, 37.65), ("ISN", 7.47, 43.2), ("ISP", 11.6, 38.3), ("ISP", 2.9, 38.3)]
+PREVIAS = [("3V3", 2.2, 31.8), ("3V3", 21.6, 8.5), ("V12G", 63.5, 38.3), ("ISN", 1.5, 37.65), ("ISN", 7.47, 43.2), ("ISP", 11.6, 38.3), ("ISP", 2.9, 38.3)]
 KEEPOUT_NETS = ("VIN", "VIN_RAW", "VFUS")        # el ruteador no pasa pistas sobre estos planos
 
 
@@ -441,7 +452,7 @@ def schematic():
 
 
 SILK = [  # (texto, x, y, alto mm, capa)
-    ("LetreroLab AP-0.2 rev B", 38.5, 3.2, 1.5, "F"),
+    ("LetreroLab AP-0.2 rev C", 38.5, 3.2, 1.5, "F"),
     ("12-24V 20A, mide y protege", 38.0, 5.6, 1.0, "F"),
     ("+V", 5.0, 60.6, 1.0, "F"), ("+V", 10.08, 60.6, 1.0, "F"),
     ("+", 17.5, 60.6, 1.2, "F"), ("-", 22.58, 60.6, 1.2, "F"),

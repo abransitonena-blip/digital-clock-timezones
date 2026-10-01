@@ -1,13 +1,16 @@
 #!/bin/bash
-# Compila el firmware del LetreroLab AP-0.2 (ESP32-C3) sin el IDE de Arduino.
+# Compila el firmware del LetreroLab AP-0.2 o del programador AP-1 (ESP32-C3) sin el IDE de Arduino.
 # Solo descarga de github.com (arduino-cli, núcleo ESP32 3.1.1 y su compilador RISC-V).
 #   bash hardware/tools/compilar_esp32.sh            -> deja los .bin en hardware/ap02/firmware/binarios
 #   PUERTO=/dev/ttyACM0 bash hardware/tools/compilar_esp32.sh   -> además lo graba por USB-C
 set -e
 DIR=${ESP_DIR:-$HOME/.letrerolab-esp32}
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
-SKETCH=$REPO/hardware/ap02/firmware/LetreroLabAP02
-OUT=$REPO/hardware/ap02/firmware/binarios
+# Programa: ap02 (por omisión) o ap1:   bash hardware/tools/compilar_esp32.sh ap1
+case "${1:-ap02}" in
+  ap1) SKETCH=$REPO/hardware/ap1-prog/firmware/LetreroLabAP1; OUT=$REPO/hardware/ap1-prog/firmware/binarios; NOMBRE=LetreroLabAP1 ;;
+  *)   SKETCH=$REPO/hardware/ap02/firmware/LetreroLabAP02; OUT=$REPO/hardware/ap02/firmware/binarios; NOMBRE=LetreroLabAP02 ;;
+esac
 mkdir -p "$DIR" && cd "$DIR"
 if [ ! -x arduino-cli ]; then
   curl -sSfL -o acli.tgz https://github.com/arduino/arduino-cli/releases/download/v1.1.1/arduino-cli_1.1.1_Linux_64bit.tar.gz
@@ -40,8 +43,8 @@ FQBN=esp32:esp32:esp32c3:CDCOnBoot=cdc,PartitionScheme=min_spiffs
 ./arduino-cli --config-file cli.yaml compile -b $FQBN --warnings all \
   --build-property runtime.tools.ctags.path="$DIR/ctags" --output-dir "$DIR/out" "$SKETCH"
 mkdir -p "$OUT"
-cp "$DIR/out/LetreroLabAP02.ino.merged.bin" "$OUT/LetreroLabAP02_completo_0x0.bin"
-cp "$DIR/out/LetreroLabAP02.ino.bin" "$OUT/LetreroLabAP02_actualizacion_OTA.bin"
+cp "$DIR/out/$NOMBRE.ino.merged.bin" "$OUT/${NOMBRE}_completo_0x0.bin"
+cp "$DIR/out/$NOMBRE.ino.bin" "$OUT/${NOMBRE}_actualizacion_OTA.bin"
 echo "Binarios en $OUT"
 if [ -n "$PUERTO" ]; then
   ./arduino-cli --config-file cli.yaml upload -b $FQBN -p "$PUERTO" --input-dir "$DIR/out" "$SKETCH"
