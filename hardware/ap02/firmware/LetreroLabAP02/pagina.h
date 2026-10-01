@@ -21,14 +21,23 @@ button.b.on{background:var(--a);color:#04210f;font-weight:600}button.b.r{backgro
 border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;padding:0}input[type=color]{width:52px;height:40px;padding:2px}
 .dias label{display:inline-flex;align-items:center;gap:2px;margin-right:6px;color:var(--s)}.dias input{margin:0}
 .muted{color:var(--s);font-size:13px}.dev{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--b)}
-.dev span{flex:1}.pill{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--b);color:var(--s)}
+.dev span{flex:1}.met{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.met b{display:block;font-size:22px}
+.met span{color:var(--s);font-size:12px}.alerta{background:#3b1414;border:1px solid var(--r);color:#fecaca}
+.barra{height:8px;border-radius:99px;background:var(--b);overflow:hidden;margin-top:6px}.barra i{display:block;height:100%;background:var(--a)}
+.pill{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--b);color:var(--s)}
 #msg{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:var(--b);padding:8px 14px;border-radius:9px;display:none}
 </style></head><body>
 <header><b>LetreroLab</b><span class="pill" id="nom">...</span><small id="hora"></small></header>
 <nav><button data-t="ctl" class="on">Control</button><button data-t="hor">Horarios</button><button data-t="casa">Casa</button><button data-t="aj">Ajustes</button></nav>
 <main>
 <section id="ctl" class="on">
+ <div class="card alerta" id="falla" style="display:none"><b>Protección activada: <span id="fn"></span></b>
+  <p class="muted" style="color:#fecaca" id="fd"></p><button class="b r" id="fok">Restablecer</button></div>
  <button class="b big" id="pw">...</button>
+ <div class="card" id="cons" style="display:none"><h3>Consumo</h3><div class="met">
+  <div><b id="mw">0</b><span>watts</span></div><div><b id="ma">0</b><span>amperes</span></div><div><b id="mv">0</b><span>volts</span></div>
+  <div><b id="mt">--</b><span>°C tarjeta</span></div><div><b id="mh">0</b><span>kWh hoy</span></div><div><b id="mk">0</b><span>kWh total</span></div></div>
+  <div class="barra"><i id="mbar" style="width:0"></i></div><p class="muted" id="mlim"></p></div>
  <div class="card"><h3>Modo</h3><div class="grid" id="modos"></div>
   <div class="row"><label>Velocidad</label><input type="range" min="0" max="9" id="vel"></div>
   <div class="row"><label>Brillo</label><input type="range" min="5" max="100" id="bri"><span id="briv"></span></div></div>
@@ -81,6 +90,11 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><label>Clave</label><input id="mqc" type="password" style="flex:1"></div>
   <div class="row"><button class="b" id="mqok">Guardar</button><button class="b" id="mqno">Quitar</button><span class="muted" id="mqst"></span></div>
   <p class="muted">Temas: letrerolab/&lt;nombre&gt;/cmd (órdenes), /estado (respuesta), letrerolab/todos/cmd, letrerolab/grupo/&lt;grupo&gt;/cmd</p></div>
+ <div class="card"><h3>Protección de potencia</h3>
+  <div class="row"><label>Límite</label><input type="range" min="1" max="25" id="lim"><span id="limv"></span></div>
+  <p class="muted">Corriente total máxima (todas las salidas). Al pasarla se apagan las salidas y reintenta a los 10 s;
+  tras 3 disparos en 5 min queda apagado hasta "Restablecer". Usa un fusible del mismo valor o mayor.</p>
+  <div class="row"><button class="b" id="ureset">Reiniciar contador de kWh</button></div></div>
  <div class="card"><h3>Seguridad</h3><div class="row"><label>Clave app</label><input id="kc" type="password" style="flex:1">
   <button class="b" id="kok">Guardar</button></div><p class="muted">Usuario: letrerolab. Vacía = sin clave (no recomendado).</p></div>
  <div class="card"><h3>Actualizar programa</h3><div class="row"><input type="file" id="bin" accept=".bin" style="flex:1">
@@ -115,6 +129,13 @@ function pinta(){
  $("wst").textContent=E.ap?"Modo configuración":(E.red?"Conectado a "+E.red+" ("+E.rssi+" dBm)":"");
  $("info").textContent=E.v+" · IP "+E.ip+" · http://"+E.nom+".local"+(E.k?" · con clave":" · SIN clave");
  if(!document.querySelector("#progs :focus"))progs();
+ $("cons").style.display=E.med?"block":"none";$("falla").style.display=E.f?"block":"none";
+ $("fn").textContent=E.fn;$("fd").textContent=`Medido: ${E.vin} V, ${E.i} A, ${E.tc??"--"} °C. `+(E.f==1?"Revisa cortos o la carga total.":E.f==2?"Mejora la ventilación; vuelve sola al enfriarse.":"Revisa la fuente (máx. 30 V).");
+ $("mw").textContent=Math.round(E.w);$("ma").textContent=E.i.toFixed(1);$("mv").textContent=E.vin.toFixed(1);
+ $("mt").textContent=E.tc==null?"--":E.tc.toFixed(0);$("mh").textContent=E.hoy.toFixed(2);$("mk").textContent=E.kwh.toFixed(1);
+ $("mbar").style.width=Math.min(100,E.i/E.lim*100)+"%";$("mbar").style.background=E.i>E.lim*.85?"var(--r)":E.i>E.lim*.6?"var(--y)":"var(--a)";
+ $("mlim").textContent=`Límite ${E.lim} A`+(E.fp<100&&E.p&&!E.f?` · brillo limitado al ${E.fp}% (arranque o temperatura)`:"");
+ if(!cambiando)$("lim").value=E.lim;$("limv").textContent=E.lim+" A";
 }
 function progs(){let h="";E.a.forEach((p,i)=>{h+=`<div class="card" style="margin:8px 0"><div class="row dias">${[...DIAS].map((d,j)=>
  `<label><input type="checkbox" data-d="${j}" ${p[1]>>j&1?"checked":""}>${d}</label>`).join("")}</div>
@@ -133,7 +154,7 @@ MOD.forEach((m,i)=>{const b=document.createElement("button");b.className="b";b.t
 for(let i=0;i<4;i++){const b=document.createElement("button");b.className="b";b.textContent="Escena "+(i+1);let t;
  b.onpointerdown=()=>t=setTimeout(()=>{t=0;api("S "+i);msg("Escena guardada")},800);b.onpointerup=()=>{if(t){clearTimeout(t);api("R "+i)}};$("esc").append(b)}
 const desliza=(id,f)=>{const e=$(id);e.oninput=()=>{cambiando=1};e.onchange=()=>{cambiando=0;api(f(e.value))}};
-desliza("vel",v=>"V "+v);desliza("bri",v=>"B "+v);desliza("umb",v=>"L "+E.l+" "+v);desliza("w",()=>colorCmd());
+desliza("vel",v=>"V "+v);desliza("lim",v=>"J "+v);desliza("bri",v=>"B "+v);desliza("umb",v=>"L "+E.l+" "+v);desliza("w",()=>colorCmd());
 const colorCmd=()=>{const h=$("rgb").value;return`C ${parseInt(h.substr(1,2),16)} ${parseInt(h.substr(3,2),16)} ${parseInt(h.substr(5,2),16)} ${$("w").value}`};
 $("rgb").onchange=()=>api(colorCmd());$("ch").onchange=()=>api("N "+$("ch").value);
 $("pw").onclick=()=>api("P "+(E.p?0:1));$("foco").onclick=()=>api("X "+(E.x?0:1));
@@ -158,6 +179,7 @@ $("wok").onclick=()=>{const r=$("redes").value;if(!r)return msg("Elige una red")
  msg("Conectando... busca el equipo en tu red como "+E.nom+".local")};
 $("mqok").onclick=()=>api(`Q ${$("mq").value},${$("mqu").value},${$("mqc").value}`);$("mqno").onclick=()=>api("Q -");
 $("kok").onclick=()=>{api("K "+$("kc").value);msg("Clave guardada")};
+$("fok").onclick=()=>api("F 0");$("ureset").onclick=()=>{if(confirm("¿Poner en cero los kWh?"))api("U 0")};
 $("reini").onclick=()=>{if(confirm("¿Reiniciar el equipo?"))api("!")};
 $("ota").onclick=async()=>{const f=$("bin").files[0];if(!f)return;const d=new FormData();d.append("f",f);$("otast").textContent="Subiendo...";
  try{$("otast").textContent=await(await fetch("/ota",{method:"POST",body:d})).text()}catch(e){$("otast").textContent="Error"}};

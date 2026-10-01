@@ -13,6 +13,9 @@
             - Grupos por la red local: "@* P0" apaga todos los letreros/luces de la casa
             - MQTT opcional (servidor en la nube) para controlar fuera de casa
             - Actualización por Wi-Fi (página "Ajustes" o ArduinoOTA), protegida con clave
+  Potencia: - Medidor INA238 (shunt de 1 mOhm): voltaje, corriente, potencia y kWh
+            - Protección: sobrecorriente, sobrevoltaje y temperatura (TMP1075) cortan las salidas (alerta en IO20)
+            - Arranque suave, menos brillo si se calienta, y PWM desfasado entre canales (menos rizo en la fuente)
 
   Protocolo (una línea por orden; también por /api?c=... y MQTT):
      M n  modo 0..9         V n  velocidad 0..9      B n  brillo 0..100     C r g b w  color 0..255
@@ -25,6 +28,7 @@
      D nombre   nombre del equipo (y nombre.local)        G grupo   grupo (p. ej. planta-alta)
      W red,clave  conectar a Wi-Fi     W -  olvidar Wi-Fi  Q uri[,usuario,clave]  MQTT   Q -  sin MQTT
      K clave  clave de la app/OTA (vacío = sin clave)      @ grupo orden  enviar a un grupo (* = todos)
+     J n  límite de corriente total 1..25 A (protección)   F 0  borrar una falla     U 0  reiniciar el contador de kWh
      ?  estado JSON     I  información     !  reiniciar
 */
 #include <WiFi.h>
@@ -40,9 +44,10 @@
 #include <sys/time.h>
 #include "mqtt_client.h"
 #include "esp_crt_bundle.h"
+#include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-0.2 fw 1.0"
+#define VERSION "AP-0.2 fw 1.1"
 
 // ---------------- pines de la placa AP-0.2 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 (drivers UCC27524 -> MOSFET)
@@ -51,10 +56,13 @@ const uint8_t PIN_MODO = 9;                // botón BOOT/MODO (a GND)
 const uint8_t PIN_IR = 3;                  // receptor IR (J6-5)
 const uint8_t PIN_LED = 10;                // LED de estado (a GND con 1k)
 const uint8_t PIN_LDR = 0;                 // LDR a GND con pull-up de 10k (J6-6)
-const uint8_t PIN_SDA = 2, PIN_SCL = 8;    // I2C (J6-3/4): DS3231 opcional
+const uint8_t PIN_SDA = 2, PIN_SCL = 8;    // I2C (J6-3/4): DS3231 opcional; INA238 (0x40) y TMP1075 (0x48) en la placa
+const uint8_t PIN_ALERTA = 20;             // ALERT del INA238 y del TMP1075 (colector abierto, activa en bajo)
+const float R_SHUNT = 0.001f;              // RS1 = 1 mOhm
 const uint32_t PWM_HZ = 19531;             // 80 MHz / 4096
 const uint8_t PWM_BITS = 12;
 const uint16_t UDP_PUERTO = 4210;
+const uint32_t PWM_MAX = 1UL << PWM_BITS;  // 4096 = 100 %
 
 const uint8_t N_MODOS = 10;
 const char* const NOMBRE[N_MODOS] = {"FIJO", "SECUENCIA", "PARPADEO", "RESPIRAR", "SEC. SUAVE", "ALTERNADO",
@@ -66,9 +74,10 @@ struct Config {
   uint8_t color[4];
   int16_t horaOn, horaOff, umbral;
   Prog prog[8];
+  uint8_t limiteA;                         // corriente máxima total (A)
 };
 Config cfg;
-const Config DEF = {0xB2, 1, 4, 100, 3, 1, 0, 0, 0, {255, 120, 0, 0}, -1, -1, 600, {}};
+const Config DEF = {0xB3, 1, 4, 100, 3, 1, 0, 0, 0, {255, 120, 0, 0}, -1, -1, 600, {}, 20};
 
 Preferences pref;
 String nombre, grupo, tz, wifiRed, wifiClave, mqUri, mqUsr, mqClave, clave;
@@ -82,6 +91,18 @@ uint32_t tSucio = 0, t0 = 0, tInicioWifi = 0;
 uint8_t paso = 0;
 bool porHorario = true, porLuz = true;
 uint16_t GAMMA12[256];
+uint16_t factor = 0;                       // 0..1000: arranque suave x reducción por temperatura
+uint32_t dutyActual[4] = {9999, 9999, 9999, 9999};
+
+// mediciones y protección
+bool hayINA = false, hayTMP = false;
+float vin = 0, amp = 0, watts = 0, tTarjeta = NAN, tIna = NAN;
+double whTotal = 0, whHoy = 0, whGuardado = 0;
+enum { SIN_FALLA = 0, F_CORRIENTE, F_TEMPERATURA, F_VOLTAJE };
+const char* const FALLA[] = {"", "sobrecorriente", "temperatura alta", "sobrevoltaje"};
+uint8_t falla = SIN_FALLA, disparos = 0;
+uint32_t tFalla = 0, tPrimerDisparo = 0;
+volatile bool alerta = false;
 
 struct Vecino { String nombre, grupo; IPAddress ip; uint32_t visto; };
 Vecino vecinos[16];
@@ -91,6 +112,8 @@ void marcar() { sucio = true; tSucio = millis(); }
 void guardarAhora() { pref.putBytes("cfg", &cfg, sizeof(cfg)); sucio = false; }
 void cargar() {
   if (pref.getBytes("cfg", &cfg, sizeof(cfg)) != sizeof(cfg) || cfg.firma != DEF.firma || cfg.modo >= N_MODOS) cfg = DEF;
+  if (cfg.limiteA < 1 || cfg.limiteA > 25) cfg.limiteA = 20;
+  whTotal = whGuardado = pref.getDouble("wh", 0);
   char def[16];
   snprintf(def, sizeof(def), "letrero-%04x", (uint16_t)(ESP.getEfuseMac() >> 32));
   nombre = pref.getString("nombre", def);
@@ -117,12 +140,22 @@ void cargarEscena(uint8_t n) {
 }
 
 // ---------------- salidas ----------------
+// Cada canal arranca su pulso en otro cuarto del periodo (hpoint): con varios canales a medio brillo la corriente
+// de la fuente se reparte en el tiempo en vez de llegar en un solo pico (menos rizo y menos calor en C1/C2).
+void pwm(uint8_t c, uint32_t duty) {
+  if (duty == dutyActual[c]) return;
+  dutyActual[c] = duty;
+  uint32_t hp = c * (PWM_MAX / 4);
+  if (hp + duty > PWM_MAX) hp = PWM_MAX - duty;          // el pulso nunca pasa del fin del periodo
+  ledc_set_duty_with_hpoint(LEDC_LOW_SPEED_MODE, (ledc_channel_t)c, duty, hp);
+  ledc_update_duty(LEDC_LOW_SPEED_MODE, (ledc_channel_t)c);
+}
 void salida(uint8_t c, uint8_t nivel) {
   uint8_t maxb = cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
-  ledcWrite(PWM_PIN[c], GAMMA12[(uint16_t)nivel * maxb / 100]);
+  pwm(c, (uint32_t)GAMMA12[(uint16_t)nivel * maxb / 100] * factor / 1000);
 }
 void todos(uint8_t v) { for (uint8_t c = 0; c < cfg.canales; c++) salida(c, v); }
-void apagarTodo() { for (uint8_t c = 0; c < 4; c++) ledcWrite(PWM_PIN[c], 0); }
+void apagarTodo() { for (uint8_t c = 0; c < 4; c++) pwm(c, 0); }
 
 uint8_t triangulo(uint32_t t, uint32_t per) {
   uint32_t f = t % per, m = per / 2;
@@ -203,6 +236,87 @@ bool dentroVentana(int16_t m) {
   return m >= cfg.horaOn || m < cfg.horaOff;          // cruza la medianoche
 }
 
+// ---------------- medidor INA238 y temperatura TMP1075 ----------------
+const uint8_t INA = 0x40, TMP = 0x48;
+bool escribir16(uint8_t dir, uint8_t reg, uint16_t v) {
+  Wire.beginTransmission(dir); Wire.write(reg); Wire.write(v >> 8); Wire.write(v & 0xFF);
+  return Wire.endTransmission() == 0;
+}
+int32_t leer16(uint8_t dir, uint8_t reg) {           // -1 si no responde
+  Wire.beginTransmission(dir); Wire.write(reg);
+  if (Wire.endTransmission(false) != 0 || Wire.requestFrom(dir, (uint8_t)2) != 2) return -1;
+  uint16_t v = Wire.read() << 8;
+  return v | Wire.read();
+}
+void inaLimite() {                                  // alerta por hardware: corriente (SOVL) en pasos de 1.25 uV
+  if (hayINA) escribir16(INA, 0x0C, (uint16_t)min(32767.0f, cfg.limiteA * R_SHUNT / 1.25e-6f));
+}
+void iniciarSensores() {
+  hayINA = leer16(INA, 0x3E) == 0x5449;             // "TI"
+  if (hayINA) {
+    escribir16(INA, 0x00, 0x0010);                  // ADCRANGE = 1: +-40.96 mV (hasta 40 A con 1 mOhm)
+    escribir16(INA, 0x01, 0xF922);                  // continuo: bus, shunt y temperatura; 540 us; promedio de 16
+    escribir16(INA, 0x0B, 0x8000);                  // alerta retenida hasta leer DIAG_ALRT
+    escribir16(INA, 0x0E, (uint16_t)(30.0f / 0.003125f));     // sobrevoltaje: 30 V
+    escribir16(INA, 0x10, (uint16_t)((int)(100 / 0.125f) << 4)); // temperatura del INA: 100 C
+    inaLimite();
+  }
+  hayTMP = leer16(TMP, 0x00) >= 0;
+  if (hayTMP) {                                      // TMP1075 / LM75: alerta a 85 C, se libera a 75 C
+    escribir16(TMP, 0x03, (uint16_t)((int)(85 / 0.0625f) << 4));
+    escribir16(TMP, 0x02, (uint16_t)((int)(75 / 0.0625f) << 4));
+  }
+}
+void leerSensores() {
+  if (hayINA) {
+    int32_t sh = leer16(INA, 0x04), bus = leer16(INA, 0x05), dt = leer16(INA, 0x06);
+    if (sh >= 0) amp = (int16_t)sh * 1.25e-6f / R_SHUNT;
+    if (bus >= 0) vin = (int16_t)bus * 0.003125f;
+    if (dt >= 0) tIna = ((int16_t)dt >> 4) * 0.125f;
+    watts = vin * amp;
+  }
+  if (hayTMP) { int32_t t = leer16(TMP, 0x00); if (t >= 0) tTarjeta = ((int16_t)t >> 4) * 0.0625f; }
+}
+void IRAM_ATTR alertaISR() { alerta = true; }
+void dispararFalla(uint8_t f) {
+  apagarTodo();
+  factor = 0;
+  if (falla == SIN_FALLA) {
+    if (f == F_CORRIENTE) {                         // 3 disparos en 5 min: se queda apagado hasta "F 0" o el botón
+      if (millis() - tPrimerDisparo > 300000UL) { tPrimerDisparo = millis(); disparos = 0; }
+      disparos++;
+    }
+    Serial.printf("FALLA: %s (%.1f V, %.1f A, %.1f C)\n", FALLA[f], vin, amp, tTarjeta);
+  }
+  falla = f;
+  tFalla = millis();
+}
+void revisarProteccion() {
+  if (alerta || digitalRead(PIN_ALERTA) == LOW) {   // primero se apaga; luego se averigua la causa
+    alerta = false;
+    apagarTodo();
+    int32_t d = hayINA ? leer16(INA, 0x0B) : 0;     // leer DIAG_ALRT libera la alerta retenida
+    leerSensores();
+    if (d > 0 && (d & (1 << 6))) dispararFalla(F_CORRIENTE);
+    else if (d > 0 && (d & (1 << 4))) dispararFalla(F_VOLTAJE);
+    else if ((d > 0 && (d & (1 << 7))) || tTarjeta >= 84.5f) dispararFalla(F_TEMPERATURA);
+    else if (digitalRead(PIN_ALERTA) == LOW && hayTMP) dispararFalla(F_TEMPERATURA);
+  }
+  if (hayINA && amp > cfg.limiteA * 1.05f) dispararFalla(F_CORRIENTE);     // respaldo por programa
+  if (falla == F_CORRIENTE && disparos < 3 && millis() - tFalla > 10000) falla = SIN_FALLA;          // reintento
+  if (falla == F_TEMPERATURA && (isnan(tTarjeta) || tTarjeta < 70) && digitalRead(PIN_ALERTA) == HIGH) falla = SIN_FALLA;
+  if (falla == F_VOLTAJE && vin < 29 && digitalRead(PIN_ALERTA) == HIGH) falla = SIN_FALLA;
+}
+uint16_t factorTemperatura() {                      // 100 % hasta 70 C, baja a 30 % a 84 C
+  if (isnan(tTarjeta) || tTarjeta <= 70) return 1000;
+  return (uint16_t)max(300.0f, 1000 - (tTarjeta - 70) * 50);
+}
+void sumarEnergia(float dtSeg) {
+  double wh = max(0.0f, watts) * dtSeg / 3600.0;
+  whTotal += wh; whHoy += wh;
+  if (whTotal - whGuardado > 20) { whGuardado = whTotal; pref.putDouble("wh", whTotal); }   // cada 20 Wh (cuida la flash)
+}
+
 // ---------------- control remoto IR (NEC) ----------------
 volatile uint32_t irCodigo = 0, irBits = 0, irUlt = 0;
 volatile uint8_t irN = 0;
@@ -245,6 +359,12 @@ String estadoJSON() {
   s += "\",\"rssi\":"; s += WiFi.isConnected() ? WiFi.RSSI() : 0;
   s += ",\"mq\":"; s += mqUri.length() ? (mqConectado ? 2 : 1) : 0;
   s += ",\"k\":"; s += clave.length() ? 1 : 0;
+  s += ",\"med\":"; s += hayINA; s += ",\"vin\":"; s += String(vin, 2); s += ",\"i\":"; s += String(amp, 2);
+  s += ",\"w\":"; s += String(watts, 1); s += ",\"kwh\":"; s += String(whTotal / 1000, 3);
+  s += ",\"hoy\":"; s += String(whHoy / 1000, 3); s += ",\"tc\":"; s += isnan(tTarjeta) ? "null" : String(tTarjeta, 1);
+  s += ",\"ti\":"; s += isnan(tIna) ? "null" : String(tIna, 1);
+  s += ",\"f\":"; s += falla; s += ",\"fn\":\""; s += FALLA[falla]; s += "\",\"lim\":"; s += cfg.limiteA;
+  s += ",\"fp\":"; s += factor / 10;
   s += '}';
   return s;
 }
@@ -406,6 +526,9 @@ bool ejecutar(const char* s, bool remoto) {
       enviarGrupo(g, orden.c_str());
       if (g == "*" || g == grupo) ejecutar(orden.c_str(), true);
     } return true;
+    case 'J': cfg.limiteA = constrain(numero(p), 1, 25); inaLimite(); break;
+    case 'F': if (falla != SIN_FALLA) Serial.println("Falla borrada"); falla = SIN_FALLA; disparos = 0; return true;
+    case 'U': whTotal = whHoy = whGuardado = 0; pref.putDouble("wh", 0); return true;
     case '!': pedirReinicio = true; return false;
     default: return false;
   }
@@ -532,7 +655,10 @@ void leerBoton() {
   if (ahora == LOW && largo == 2 && t - tP > 10000) {          // 10 s: olvidar Wi-Fi y abrir la configuración
     largo = 3; ejecutar("W -", false);
   }
-  if (antes == LOW && ahora == HIGH && largo == 0 && t - tP > 30) { cfg.modo = (cfg.modo + 1) % N_MODOS; paso = 0; marcar(); }
+  if (antes == LOW && ahora == HIGH && largo == 0 && t - tP > 30) {
+    if (falla != SIN_FALLA) { falla = SIN_FALLA; disparos = 0; }   // con falla, el primer toque solo la borra
+    else { cfg.modo = (cfg.modo + 1) % N_MODOS; paso = 0; marcar(); }
+  }
   antes = ahora;
 }
 
@@ -599,13 +725,14 @@ void revisarUDP() {
 }
 
 void setup() {
-  for (uint8_t c = 0; c < 4; c++) { ledcAttach(PWM_PIN[c], PWM_HZ, PWM_BITS); ledcWrite(PWM_PIN[c], 0); }
+  for (uint8_t c = 0; c < 4; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); pwm(c, 0); }
   pinMode(PIN_RELE, OUTPUT); digitalWrite(PIN_RELE, LOW);
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_MODO, INPUT_PULLUP);
   pinMode(PIN_IR, INPUT_PULLUP);
   analogReadResolution(12);
-  for (uint16_t i = 0; i < 256; i++) GAMMA12[i] = (uint16_t)(powf(i / 255.0f, 2.2f) * 4095.0f + 0.5f);
+  for (uint16_t i = 0; i < 256; i++) GAMMA12[i] = (uint16_t)(powf(i / 255.0f, 2.2f) * PWM_MAX + 0.5f);   // 255 = 100 %
+  pinMode(PIN_ALERTA, INPUT_PULLUP);
   Serial.begin(115200);
   colaMq = xQueueCreate(6, 128);
   pref.begin("letrerolab", false);
@@ -618,6 +745,9 @@ void setup() {
   Wire.beginTransmission(0x68);
   hayRTC = (Wire.endTransmission() == 0);
   if (hayRTC) rtcLeer();
+  iniciarSensores();
+  attachInterrupt(PIN_ALERTA, alertaISR, FALLING);
+  Serial.printf("Medidor INA238: %s  Temperatura TMP1075: %s\n", hayINA ? "si" : "no", hayTMP ? "si" : "no");
 
   attachInterrupt(PIN_IR, irISR, FALLING);
   iniciarWifi();
@@ -666,9 +796,20 @@ void loop() {
   char buf[128];
   while (xQueueReceive(colaMq, buf, 0) == pdTRUE) if (ejecutar(buf, true)) mqPublicar();
 
-  static uint32_t tRevisa = 0, tAnuncio = 0, tRtc = 0;
+  revisarProteccion();
+  static uint32_t tRevisa = 0, tAnuncio = 0, tRtc = 0, tMed = 0, tPub = 0;
+  if (t - tMed >= 250) {                                   // mediciones 4 veces por segundo
+    float dt = (t - tMed) / 1000.0f;
+    tMed = t;
+    leerSensores();
+    if (dt < 5) sumarEnergia(dt);
+  }
+  if (mqConectado && t - tPub > 30000) { tPub = t; mqPublicar(); }     // telemetría cada 30 s
   if (t - tRevisa > 1000) {
     tRevisa = t;
+    static int8_t diaAnterior = -1;                         // kWh de hoy: se reinicia a medianoche
+    uint8_t wd;
+    if (minutosAhora(&wd) >= 0) { if (diaAnterior >= 0 && wd != diaAnterior) whHoy = 0; diaAnterior = wd; }
     revisarHorarios();
     if (cfg.ldr) {                                     // más alto = más oscuro, con histéresis
       int l = analogRead(PIN_LDR) >> 2;
@@ -689,7 +830,16 @@ void loop() {
 
   bool activo = cfg.encendido && porHorario && porLuz;
   digitalWrite(PIN_RELE, (activo && cfg.aux) ? HIGH : LOW);
-  uint16_t per = modoAP ? 150 : (conectado ? (activo ? 1000 : 250) : 500);
-  digitalWrite(PIN_LED, (t / per) & 1);
-  if (activo) efectos(t); else apagarTodo();
+  uint16_t per = falla ? 80 : (modoAP ? 150 : (conectado ? (activo ? 1000 : 250) : 500));
+  digitalWrite(PIN_LED, falla ? ((t / per) % 6 < 2) : ((t / per) & 1));    // falla: doble destello
+  static uint32_t tRampa = 0;
+  if (activo && falla == SIN_FALLA) {
+    uint32_t r = min<uint32_t>(1000, (t - tRampa) * 1000 / 600);          // arranque suave de 0.6 s
+    factor = (uint16_t)(r * factorTemperatura() / 1000);
+    efectos(t);
+  } else {
+    tRampa = t;
+    factor = 0;
+    apagarTodo();
+  }
 }

@@ -4,6 +4,20 @@ Una sola placa de **90 × 70 mm**, 2 capas, armada en fábrica (JLCPCB). Sirve p
 
 ![render](fabricacion/3d/render_perspectiva.png)
 
+## Novedades de la rev B (revisión a fondo de la rev A)
+
+| Problema encontrado en la rev A | Solución en la rev B |
+|---|---|
+| Los dos reguladores AP6320x aguantan **32 V**. Una fuente de 24 V subida a 28 V más un pico (el TVS deja pasar hasta 53 V) podía quemarlos | El regulador de 12 V es ahora **LMR16006 de 60 V**. El de 3.3 V se alimenta de esos 12 V internos y ya no ve los picos de la entrada |
+| La pista de entrada medía **3.8 mm** y la salida del fusible pasaba por una franja de **4.4 mm**. Para 20 A con 2 oz hacen falta unos 6 mm | Planos de **7.3 mm** (entrada) y **11 mm** (hasta J3). Áreas prohibidas al rutear evitan que el ruteador parta los planos |
+| Una sobrecarga solo la detenía el fusible | **Medidor INA238** (85 V) con shunt Kelvin de **1 mΩ**: voltaje, corriente, watts y kWh. Su alerta corta las salidas por sobrecorriente (límite ajustable de 1 a 25 A) o sobrevoltaje (más de 30 V) |
+| No se medía la temperatura | **TMP1075** junto a drivers y MOSFET: baja el brillo desde 70 °C y apaga a 85 °C; vuelve sola al enfriarse |
+| Los 4 canales encendían a la vez en cada ciclo de PWM: picos de corriente hasta 4 veces mayores y capacitores de entrada más calientes | **PWM desfasado** (cada canal empieza en otro cuarto del ciclo) y **arranque suave** de 0.6 s |
+| TVS y capacitores en la misma red que la carga | El **TVS va después del fusible**: si queda en corto, abre el fusible. Capacitores de **50 V, 105 °C** |
+| Sin forma de probar en fábrica | **6 puntos de prueba**: VIN, 12 V, 3.3 V, GND, TXD y EN |
+
+Se verificó con ERC y DRC (incluidas advertencias): 0 errores, 0 conexiones pendientes y 0 diferencias entre esquema y placa.
+
 ## Lo que mejora frente al AP-0.1
 
 | | AP-0.1 | **AP-0.2** |
@@ -12,6 +26,7 @@ Una sola placa de **90 × 70 mm**, 2 capas, armada en fábrica (JLCPCB). Sirve p
 | Placas | 2 (potencia + cabezal), para planchar | **1**, SMD, ensamble en fábrica |
 | Alimentación | Fuente de 127/240 V integrada (12 V, 10 W) | **12–24 V DC externa, hasta 20 A** (480 W a 24 V) |
 | Canales | 4 × ~3 A | **4 × 8 A**, MOSFET de 2.8 mΩ con driver de compuerta |
+| Protección | Fusible | Fusible + **medidor de corriente/voltaje + temperatura** que cortan las salidas |
 | PWM | 490 Hz, 8 bits | **19.5 kHz, 12 bits**: sin zumbido ni parpadeo en cámara; desvanecidos suaves |
 | Hora | DS3231 obligatorio | **Internet (NTP)**; el DS3231 es opcional como respaldo |
 | Alcance | Bluetooth, unos 10 m | **Wi-Fi de la casa**, todos los pisos; fuera de casa por MQTT |
@@ -35,9 +50,13 @@ Una sola placa de **90 × 70 mm**, 2 capas, armada en fábrica (JLCPCB). Sirve p
   - Tiene **5 mm de separación** entre la red y la parte de baja tensión. Es una regla del diseño que el DRC verifica.
   - Los focos de red **solo** se conectan a J5.
 - **Fuentes internas:**
-  - Buck **AP63203** a 3.3 V y buck **AP63200** a 12 V, para los drivers y la bobina.
-  - Rinden más del 85 % con 12 o 24 V.
+  - Buck **LMR16006** de 60 V a 12 V, para drivers, bobina y lógica.
+  - Buck **AP63203** a 3.3 V, alimentado desde esos 12 V (o desde el USB).
   - Sin reguladores lineales calientes, lo que también es más ecológico.
+- **Medición y protección:**
+  - El **INA238** mide en el shunt de 1 mΩ, con sensado Kelvin de 4 terminales.
+  - El **TMP1075** mide la temperatura junto a los MOSFET.
+  - Las alertas de ambos llegan a IO20. El programa apaga las salidas en milisegundos y el fusible queda como último respaldo.
 
 **Fuente recomendada:** un eliminador o fuente cerrada **certificada** de 12 o 24 V (Mean Well LRS/HLG o similar), dimensionada al 80 % de su corriente. Ejemplos: 24 V × 15 A (360 W) para unos 12 A de LED, o 12 V × 10 A.
 
@@ -53,6 +72,7 @@ Al poner la parte de 127 V **fuera de la placa** (en una fuente certificada), el
 | **J5** `COM` `NO` | Interruptor para focos de 127/240 V, hasta 10 A (como un apagador) |
 | **J2** USB-C | Programar y ver mensajes. También alimenta la parte lógica para pruebas, sin potencia |
 | **J6** | Expansión: 3V3, GND, SDA, SCL, receptor IR (VS1838B), LDR a GND, botón externo |
+| **TP1–TP6** | Puntos de prueba para la prueba de fábrica: VIN, 12 V, 3.3 V, GND, TXD (registro serie) y EN (reinicio) |
 
 **Botón MODO** (SW1):
 - Toque: cambia de modo.
@@ -67,6 +87,7 @@ Al poner la parte de 127 V **fuera de la placa** (en una fuente certificada), el
 - Medio: buscando el Wi-Fi.
 - Lento: funcionando.
 - Rápido: en pausa por horario o sensor.
+- **Doble destello: protección activada.** Se borra tocando MODO, con "Restablecer" en la app, o con la orden `F 0`.
 
 ## Primer uso (sin cables, desde el celular)
 
@@ -84,8 +105,14 @@ Si se cae el Wi-Fi de la casa por más de 30 s, el equipo vuelve a abrir su red 
 |---|---|---|---|
 | ![](firmware/capturas/1_control.png) | ![](firmware/capturas/2_horarios.png) | ![](firmware/capturas/3_casa.png) | ![](firmware/capturas/4_ajustes.png) |
 
+Protección activada (simulada):
+
+![](firmware/capturas/5_proteccion.png)
+
 - **Control:**
   - Encendido.
+  - **Consumo** en watts, amperes, volts, °C y kWh de hoy y totales, con barra de carga contra el límite.
+  - **Aviso de protección** con la causa y el botón Restablecer.
   - 10 modos: fijo, secuencia, parpadeo, respirar, secuencia suave, alternado, color, arcoíris, flash y vela.
   - Velocidad, brillo, color RGBW, número de canales.
   - Focos, ahorro (máximo 60 %), sensor de luz.
@@ -99,7 +126,7 @@ Si se cae el Wi-Fi de la casa por más de 30 s, el equipo vuelve a abrir su red 
   - Encender o apagar **tu grupo**.
   - Lista de los demás LetreroLab de la red, con On/Off y enlace a cada uno.
   - Funciona por difusión UDP en la red local, en todos los pisos que cubra el Wi-Fi.
-- **Ajustes:** nombre, grupo, Wi-Fi, zona horaria, MQTT, clave, **actualizar programa** (subir `.bin`) y reiniciar.
+- **Ajustes:** nombre, grupo, Wi-Fi, zona horaria, MQTT, **límite de corriente**, contador de kWh, clave, **actualizar programa** (subir `.bin`) y reiniciar.
 
 **Para casas grandes o de dos pisos:**
 - Todos los equipos deben estar en la misma red Wi-Fi.
@@ -136,6 +163,8 @@ A 1 127 19:00 2 1      horario 1: todos los días a las 19:00 -> focos encendido
 @* P0                  apagar TODOS los equipos de la casa
 @planta-alta P1        encender el grupo planta-alta
 Z CST6                 zona horaria del centro de México
+J 15                   límite de corriente total: 15 A
+F 0                    borrar una falla
 ```
 
 ## Programa
@@ -153,7 +182,7 @@ Z CST6                 zona horaria del centro de México
 
   Las siguientes grabaciones son automáticas por USB o Wi-Fi.
 
-El programa compila sin advertencias (1.33 MB, 67 % de la flash). La app se probó en navegador contra un simulador. **Falta probarlo en la placa real**: es la primera tarea al llegar las placas.
+El programa compila sin advertencias (1.34 MB, 68 % de la flash). La app se probó en navegador contra un simulador. **Falta probarlo en la placa real**: es la primera tarea al llegar las placas.
 
 ## Pedir la placa en JLCPCB
 
@@ -184,7 +213,8 @@ Todo está en `fabricacion/jlcpcb/`:
 | Carpeta | Contenido |
 |---|---|
 | `kicad/` | Proyecto KiCad 9: esquema, PCB, reglas y modelos 3D en `kicad/3d` |
-| `gen/make.py` | Genera esquema y placa (Python + KiCad), rutea con Freerouting en 2 pasadas e importa |
+| `gen/make.py` | Genera esquema y placa (Python + KiCad); prepara el ruteo y rellena los planos |
+| `gen/rutear.sh` | Todo el flujo: placa → Freerouting en 3 pasadas → planos → ERC/DRC |
 | `gen/outputs.py` | Gerber, BOM/CPL de JLCPCB, PDF, renders y STEP |
 | `fabricacion/` | Salidas listas: `jlcpcb/`, `gerber/`, `esquema/` (PDF), `3d/` (renders y STEP), `reportes/` (ERC/DRC) |
 | `firmware/` | Programa, app web, binarios y capturas |
@@ -201,7 +231,9 @@ Reglas propias del DRC:
 ### Pendientes y advertencias honestas
 
 - **Ruteo automático:** Freerouting más planos de potencia trazados a mano. Antes de pedir muchas placas, conviene una revisión visual en KiCad, sobre todo de las pistas de señal cerca de los drivers.
-- Faltan los modelos 3D del USB-C (HRO TYPE-C-31-M-12) y del portafusible ATO. Solo afecta los renders.
+- Faltan los modelos 3D del USB-C (HRO TYPE-C-31-M-12) y del portafusible ATO. El shunt se muestra con el cuerpo de una resistencia 2512. Solo afecta los renders.
+- **Shunt:** la huella es de 4 terminales (Kelvin). Si JLCPCB no tiene una de 4 terminales, sirve una 2512 de 1 mΩ y 2 terminales: la soldadura une el pad de potencia con el de sensado de cada lado.
+- **Prueba de protección:** las primeras placas deben probarse con una carga electrónica o resistencias, subiendo la corriente hasta el límite, para confirmar el corte y su tiempo.
 - **Seguridad:**
   - Las órdenes de grupo (UDP) no llevan clave dentro de la red local; solo controlan luces, no la configuración.
   - Cambia la clave de la app.

@@ -383,6 +383,10 @@
       },
       {
         "netclass": "Media",
+        "pattern": "/VFUS"
+      },
+      {
+        "netclass": "Media",
         "pattern": "/V12G"
       },
       {
