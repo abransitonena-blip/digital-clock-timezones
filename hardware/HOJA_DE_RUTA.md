@@ -16,6 +16,7 @@ Lo que ya existe en este repositorio:
 | Fuentes capacitivas 127 V (OS, 3 salidas, flechas) | `fuente-os-127v/`, `fuente3-127v/`, `flechas-127v/` | Listas. No aisladas: solo dentro del letrero |
 | Modelo 3D de la placa | `base12v/fabricacion/3d/` | STEP y renders con componentes |
 | **LetreroLab AP-0.1**: placa de potencia (fuente 100-240 V integrada, 4 canales, relevador para focos) + placa cabezal con **chip propio ATmega328P**, Bluetooth, reloj, IR y LDR | `ap01-potencia/`, `ap01-cabezal/`, `ap01-gabinete/`, guía en `LetreroLab_AP01.md` | Listas para planchar (2 placas sin puentes, ERC/DRC 0); programa compilado; app web probada en modo demo |
+| **LetreroLab AP-0.2**: una placa SMD para ensamble en fábrica, ESP32-C3 (Wi-Fi), 12-24 V hasta 20 A, 4 canales de 8 A, relevador, USB-C, horarios NTP, control de toda la casa y MQTT | `ap02/` (guía en `ap02/LEEME.md`) | Lista para pedir a JLCPCB (ERC/DRC 0); programa compilado; falta probar la primera tanda |
 
 **Tareas de esta fase:**
 1. Armar la placa base, cargar el programa y probarla en el letrero BAÑOS.
@@ -33,6 +34,8 @@ La misma placa v1.1 ya tiene su paquete: `base12v/fabricacion/jlcpcb/Base12V_v1.
   - **Número de serie** en la serigrafía y en el programa, para controlar las garantías.
 
 ## Fase 3: módulo "industrial" con ensamble en fábrica (PCBA)
+
+> **Ya iniciada con el AP-0.2** (`ap02/`): ESP32-C3, MOSFET SMD, 2 capas con planos de potencia, app web, OTA, BOM y CPL para JLCPCB.
 
 Para que la fábrica arme las placas conviene **rediseñar con componentes SMD** y quitar los módulos enchufables:
 
