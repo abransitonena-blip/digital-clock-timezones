@@ -498,6 +498,7 @@ def main():
         nc = b.GetDesignSettings().m_NetSettings.GetNetClassByName("Red127V")
         nc.SetClearance(pcbnew.FromMM(5.0))
         pcbnew.ExportSpecctraDSN(b, dsn.replace(".dsn", sufijo(k + 1) + ".dsn"))
+        write_project()                           # guardar la placa reescribe el .kicad_pro con severidades por defecto
         print("pasada %d importada; dsn %d" % (k, k + 1), path)
         return
     if "--final" in sys.argv:
@@ -531,6 +532,7 @@ def main():
     nc = b.GetDesignSettings().m_NetSettings.GetNetClassByName("Red127V")
     nc.SetClearance(pcbnew.FromMM(5.0))
     pcbnew.ExportSpecctraDSN(b, dsn)
+    write_project()
     print("placa", path, "dsn", dsn)
 
 
