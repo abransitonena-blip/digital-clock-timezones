@@ -45,8 +45,19 @@ FOOTPRINTS = {
     "TO-92_SCR": ("Package_TO_SOT_THT/TO-92_Inline_Wide", {}, OVV, (1.6, 2.6), 0.8, "rect",
                   "Package_TO_SOT_THT/TO-92_Inline_Wide"),
     "Trimpot_3296W": fplib.FOOTPRINTS["Trimpot_3296W"],
+    "TO-220-3_Vertical": fplib.FOOTPRINTS["TO-220-3_Vertical"],
+    "TO-220_MOSFET": fplib.FOOTPRINTS["TO-220-3_Vertical"],
+    "D_DO-41_Vertical_P5.08mm": ("Diode_THT/D_DO-41_SOD81_P5.08mm_Vertical_KathodeUp", {}, RND, (2.4, 2.4), 1.0, "rect",
+                                 "Diode_THT/D_DO-41_SOD81_P5.08mm_Vertical_KathodeUp"),
+    "PTC_Radial_P5.08mm": fplib.FOOTPRINTS["PTC_Radial_P5.08mm"],
+    "Boton_6mm": fplib.FOOTPRINTS["Boton_6mm"],
+    "Arduino_Nano_Zocalo": ("Module/Arduino_Nano", {}, OVV, (2.4, 1.7), 1.0, "rect", "Module/Arduino_Nano"),
+    "Zocalo_1x06_P2.54mm": ("Connector_PinSocket_2.54mm/PinSocket_1x06_P2.54mm_Vertical", {}, OVV, (2.4, 1.7), 1.0,
+                            "rect", "Connector_PinSocket_2.54mm/PinSocket_1x06_P2.54mm_Vertical"),
+    "CP_Radial_D10.0mm_P5.00mm": ("Capacitor_THT/CP_Radial_D10.0mm_P5.00mm", {}, RND, (2.4, 2.4), 1.0, "rect",
+                                  "Capacitor_THT/CP_Radial_D10.0mm_P5.00mm"),
 }
-PIN_TEXT = {"TO-92_SCR": "K G A"}
+PIN_TEXT = {"TO-92_SCR": "K G A", "TO-220_MOSFET": "G D S"}
 fplib.PIN_TEXT.update(PIN_TEXT)
 
 
@@ -98,7 +109,29 @@ def build_jumper_bottom(L, name):
             smd("1", 0), smd("2", L)]
 
 
+def build_smd_bottom(name, P=3.2, size=(1.8, 2.2)):
+    """Dos pads SMD del lado del cobre (p. ej. resistencia 1206 soldada por abajo, sin barrenos)."""
+    S = lambda *a: [Sym(a[0])] + list(a[1:])
+
+    def smd(num, x):
+        return [Sym("pad"), num, Sym("smd"), Sym("rect"), S("at", x, 0), S("size", size[0], size[1]),
+                S("layers", "B.Cu", "B.Mask"), S("uuid", str(uuid.uuid4()))]
+    return [Sym("footprint"), name, S("version", Sym("20241229")), S("generator", "pcbnew"),
+            S("generator_version", "9.0"), S("layer", "F.Cu"),
+            S("descr", "Resistencia SMD 1206 soldada del lado del cobre (sin barrenos)"),
+            [Sym("property"), "Reference", "R**", S("at", P / 2, -2.2, 0), S("layer", "F.SilkS"),
+             S("uuid", str(uuid.uuid4())), S("effects", S("font", S("size", 0.8, 0.8), S("thickness", 0.12)))],
+            [Sym("property"), "Value", "1206", S("at", P / 2, 2.2, 0), S("layer", "F.Fab"),
+             S("uuid", str(uuid.uuid4())), S("effects", S("font", S("size", 0.8, 0.8), S("thickness", 0.12)))],
+            S("attr", Sym("smd")),
+            [Sym("fp_rect"), S("start", -1.4, -1.5), S("end", P + 1.4, 1.5), S("stroke", S("width", 0.05), S("type", Sym("solid"))),
+             S("fill", Sym("no")), S("layer", "B.CrtYd"), S("uuid", str(uuid.uuid4()))],
+            smd("1", 0), smd("2", P)]
+
+
 def build_fp(name):
+    if name == "R_1206_Abajo":
+        return build_smd_bottom(name)
     if name.startswith("Cables_"):
         P = float(name.split("_P")[1].replace("mm", ""))
         fp = build_cables(int(name.split("_")[1][0]), P)
@@ -234,7 +267,7 @@ class Board:
                     pad.SetNet(self.nets[n])
                 else:
                     nm = pin_names(sym).get(pad.GetNumber(), "")
-                    nm = "" if nm in ("", "~") else nm + "-"
+                    nm = "" if nm in ("", "~") else nm.replace("/", "{slash}") + "-"
                     ni = pcbnew.NETINFO_ITEM(b, "unconnected-(%s-%sPad%s)" % (ref, nm, pad.GetNumber()))
                     b.Add(ni)
                     pad.SetNet(ni)

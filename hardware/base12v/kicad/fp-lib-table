@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Base12V")(type "KiCad")(uri "${KIPRJMOD}/Base12V.pretty")(options "")(descr "Huellas THT con pads para transferencia de toner"))
+)
