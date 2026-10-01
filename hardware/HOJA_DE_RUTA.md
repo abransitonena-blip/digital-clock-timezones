@@ -45,11 +45,11 @@ Para que la fábrica arme las placas conviene **rediseñar con componentes SMD**
 | Arduino Nano + HC-05 | **ESP32-C3**, un solo chip con **Wi-Fi y Bluetooth**. Es más barato que Nano + HC-05 y toma la hora de internet (NTP), así que no necesita reloj extra |
 | IRLZ44N TO-220 | MOSFET SMD (AO3400 o similar, SOT-23 / DFN) |
 | Clemas | Clemas o conectores JST con seguro |
-| Una cara | 2 capas con plano de tierra: menos ruido y más corriente |
+| Una cara | 2 capas con plano de tierra (AP-0.2, programador) o **4 capas** con dos planos internos de GND (base AP-1) |
 
 Lo que JLCPCB pide para ensamblar:
 1. **Gerber**.
-2. **BOM** con el código LCSC de cada pieza (conviene usar sus "basic parts", que no cobran extra).
+2. **BOM** con el código LCSC de cada pieza (conviene usar sus "basic parts", que no cobran extra). `tools/salidas.py` ya los llena solo con la biblioteca JLCPCB (`tools/descargar_biblioteca_jlcpcb.sh`).
 3. **CPL**: posición y giro de cada componente. KiCad lo exporta.
 
 **Programa y aplicación:** el ESP32 permite una **app propia** (o página web en el mismo módulo) con modos, colores, horarios, brillo y escenas. Además se puede **actualizar el programa por Wi-Fi (OTA)**, sin abrir la caja; eso respeta el gabinete sellado.

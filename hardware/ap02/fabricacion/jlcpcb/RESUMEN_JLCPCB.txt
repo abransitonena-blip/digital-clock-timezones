@@ -1,0 +1,51 @@
+AP02: 44 tipos de pieza. Basic y Preferred no pagan montaje por tipo; cada tipo Extended ~3 USD.
+Cargo estimado por piezas Extended: 22 x 3 = ~66 USD por pedido (no por placa).
+
+Basic (20):
+  4.7uF 50V              C3
+  100nF                  C4,C8,C14,C16,C17,C18
+  10uF 50V               C5,C9
+  22uF                   C6,C7
+  22uF 25V               C10
+  1uF 25V                C11,C12
+  10uF                   C13
+  1uF                    C15
+  SS34                   D2,D3
+  1N4148W                D4
+  LED                    D5
+  SS210                  D6
+  AO3400A                Q5
+  100k                   R5
+  10k                    R6,R7,R10,R11,R15,RF2,RG0,RP1,RP2,RP3,RP4,RPD1,RPD2,RPD3,RPD4
+  4.7k                   R8,R9
+  1k                     R12
+  5.1k                   R13,R14
+  150k                   RF1
+  4.7                    RG1,RG2,RG3,RG4
+Extended (4):
+  USB-C                  J2
+  AP63203WU              U1
+  ESP32-C3-WROOM-02      U5
+  USBLC6-2SC6            U6
+Extended (elegir en JLCPCB) (18):
+  330uF 50V              C1,C2
+  ATO 20A                F1
+  ENTRADA 12-24V         J1
+  +V SALIDA              J3
+  CANALES                J4
+  FOCOS                  J5
+  EXPANSION              J6
+  SRD-12VDC-SL-C         K1
+  4.7uH                  L1
+  47uH                   L2
+  BSC028N06LS3           Q1,Q2,Q3,Q4,QR1,QR2
+  1mR 2512 Kelvin        RS1
+  MODO / BOOT            SW1
+  RESET                  SW2
+  LMR16006XDDC           U2
+  UCC27524D              U3,U4
+  INA238                 U7
+  TMP1075D               U8
+Preferred (2):
+  SMBJ33A                D1
+  MMSZ5242B 12V          DZ1

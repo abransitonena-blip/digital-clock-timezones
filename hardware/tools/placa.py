@@ -30,7 +30,8 @@ mm = pcbnew.FromMM
 def _defaults(S):
     for k, v in dict(HOLES=[], NETCLASS={}, POWER_ZONES=[], KEEPOUT_NETS=(), PRE=[], PREVIAS=[], VIAS=[],
                      SIN_COBRE=[], RETORNO=[], SILK=[], FLAGS=[], NOTES=[], SUBTITLES=[], COMPANY="", PAPER="A3", DRU="",
-                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}).items():
+                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0,
+                     PLANOS=[("GND", "In1"), ("GND", "In2")]).items():
         if not hasattr(S, k):
             setattr(S, k, v)
     S.ROOT = os.path.abspath(os.path.join(S.HERE, ".."))
@@ -59,7 +60,9 @@ def _contorno(S, b):
 
 def build_board(S):
     b = pcbnew.BOARD()
-    b.GetDesignSettings().SetCopperLayerCount(2)
+    b.GetDesignSettings().SetCopperLayerCount(S.CAPAS)
+    for l in _internas(S):
+        b.SetLayerType(l, pcbnew.LT_POWER)    # planos: Freerouting no rutea en ellos, solo llega con vías
     nets = {}
     for c in S.C_:
         for n in c[4].values():
@@ -115,6 +118,73 @@ def build_board(S):
     dflt.SetTrackWidth(mm(0.25)); dflt.SetClearance(mm(0.2)); dflt.SetViaDiameter(mm(0.6)); dflt.SetViaDrill(mm(0.3))
     b.GetDesignSettings().m_MinThroughDrill = mm(0.2)
     return b
+
+
+def _internas(S):
+    return [pcbnew.In1_Cu, pcbnew.In2_Cu][:max(0, S.CAPAS - 2)]
+
+
+def _cobre(S):
+    return [pcbnew.F_Cu, pcbnew.B_Cu] + _internas(S)
+
+
+def _planos(S, b):
+    """4 capas: planos internos completos (In1 = GND de referencia, In2 según PLANOS), presentes desde el ruteo."""
+    capa = {"In1": pcbnew.In1_Cu, "In2": pcbnew.In2_Cu}
+    for net, nom in S.PLANOS[:len(_internas(S))]:
+        add_zone(b, net, capa[nom], [(0.3, 0.3), (S.W - 0.3, 0.3), (S.W - 0.3, S.H - 0.3), (0.3, S.H - 0.3)],
+                 prio=0, clearance=0.3, solid=False)
+
+
+def _costura(S, b):
+    """Vías de costura GND: cada isla de GND de F.Cu baja a los planos (y una rejilla de COSTURA mm en toda la placa).
+    Solo se colocan donde hay GND rellenado en F.Cu y B.Cu con holgura, lejos de agujeros y otras vías."""
+    gnd = b.FindNet("/GND")
+    llenos = {}
+    for z in b.Zones():
+        if z.GetIsRuleArea() or z.GetNetname() != "/GND":
+            continue
+        for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
+            if z.IsOnLayer(lay):
+                ps = z.GetFilledPolysList(lay).CloneDropTriangulation()
+                ps.Deflate(mm(0.45), pcbnew.CORNER_STRATEGY_CHAMFER_ALL_CORNERS, mm(0.01))
+                llenos.setdefault(lay, []).append(ps)
+    dentro = lambda lay, pt: any(ps.Contains(pt) for ps in llenos.get(lay, []))
+    ocupado = [(p.GetPosition(), max(p.GetDrillSize().x, p.GetSize().x) / 2 + mm(0.8))
+               for f in b.GetFootprints() for p in f.Pads() if p.GetDrillSize().x > 0]
+    ocupado += [(t.GetPosition(), mm(1.0)) for t in b.GetTracks() if t.Type() == pcbnew.PCB_VIA_T]
+    libre = lambda pt: all((pt - c).EuclideanNorm() > r for c, r in ocupado)
+    puestas = []
+
+    def poner(pt):
+        v = pcbnew.PCB_VIA(b)
+        v.SetPosition(pt); v.SetWidth(mm(0.6)); v.SetDrill(mm(0.3)); v.SetNet(gnd); v.SetIsFree(True)
+        b.Add(v); ocupado.append((pt, mm(1.0))); puestas.append(pt)
+
+    ok = lambda pt: dentro(pcbnew.F_Cu, pt) and dentro(pcbnew.B_Cu, pt) and libre(pt)
+    if S.COSTURA:
+        n = int(S.COSTURA * 10)
+        for x in range(20, int(S.W * 10) - 10, n):
+            for y in range(20, int(S.H * 10) - 10, n):
+                pt = P(x / 10, y / 10)
+                if ok(pt):
+                    poner(pt)
+    for ps in llenos.get(pcbnew.F_Cu, []):           # islas de F.Cu que quedaron sin vía
+        for i in range(ps.OutlineCount()):
+            o = ps.Outline(i)
+            if any(o.PointInside(q) for q in puestas):
+                continue
+            bb = o.BBox()
+            for x in range(bb.GetX(), bb.GetRight(), mm(0.25)):
+                hecho = False
+                for y in range(bb.GetY(), bb.GetBottom(), mm(0.25)):
+                    pt = pcbnew.VECTOR2I(x, y)
+                    if o.PointInside(pt) and ok(pt):
+                        poner(pt); hecho = True
+                        break
+                if hecho:
+                    break
+    return len(puestas)
 
 
 def add_zone(b, net, layer, pts, prio=0, clearance=0.3, solid=True):
@@ -187,7 +257,7 @@ def add_power(S, b):
 
 def _sin_cobre(S, b):
     for i, pts in enumerate(S.SIN_COBRE):    # permanente: sin pistas, vías ni planos (p. ej. bajo una antena)
-        _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "sin_cobre_%d" % i, [pcbnew.F_Cu, pcbnew.B_Cu],
+        _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "sin_cobre_%d" % i, _cobre(S),
                pour=True)
     for i, pts in enumerate(S.RETORNO):      # permanente: plano inferior sin pistas donde regresa la corriente fuerte
         _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "retorno_%d" % i, [pcbnew.B_Cu], vias=False)
@@ -308,6 +378,9 @@ def main(S):
                      prio=0, clearance=0.3, solid=False)
         finish(S, b)
         pcbnew.ZONE_FILLER(b).Fill(b.Zones())
+        if S.CAPAS > 2 or S.COSTURA:
+            print("vías de costura:", _costura(S, b))
+            pcbnew.ZONE_FILLER(b).Fill(b.Zones())
         b.Save(path)
         write_project(S)
         print("importado y rellenado", path)
@@ -315,6 +388,7 @@ def main(S):
     b.Save(path)
     b = pcbnew.LoadBoard(path)
     add_power(S, b)
+    _planos(S, b)
     pcbnew.ZONE_FILLER(b).Fill(b.Zones())
     b.Save(path)
     _clase_hv(S, b)

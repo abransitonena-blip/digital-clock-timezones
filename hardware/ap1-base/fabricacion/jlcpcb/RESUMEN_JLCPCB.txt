@@ -1,0 +1,42 @@
+AP1_Base: 35 tipos de pieza. Basic y Preferred no pagan montaje por tipo; cada tipo Extended ~3 USD.
+Cargo estimado por piezas Extended: 20 x 3 = ~60 USD por pedido (no por placa).
+Incluye clemas, conectores y portafusibles de patas (THT): se pueden quitar del pedido y soldar a mano.
+
+Basic (13):
+  10uF 50V               C3,C6,C13
+  100nF                  C4,C5,C14,C15
+  22uF 25V               C7
+  1uF 25V                C8,C9
+  4.7uF 50V              C11,C12
+  SS34                   D2,D3,D4
+  SS210                  D7
+  AO3400A                Q5
+  10k                    RAUX,RF2,RG0,RP1,RP2,RP3,RP4
+  2.2k                   RC1,RC2
+  150k                   RF1
+  4.7                    RG1,RG2,RG3,RG4
+  0R1                    RSC1,RSC2
+Extended (elegir en JLCPCB) (20):
+  330uF 50V              C1
+  MINI 20A               F1
+  3A                     F2
+  ENTRADA 12-24V         J1
+  +V SALIDA              J3
+  CANALES                J4
+  FOCOS CC               J5
+  AUX 12V                J6
+  PROGRAMADOR            J7
+  47uH                   L1
+  47uH                   L2,L3
+  BSC028N06LS3           Q1,Q2,Q3,Q4
+  BSC016N06NS            QR1
+  1mR 2512 Kelvin        RS1
+  INA238                 U1
+  LMR16006XDDC           U2
+  UCC27524D              U3,U4
+  AL8860MP               U6,U7
+  TMP1075D               U8
+  AT24CS02               U9
+Preferred (2):
+  SMBJ33A                D1
+  MMSZ5242B 12V          DZ1

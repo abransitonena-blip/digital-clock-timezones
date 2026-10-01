@@ -1,4 +1,4 @@
-"""LetreroLab AP-1 BASE universal: placa de potencia para focos, tiras y letreros (2 capas, ensamble en fábrica).
+"""LetreroLab AP-1 BASE universal: placa de potencia para focos, tiras y letreros (4 capas, ensamble en fábrica).
 
 Sobre ella se enclava el PROGRAMADOR AP-1 (conector 2x8 + tornillo). La base no tiene microcontrolador: es la misma
 para todos los modelos; lo que cambia por modelo es la placa de LEDs/focos y la configuración guardada en su memoria.
@@ -230,8 +230,10 @@ NOTES = [(150.0, 15.0, "LetreroLab AP-1 BASE universal: 12-24 V / 20 A, 4 canale
                        "constante (1 A), AUX 12 V.\nI2C: INA238 0x40, TMP1075 0x48, AT24CS02 0x50 (+0x58 serie). "
                        "3V3 lo da el programador por J7.")]
 TITLE = "LetreroLab AP-1 - base universal de potencia"
-SUBTITLES = ["Placa de 2 capas para ensamble en fábrica (JLCPCB)", "12-24 V DC, 4 x 8 A + 2 x 1 A CC + AUX"]
-COMPANY = "PCB 88 x 56 mm, 2 capas, cobre 2 oz recomendado"
+SUBTITLES = ["Placa de 4 capas (In1/In2 = GND) para ensamble en fábrica (JLCPCB)", "12-24 V DC, 4 x 8 A + 2 x 1 A CC + AUX"]
+CAPAS = 4                                 # F.Cu señales+potencia, In1 GND, In2 GND, B.Cu potencia+GND
+COSTURA = 5.0                             # vías GND cada 5 mm: une F.Cu/B.Cu con los planos internos
+COMPANY = "PCB 88 x 56 mm, 4 capas JLC04161H-7628, externas 2 oz, internas 1 oz"
 PAPER = "A2"
 MODELOS = {"WSK2512": "R_2512_6332Metric.step"}
 OCULTAR_REF = ("J5", "J6")

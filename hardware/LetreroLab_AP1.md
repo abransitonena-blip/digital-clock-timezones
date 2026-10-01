@@ -25,10 +25,26 @@ El sistema tiene tres partes:
 | | Base | Programador | Conjunto |
 |---|---|---|---|
 | Tamaño | 88 × 56 mm, esquinas redondeadas | 52 × 42 mm | 88 × 56 mm de planta |
-| Capas / cobre | 2 capas, **2 oz** | 2 capas, 1 oz | |
+| Capas / cobre | **4 capas**: exteriores 2 oz, interiores 1 oz | 2 capas, 1 oz | |
 | Piezas | 65 (todo SMD, salvo clemas, portafusible y zócalo) | 41 | |
 
 Frente a la AP-0.2 (90 × 70 mm, 6300 mm²), la base ocupa **4928 mm² (22 % menos)** y además trae los 2 canales de corriente constante, la memoria de identidad y la salida AUX.
+
+## Las 4 capas de la base (y por qué no hay piezas abajo)
+
+| Capa | Uso |
+|---|---|
+| F.Cu (arriba, 2 oz) | piezas, pistas de señal y los planos de potencia (VIN, canales) |
+| In1.Cu (1 oz) | **plano de GND completo**: referencia para el sensado y la conmutación |
+| In2.Cu (1 oz) | **segundo plano de GND**: más cobre para el regreso de 20 A hacia QR1 y para sacar calor |
+| B.Cu (abajo, 2 oz) | pistas largas (12 V, CTRL de los focos), regreso de corriente y GND |
+
+- Las dos capas internas son **planos** (KiCad las marca como "power"): Freerouting no pasa pistas por ellas, solo llega con vías.
+- **Vías de costura** GND cada 5 mm (unas 60) unen arriba, abajo y los dos planos. Ninguna isla de cobre queda suelta.
+- Bajo la antena del programador se quita el cobre en **las 4 capas**.
+- Pila de JLCPCB: **JLC04161H-7628**, 1.6 mm. A JLCPCB una de 4 capas de este tamaño le cuesta poco más que una de 2.
+- **Lado inferior sin piezas, a propósito:** el ensamble por las dos caras cuesta más (doble esténcil y doble paso de horno). Además la base va atornillada al gabinete por abajo y ahí conviene una cara plana y aislada. El cobre de abajo sí se usa completo.
+- El programador sigue en 2 capas: es chico y de baja corriente, y la antena necesita poco cobre alrededor. Por abajo solo lleva el conector macho que se enclava.
 
 ## Cómo se enclavan
 
@@ -36,7 +52,7 @@ Frente a la AP-0.2 (90 × 70 mm, 6300 mm²), la base ocupa **4928 mm² (22 % men
 - **Programador:** conector macho 2×8 **por debajo** (J1) y agujero M3 en la misma posición.
 - **Montaje:** separador de **11 mm** (zócalo de 8.5 mm + plástico del conector de 2.5 mm) con **tornillo de nylon**. Queda junto a la antena y uno de metal la desafinaría.
 - **No se puede poner al revés:** girado 180°, el programador se sale de la base y el agujero no coincide.
-- **Antena:** la base tiene una **zona sin cobre** (x 72.5–88, y 0–30.5) justo debajo de la antena del ESP32-C3, en las dos capas.
+- **Antena:** la base tiene una **zona sin cobre** (x 72.5–88, y 0–30.5) justo debajo de la antena del ESP32-C3, en las cuatro capas.
 - **Altura:** bajo el programador solo hay piezas bajas (≤ 4.5 mm). El portafusible y el capacitor alto quedan fuera, y las clemas quedan libres al frente.
 - **Verificación:** las 16 patas del conector macho coinciden en posición y en señal con las 16 del zócalo.
 
@@ -128,15 +144,21 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
 
 ## Pedir a JLCPCB
 
-Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/` trae el Gerber (ZIP), la BOM y el CPL:
+Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/` trae:
+- el Gerber (ZIP);
+- la BOM con el **código LCSC y la clase** (Basic / Preferred / Extended) de cada pieza;
+- el CPL;
+- `RESUMEN_JLCPCB.txt`, con cuántos tipos son Extended y el cargo aproximado de montaje (~3 USD por tipo, por pedido).
 
-1. **Base** (`ap1-base`): 2 capas, **cobre exterior 2 oz**, ensamble del lado superior.
+1. **Base** (`ap1-base`): **4 capas**, pila JLC04161H-7628, **exteriores 2 oz, interiores 1 oz**, ensamble del lado superior.
 2. **Programador** (`ap1-prog`): 2 capas, 1 oz, ensamble del lado superior. El **conector macho 2×8 va abajo**: pídelo con ensamble THT o suéldalo tú.
-3. En la revisión de cada BOM, confirma los códigos LCSC. Las piezas nuevas van sin código y se eligen ahí mismo:
-   - INA238, AL8860, TMP1075, AT24CS02;
+3. En la revisión de cada BOM, confirma los códigos LCSC. Las piezas sin código son Extended y se eligen ahí mismo:
+   - INA238, AL8860, LMR16006, UCC27524, TMP1075, AT24CS02;
+   - MOSFET BSC028N06LS3 / BSC016N06NS;
    - shunt 1 mΩ de 4 terminales;
    - portafusible Keystone 3568;
    - zócalo 2×8.
+   La biblioteca Basic de JLCPCB no tiene equivalentes de estas piezas con los mismos 60 V, 8 A o 1 mΩ, así que se quedan como Extended.
 4. En la vista previa del ensamble, revisa el **giro** de los integrados, MOSFET, diodos y USB-C.
 
 **Primera tanda sugerida:** 5 bases y 5 programadores. Pruebas antes de pedir más:
@@ -146,6 +168,21 @@ Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/`
 - focos CC a 1 A durante 72 h;
 - Wi-Fi con el programador montado dentro de la caja.
 
+## Biblioteca JLCPCB
+
+- **Instalar:** `bash hardware/tools/descargar_biblioteca_jlcpcb.sh` baja la biblioteca **JLCPCB-KiCad-Library** (CDFER, MIT). Trae unas 1500 piezas Basic/Preferred con símbolo, huella, modelo 3D y código LCSC, y deja las instrucciones para KiCad 9. También está en el Administrador de complementos de KiCad como "JLCPCB".
+- **Catálogo:** de esa biblioteca sale `tools/jlcpcb_catalogo.csv` (código, clase, existencias, precio). `tools/jlcpcb.py` busca ahí cada pieza de la placa:
+  - resistencias por valor y tamaño;
+  - capacitores por valor, tamaño y voltaje mínimo (lo de "10uF 50V");
+  - LED por color;
+  - semiconductores por número de parte y encapsulado.
+  Prefiere Basic, luego Preferred, y entre ellos la de más existencias. `tools/salidas.py` lo usa al hacer la BOM.
+- **Prueba rápida:** `python3 tools/jlcpcb.py 4.7k R_0603_1608Metric`.
+- **Piezas Extended desde KiCad:** el complemento **JLCPCB Tools** (Bouni/kicad-jlcpcb-tools) busca en todo el catálogo de JLCPCB y escribe el código LCSC en la placa.
+- **Cambios por la biblioteca:**
+  - los diodos SS14 del programador pasaron a **B5819W** (Preferred, misma huella SOD-123, 40 V 1 A);
+  - el resto de pasivos, LED, SS34, SS210, SMBJ33A, MMSZ5242B, 1N4148W y AO3400A ya eran Basic/Preferred.
+
 ## Cómo se diseñó y se revisa
 
 - **Una librería, una carpeta por placa:** las placas salen de `tools/placa.py`, la librería común de generación. Cada placa es un archivo de datos: `ap1-base/gen/make.py` y `ap1-prog/gen/make.py`.
@@ -154,6 +191,7 @@ Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/`
   - `python3 tools/salidas.py ap1-base AP1_Base` → archivos de fábrica, PDF, STEP y renders.
   - `python3 tools/modelos_locales.py ap1-base AP1_Base` → copia los modelos 3D dentro del proyecto.
   - `python3 ap1-ensamble/ensamble.py` → modelo 3D del conjunto (base + programador a 11 mm). Sirve para diseñar la caja.
+- **Placas a 4 capas:** `CAPAS = 4` y `COSTURA = 5.0` en el `make.py` de la placa. `placa.py` hace los planos internos y las vías de costura, y `salidas.py` exporta las capas que haya.
 - **Revisión:** las dos placas dan **ERC 0, DRC 0 (incluidas advertencias), 0 sin conectar y 0 diferencias** entre esquema y placa.
 
 ## Pendientes y advertencias honestas

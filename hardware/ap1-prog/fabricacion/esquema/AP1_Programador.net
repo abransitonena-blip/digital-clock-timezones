@@ -1,7 +1,7 @@
 (export (version "E")
   (design
     (source "/work/hardware/ap1-prog/kicad/AP1_Programador.kicad_sch")
-    (date "2026-10-01T07:35:27+0000")
+    (date "2026-10-01T08:31:10+0000")
     (tool "Eeschema 9.0.9")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block
@@ -165,7 +165,7 @@
       (sheetpath (names "/") (tstamps "/"))
       (tstamps "ea093f31-9b8f-5319-8400-3c45efa151b0"))
     (comp (ref "D1")
-      (value "SS14")
+      (value "B5819W")
       (footprint "Diode_SMD:D_SOD-123")
       (datasheet "~")
       (description "12 V de la base")
@@ -183,7 +183,7 @@
       (sheetpath (names "/") (tstamps "/"))
       (tstamps "287d9873-0b8b-5d44-b168-954bd7efda3d"))
     (comp (ref "D2")
-      (value "SS14")
+      (value "B5819W")
       (footprint "Diode_SMD:D_SOD-123")
       (datasheet "~")
       (description "5 V del USB")

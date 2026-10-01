@@ -46,8 +46,8 @@ C_ = [
     ("U3", "USBLC6-2SC6", "Power_Protection:USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
      {"1": "USB_DN", "2": "GND", "3": "USB_DP", "4": "USB_DP", "5": "VBUS", "6": "USB_DN"}, "ESD del USB"),
     # fuente 3.3 V
-    ("D1", "SS14", "Device:D_Schottky", "Diode_SMD:D_SOD-123", {"1": "VLOG", "2": "V12"}, "12 V de la base"),
-    ("D2", "SS14", "Device:D_Schottky", "Diode_SMD:D_SOD-123", {"1": "VLOG", "2": "VBUS"}, "5 V del USB"),
+    ("D1", "B5819W", "Device:D_Schottky", "Diode_SMD:D_SOD-123", {"1": "VLOG", "2": "V12"}, "12 V de la base"),
+    ("D2", "B5819W", "Device:D_Schottky", "Diode_SMD:D_SOD-123", {"1": "VLOG", "2": "VBUS"}, "5 V del USB"),
     ("U2", "AP63203WU", "Regulator_Switching:AP63203WU", "Package_TO_SOT_SMD:TSOT-23-6",
      {"1": "3V3", "2": "VLOG", "3": "VLOG", "4": "GND", "5": "SWP", "6": "BSTP"}, "Buck 3.3 V 2 A (síncrono)"),
     ("L1", "4.7uH", "Device:L", "Inductor_SMD:L_Changjiang_FNR4030S", {"1": "SWP", "2": "3V3"}, "Bobina 3.3 V"),

@@ -3951,7 +3951,7 @@
 				)
 			)
 		)
-		(property "Value" "SS14"
+		(property "Value" "B5819W"
 			(at 0 2.1 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -6761,7 +6761,7 @@
 				)
 			)
 		)
-		(property "Value" "SS14"
+		(property "Value" "B5819W"
 			(at 0 2.1 0)
 			(layer "F.Fab")
 			(hide yes)
