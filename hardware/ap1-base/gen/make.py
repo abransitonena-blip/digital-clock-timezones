@@ -9,7 +9,7 @@ para todos los modelos; lo que cambia por modelo es la placa de LEDs/focos y la 
 - 2 canales de CORRIENTE CONSTANTE (AL8860, 1 A, hasta 40 V): focos y LED de potencia sin resistencias; atenuables.
 - Salida AUX de 12 V / 0.3 A para relevador o contactor externo (focos de 127/240 V fuera de la placa) o ventilador.
 - Fuente conmutada de 60 V a 12 V (LMR16006 + diodo Schottky) para drivers, AUX y programador.
-- Temperatura (TMP1075) junto a los MOSFET y memoria de identidad AT24CS02 (número de serie único de fábrica).
+- Temperatura (TMP1075) junto a los MOSFET y memoria de identidad M24C02 (número de serie propio, creado por el programa la primera vez).
 
     bash ../tools/rutear.sh ap1-base     (placa, Freerouting en 3 pasadas, planos, ERC/DRC)
 """
@@ -125,9 +125,9 @@ C_ += [
      {"1": "SDA", "2": "SCL", "3": "ALERT", "4": "GND", "5": "GND", "6": "GND", "7": "GND", "8": "3V3"},
      "Temperatura junto a los MOSFET (I2C 0x48)"),
     ("C15", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo TMP1075"),
-    ("U9", "AT24CS02", "Memory_EEPROM:AT24CS02-STUM", "Package_TO_SOT_SMD:SOT-23-5",
-     {"1": "SCL", "2": "GND", "3": "SDA", "4": "3V3", "5": "GND"},
-     "Identidad de la base: modelo, calibración y número de serie único (I2C 0x50/0x58)"),
+    ("U9", "M24C02-WMN6TP", "Memory_EEPROM:M24C02-WMN", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+     {"1": "GND", "2": "GND", "3": "GND", "4": "GND", "5": "SDA", "6": "SCL", "7": "GND", "8": "3V3"},
+     "Identidad de la base: modelo, calibración, serie y horas (I2C 0x50). Preferred de JLCPCB: sin cargo por tipo"),
     ("C14", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo EEPROM"),
     ("J7", "PROGRAMADOR", "Connector_Generic:Conn_02x08_Odd_Even",
      "Connector_PinSocket_2.54mm:PinSocket_2x08_P2.54mm_Vertical",
@@ -156,7 +156,7 @@ POS = {
     "C12": (4.5, 36.5, 0), "RC2": (4.5, 38.9, 0), "F2": (15.6, 40.5, 0),
     "QR1": (39.0, 37.8, 270), "RG0": (39.0, 30.6, 0), "DZ1": (39.5, 27.9, 0),
     "D8": (51.6, 20.6, 0), "D9": (65.4, 20.6, 0), "U3": (53.0, 25.5, 0), "U4": (63.6, 25.5, 0), "C8": (57.6, 25.5, 90), "C9": (68.3, 25.5, 90),
-    "U8": (58.3, 19.5, 0), "C15": (58.3, 15.0, 0), "U9": (53.0, 12.0, 0), "C14": (53.0, 15.2, 0),
+    "U8": (58.3, 19.5, 0), "C15": (58.3, 15.0, 0), "U9": (53.0, 9.5, 0), "C14": (53.0, 15.2, 0),
     "Q5": (72.2, 36.0, 0), "RAUX": (71.5, 40.5, 90), "D4": (76.0, 40.0, 90),
     "TP1": (18.2, 33.0, 0), "TP2": (1.9, 12.8, 0), "TP3": (45.0, 28.0, 0), "TP4": (47.8, 28.0, 0),
 }
@@ -191,6 +191,9 @@ VIAS = ([(x, y) for x in (38.4, 39.4, 40.4, 41.2) for y in (32.7, 33.6)]
         + [(x + dx, y) for x in QX for dx in (-0.5, 0.7, 1.9) for y in (32.9, 34.0)]
         + [(26.9, 33.8), (26.9, 36.6), (27.4, 41.0)])
 PRE = [
+    # conmutación de los AL8860: misma ruta en los dos canales (el canal 2 está 12.5 mm abajo)
+    ("SWC1", 0.6, [(7.11, 18.47), (7.11, 17.88), (8.06, 17.88), (8.69, 17.25), (8.69, 15.16), (9.63, 14.22), (11.67, 14.22), (15.05, 17.60), (14.30, 18.35), (14.30, 23.00)]),
+    ("SWC2", 0.6, [(7.11, 30.97), (7.11, 30.38), (8.06, 30.38), (8.69, 29.75), (8.69, 27.66), (9.63, 26.72), (11.67, 26.72), (15.05, 30.10), (14.30, 30.85), (14.30, 35.50)]),
     # sensado Kelvin del shunt hacia el INA238 (fuera de los planos de entrada)
     ("ISP", 0.3, [(27.53, 27.33), (26.9, 25.7), (21.0, 25.7), (21.0, 24.6), (21.9, 24.2)]),
     ("ISN", 0.3, [(20.67, 29.87), (19.2, 29.87)]), ("ISN", 0.3, [(19.2, 29.87), (19.2, 23.45)], "B"),
@@ -203,17 +206,17 @@ PRE = [
     ("CC2", 0.3, [(44.46, 16.16), (40.2, 16.2)]),
     ("CC1", 0.3, [(47.0, 16.16), (45.73, 14.9), (45.73, 12.35), (41.2, 12.35)]),
     ("CC1", 0.3, [(41.2, 12.35), (41.2, 1.0), (7.6, 1.0), (7.6, 19.45)], "B"),
-    ("CC2", 0.3, [(40.2, 16.2), (40.2, 1.8), (8.6, 1.8), (8.6, 29.0)], "B"),
+    ("CC2", 0.3, [(40.2, 16.2), (40.2, 1.8), (8.6, 1.8), (8.6, 24.0), (7.6, 25.0), (7.6, 31.95)], "B"),
     # bajo cada AL8860 (entre el chip y su resistencia de corriente): la pata SET queda libre hacia arriba
     ("CC1", 0.3, [(7.6, 19.45), (1.3, 19.45), (1.3, 18.47), (2.89, 18.47)]),
     ("CC1", 0.3, [(1.3, 19.45), (1.3, 26.4), (3.675, 26.4)]),
-    ("CC2", 0.3, [(8.6, 29.0), (8.6, 32.15), (1.3, 32.15), (1.3, 30.97), (2.89, 30.97)]),
-    ("CC2", 0.3, [(1.3, 32.15), (1.3, 38.9), (3.675, 38.9)]),
+    ("CC2", 0.3, [(7.6, 31.95), (1.3, 31.95), (1.3, 30.97), (2.89, 30.97)]),     # igual que CC1, 12.5 mm abajo
+    ("CC2", 0.3, [(1.3, 31.95), (1.3, 38.9), (3.675, 38.9)]),
     # tronco de 12 V del buck al zócalo por el borde superior (lejos del nodo de conmutación)
     ("V12", 0.6, [(9.5, 2.6), (9.5, 1.1), (42.0, 1.1), (42.0, 6.0), (44.46, 6.0)]),
 ]
 PREVIAS = [("ISN", 19.2, 29.87), ("ISN", 19.2, 23.45), ("CC1", 41.2, 12.35), ("CC1", 7.6, 19.45),
-           ("CC2", 40.2, 16.2), ("CC2", 8.6, 29.0)]
+           ("CC2", 40.2, 16.2), ("CC2", 7.6, 31.95)]
 SIN_COBRE = [[(72.5, 0.3), (87.7, 0.3), (87.7, 30.5), (72.5, 30.5)]]     # bajo la antena del programador
 RETORNO = [[(35.5, 29.6), (71.0, 29.6), (71.0, 44.5), (35.5, 44.5)]]   # regreso de los 4 canales hacia QR1
 
@@ -232,7 +235,7 @@ SILK = [
 FLAGS = [("VIN_RAW", 20.32, 20.32), ("GND", 35.56, 20.32), ("VIN", 50.8, 20.32), ("GNDIN", 66.04, 20.32),
          ("V12", 81.28, 20.32), ("3V3", 96.52, 20.32), ("VF", 111.76, 20.32), ("VCC", 127.0, 20.32)]
 NOTES = [(150.0, 15.0, "LetreroLab AP-1 BASE universal: 12-24 V / 20 A, 4 canales de 8 A, 2 canales de corriente "
-                       "constante (1 A), AUX 12 V.\nI2C: INA238 0x40, TMP1075 0x48, AT24CS02 0x50 (+0x58 serie). "
+                       "constante (1 A), AUX 12 V.\nI2C: INA238 0x40, TMP1075 0x48, M24C02 0x50. "
                        "3V3 lo da el programador por J7.")]
 TITLE = "LetreroLab AP-1 - base universal de potencia"
 SUBTITLES = ["Placa de 4 capas (In1/In2 = GND) para ensamble en fábrica (JLCPCB)", "12-24 V DC, 4 x 8 A + 2 x 1 A CC + AUX"]

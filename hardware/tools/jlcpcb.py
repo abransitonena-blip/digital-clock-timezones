@@ -22,6 +22,11 @@ CONOCIDOS = {
     ("VERDE", "LED_0603_1608Metric"): ("C72043", "Basic Component"),
 }
 
+# Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.
+POR_HUELLA = {
+    "SW_Push_1P1T_XKB_TS-1187A": ("C318884", "Basic Component"),     # botón 5.1 x 5.1 mm, 160 gf
+}
+
 
 def catalogo():
     global _CAT
@@ -67,8 +72,8 @@ _PAQ = {"D_SMA": "SMA", "D_SMB": "SMB", "D_SOD-123": "SOD-123", "SOT-23": "SOT-2
 def buscar(valor, huella):
     cat = catalogo()
     v = valor.strip()
-    if (v, huella) in CONOCIDOS:
-        lcsc, clase = CONOCIDOS[(v, huella)]
+    if (v, huella) in CONOCIDOS or huella in POR_HUELLA:
+        lcsc, clase = CONOCIDOS.get((v, huella)) or POR_HUELLA[huella]
         return {"lcsc": lcsc, "clase": clase, "parte": v, "huella": huella, "descripcion": "lista CONOCIDOS"}
     enc = _encapsulado(huella)
     if huella.startswith("R_") and enc:                              # resistencias

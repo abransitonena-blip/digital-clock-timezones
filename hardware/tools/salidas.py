@@ -42,41 +42,59 @@ def mk(*p):
 
 
 def jlc_files(jlc):
-    """BOM y CPL en columnas de JLCPCB, a partir de la placa."""
+    """BOM y CPL en columnas de JLCPCB, a partir de la placa, y un juego "solo SMD" (lo THT se suelda a mano)."""
     b = pcbnew.LoadBoard(PCB)
-    groups, cpl = {}, []
+    groups, cpl, tht = {}, {}, set()
     for f in b.GetFootprints():
         if f.IsExcludedFromBOM() or f.GetReference().startswith(("H", "TP")):
             continue
         ref, val, fpn = f.GetReference(), f.GetValue(), f.GetFPID().GetLibItemName().wx_str()
         groups.setdefault((val, fpn), []).append(ref)
+        if f.GetAttributes() & pcbnew.FP_THROUGH_HOLE:
+            tht.add((val, fpn))
         p = f.GetPosition()
-        cpl.append([ref, "%.3fmm" % (pcbnew.ToMM(p.x) - 100), "%.3fmm" % (100 - pcbnew.ToMM(p.y)),
-                    "Top" if f.GetLayer() == pcbnew.F_Cu else "Bottom", "%.1f" % f.GetOrientationDegrees()])
+        cpl[ref] = [ref, "%.3fmm" % (pcbnew.ToMM(p.x) - 100), "%.3fmm" % (100 - pcbnew.ToMM(p.y)),
+                    "Top" if f.GetLayer() == pcbnew.F_Cu else "Bottom", "%.1f" % f.GetOrientationDegrees()]
     key = lambda r: (r.rstrip("0123456789"), int("0" + r[len(r.rstrip("0123456789")):]))
-    clases = {}
-    with open(os.path.join(jlc, NAME + "_BOM_JLCPCB.csv"), "w", newline="") as fh:
-        w = csv.writer(fh)
-        w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #", "Cantidad", "Clase JLCPCB"])
-        for (val, fpn), refs in sorted(groups.items(), key=lambda kv: key(sorted(kv[1], key=key)[0])):
-            refs = sorted(refs, key=key)
-            p = jlcpcb.buscar(val, fpn)
-            clase = (p["clase"].split()[0] if p else "Extended (elegir en JLCPCB)")
-            clases.setdefault(clase, []).append((val, ",".join(refs)))
-            w.writerow([val, ",".join(refs), fpn, p["lcsc"] if p else "", len(refs), clase])
+    filas = []
+    for (val, fpn), refs in sorted(groups.items(), key=lambda kv: key(sorted(kv[1], key=key)[0])):
+        refs = sorted(refs, key=key)
+        p = jlcpcb.buscar(val, fpn)
+        clase = p["clase"].split()[0] if p else "Extended"
+        precio = float(p["precio"].replace("USD", "")) if p and p.get("precio", "").endswith("USD") else None
+        filas.append(dict(val=val, fpn=fpn, refs=refs, lcsc=p["lcsc"] if p else "", clase=clase, precio=precio,
+                          tht=(val, fpn) in tht))
+    for sufijo, sel in (("", lambda f: True), ("_solo_SMD", lambda f: not f["tht"])):
+        with open(os.path.join(jlc, NAME + "_BOM_JLCPCB" + sufijo + ".csv"), "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #", "Cantidad", "Clase JLCPCB"])
+            for f in filter(sel, filas):
+                w.writerow([f["val"], ",".join(f["refs"]), f["fpn"], f["lcsc"], len(f["refs"]),
+                            f["clase"] + (" (elegir en JLCPCB)" if not f["lcsc"] else "")])
+        with open(os.path.join(jlc, NAME + "_CPL_JLCPCB" + sufijo + ".csv"), "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
+            w.writerows(cpl[r] for r in sorted((r for f in filter(sel, filas) for r in f["refs"]), key=key))
+    tipos = lambda fs: len({f["lcsc"] or (f["val"], f["fpn"]) for f in fs})   # JLCPCB cobra por código LCSC distinto
+    ext = [f for f in filas if f["clase"] == "Extended"]
+    ext_smd = [f for f in ext if not f["tht"]]
+    basicas = [f for f in filas if f["precio"] is not None]
     with open(os.path.join(jlc, "RESUMEN_JLCPCB.txt"), "w") as fh:
-        ext = sum(len(v) for k, v in clases.items() if k.startswith("Extended"))
-        fh.write("%s: %d tipos de pieza. Basic y Preferred no pagan montaje por tipo; cada tipo Extended ~3 USD.\n"
-                 % (NAME, sum(len(v) for v in clases.values())))
-        fh.write("Cargo estimado por piezas Extended: %d x 3 = ~%d USD por pedido (no por placa).\n" % (ext, 3 * ext))
-        fh.write("Incluye clemas, conectores y portafusibles de patas (THT): se pueden quitar del pedido y soldar a mano.\n\n")
-        for k in sorted(clases):
-            fh.write("%s (%d):\n" % (k, len(clases[k])))
-            fh.writelines("  %-22s %s\n" % c for c in clases[k])
-    with open(os.path.join(jlc, NAME + "_CPL_JLCPCB.csv"), "w", newline="") as fh:
-        w = csv.writer(fh)
-        w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
-        w.writerows(sorted(cpl, key=lambda r: key(r[0])))
+        fh.write("%s: %d tipos de pieza, %d piezas por placa.\n" % (NAME, len(filas), sum(len(f["refs"]) for f in filas)))
+        fh.write("Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).\n\n")
+        fh.write("Pedido completo (BOM/CPL normales):      %2d tipos Extended  -> ~%d USD de cargo\n" % (tipos(ext), 3 * tipos(ext)))
+        fh.write("Pedido económico (BOM/CPL _solo_SMD):    %2d tipos Extended  -> ~%d USD de cargo;\n"
+                 % (tipos(ext_smd), 3 * tipos(ext_smd)))
+        fh.write("   se sueldan a mano %d piezas de patas: %s\n"
+                 % (sum(len(f["refs"]) for f in filas if f["tht"]), ", ".join(",".join(f["refs"]) for f in filas if f["tht"])))
+        fh.write("Piezas Basic/Preferred: ~%.2f USD por placa (precio de catálogo, sin las Extended).\n\n"
+                 % sum(f["precio"] * len(f["refs"]) for f in basicas))
+        for c in ("Basic", "Preferred", "Extended"):
+            g = [f for f in filas if f["clase"] == c]
+            if g:
+                fh.write("%s (%d):\n" % (c, len(g)))
+                fh.writelines("  %-22s %-14s %s%s\n" % (f["val"], f["lcsc"] or "-", ",".join(f["refs"]), "  [THT]" if f["tht"] else "")
+                              for f in g)
 
 
 def main():

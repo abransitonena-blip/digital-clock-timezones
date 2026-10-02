@@ -33,9 +33,9 @@ C_ = [
     ("R1", "10k", R, R06, {"1": "3V3", "2": "EN"}, "Pull-up EN"),
     ("C3", "1uF", C, C06, {"1": "EN", "2": "GND"}, "Arranque retardado"),
     ("R2", "10k", R, R06, {"1": "3V3", "2": "BOOT"}, "Pull-up IO9 (arranque normal)"),
-    ("SW1", "MODO / BOOT", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_TL3342", {"1": "BOOT", "2": "GND"},
+    ("SW1", "MODO / BOOT", "Switch:SW_Push", "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A", {"1": "BOOT", "2": "GND"},
      "MODO; mantenido al conectar el USB = modo programación"),
-    ("SW2", "RESET", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_TL3342", {"1": "EN", "2": "GND"}, "Reinicio"),
+    ("SW2", "RESET", "Switch:SW_Push", "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A", {"1": "EN", "2": "GND"}, "Reinicio"),
     # USB-C
     ("J2", "USB-C", "Connector:USB_C_Receptacle_USB2.0_16P", "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
      {"A1": "GND", "A4": "VBUS", "A5": "CC1U", "A6": "USB_DP", "A7": "USB_DN", "A8": None, "A9": "VBUS",

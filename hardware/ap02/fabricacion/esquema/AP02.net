@@ -1,7 +1,7 @@
 (export (version "E")
   (design
     (source "/work/hardware/ap02/kicad/AP02.kicad_sch")
-    (date "2026-10-01T08:32:38+0000")
+    (date "2026-10-02T00:21:59+0000")
     (tool "Eeschema 9.0.9")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block
@@ -1264,12 +1264,12 @@
       (tstamps "b4fd88aa-3afe-54d7-bd31-f5e136cda2e4"))
     (comp (ref "SW1")
       (value "MODO / BOOT")
-      (footprint "Button_Switch_SMD:SW_SPST_TL3342")
+      (footprint "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
       (datasheet "~")
       (description "Boton MODO (mantener al conectar USB = modo programacion)")
       (fields
         (field (name "Funcion") "Boton MODO (mantener al conectar USB = modo programacion)")
-        (field (name "Footprint") "Button_Switch_SMD:SW_SPST_TL3342")
+        (field (name "Footprint") "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
         (field (name "Datasheet") "~")
         (field (name "Description") "Boton MODO (mantener al conectar USB = modo programacion)"))
       (libsource (lib "Switch") (part "SW_Push") (description "Push button switch, generic, two pins"))
@@ -1281,12 +1281,12 @@
       (tstamps "639d150f-9dc9-5315-950b-d003f5da24c0"))
     (comp (ref "SW2")
       (value "RESET")
-      (footprint "Button_Switch_SMD:SW_SPST_TL3342")
+      (footprint "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
       (datasheet "~")
       (description "Reinicio")
       (fields
         (field (name "Funcion") "Reinicio")
-        (field (name "Footprint") "Button_Switch_SMD:SW_SPST_TL3342")
+        (field (name "Footprint") "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
         (field (name "Datasheet") "~")
         (field (name "Description") "Reinicio"))
       (libsource (lib "Switch") (part "SW_Push") (description "Push button switch, generic, two pins"))

@@ -10,14 +10,7 @@ SS34,"D2,D3,D4",D_SMA,C8678,3,Basic
 SS210,D7,D_SMA,C14996,1,Basic
 1N4148WS,"D8,D9",D_SOD-323,C2128,2,Basic
 MMSZ5242B 12V,DZ1,D_SOD-123,C19077426,1,Preferred
-MINI 20A,F1,Fuseholder_Blade_Mini_Keystone_3568,,1,Extended (elegir en JLCPCB)
 3A,F2,Fuse_1206_3216Metric,,1,Extended (elegir en JLCPCB)
-ENTRADA 12-24V,J1,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,,1,Extended (elegir en JLCPCB)
-+V SALIDA,J3,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,,1,Extended (elegir en JLCPCB)
-CANALES,J4,TerminalBlock_Phoenix_MKDS-3-4-5.08_1x04_P5.08mm_Horizontal,,1,Extended (elegir en JLCPCB)
-FOCOS CC,J5,"TerminalBlock_Phoenix_PT-1,5-4-3.5-H_1x04_P3.50mm_Horizontal",,1,Extended (elegir en JLCPCB)
-AUX 12V,J6,"TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal",,1,Extended (elegir en JLCPCB)
-PROGRAMADOR,J7,PinSocket_2x08_P2.54mm_Vertical,,1,Extended (elegir en JLCPCB)
 47uH,L1,L_Changjiang_FNR4030S,,1,Extended (elegir en JLCPCB)
 47uH,"L2,L3",L_Changjiang_FNR6045S,,2,Extended (elegir en JLCPCB)
 BSC028N06LS3,"Q1,Q2,Q3,Q4",TDSON-8-1,,4,Extended (elegir en JLCPCB)

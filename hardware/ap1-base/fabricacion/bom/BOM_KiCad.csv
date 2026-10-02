@@ -38,4 +38,4 @@
 "U3,U4","UCC27524D","Package_SO:SOIC-8_3.9x4.9mm_P1.27mm","2","Driver 1-2,Driver 3-4"
 "U6,U7","AL8860MP","Package_SO:MSOP-8-1EP_3x3mm_P0.65mm_EP1.5x1.8mm","2","Driver de corriente constante 1 (40 V, 1.5 A máx.),Driver de corriente constante 2 (40 V, 1.5 A máx.)"
 "U8","TMP1075D","Package_SO:SOIC-8_3.9x4.9mm_P1.27mm","1","Temperatura junto a los MOSFET (I2C 0x48)"
-"U9","AT24CS02","Package_TO_SOT_SMD:SOT-23-5","1","Identidad de la base: modelo, calibración y número de serie único (I2C 0x50/0x58)"
+"U9","M24C02-WMN6TP","Package_SO:SOIC-8_3.9x4.9mm_P1.27mm","1","Identidad de la base: modelo, calibración, serie y horas (I2C 0x50). Preferred de JLCPCB: sin cargo por tipo"

@@ -5,7 +5,7 @@
   El programador se enclava sobre la BASE universal AP-1 y la maneja por el conector 2x8:
      4 canales de 8 A (IO4..IO7, PWM 12 bits a 19.5 kHz, desfasados), 2 canales de corriente constante para focos
      (AL8860, IO10 e IO0, PWM a 1 kHz), salida AUX 12 V (IO1), y el bus I2C de la base:
-     INA238 0x40 (V, A, W), TMP1075 0x48 (temperatura), AT24CS02 0x50/0x58 (modelo, calibración, serie, horas).
+     INA238 0x40 (V, A, W), TMP1075 0x48 (temperatura), EEPROM 0x50 (modelo, calibración, serie, horas; M24C02 o AT24CS02).
   Conector Qwiic (opcional): pantalla OLED SSD1306 0x3C, sensor de luz BH1750 0x23, reloj DS3231 0x68.
 
   Diagnóstico de salidas: "DIAG" prueba cada salida por turno con el medidor de precisión de la base (primero al 5 %
@@ -309,7 +309,8 @@ void leerSensores() {
 }
 void IRAM_ATTR alertaISR() { alerta = true; }
 
-// ---- memoria de la base (AT24CS02): 0 "LL" v1 | 3 modelo[16] | 20 normal[6] mA | 32 horas | 36 reposo mA ----
+// ---- memoria de la base (M24C02 o AT24CS02): 0 "LL" v1 | 3 modelo[16] | 20 normal[6] mA | 32 horas | 36 reposo mA
+//      | 40 serie[16] (si la memoria no trae serie de fábrica en 0x58, se crea una al azar la primera vez) ----
 const uint8_t EEP = 0x50, EEP_SERIE = 0x58;
 bool eepLeer(uint8_t dir, void* buf, uint8_t n) {
   uint8_t* b = (uint8_t*)buf;
@@ -348,9 +349,18 @@ void leerBase() {
   uint8_t sn[16];                                                   // número de serie de fábrica (128 bits)
   Wire.beginTransmission(EEP_SERIE); Wire.write(0x80);
   if (Wire.endTransmission(false) == 0 && Wire.requestFrom(EEP_SERIE, (uint8_t)16) == 16) {
-    for (uint8_t i = 0; i < 16; i++) sn[i] = Wire.read();
-    for (uint8_t i = 0; i < 16; i++) sprintf(baseSerie + 2 * i, "%02X", sn[i]);
-  }
+    for (uint8_t i = 0; i < 16; i++) sn[i] = Wire.read();          // AT24CS02: serie de fábrica
+  } else if (eepLeer(40, sn, 16)) {                                 // M24C02 (más barata): serie propia
+    bool vacia = true;
+    for (uint8_t v : sn) if (v != 0xFF) vacia = false;
+    if (vacia) {
+      for (uint8_t i = 0; i < 16; i += 4) { uint32_t a = esp_random() ^ micros(); memcpy(sn + i, &a, 4); }
+      uint64_t mac = ESP.getEfuseMac();                            // con la MAC del programador: no se repite
+      for (uint8_t i = 0; i < 6; i++) sn[i] ^= (uint8_t)(mac >> (8 * i));
+      eepEscribir(40, sn, 16);
+    }
+  } else return;
+  for (uint8_t i = 0; i < 16; i++) sprintf(baseSerie + 2 * i, "%02X", sn[i]);
 }
 void guardarNormal() { eepEscribir(20, baseNormal, 12); eepEscribir(36, &baseReposo, 2); }
 

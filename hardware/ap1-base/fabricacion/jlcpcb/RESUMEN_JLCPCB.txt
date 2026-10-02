@@ -1,43 +1,47 @@
-AP1_Base: 36 tipos de pieza. Basic y Preferred no pagan montaje por tipo; cada tipo Extended ~3 USD.
-Cargo estimado por piezas Extended: 20 x 3 = ~60 USD por pedido (no por placa).
-Incluye clemas, conectores y portafusibles de patas (THT): se pueden quitar del pedido y soldar a mano.
+AP1_Base: 36 tipos de pieza, 63 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):      19 tipos Extended  -> ~57 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):    12 tipos Extended  -> ~36 USD de cargo;
+   se sueldan a mano 7 piezas de patas: F1, J1, J3, J4, J5, J6, J7
+Piezas Basic/Preferred: ~0.70 USD por placa (precio de catálogo, sin las Extended).
 
 Basic (14):
-  10uF 50V               C3,C6,C13
-  100nF                  C4,C5,C14,C15
-  22uF 25V               C7
-  1uF 25V                C8,C9
-  4.7uF 50V              C11,C12
-  SS34                   D2,D3,D4
-  SS210                  D7
-  1N4148WS               D8,D9
-  AO3400A                Q5
-  10k                    RAUX,RF2,RG0,RP1,RP2,RP3,RP4
-  2.2k                   RC1,RC2
-  150k                   RF1
-  4.7                    RG1,RG2,RG3,RG4
-  0R1                    RSC1,RSC2
-Extended (elegir en JLCPCB) (20):
-  330uF 50V              C1
-  MINI 20A               F1
-  3A                     F2
-  ENTRADA 12-24V         J1
-  +V SALIDA              J3
-  CANALES                J4
-  FOCOS CC               J5
-  AUX 12V                J6
-  PROGRAMADOR            J7
-  47uH                   L1
-  47uH                   L2,L3
-  BSC028N06LS3           Q1,Q2,Q3,Q4
-  BSC016N06NS            QR1
-  1mR 2512 Kelvin        RS1
-  INA238                 U1
-  LMR16006XDDC           U2
-  UCC27524D              U3,U4
-  AL8860MP               U6,U7
-  TMP1075D               U8
-  AT24CS02               U9
-Preferred (2):
-  SMBJ26A                D1
-  MMSZ5242B 12V          DZ1
+  10uF 50V               C13585         C3,C6,C13
+  100nF                  C14663         C4,C5,C14,C15
+  22uF 25V               C12891         C7
+  1uF 25V                C15849         C8,C9
+  4.7uF 50V              C29823         C11,C12
+  SS34                   C8678          D2,D3,D4
+  SS210                  C14996         D7
+  1N4148WS               C2128          D8,D9
+  AO3400A                C20917         Q5
+  10k                    C25804         RAUX,RF2,RG0,RP1,RP2,RP3,RP4
+  2.2k                   C4190          RC1,RC2
+  150k                   C22807         RF1
+  4.7                    C23164         RG1,RG2,RG3,RG4
+  0R1                    C25334         RSC1,RSC2
+Preferred (3):
+  SMBJ26A                C19077580      D1
+  MMSZ5242B 12V          C19077426      DZ1
+  M24C02-WMN6TP          C7562          U9
+Extended (19):
+  330uF 50V              -              C1
+  MINI 20A               -              F1  [THT]
+  3A                     -              F2
+  ENTRADA 12-24V         -              J1  [THT]
+  +V SALIDA              -              J3  [THT]
+  CANALES                -              J4  [THT]
+  FOCOS CC               -              J5  [THT]
+  AUX 12V                -              J6  [THT]
+  PROGRAMADOR            -              J7  [THT]
+  47uH                   -              L1
+  47uH                   -              L2,L3
+  BSC028N06LS3           -              Q1,Q2,Q3,Q4
+  BSC016N06NS            -              QR1
+  1mR 2512 Kelvin        -              RS1
+  INA238                 -              U1
+  LMR16006XDDC           -              U2
+  UCC27524D              -              U3,U4
+  AL8860MP               -              U6,U7
+  TMP1075D               -              U8

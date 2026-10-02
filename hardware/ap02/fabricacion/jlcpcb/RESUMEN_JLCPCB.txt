@@ -1,51 +1,55 @@
-AP02: 44 tipos de pieza. Basic y Preferred no pagan montaje por tipo; cada tipo Extended ~3 USD.
-Cargo estimado por piezas Extended: 22 x 3 = ~66 USD por pedido (no por placa).
+AP02: 44 tipos de pieza, 79 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
 
-Basic (20):
-  4.7uF 50V              C3
-  100nF                  C4,C8,C14,C16,C17,C18
-  10uF 50V               C5,C9
-  22uF                   C6,C7
-  22uF 25V               C10
-  1uF 25V                C11,C12
-  10uF                   C13
-  1uF                    C15
-  SS34                   D2,D3
-  1N4148W                D4
-  LED                    D5
-  SS210                  D6
-  AO3400A                Q5
-  100k                   R5
-  10k                    R6,R7,R10,R11,R15,RF2,RG0,RP1,RP2,RP3,RP4,RPD1,RPD2,RPD3,RPD4
-  4.7k                   R8,R9
-  1k                     R12
-  5.1k                   R13,R14
-  150k                   RF1
-  4.7                    RG1,RG2,RG3,RG4
-Extended (4):
-  USB-C                  J2
-  AP63203WU              U1
-  ESP32-C3-WROOM-02      U5
-  USBLC6-2SC6            U6
-Extended (elegir en JLCPCB) (18):
-  330uF 50V              C1,C2
-  ATO 20A                F1
-  ENTRADA 12-24V         J1
-  +V SALIDA              J3
-  CANALES                J4
-  FOCOS                  J5
-  EXPANSION              J6
-  SRD-12VDC-SL-C         K1
-  4.7uH                  L1
-  47uH                   L2
-  BSC028N06LS3           Q1,Q2,Q3,Q4,QR1,QR2
-  1mR 2512 Kelvin        RS1
-  MODO / BOOT            SW1
-  RESET                  SW2
-  LMR16006XDDC           U2
-  UCC27524D              U3,U4
-  INA238                 U7
-  TMP1075D               U8
+Pedido completo (BOM/CPL normales):      20 tipos Extended  -> ~60 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):    13 tipos Extended  -> ~39 USD de cargo;
+   se sueldan a mano 7 piezas de patas: F1, J1, J3, J4, J5, J6, K1
+Piezas Basic/Preferred: ~0.64 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (22):
+  4.7uF 50V              C29823         C3
+  100nF                  C14663         C4,C8,C14,C16,C17,C18
+  10uF 50V               C13585         C5,C9
+  22uF                   C45783         C6,C7
+  22uF 25V               C12891         C10
+  1uF 25V                C15849         C11,C12
+  10uF                   C15850         C13
+  1uF                    C15849         C15
+  SS34                   C8678          D2,D3
+  1N4148W                C81598         D4
+  LED                    C2286          D5
+  SS210                  C14996         D6
+  AO3400A                C20917         Q5
+  100k                   C25803         R5
+  10k                    C25804         R6,R7,R10,R11,R15,RF2,RG0,RP1,RP2,RP3,RP4,RPD1,RPD2,RPD3,RPD4
+  4.7k                   C23162         R8,R9
+  1k                     C21190         R12
+  5.1k                   C23186         R13,R14
+  150k                   C22807         RF1
+  4.7                    C23164         RG1,RG2,RG3,RG4
+  MODO / BOOT            C318884        SW1
+  RESET                  C318884        SW2
 Preferred (2):
-  SMBJ33A                D1
-  MMSZ5242B 12V          DZ1
+  SMBJ33A                C19077586      D1
+  MMSZ5242B 12V          C19077426      DZ1
+Extended (20):
+  330uF 50V              -              C1,C2
+  ATO 20A                -              F1  [THT]
+  ENTRADA 12-24V         -              J1  [THT]
+  USB-C                  C165948        J2
+  +V SALIDA              -              J3  [THT]
+  CANALES                -              J4  [THT]
+  FOCOS                  -              J5  [THT]
+  EXPANSION              -              J6  [THT]
+  SRD-12VDC-SL-C         -              K1  [THT]
+  4.7uH                  -              L1
+  47uH                   -              L2
+  BSC028N06LS3           -              Q1,Q2,Q3,Q4,QR1,QR2
+  1mR 2512 Kelvin        -              RS1
+  AP63203WU              C780769        U1
+  LMR16006XDDC           -              U2
+  UCC27524D              -              U3,U4
+  ESP32-C3-WROOM-02      C2934560       U5
+  USBLC6-2SC6            C7519          U6
+  INA238                 -              U7
+  TMP1075D               -              U8

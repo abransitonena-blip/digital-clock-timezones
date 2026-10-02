@@ -16,7 +16,7 @@ El sistema tiene tres partes:
   - nombre del modelo;
   - consumo normal de cada salida;
   - horas de uso;
-  - un **número de serie único grabado de fábrica** (AT24CS02), que no se puede borrar y sirve para las **garantías**.
+  - un **número de serie único**, que sirve para las **garantías**. Lo crea el programa la primera vez que ve la base: 128 bits al azar mezclados con la MAC del programador. La memoria es una M24C02 (Preferred, sin cargo por tipo). Si se monta una AT24CS02, el programa usa su serie de fábrica.
 - **Servicio en campo rápido:** si algo falla, se cambia solo el programador (un tornillo) o solo la base.
 - **Más seguro:** la red de 127/240 V **no entra a ninguna placa**. Los focos normales se manejan con un relevador o contactor externo desde la salida AUX, como se pidió desde el principio.
 
@@ -99,7 +99,7 @@ Señales del conector (iguales en las dos placas):
 
 **Otras partes de la base:**
 - **Fuente conmutada a bordo:** LMR16006 de 60 V a 12 V, con su diodo de rueda libre. Alimenta drivers, AUX y programador.
-- **Sensores:** temperatura TMP1075 junto a los MOSFET. La memoria AT24CS02 guarda modelo, consumo normal, horas de uso y número de serie.
+- **Sensores:** temperatura TMP1075 junto a los MOSFET. La memoria M24C02 guarda modelo, consumo normal, horas de uso y número de serie.
 - **Diseño del cobre:**
   - Planos de potencia de 7–11 mm.
   - Una **franja de retorno** en la capa inferior donde no se permiten pistas, para que la corriente de los 4 canales regrese sin rodeos.
@@ -162,12 +162,30 @@ Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/`
 - el Gerber (ZIP);
 - la BOM con el **código LCSC y la clase** (Basic / Preferred / Extended) de cada pieza;
 - el CPL;
-- `RESUMEN_JLCPCB.txt`, con cuántos tipos son Extended y el cargo aproximado de montaje (~3 USD por tipo, por pedido).
+- `RESUMEN_JLCPCB.txt`, con cuántos tipos son Extended, el cargo aproximado de montaje (~3 USD por tipo, por pedido) y el costo de las piezas Basic;
+- un segundo juego **`_solo_SMD`** (BOM y CPL) para el **pedido económico**: JLCPCB arma solo lo SMD, y las clemas, conectores y portafusible se sueldan a mano. Así esas piezas no pagan cargo de montaje y no hace falta el ensamble THT.
+
+**Ahorro en el cargo de montaje por pedido** (cada tipo Extended cuesta ~3 USD):
+
+| Placa | Antes | Ahora, todo armado | Ahora, económico (`_solo_SMD`) |
+|---|---|---|---|
+| Base | ~60 USD (20 tipos) | ~57 USD (19) | ~36 USD (12) |
+| Programador | ~33 USD (11) | ~27 USD (9) | ~18 USD (6) |
+| **Los dos** | **~93 USD** | **~84 USD** | **~54 USD** |
+| AP-0.2 (mismo cambio de botones) | ~66 USD (22) | ~60 USD (20) | ~39 USD (13) |
+
+Las piezas Basic/Preferred cuestan ~0.70 USD por base y ~0.24 USD por programador (precio de catálogo).
+
+Qué se cambió para llegar ahí:
+- memoria **AT24CS02 → M24C02** (Preferred). El número de serie lo crea el programa.
+- botones **TL3342 → TS-1187A** (Basic). Misma huella en la práctica.
+- diodos **SS14 → B5819W** (Preferred).
+- el resumen cuenta los tipos por código LCSC, igual que JLCPCB: los dos botones son un solo tipo.
 
 1. **Base** (`ap1-base`): **4 capas**, pila JLC04161H-7628, **exteriores 2 oz, interiores 1 oz**, ensamble del lado superior.
 2. **Programador** (`ap1-prog`): 2 capas, 1 oz, ensamble del lado superior. El **conector macho 2×8 va abajo**: pídelo con ensamble THT o suéldalo tú.
 3. En la revisión de cada BOM, confirma los códigos LCSC. Las piezas sin código son Extended y se eligen ahí mismo:
-   - INA238, AL8860, LMR16006, UCC27524, TMP1075, AT24CS02;
+   - INA238, AL8860, LMR16006, UCC27524, TMP1075;
    - MOSFET BSC028N06LS3 / BSC016N06NS;
    - shunt 1 mΩ de 4 terminales;
    - portafusible Keystone 3568;
