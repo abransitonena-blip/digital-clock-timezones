@@ -156,6 +156,28 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
 - **Compilar:** `bash hardware/tools/compilar_esp32.sh ap1`. Los binarios quedan en `ap1-prog/firmware/binarios/`.
 - **Grabar:** el archivo `_completo_0x0.bin` va por USB-C en la dirección 0x0; el `_actualizacion_OTA.bin` va por Wi-Fi.
 
+## Gabinete (`ap1-gabinete`)
+
+![Gabinete](ap1-gabinete/gabinete/vista_caja.png)
+
+- **Imprimible** en PETG o ASA (PLA no: se ablanda al sol y con el calor de la base): `caja_base.stl` y `caja_tapa.stl`. Mide 95 × 78 × 38 mm, más la tapa de 2.5 mm.
+- **Medido contra el modelo 3D real** del conjunto (`ap1-ensamble/AP1_Ensamble.step`). El generador falla si alguna pieza toca la caja; hoy da **0 choques** y **2.5 mm de aire** bajo la tapa (lo más alto es el receptor IR).
+- **Montaje:**
+  - la base va sobre 3 postes de 6 mm con inserto de latón M3, en los mismos 3 agujeros de la placa;
+  - el poste del programador lleva el **tornillo de nylon** que atraviesa las dos placas.
+- **Frente:** 4 prensaestopas PG7 (focos CC, entrada, canales, AUX), con 16 mm de espacio para la tuerca y el doblez del cable.
+- **Atrás:** ventana para el **USB-C**, para programar o actualizar sin abrir.
+- **Tapa:**
+  - ventana de 8 mm para el receptor **IR**, con asiento para un disco de acrílico rojo o humo de 11 mm;
+  - 2 agujeros para **tubos de luz** de 3 mm × 21 mm (LED de falla y de Wi-Fi);
+  - agujeros para apretar **BOOT y RESET con un clip**;
+  - textos grabados.
+- **Cierre:** 4 tornillos M3 en columnas por fuera de la placa. La columna de atrás a la derecha queda junto a la antena: usa tornillo de **nylon** (está grabado en la tapa).
+- **Pared:** 2 orejas con agujero de 4.5 mm.
+- **Caja comprada:** `plantilla_caja_comprada_1a1.pdf` trae, a escala 1:1, los barrenos del fondo, del frente y del USB-C. Usa caja de **plástico**: una metálica bloquea el Wi-Fi.
+- **Generar de nuevo:** `pip install manifold3d trimesh matplotlib pymupdf cascadio rtree fast_simplification` y luego `python3 ap1-gabinete/gen/caja.py`.
+- **Faltan en la revisión:** el USB-C y el conector Qwiic no tienen modelo 3D. El fusible mini no viene en el modelo del portafusible, pero sobresale unos 18 mm y queda por debajo de la tapa.
+
 ## Pedir a JLCPCB
 
 Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/` trae:
