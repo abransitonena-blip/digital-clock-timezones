@@ -30,7 +30,7 @@ mm = pcbnew.FromMM
 def _defaults(S):
     for k, v in dict(HOLES=[], NETCLASS={}, POWER_ZONES=[], KEEPOUT_NETS=(), PRE=[], PREVIAS=[], VIAS=[],
                      SIN_COBRE=[], RETORNO=[], SILK=[], FLAGS=[], NOTES=[], SUBTITLES=[], COMPANY="", PAPER="A3", DRU="",
-                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0,
+                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], SIN_RELLENO=[], ZONAS_FINALES=[],
                      PLANOS=[("GND", "In1"), ("GND", "In2")]).items():
         if not hasattr(S, k):
             setattr(S, k, v)
@@ -136,13 +136,13 @@ def _planos(S, b):
                  prio=0, clearance=0.3, solid=False)
 
 
-def _costura(S, b):
+def _costura(S, b, red="GND"):
     """Vías de costura GND: cada isla de GND de F.Cu baja a los planos (y una rejilla de COSTURA mm en toda la placa).
     Solo se colocan donde hay GND rellenado en F.Cu y B.Cu con holgura, lejos de agujeros y otras vías."""
-    gnd = b.FindNet("/GND")
+    gnd = b.FindNet("/" + red)
     llenos = {}
     for z in b.Zones():
-        if z.GetIsRuleArea() or z.GetNetname() != "/GND":
+        if z.GetIsRuleArea() or z.GetNetname() != "/" + red:
             continue
         for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
             if z.IsOnLayer(lay):
@@ -153,7 +153,9 @@ def _costura(S, b):
     ocupado = [(p.GetPosition(), max(p.GetDrillSize().x, p.GetSize().x) / 2 + mm(0.8))
                for f in b.GetFootprints() for p in f.Pads() if p.GetDrillSize().x > 0]
     ocupado += [(t.GetPosition(), mm(1.0)) for t in b.GetTracks() if t.Type() == pcbnew.PCB_VIA_T]
-    libre = lambda pt: all((pt - c).EuclideanNorm() > r for c, r in ocupado)
+    prohibido = [z for z in b.Zones() if z.GetIsRuleArea() and (z.GetDoNotAllowVias() or z.GetDoNotAllowTracks())]
+    libre = lambda pt: all((pt - c).EuclideanNorm() > r for c, r in ocupado) and \
+        not any(z.Outline().Contains(pt) for z in prohibido)
     puestas = []
 
     def poner(pt):
@@ -259,6 +261,11 @@ def _sin_cobre(S, b):
     for i, pts in enumerate(S.SIN_COBRE):    # permanente: sin pistas, vías ni planos (p. ej. bajo una antena)
         _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "sin_cobre_%d" % i, _cobre(S),
                pour=True)
+    for i, pts in enumerate(S.SIN_PISTAS):   # sin pistas ni vías, con relleno (p. ej. cruce de un módulo aislado)
+        _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "sin_pistas_%d" % i, _cobre(S))
+    for i, pts in enumerate(S.SIN_RELLENO):  # solo sin relleno: guarda distancia entre dos tierras
+        _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "sin_relleno_%d" % i, _cobre(S),
+               tracks=False, vias=False, pour=True)
     for i, pts in enumerate(S.RETORNO):      # permanente: plano inferior sin pistas donde regresa la corriente fuerte
         _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "retorno_%d" % i, [pcbnew.B_Cu], vias=False)
 
@@ -373,13 +380,17 @@ def main(S):
         for z in list(b.Zones()):
             if z.GetIsRuleArea() and z.GetZoneName().startswith("ruteo_"):
                 b.Remove(z)
+        for z in S.ZONAS_FINALES:          # planos que el ruteador trató como pistas normales (p. ej. tierra aislada)
+            add_zone(b, z[0], pcbnew.B_Cu if len(z) > 2 and z[2] == "B" else pcbnew.F_Cu, z[1], prio=10, clearance=0.3,
+                     solid=False)
         for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
             add_zone(b, "GND", layer, [(0.3, 0.3), (S.W - 0.3, 0.3), (S.W - 0.3, S.H - 0.3), (0.3, S.H - 0.3)],
                      prio=0, clearance=0.3, solid=False)
         finish(S, b)
         pcbnew.ZONE_FILLER(b).Fill(b.Zones())
         if S.CAPAS > 2 or S.COSTURA:
-            print("vías de costura:", _costura(S, b))
+            for red in getattr(S, "COSTURA_REDES", ("GND",)):
+                print("vías de costura %s:" % red, _costura(S, b, red))
             pcbnew.ZONE_FILLER(b).Fill(b.Zones())
         b.Save(path)
         write_project(S)

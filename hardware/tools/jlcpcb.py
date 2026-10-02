@@ -20,6 +20,7 @@ CONOCIDOS = {
     ("USB-C", "USB_C_Receptacle_HRO_TYPE-C-31-M-12"): ("C165948", "Extended"),
     ("AP63203WU", "TSOT-23-6"): ("C780769", "Extended"),
     ("VERDE", "LED_0603_1608Metric"): ("C72043", "Basic Component"),
+    ("LTV-217-B", "SOP-4_4.4x2.6mm_P1.27mm"): ("C115450", "Basic Component"),        # LTV-217-B-G en el catálogo
 }
 
 # Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.

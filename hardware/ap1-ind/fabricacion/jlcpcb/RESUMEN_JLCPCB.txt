@@ -1,0 +1,38 @@
+AP1_Industrial: 27 tipos de pieza, 64 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       8 tipos Extended  -> ~24 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     3 tipos Extended  -> ~9 USD de cargo;
+   se sueldan a mano 5 piezas de patas: J1, J2, J3, J7, U2
+Piezas Basic/Preferred: ~1.03 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (16):
+  10uF 50V               C13585         C1,C2,C4
+  100nF                  C14663         C3,C8,C9,C10
+  22uF 25V               C12891         C5
+  10uF 25V               C13585         C6,C7
+  1uF 25V                C15849         CF1,CF2,CF3,CF4
+  SS34                   C8678          D1,D4,D5
+  SS210                  C14996         D3
+  LTV-217-B              C115450        OK1,OK2,OK3,OK4
+  AO3400A                C20917         Q1,Q2
+  100                    C22775         RA1,RA2,RA3,RA4
+  150k                   C22807         RB1
+  10k                    C25804         RB2,RF1,RF2,RF3,RF4,RK1,RK2
+  47k                    C25819         RD1,RD2,RD3,RD4
+  4.7k                   C23162         RE1,RE2,RE3,RE4
+  330                    C23138         RL1,RL2,RL3,RL4
+  LM358DR2G              C7950          U3,U4
+Preferred (3):
+  SMBJ26A                C19077580      D2
+  MMSZ5242B 12V          C19077426      DZ1,DZ2,DZ3,DZ4
+  M24C02-WMN6TP          C7562          U5
+Extended (8):
+  2A                     -              F1
+  ENTRADA 12-24V         -              J1  [THT]
+  CONTACTORES            -              J2  [THT]
+  0-10V                  -              J3  [THT]
+  PROGRAMADOR            -              J7  [THT]
+  47uH                   -              L1
+  LMR16006XDDC           -              U1
+  B1212S-1WR3            -              U2  [THT]

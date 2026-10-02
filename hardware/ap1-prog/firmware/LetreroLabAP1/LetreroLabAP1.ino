@@ -27,6 +27,7 @@
      K clave  clave de la app/OTA (vacío = sin clave)      @ grupo orden  enviar a un grupo (* = todos)
      J n  límite de corriente total 1..25 A (protección)   F 0  borrar una falla     U 0  reiniciar el contador de kWh
      DIAG  probar salidas     APRENDER  probar y guardar el consumo normal     MODELO texto  modelo de la base
+     Módulo IND (0-10 V): canales 1-4 = salidas 0-10 V, contactor 1 sigue al encendido, O 100 / O 0 = contactor 2
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
@@ -63,6 +64,7 @@ const uint8_t PWM_BITS = 12;
 const uint16_t UDP_PUERTO = 4210;
 const uint32_t PWM_MAX = 1UL << PWM_BITS;  // 4096 = 100 %
 const uint32_t CC_HZ = 1000;               // PWM del CTRL de los AL8860
+const uint32_t IND_HZ = 2000;              // módulo industrial: los optoacopladores de las salidas 0-10 V
 
 const uint8_t N_MODOS = 10;
 const char* const NOMBRE[N_MODOS] = {"FIJO", "SECUENCIA", "PARPADEO", "RESPIRAR", "SEC. SUAVE", "ALTERNADO",
@@ -108,6 +110,7 @@ volatile bool alerta = false;
 
 // base (memoria AT24CS02), Qwiic y diagnóstico
 bool hayBase = false, hayOLED = false, hayLux = false, auxVent = false;
+bool modoInd = false;                       // módulo AP-1 IND (0-10 V + contactores) en lugar de la base
 char baseModelo[17] = "", baseSerie[33] = "";
 uint32_t baseHoras = 0;
 uint16_t baseNormal[6] = {0};              // consumo normal aprendido por salida (mA, a 100 %)
@@ -163,9 +166,17 @@ void cargarEscena(uint8_t n) {
 // ---------------- salidas ----------------
 // Cada canal arranca su pulso en otro cuarto del periodo (hpoint): con varios canales a medio brillo la corriente
 // de la fuente se reparte en el tiempo en vez de llegar en un solo pico (menos rizo y menos calor en C1/C2).
+// Módulo IND: el filtro del optoacoplador (RE 4.7k, RF 10k, RD 47k) no es lineal con el ciclo de trabajo;
+// se invierte su curva para que el voltaje 0-10 V salga proporcional a lo pedido.
+uint32_t linealInd(uint32_t duty) {
+  const float a = 1 / 10e3f, b = 1 / 10e3f - 1 / 14.7e3f, c = 1 / 14.7e3f + 1 / 47e3f, f1 = a / (b + c);
+  float x = min(1.0f, duty / (float)PWM_MAX);
+  return (uint32_t)constrain(x * f1 * c / (a - x * f1 * b) * PWM_MAX + 0.5f, 0.0f, (float)PWM_MAX);
+}
 void pwm(uint8_t c, uint32_t duty) {
   if (duty == dutyActual[c]) return;
   dutyActual[c] = duty;
+  if (modoInd) duty = linealInd(duty);
   uint32_t hp = c * (PWM_MAX / 4);
   if (hp + duty > PWM_MAX) hp = PWM_MAX - duty;          // el pulso nunca pasa del fin del periodo
   ledc_set_duty_with_hpoint(LEDC_LOW_SPEED_MODE, (ledc_channel_t)c, duty, hp);
@@ -182,7 +193,10 @@ void focoCC(uint8_t k, uint32_t duty) {   // 0..4096
   ccActual[k] = duty;
   ledcWrite(CC_PIN[k], duty);
 }
-void apagarTodo() { for (uint8_t c = 0; c < 4; c++) pwm(c, 0); focoCC(0, 0); focoCC(1, 0); }
+void apagarTodo() {                      // en el módulo IND el contactor 2 es manual y no lo apaga el efecto
+  for (uint8_t c = 0; c < 4; c++) pwm(c, 0);
+  if (!modoInd) { focoCC(0, 0); focoCC(1, 0); }
+}
 
 uint8_t triangulo(uint32_t t, uint32_t per) {
   uint32_t f = t % per, m = per / 2;
@@ -337,10 +351,11 @@ void leerBase() {
   if (!hayBase) return;
   if (cab[0] != 'L' || cab[1] != 'L' || cab[2] != 1) {            // base nueva: se le da formato
     uint8_t vacio[37] = {'L', 'L', 1};
-    strcpy((char*)vacio + 3, "AP-1 universal");
+    strcpy((char*)vacio + 3, hayINA ? "AP-1 universal" : "LL-IND");   // sin medidor: es el módulo industrial
     eepEscribir(0, vacio, sizeof(vacio));
   }
   eepLeer(3, baseModelo, 16); baseModelo[16] = 0;
+  modoInd = !strncmp(baseModelo, "LL-IND", 6);
   eepLeer(20, baseNormal, 12);
   eepLeer(32, &baseHoras, 4);
   eepLeer(36, &baseReposo, 2);
@@ -510,6 +525,7 @@ String estadoJSON() {
   s += ",\"cc\":["; s += cfg.cc[0]; s += ','; s += cfg.cc[1]; s += "],\"ym\":"; s += cfg.auxModo;
   s += ",\"av\":"; s += auxVent;
   s += ",\"lux\":"; s += isnan(lux) ? "null" : String(lux, 0);
+  s += ",\"ind\":"; s += modoInd;
   s += ",\"base\":{\"ok\":"; s += hayBase; s += ",\"mod\":\""; s += baseModelo; s += "\",\"sn\":\""; s += baseSerie;
   s += "\",\"h\":"; s += baseHoras; s += ",\"n\":[";
   for (uint8_t i = 0; i < 6; i++) { if (i) s += ','; s += baseNormal[i]; }
@@ -557,6 +573,20 @@ void haPublicar() {
         "\"state_template\":\"{{ 'on' if value_json.p == 1 else 'off' }}\","
         "\"brightness_template\":\"{{ (value_json.b * 2.55) | round | int }}\","
         "\"effect_list\":" + lista + ",\"effect_template\":\"{{ value_json.n }}\"");
+  if (modoInd) {                                               // módulo industrial: contactor 2 manual
+    haUno(uid, "switch", "k2", "\"name\":\"Contactor 2\",\"command_topic\":\"~/cmd\",\"payload_on\":\"O 100\","
+          "\"payload_off\":\"O 0\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ 1 if value_json.cc[0] > 0 else 0 }}\","
+          "\"state_on\":\"1\",\"state_off\":\"0\"");
+    const char* QUITAR[][2] = {{"switch", "aux"}, {"number", "cc1"}, {"number", "cc2"}, {"button", "diag"}, {"sensor", "vin"},
+                               {"sensor", "i"}, {"sensor", "w"}, {"sensor", "kwh"}, {"sensor", "tc"}};
+    for (auto& q : QUITAR) {                                   // sin medidor ni focos CC: se retiran si existían
+      String t = String("homeassistant/") + q[0] + "/" + uid + "/" + q[1] + "/config";
+      esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1);
+    }
+    haUno(uid, "sensor", "rssi", "\"name\":\"Señal Wi-Fi\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json.rssi }}\","
+          "\"unit_of_measurement\":\"dBm\",\"device_class\":\"signal_strength\",\"entity_category\":\"diagnostic\"");
+    return;
+  }
   haUno(uid, "switch", "aux", "\"name\":\"AUX\",\"command_topic\":\"~/cmd\",\"payload_on\":\"X 1\",\"payload_off\":\"X 0\","
         "\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json.x }}\",\"state_on\":\"1\",\"state_off\":\"0\"");
   for (uint8_t k = 0; k < 2; k++)
@@ -769,6 +799,8 @@ bool ejecutar(const char* s, bool remoto) {
     strncpy(b, m.c_str(), 16);
     eepEscribir(3, b, 16);
     memcpy(baseModelo, b, 16); baseModelo[16] = 0;
+    modoInd = !strncmp(baseModelo, "LL-IND", 6);
+    pedirReinicio = true;                                   // frecuencias y Home Assistant según el módulo
     return true;
   }
   const char* p = s + 1;
@@ -1056,6 +1088,7 @@ void setup() {
   if (hayRTC) rtcLeer();
   iniciarSensores();
   leerBase();
+  if (modoInd) for (uint8_t c = 0; c < 4; c++) { ledcChangeFrequency(PWM_PIN[c], IND_HZ, PWM_BITS); dutyActual[c] = 9999; pwm(c, 0); }
   hayOLED = i2cPresente(OLED);
   if (hayOLED) oledIniciar();
   hayLux = i2cPresente(0x23);
@@ -1172,7 +1205,8 @@ void loop() {
   if (pedirReinicio) { if (sucio) guardarAhora(); delay(300); ESP.restart(); }
 
   bool activo = cfg.encendido && porHorario && porLuz;
-  digitalWrite(PIN_AUX, cfg.auxModo ? auxVent : ((activo && cfg.aux) ? HIGH : LOW));
+  if (modoInd) digitalWrite(PIN_AUX, activo ? HIGH : LOW);     // contactor 1: sigue al encendido de la luz
+  else digitalWrite(PIN_AUX, cfg.auxModo ? auxVent : ((activo && cfg.aux) ? HIGH : LOW));
   uint16_t per = falla ? 80 : (modoAP ? 150 : (conectado ? (activo ? 1000 : 250) : 500));
   digitalWrite(PIN_LED, falla ? ((t / per) % 6 < 2) : ((t / per) & 1));    // falla: doble destello
   static uint32_t tRampa = 0;
@@ -1183,10 +1217,11 @@ void loop() {
     uint32_t r = min<uint32_t>(1000, (t - tRampa) * 1000 / 600);          // arranque suave de 0.6 s
     factor = (uint16_t)(r * factorTemperatura() / 1000);
     efectos(t);
-    for (uint8_t k = 0; k < 2; k++) focoCC(k, (uint32_t)GAMMA12[cfg.cc[k] * 255 / 100] * factor / 1000);
+    if (!modoInd) for (uint8_t k = 0; k < 2; k++) focoCC(k, (uint32_t)GAMMA12[cfg.cc[k] * 255 / 100] * factor / 1000);
   } else {
     tRampa = t;
     factor = 0;
     apagarTodo();
   }
+  if (modoInd) { focoCC(0, cfg.cc[0] ? PWM_MAX : 0); focoCC(1, 0); }   // contactor 2: manual (O), no atenúa
 }

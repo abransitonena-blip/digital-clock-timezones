@@ -9,6 +9,9 @@ El sistema tiene tres partes:
 | **Base universal** (`ap1-base/`) | Placa de potencia: entrada protegida y medida, 4 canales de 8 A, 2 canales de **corriente constante** para focos, salida AUX, sensores y la memoria de la base | **No**: es la misma para todos |
 | **Programador** (`ap1-prog/`) | El cerebro: ESP32-C3 con Wi-Fi, USB-C, botones, IR, LEDs y conector Qwiic. **Se enclava encima** de la base | No |
 | **Placa de LEDs o focos** | La que lleva la luz: letrero BAÑOS, flechas, lámpara, tira… | **Sí**, una por modelo. Se conecta a las clemas de la base |
+| **Módulo industrial IND** (`ap1-ind/`) | En lugar de la base: 4 salidas **0-10 V aisladas** para drivers de naves industriales, paneles y reflectores, y 2 salidas para la **bobina de un contactor** que enciende luces de 127/240 V (la red no entra a la placa) | No. El programador lo reconoce solo |
+
+> Todo el ecosistema (qué módulo usar con cada tipo de luz, cable o enclavado, módulos propuestos) está en **[ECOSISTEMA.md](ECOSISTEMA.md)**.
 
 **Por qué conviene así:**
 - **Se fabrica una sola base para todo.** Mientras más piezas iguales, más barato y mejor probado sale cada lote.
@@ -145,6 +148,11 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
 | ![](ap1-prog/firmware/capturas/1_control.png) | ![](ap1-prog/firmware/capturas/2_salidas.png) |
 
 **Compilación y grabación:**
+- **Reconoce el módulo (fw 1.1):** si debajo hay un módulo industrial IND (memoria `LL-IND` o sin medidor), cambia solo:
+  - canales 1-4 a salidas 0-10 V lineales (PWM de 2 kHz con la curva del filtro corregida);
+  - AUX como contactor 1, que sigue al encendido;
+  - CTRL 1 como contactor 2 manual;
+  - la app y Home Assistant muestran los controles de ese módulo.
 - **Home Assistant (fw 1.1):** con MQTT configurado, el equipo **aparece solo** en Home Assistant (descubrimiento MQTT, igual que Shelly, Tasmota o WLED). Aparecen:
   - la luz, con brillo y los 10 efectos;
   - el interruptor AUX;

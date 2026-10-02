@@ -3,7 +3,7 @@
 Estilo: cada pin tiene un tramo corto de cable con etiqueta de red (o símbolo
 de alimentación). Los bloques funcionales se enmarcan y se titulan.
 """
-import os, sys, uuid, math, datetime
+import os, re, sys, uuid, math, datetime
 sys.path.insert(0, os.path.dirname(__file__))
 from sexpr import parse, dump, Sym, find, find1
 import design as DZ
@@ -68,6 +68,23 @@ def pins_of(libsym):
     return pins
 
 
+def units_of(libsym):
+    """Unidades de un símbolo de varias partes (sub-símbolos NOMBRE_u_s con u >= 1)."""
+    us = set()
+    for x in libsym:
+        if isinstance(x, list) and x and x[0] == "symbol":
+            m = re.search(r"_(\d+)_(\d+)$", str(x[1]))
+            if m and int(m.group(1)) > 0:
+                us.add(int(m.group(1)))
+    return sorted(us)
+
+
+def pins_of_unit(libsym, unit):
+    sub = [x for x in libsym if isinstance(x, list) and x and x[0] == "symbol"
+           and re.search(r"_(0|%d)_\d+$" % unit, str(x[1]))]
+    return pins_of([Sym("x")] + sub)
+
+
 def rot(x, y, th):
     c, s = round(math.cos(math.radians(th))), round(math.sin(math.radians(th)))
     return x * c - y * s, x * s + y * c
@@ -90,9 +107,16 @@ class Sheet:
         return self.libs[lib_id]
 
     def symbol(self, lib_id, ref, val, x, y, th, fp="", dnp=False, props_extra=None, hide_ref=False, hide_val=False,
-               in_bom=True, desc="", bom=True):
+               in_bom=True, desc="", bom=True, unit=None):
         ls = self.use(lib_id)
-        pins = pins_of(ls)
+        us = units_of(ls)
+        if unit is None and len(us) > 1:              # una instancia por unidad, en fila (amplificadores dobles, etc.)
+            res = {}
+            for i, u in enumerate(us):
+                res.update(self.symbol(lib_id, ref, val, x + i * 12.7, y, th, fp, dnp, props_extra, hide_ref, hide_val,
+                                       in_bom, desc, bom, unit=u))
+            return res
+        pins = pins_of_unit(ls, unit) if unit else pins_of(ls)
         pp = [(x + rot(px, py, th)[0], y - rot(px, py, th)[1]) for (px, py, pa, pt) in pins.values()]
         fa = 0
         if len(pins) == 2 and abs(pp[0][1] - pp[1][1]) < 0.1:      # 2 pines, horizontal
@@ -111,8 +135,8 @@ class Sheet:
             rx, ry, vx, vy = mx + 12.0, y - 1.0, mx + 12.0, y + 1.6
         if th in (90, 270):
             fa = (360 - th) % 360
-        suid = str(uuid.uuid5(NS, ref)) if in_bom else U()
-        e = [Sym("symbol"), S("lib_id", lib_id), S("at", x, y, th), S("unit", 1), S("exclude_from_sim", Sym("no")),
+        suid = str(uuid.uuid5(NS, ref if not unit or unit == 1 else "%s#%d" % (ref, unit))) if in_bom else U()
+        e = [Sym("symbol"), S("lib_id", lib_id), S("at", x, y, th), S("unit", unit or 1), S("exclude_from_sim", Sym("no")),
              S("in_bom", Sym("yes" if (in_bom and bom) else "no")), S("on_board", Sym("yes" if in_bom else "no")),
              S("dnp", Sym("yes" if dnp else "no")), S("uuid", suid)]
 
@@ -131,7 +155,7 @@ class Sheet:
             e.append(prop(k, v, x, y, True))
         for pn in pins:
             e.append(S("pin", pn, S("uuid", U())))
-        e.append(S("instances", S("project", PROJECT, S("path", "/" + ROOT_UUID, S("reference", ref), S("unit", 1)))))
+        e.append(S("instances", S("project", PROJECT, S("path", "/" + ROOT_UUID, S("reference", ref), S("unit", unit or 1)))))
         self.items.append(e)
         # posiciones de pines en la hoja
         res = {}

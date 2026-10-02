@@ -45,11 +45,16 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><input type="color" id="rgb"><label style="min-width:auto">Blanco</label><input type="range" min="0" max="255" id="w"></div>
   <div class="row"><label>Canales</label><select id="ch"><option value="1">1</option><option value="2">2</option>
   <option value="3">3 (flechas / RGB)</option><option value="4">4 (RGBW)</option></select></div></div>
- <div class="card"><h3>Focos de corriente constante</h3>
+ <div class="card" id="tind" style="display:none"><h3>Módulo industrial (0-10 V)</h3>
+  <p class="muted">Los canales 1-4 son salidas 0-10 V aisladas: el brillo y los efectos atenúan los drivers de las luminarias.
+  El contactor 1 enciende la alimentación de las luces junto con el letrero; el 2 es manual o por horario.</p>
+  <div class="row"><button class="b" id="k2">...</button></div>
+  <p class="muted">Las luces de 127/240 V se conectan al contactor, nunca a la placa.</p></div>
+ <div class="card" id="tcc"><h3>Focos de corriente constante</h3>
   <div class="row"><label>Foco 1</label><input type="range" min="0" max="100" id="cc1"><span id="cc1v"></span></div>
   <div class="row"><label>Foco 2</label><input type="range" min="0" max="100" id="cc2"><span id="cc2v"></span></div>
   <p class="muted">Salidas de 1 A con corriente fija (sin resistencias). Cada foco va solo entre su + y su -.</p></div>
- <div class="card"><h3>Salida AUX 12 V</h3><div class="row"><button class="b" id="foco">...</button>
+ <div class="card" id="taux"><h3>Salida AUX 12 V</h3><div class="row"><button class="b" id="foco">...</button>
   <select id="ym"><option value="0">Relevador o contactor (manual)</option><option value="1">Ventilador automático (45 °C)</option></select></div>
   <p class="muted">Para focos de 127/240 V use un relevador o contactor externo: la red eléctrica no entra a la placa.</p></div>
  <div class="card"><h3>Ahorro y sensor de luz</h3>
@@ -136,6 +141,8 @@ function pinta(){
  if(!cambiando){$("vel").value=E.s;$("bri").value=E.b;$("umb").value=E.u;$("ch").value=E.ch;$("w").value=E.c[3];
   $("rgb").value="#"+E.c.slice(0,3).map(v=>v.toString(16).padStart(2,"0")).join("")}
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
+ $("tind").style.display=E.ind?"":"none";$("tcc").style.display=$("taux").style.display=E.ind?"none":"";
+ $("k2").textContent=E.cc[0]?"Contactor 2 encendido":"Contactor 2 apagado";$("k2").className="b"+(E.cc[0]?" on":"");
  if(!cambiando){$("cc1").value=E.cc[0];$("cc2").value=E.cc[1]}$("cc1v").textContent=E.cc[0]+"%";$("cc2v").textContent=E.cc[1]+"%";
  if(document.activeElement!==$("ym"))$("ym").value=E.ym;salidas();
  $("foco").textContent=E.ym?(E.av?"Ventilador encendido":"Ventilador en espera"):(E.x?"AUX encendida":"AUX apagada");$("foco").className="b"+((E.ym?E.av:E.x)?" on":"");
@@ -174,7 +181,7 @@ const desliza=(id,f)=>{const e=$(id);e.oninput=()=>{cambiando=1};e.onchange=()=>
 desliza("vel",v=>"V "+v);desliza("lim",v=>"J "+v);desliza("bri",v=>"B "+v);desliza("umb",v=>"L "+E.l+" "+v);desliza("w",()=>colorCmd());
 const colorCmd=()=>{const h=$("rgb").value;return`C ${parseInt(h.substr(1,2),16)} ${parseInt(h.substr(3,2),16)} ${parseInt(h.substr(5,2),16)} ${$("w").value}`};
 $("rgb").onchange=()=>api(colorCmd());$("ch").onchange=()=>api("N "+$("ch").value);
-$("pw").onclick=()=>api("P "+(E.p?0:1));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
+$("pw").onclick=()=>api("P "+(E.p?0:1));$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
 desliza("cc1",v=>`O ${v} ${E.cc[1]}`);desliza("cc2",v=>`O ${E.cc[0]} ${v}`);$("ym").onchange=()=>api("Y "+$("ym").value);
 $("dgo").onclick=()=>{api("DIAG");msg("Probando salidas...")};$("apr").onclick=()=>{api("APRENDER");msg("Aprendiendo...")};
 $("bmodok").onclick=()=>{api("MODELO "+$("bmod").value);msg("Modelo guardado en la base")};
