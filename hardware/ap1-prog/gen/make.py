@@ -26,7 +26,7 @@ ESP = {"1": "3V3", "2": "EN", "3": "PWM1", "4": "PWM2", "5": "PWM3", "6": "PWM4"
        "9": "GND", "10": "CC1", "11": "ALERT", "12": "LEDV", "13": "USB_DN", "14": "USB_DP", "15": "IR", "16": "SDA",
        "17": "AUX", "18": "CC2", "19": "GND"}
 C_ = [
-    ("U1", "ESP32-C3-WROOM-02", "RF_Module:ESP32-C3-WROOM-02", "RF_Module:ESP32-C3-WROOM-02", ESP,
+    ("U1", "ESP32-C3-WROOM-02", "RF_Module:ESP32-C3-WROOM-02", "LetreroLab:ESP32-C3-WROOM-02_JLC", ESP,
      "Wi-Fi + Bluetooth LE (módulo certificado). IO21 = LED verde: su registro de arranque solo hace parpadear el LED"),
     ("C1", "10uF", C, C08, {"1": "3V3", "2": "GND"}, "Desacoplo del módulo"),
     ("C2", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo del módulo"),

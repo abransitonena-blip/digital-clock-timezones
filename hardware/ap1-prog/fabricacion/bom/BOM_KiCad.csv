@@ -24,7 +24,7 @@
 "TP2","GND","TestPoint:TestPoint_Pad_D1.5mm","1","Prueba: tierra"
 "TP3","EN","TestPoint:TestPoint_Pad_D1.5mm","1","Prueba: reinicio"
 "TP4","IO9","TestPoint:TestPoint_Pad_D1.5mm","1","Prueba: modo programación"
-"U1","ESP32-C3-WROOM-02","RF_Module:ESP32-C3-WROOM-02","1","Wi-Fi + Bluetooth LE (módulo certificado). IO21 = LED verde: su registro de arranque solo hace parpadear el LED"
+"U1","ESP32-C3-WROOM-02","LetreroLab:ESP32-C3-WROOM-02_JLC","1","Wi-Fi + Bluetooth LE (módulo certificado). IO21 = LED verde: su registro de arranque solo hace parpadear el LED"
 "U2","AP63203WU","Package_TO_SOT_SMD:TSOT-23-6","1","Buck 3.3 V 2 A (síncrono)"
 "U3","USBLC6-2SC6","Package_TO_SOT_SMD:SOT-23-6","1","ESD del USB"
 "U4","TSOP38238","OptoDevice:Vishay_MINICAST-3Pin","1","Receptor IR 38 kHz"

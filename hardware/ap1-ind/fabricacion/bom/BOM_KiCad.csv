@@ -8,7 +8,7 @@
 "D2","SMBJ26A","Diode_SMD:D_SMB","1","Supresor de picos (igual que la base)"
 "D3","SS210","Diode_SMD:D_SMA","1","Rueda libre del buck"
 "DZ1,DZ2,DZ3,DZ4","MMSZ5242B 12V","Diode_SMD:D_SOD-123","4","Limita la salida 1 a 12 V (cables largos, conexión equivocada),Limita la salida 2 a 12 V (cables largos, conexión equivocada),Limita la salida 3 a 12 V (cables largos, conexión equivocada),Limita la salida 4 a 12 V (cables largos, conexión equivocada)"
-"F1","2A","Fuse:Fuse_1206_3216Metric","1","Fusible de la placa"
+"F1","3A","Fuse:Fuse_1206_3216Metric","1","Fusible de la placa"
 "J1","ENTRADA 12-24V","TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal","1","Entrada 12-24 V DC (+ / -), máx. 26 V"
 "J2","CONTACTORES","TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-4-3.5-H_1x04_P3.50mm_Horizontal","1","Bobina del contactor 1 y 2 (+V y salida conmutada), 0.5 A c/u"
 "J3","0-10V","TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-8-3.5-H_1x08_P3.50mm_Horizontal","1","Atenuación 0-10 V: DIM+ y DIM- de cada canal (aislados de la fuente)"

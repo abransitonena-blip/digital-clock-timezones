@@ -1,7 +1,7 @@
 (export (version "E")
   (design
     (source "/work/hardware/ap1-prog/kicad/AP1_Programador.kicad_sch")
-    (date "2026-10-02T00:09:33+0000")
+    (date "2026-10-02T06:36:29+0000")
     (tool "Eeschema 9.0.9")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block
@@ -686,12 +686,12 @@
       (tstamps "d732b0b8-a902-5cb4-bb9b-bb5010a6f234"))
     (comp (ref "U1")
       (value "ESP32-C3-WROOM-02")
-      (footprint "RF_Module:ESP32-C3-WROOM-02")
+      (footprint "LetreroLab:ESP32-C3-WROOM-02_JLC")
       (datasheet "~")
       (description "Wi-Fi + Bluetooth LE (módulo certificado). IO21 = LED verde: su registro de arranque solo hace parpadear el LED")
       (fields
         (field (name "Funcion") "Wi-Fi + Bluetooth LE (módulo certificado). IO21 = LED verde: su registro de arranque solo hace parpadear el LED")
-        (field (name "Footprint") "RF_Module:ESP32-C3-WROOM-02")
+        (field (name "Footprint") "LetreroLab:ESP32-C3-WROOM-02_JLC")
         (field (name "Datasheet") "~")
         (field (name "Description") "Wi-Fi + Bluetooth LE (módulo certificado). IO21 = LED verde: su registro de arranque solo hace parpadear el LED"))
       (libsource (lib "RF_Module") (part "ESP32-C3-WROOM-02") (description "802.11 b/g/n Wi­Fi and Bluetooth 5 module, ESP32­C3 SoC, RISC­V microprocessor, On-board antenna"))

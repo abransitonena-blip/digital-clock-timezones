@@ -37,8 +37,9 @@ C_ = [
      "Entrada 12-24 V DC (+ / -), hasta 20 A"),
     ("F1", "MINI 20A", "Device:Fuse", "Fuse:Fuseholder_Blade_Mini_Keystone_3568", {"1": "VIN_RAW", "2": "VF"},
      "Fusible mini de auto (ATM): 20 A tiras, 5-10 A letreros; se cambia sin soldar"),
-    ("RS1", "1mR 2512 Kelvin", "Device:R_Shunt", "Resistor_SMD:R_Shunt_Vishay_WSK2512_6332Metric_T1.19mm",
-     {"1": "VIN", "2": "ISN", "3": "ISP", "4": "VF"}, "Shunt de 1 mOhm con sensado Kelvin"),
+    ("RS1", "1mR 2512 2W", "Device:R_Shunt", "LetreroLab:R_2512_Kelvin_NetTie",
+     {"1": "VIN", "2": "ISN", "3": "ISP", "4": "VF"},
+     "Shunt de 1 mOhm 2 W (HoJLR2512, C2924520, en existencia) con sensado Kelvin en el borde interior de cada terminal"),
     ("U1", "INA238", "Sensor_Energy:INA238", "Package_SO:VSSOP-10_3x3mm_P0.5mm",
      {"1": "GND", "2": "GND", "3": "ALERT", "4": "SDA", "5": "SCL", "6": "3V3", "7": "GND", "8": "ISN", "9": "ISN",
       "10": "ISP"}, "Medidor V/A/W hasta 85 V (I2C 0x40); alerta por sobrecorriente y sobrevoltaje"),
@@ -195,8 +196,8 @@ PRE = [
     ("SWC1", 0.6, [(7.11, 18.47), (7.11, 17.88), (8.06, 17.88), (8.69, 17.25), (8.69, 15.16), (9.63, 14.22), (11.67, 14.22), (15.05, 17.60), (14.30, 18.35), (14.30, 23.00)]),
     ("SWC2", 0.6, [(7.11, 30.97), (7.11, 30.38), (8.06, 30.38), (8.69, 29.75), (8.69, 27.66), (9.63, 26.72), (11.67, 26.72), (15.05, 30.10), (14.30, 30.85), (14.30, 35.50)]),
     # sensado Kelvin del shunt hacia el INA238 (fuera de los planos de entrada)
-    ("ISP", 0.3, [(27.53, 27.33), (26.9, 25.7), (21.0, 25.7), (21.0, 24.6), (21.9, 24.2)]),
-    ("ISN", 0.3, [(20.67, 29.87), (19.2, 29.87)]), ("ISN", 0.3, [(19.2, 29.87), (19.2, 23.45)], "B"),
+    ("ISP", 0.3, [(25.7, 27.3), (25.7, 25.7), (21.0, 25.7), (21.0, 24.6), (21.9, 24.2)]),
+    ("ISN", 0.3, [(22.5, 29.9), (22.5, 30.9), (19.2, 30.9)]), ("ISN", 0.3, [(19.2, 30.9), (19.2, 23.45)], "B"),
     ("ISN", 0.3, [(19.2, 23.45), (21.9, 23.45)]), ("ISN", 0.3, [(21.9, 23.2), (21.9, 23.7)]),
     ("VF", 0.6, [(35.4, 30.6), (38.225, 30.6)]),                       # compuerta de la protección
     ("VIN", 0.5, [(17.2, 12.4), (13.2, 12.4), (12.1, 11.3), (12.1, 9.0)]),   # entrada del buck
@@ -215,7 +216,7 @@ PRE = [
     # tronco de 12 V del buck al zócalo por el borde superior (lejos del nodo de conmutación)
     ("V12", 0.6, [(9.5, 2.6), (9.5, 1.1), (42.0, 1.1), (42.0, 6.0), (44.46, 6.0)]),
 ]
-PREVIAS = [("ISN", 19.2, 29.87), ("ISN", 19.2, 23.45), ("CC1", 41.2, 12.35), ("CC1", 7.6, 19.45),
+PREVIAS = [("ISN", 19.2, 30.9), ("ISN", 19.2, 23.45), ("CC1", 41.2, 12.35), ("CC1", 7.6, 19.45),
            ("CC2", 40.2, 16.2), ("CC2", 7.6, 31.95)]
 SIN_COBRE = [[(72.5, 0.3), (87.7, 0.3), (87.7, 30.5), (72.5, 30.5)]]     # bajo la antena del programador
 RETORNO = [[(35.5, 29.6), (71.0, 29.6), (71.0, 44.5), (35.5, 44.5)]]   # regreso de los 4 canales hacia QR1
@@ -243,7 +244,7 @@ CAPAS = 4                                 # F.Cu señales+potencia, In1 GND, In2
 COSTURA = 5.0                             # vías GND cada 5 mm: une F.Cu/B.Cu con los planos internos
 COMPANY = "PCB 88 x 56 mm, 4 capas JLC04161H-7628, externas 2 oz, internas 1 oz"
 PAPER = "A2"
-MODELOS = {"WSK2512": "R_2512_6332Metric.step"}
+MODELOS = {}
 OCULTAR_REF = ("J5", "J6")
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 (export (version "E")
   (design
     (source "/work/hardware/ap1-ind/kicad/AP1_Industrial.kicad_sch")
-    (date "2026-10-02T04:22:57+0000")
+    (date "2026-10-02T06:37:37+0000")
     (tool "Eeschema 9.0.9")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block
@@ -435,7 +435,7 @@
       (sheetpath (names "/") (tstamps "/"))
       (tstamps "d5897694-4f30-53eb-9465-a9ddd3fec080"))
     (comp (ref "F1")
-      (value "2A")
+      (value "3A")
       (footprint "Fuse:Fuse_1206_3216Metric")
       (datasheet "~")
       (description "Fusible de la placa")

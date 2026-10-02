@@ -76,7 +76,7 @@ Señales del conector (iguales en las dos placas):
 - **Fusible mini de auto (ATM)**: se cambia sin soldar; se consigue en cualquier refaccionaria.
 - Protección de polaridad invertida sin pérdidas: un MOSFET de 1.6 mΩ (0.6 W a 20 A).
 - **Supresor SMBJ26A contra picos:** empieza a conducir a 28.9 V y limita a 42 V, que es lo máximo que aguantan los AL8860. El SMBJ33A anterior dejaba pasar hasta 53 V: una fuente de 24 V conectada en caliente podía quemarlos. Por eso la entrada máxima es 26 V (una fuente de 24 V ajustada al tope da 26.4 V).
-- **Medidor INA238** de 85 V con shunt Kelvin de 1 mΩ: V, A, W y kWh, y alerta por sobrecorriente.
+- **Medidor INA238** de 85 V con shunt de 1 mΩ y 2 W (HoJLR2512, en existencia en JLCPCB), con sensado Kelvin en el borde interior de cada terminal mediante una huella propia ("net tie"): V, A, W y kWh, y alerta por sobrecorriente.
 
 **Protección por hardware (no depende del programa):**
 - La línea ALERTA del INA238 (sobrecorriente, sobrevoltaje de 28 V) y del TMP1075 (85 °C) llega a los **EN de los dos UCC27524** a través de D8 y D9 (1N4148WS).
@@ -188,6 +188,8 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
 
 ## Pedir a JLCPCB
 
+> **Guía paso a paso y archivos listos para subir: [PEDIDO_JLCPCB.md](PEDIDO_JLCPCB.md)** (carpeta `PEDIDO_JLCPCB/`).
+
 Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/` trae:
 - el Gerber (ZIP);
 - la BOM con el **código LCSC y la clase** (Basic / Preferred / Extended) de cada pieza;
@@ -217,7 +219,6 @@ Qué se cambió para llegar ahí:
 3. En la revisión de cada BOM, confirma los códigos LCSC. Las piezas sin código son Extended y se eligen ahí mismo:
    - INA238, AL8860, LMR16006, UCC27524, TMP1075;
    - MOSFET BSC028N06LS3 / BSC016N06NS;
-   - shunt 1 mΩ de 4 terminales;
    - portafusible Keystone 3568;
    - zócalo 2×8.
    La biblioteca Basic de JLCPCB no tiene equivalentes de estas piezas con los mismos 60 V, 8 A o 1 mΩ, así que se quedan como Extended.

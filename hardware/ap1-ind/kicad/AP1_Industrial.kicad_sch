@@ -4517,7 +4517,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "2A"
+		(property "Value" "3A"
 			(at 76.86 42.24 0)
 			(effects
 				(font

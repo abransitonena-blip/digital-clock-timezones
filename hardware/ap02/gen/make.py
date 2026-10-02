@@ -41,8 +41,9 @@ C_ = [
      "Entrada 12-24 V DC (+ / -), hasta 20 A"),
     ("F1", "ATO 20A", "Device:Fuse", "Fuse:Fuseholder_Blade_ATO_Littelfuse_Pudenz_2_Pin", {"1": "VIN_RAW", "2": "VFUS"},
      "Fusible de navaja ATO (20 A para tiras, 5 A para letreros)"),
-    ("RS1", "1mR 2512 Kelvin", "Device:R_Shunt", "Resistor_SMD:R_Shunt_Vishay_WSK2512_6332Metric_T1.19mm",
-     {"1": "VIN", "2": "ISN", "3": "ISP", "4": "VFUS"}, "Shunt de 1 mOhm (4 terminales) para medir la corriente total"),
+    ("RS1", "1mR 2512 2W", "Device:R_Shunt", "LetreroLab:R_2512_Kelvin_NetTie",
+     {"1": "VIN", "2": "ISN", "3": "ISP", "4": "VFUS"},
+     "Shunt de 1 mOhm 2 W (HoJLR2512, C2924520, en existencia) con sensado Kelvin en el borde interior (rev D)"),
     ("U7", "INA238", "Sensor_Energy:INA238", "Package_SO:VSSOP-10_3x3mm_P0.5mm",
      {"1": "GND", "2": "GND", "3": "ALERT", "4": "SDA", "5": "SCL", "6": "3V3", "7": "GND", "8": "ISN", "9": "ISN",
       "10": "ISP"}, "Medidor de corriente, voltaje y potencia hasta 85 V (I2C 0x40); alerta por sobrecorriente"),
@@ -133,7 +134,7 @@ C_ += [
      "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal",
      {"1": "COM", "2": "NO"}, "Contacto seco del relevador (COM / NA), max 10 A 250 VCA"),
     # --- ESP32-C3 ---
-    ("U5", "ESP32-C3-WROOM-02", "RF_Module:ESP32-C3-WROOM-02", "RF_Module:ESP32-C3-WROOM-02", ESP,
+    ("U5", "ESP32-C3-WROOM-02", "RF_Module:ESP32-C3-WROOM-02", "LetreroLab:ESP32-C3-WROOM-02_JLC", ESP,
      "Wi-Fi + Bluetooth LE (modulo certificado)"),
     ("C13", "10uF", C, C08, {"1": "3V3", "2": "GND"}, "Desacoplo del modulo"),
     ("C14", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo del modulo"),
@@ -237,7 +238,9 @@ def build_board():
     fps = {}
     for ref, val, sym, f, pins, func in C_:
         lib, name = fp_id(f)
-        fp = pcbnew.FootprintLoad(os.path.join(FPL, lib + ".pretty"), name)
+        carpeta = (os.path.join(HERE, "..", "..", "tools", "huellas", lib + ".pretty") if lib == "LetreroLab"
+                   else os.path.join(FPL, lib + ".pretty"))           # huellas propias (p. ej. ESP32 con vías de 0.3 mm)
+        fp = pcbnew.FootprintLoad(carpeta, name)
         fp.SetFPID(pcbnew.LIB_ID(lib, name))
         fp.SetReference(ref); fp.SetValue(val)
         x, y, r = POS[ref]
@@ -259,8 +262,8 @@ def build_board():
                 b.Add(ni); pad.SetNet(ni)
         if ref.startswith("TP"):
             fp.SetExcludedFromBOM(False)    # igual que el simbolo (el filtro de JLCPCB los quita)
-            fp.Reference().SetTextSize(pcbnew.VECTOR2I(pcbnew.FromMM(0.7), pcbnew.FromMM(0.7)))
-            fp.Reference().SetTextThickness(pcbnew.FromMM(0.12))
+            fp.Reference().SetTextSize(pcbnew.VECTOR2I(pcbnew.FromMM(0.8), pcbnew.FromMM(0.8)))
+            fp.Reference().SetTextThickness(pcbnew.FromMM(0.15))
         fps[ref] = fp
     for i, (x, y) in enumerate(HOLES):
         fp = pcbnew.FootprintLoad(os.path.join(FPL, "MountingHole.pretty"), "MountingHole_3.2mm_M3")
@@ -336,15 +339,15 @@ PRE = [  # pistas fijas: contactos del relevador (127 V) y bobina (que se aleje 
     ("GND", 0.3, [(3.8, 35.8), (2.3, 35.8)]), ("GND", 0.4, [(4.775, 33.5), (5.7, 33.5)]),
     ("GND", 0.3, [(8.2, 37.3), (8.2, 36.8)]), ("GND", 0.3, [(8.2, 37.05), (9.5, 37.2)]),
     ("ISN", 0.3, [(3.8, 36.3), (3.8, 36.8)]), ("ISN", 0.3, [(3.8, 36.55), (2.6, 36.55), (1.5, 37.65)]),
-    ("ISN", 0.3, [(1.5, 37.65), (1.5, 43.2), (7.47, 43.2)], "B"), ("ISN", 0.3, [(7.47, 43.2), (7.47, 42.07)]),
-    ("ISP", 0.3, [(14.33, 39.53), (13.6, 38.3), (11.6, 38.3)]), ("ISP", 0.3, [(11.6, 38.3), (2.9, 38.3)], "B"),
+    ("ISN", 0.3, [(1.5, 37.65), (1.5, 43.2), (9.3, 43.2)], "B"), ("ISN", 0.3, [(9.3, 43.2), (9.3, 42.1)]),
+    ("ISP", 0.3, [(12.5, 39.5), (12.5, 38.3), (11.6, 38.3)]), ("ISP", 0.3, [(11.6, 38.3), (2.9, 38.3)], "B"),
     ("ISP", 0.3, [(2.9, 38.3), (3.8, 37.3)]),
     ("GND", 0.6, [(7.975, 51.0), (7.975, 52.6)]),           # tierra de C3 dentro del plano VIN
     ("VFUS", 0.6, [(20.0, 41.6), (22.775, 41.6)]),                                     # compuerta proteccion
     ("VFUS", 0.4, [(19.5, 23.47), (21.5, 24.4), (26.4, 24.4), (26.4, 22.0), (25.14, 22.0)]),  # pata VIN del buck
     ("VFUS", 0.8, [(14.0, 23.6), (19.5, 23.6), (19.5, 23.47)]), ("VFUS", 0.4, [(25.14, 22.0), (25.14, 22.95)]),   # buck 12 V
 ]
-PREVIAS = [("3V3", 2.2, 31.8), ("3V3", 21.6, 8.5), ("V12G", 63.5, 38.3), ("ISN", 1.5, 37.65), ("ISN", 7.47, 43.2), ("ISP", 11.6, 38.3), ("ISP", 2.9, 38.3)]
+PREVIAS = [("3V3", 2.2, 31.8), ("3V3", 21.6, 8.5), ("V12G", 63.5, 38.3), ("ISN", 1.5, 37.65), ("ISN", 9.3, 43.2), ("ISP", 11.6, 38.3), ("ISP", 2.9, 38.3)]
 KEEPOUT_NETS = ("VIN", "VIN_RAW", "VFUS")        # el ruteador no pasa pistas sobre estos planos
 
 

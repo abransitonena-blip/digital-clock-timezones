@@ -27,7 +27,7 @@
 "RC1,RC2","2.2k","Resistor_SMD:R_0603_1608Metric","2","Apagado sin programador (CTRL < 0.2 V)"
 "RF1","150k","Resistor_SMD:R_0603_1608Metric","1","Divisor: 0.765 V x 16 = 12.2 V"
 "RG1,RG2,RG3,RG4","4.7","Resistor_SMD:R_0603_1608Metric","4","Compuerta canal 1,Compuerta canal 2,Compuerta canal 3,Compuerta canal 4"
-"RS1","1mR 2512 Kelvin","Resistor_SMD:R_Shunt_Vishay_WSK2512_6332Metric_T1.19mm","1","Shunt de 1 mOhm con sensado Kelvin"
+"RS1","1mR 2512 2W","LetreroLab:R_2512_Kelvin_NetTie","1","Shunt de 1 mOhm 2 W (HoJLR2512, C2924520, en existencia) con sensado Kelvin en el borde interior de cada terminal"
 "RSC1,RSC2","0R1","Resistor_SMD:R_1206_3216Metric","2","Fija la corriente: 0.1 V / R (0.1 = 1 A, 0.15 = 0.67 A, 0.33 = 0.3 A)"
 "TP1","VIN","TestPoint:TestPoint_Pad_D1.5mm","1","Prueba: entrada medida"
 "TP2","12V","TestPoint:TestPoint_Pad_D1.5mm","1","Prueba: 12 V"

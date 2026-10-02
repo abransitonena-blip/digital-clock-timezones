@@ -35,7 +35,8 @@ C_ = [
     # --- entrada y fuente de 12 V ---
     ("J1", "ENTRADA 12-24V", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN_RAW", "2": "GND"},
      "Entrada 12-24 V DC (+ / -), máx. 26 V"),
-    ("F1", "2A", "Device:Fuse", "Fuse:Fuse_1206_3216Metric", {"1": "VIN_RAW", "2": "VF"}, "Fusible de la placa"),
+    ("F1", "3A", "Device:Fuse", "Fuse:Fuse_1206_3216Metric", {"1": "VIN_RAW", "2": "VF"},
+     "Fusible de la placa (el mismo de la base)"),
     ("D1", "SS34", "Device:D_Schottky", SMA, {"1": "VIN", "2": "VF"}, "Polaridad invertida (en serie)"),
     ("D2", "SMBJ26A", "Device:D_TVS", "Diode_SMD:D_SMB", {"1": "VIN", "2": "GND"},
      "Supresor de picos (igual que la base)"),

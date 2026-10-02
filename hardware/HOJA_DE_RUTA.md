@@ -1,5 +1,7 @@
 # Hoja de ruta LetreroLab: de la placa casera a la fabricación propia
 
+> **Para pedir las placas armadas a JLCPCB:** [PEDIDO_JLCPCB.md](PEDIDO_JLCPCB.md) (archivos en `PEDIDO_JLCPCB/`).
+
 **Idea:** tener circuitos propios, con diagramas, programa, modelo 3D y gabinete que son nuestros. Así no dependemos de placas de terceros como la Radox, y cada módulo se puede replicar, mandar a fabricar y dar con garantía.
 
 **Regla:** empezar con lo básico casero y crecer paso a paso, retroalimentando cada día con pruebas reales.

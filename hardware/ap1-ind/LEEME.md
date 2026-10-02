@@ -34,7 +34,7 @@ Al enclavar el programador, el módulo se reconoce solo:
 
 ## Circuito
 
-- **Entrada:** fusible de 2 A, diodo SS34 contra polaridad invertida, supresor SMBJ26A y fuente de 12 V LMR16006 (igual que la base).
+- **Entrada:** fusible de 3 A, diodo SS34 contra polaridad invertida, supresor SMBJ26A y fuente de 12 V LMR16006 (igual que la base).
 - **Aislamiento:** el PWM de cada canal entra a un **optoacoplador LTV-217** (3 kV). Del otro lado, todo se alimenta con un convertidor **B1212S-1WR3** (12 V a 12 V, 1 W, 1.5 kV).
   - Una **franja de 3 mm sin cobre** (en las dos capas) separa el lado de la fuente del lado aislado.
   - Una regla de DRC exige 2.5 mm entre los dos lados. La revisión la cumple.

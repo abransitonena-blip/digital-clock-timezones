@@ -12,6 +12,7 @@ Una sola placa de **90 × 70 mm**, 2 capas, armada en fábrica (JLCPCB). Sirve p
 |---|---|
 | **D7 y D8 (1N4148WS)**: la línea ALERTA del INA238 y del TMP1075 llega a los EN de los dos UCC27524 | Antes, los MOSFET solo se apagaban si el programa atendía la alerta. Ahora se apagan unos 20 ns después de la alerta (sobrecorriente, sobrevoltaje o 85 °C), aunque el ESP32 esté trabado. Los diodos aíslan el pull-up interno de 12 V de los EN, que no debe llegar a los 3.3 V. |
 | **Botones TS-1187A** en lugar de TL3342 | Pieza Basic de JLCPCB con la misma huella: un tipo Extended menos (~3 USD por pedido). |
+| **Shunt HoJLR2512 + vías del ESP32 de 0.3 mm** | El shunt anterior se agotó en LCSC. El módulo traía vías de 0.2 mm, fuera del proceso estándar de JLCPCB |
 | **Programa fw 1.2** | La alerta del medidor responde en menos de 1 ms (antes, unos 26 ms). Además, el equipo **aparece solo en Home Assistant** por MQTT: luz con brillo y efectos, relevador, voltaje, corriente, potencia, energía, temperatura, señal y falla (`HA 0` lo retira). |
 
 Se verificó con ERC y DRC (incluidas advertencias): 0 errores, 0 sin conectar, 0 diferencias. La serigrafía dice "rev D".
@@ -79,7 +80,7 @@ Se verificó con ERC y DRC (incluidas advertencias): 0 errores, 0 conexiones pen
   - Buck **AP63203** a 3.3 V, alimentado desde esos 12 V (o desde el USB).
   - Sin reguladores lineales calientes, lo que también es más ecológico.
 - **Medición y protección:**
-  - El **INA238** mide en el shunt de 1 mΩ, con sensado Kelvin de 4 terminales.
+  - El **INA238** mide en el shunt de 1 mΩ y 2 W (HoJLR2512, en existencia), con sensado Kelvin en el borde interior de cada terminal.
   - El **TMP1075** mide la temperatura junto a los MOSFET.
   - Las alertas de ambos llegan a IO20. El programa apaga las salidas en milisegundos y el fusible queda como último respaldo.
 
@@ -257,7 +258,7 @@ Reglas propias del DRC:
 
 - **Ruteo automático:** Freerouting más planos de potencia trazados a mano. Antes de pedir muchas placas, conviene una revisión visual en KiCad, sobre todo de las pistas de señal cerca de los drivers.
 - Faltan los modelos 3D del USB-C (HRO TYPE-C-31-M-12) y del portafusible ATO. El shunt se muestra con el cuerpo de una resistencia 2512. Solo afecta los renders.
-- **Shunt:** la huella es de 4 terminales (Kelvin). Si JLCPCB no tiene una de 4 terminales, sirve una 2512 de 1 mΩ y 2 terminales: la soldadura une el pad de potencia con el de sensado de cada lado.
+- **Shunt:** desde la rev D es una 2512 de 2 terminales (HoJLR2512, C2924520). La de 4 terminales (WSK2512) se agotó en LCSC. La huella propia mantiene el sensado Kelvin.
 - **Prueba de protección:** las primeras placas deben probarse con una carga electrónica o resistencias, subiendo la corriente hasta el límite, para confirmar el corte y su tiempo.
 - **Seguridad:**
   - Las órdenes de grupo (UDP) no llevan clave dentro de la red local; solo controlan luces, no la configuración.

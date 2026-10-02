@@ -24,6 +24,7 @@ import comun  # noqa: E402
 import pcbnew  # noqa: E402
 
 FPL = "/usr/share/kicad/footprints"
+HUELLAS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "huellas")   # huellas propias (LetreroLab.pretty)
 mm = pcbnew.FromMM
 
 
@@ -72,7 +73,8 @@ def build_board(S):
     _contorno(S, b)
     for ref, val, sym, f, pins, func in S.C_:
         lib, name = f.split(":")
-        fp = pcbnew.FootprintLoad(os.path.join(FPL, lib + ".pretty"), name)
+        carpeta = os.path.join(HUELLAS, lib + ".pretty") if lib == "LetreroLab" else os.path.join(FPL, lib + ".pretty")
+        fp = pcbnew.FootprintLoad(carpeta, name)
         fp.SetFPID(pcbnew.LIB_ID(lib, name))
         fp.SetReference(ref); fp.SetValue(val)
         pos = S.POS[ref]
@@ -98,8 +100,8 @@ def build_board(S):
             fp.Reference().SetVisible(False)
         if ref.startswith("TP"):
             fp.SetExcludedFromBOM(False)
-            fp.Reference().SetTextSize(pcbnew.VECTOR2I(mm(0.7), mm(0.7)))
-            fp.Reference().SetTextThickness(mm(0.12))
+            fp.Reference().SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))     # mínimo de JLCPCB
+            fp.Reference().SetTextThickness(mm(0.15))
     for i, (x, y) in enumerate(S.HOLES):
         fp = pcbnew.FootprintLoad(os.path.join(FPL, "MountingHole.pretty"), "MountingHole_3.2mm_M3")
         fp.SetFPID(pcbnew.LIB_ID("MountingHole", "MountingHole_3.2mm_M3"))
@@ -303,6 +305,10 @@ def write_project(S):
     pro.setdefault("meta", {})["filename"] = S.PROJECT + ".kicad_pro"
     json.dump(pro, open(os.path.join(S.KI, S.PROJECT + ".kicad_pro"), "w"), indent=2)
     open(os.path.join(S.KI, S.PROJECT + ".kicad_dru"), "w").write("(version 1)\n" + S.DRU)
+    rel = os.path.relpath(os.path.join(HUELLAS, "LetreroLab.pretty"), S.KI)   # huellas propias para KiCad
+    open(os.path.join(S.KI, "fp-lib-table"), "w").write(
+        '(fp_lib_table\n  (version 7)\n  (lib (name "LetreroLab")(type "KiCad")(uri "${KIPRJMOD}/%s")(options "")'
+        '(descr "Huellas propias de LetreroLab"))\n)\n' % rel)
 
 
 def schematic(S):

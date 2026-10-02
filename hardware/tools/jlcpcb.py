@@ -16,16 +16,41 @@ _UNID = {"p": 1e-12, "n": 1e-9, "u": 1e-6, "µ": 1e-6, "m": 1e-3, "k": 1e3, "M":
 # Códigos conocidos; confirmar existencias en jlcpcb.com/parts antes de pedir.
 CONOCIDOS = {
     ("ESP32-C3-WROOM-02", "ESP32-C3-WROOM-02"): ("C2934560", "Extended"),
+    ("ESP32-C3-WROOM-02", "ESP32-C3-WROOM-02_JLC"): ("C2934560", "Extended"),
     ("USBLC6-2SC6", "SOT-23-6"): ("C7519", "Extended"),
     ("USB-C", "USB_C_Receptacle_HRO_TYPE-C-31-M-12"): ("C165948", "Extended"),
     ("AP63203WU", "TSOT-23-6"): ("C780769", "Extended"),
     ("VERDE", "LED_0603_1608Metric"): ("C72043", "Basic Component"),
     ("LTV-217-B", "SOP-4_4.4x2.6mm_P1.27mm"): ("C115450", "Basic Component"),        # LTV-217-B-G en el catálogo
+    # Extended verificadas en lcsc.com / jlcpcb.com (octubre 2026); revisar existencias al pedir
+    ("INA238", "VSSOP-10_3x3mm_P0.5mm"): ("C2868250", "Extended"),
+    ("LMR16006XDDC", "SOT-23-6"): ("C87080", "Extended"),
+    ("UCC27524D", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C465729", "Extended"),
+    ("AL8860MP", "MSOP-8-1EP_3x3mm_P0.65mm_EP1.5x1.8mm"): ("C500782", "Extended"),
+    ("TMP1075D", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C2878381", "Extended"),
+    ("BSC028N06LS3", "TDSON-8-1"): ("C534316", "Extended"),
+    ("BSC016N06NS", "TDSON-8-1"): ("C454269", "Extended"),
+    ("47uH", "L_Changjiang_FNR4030S"): ("C167888", "Extended"),           # FNR4030S470MT
+    ("47uH", "L_Changjiang_FNR6045S"): ("C168087", "Extended"),           # FNR6045S470MT
+    ("4.7uH", "L_Changjiang_FNR4030S"): ("C167874", "Extended"),          # FNR4030S4R7MT
+    ("330uF 50V", "CP_Elec_10x10.5"): ("C2687701", "Extended"),           # RVT1H331M1010 (10 x 10.2 mm)
+    ("3A", "Fuse_1206_3216Metric"): ("C355685", "Extended"),              # JK 12 100.3, rápido
+    ("1mR 2512 2W", "R_2512_Kelvin_NetTie"): ("C2924520", "Extended"),    # HoJLR2512-2W-1mR-1%-75ppm
+    ("TSOP38238", "Vishay_MINICAST-3Pin"): ("C141632", "Extended"),
+    ("B1212S-1WR3", "Converter_DCDC_Murata_MEE1SxxxxSC_THT"): ("C49260979", "Extended"),
+    ("SRD-12VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C30431", "Extended"),
 }
 
 # Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.
 POR_HUELLA = {
     "SW_Push_1P1T_XKB_TS-1187A": ("C318884", "Basic Component"),     # botón 5.1 x 5.1 mm, 160 gf
+    "PinSocket_2x08_P2.54mm_Vertical": ("C30734", "Extended"),          # zócalo 2x8, 8.5 mm de alto
+    "PinHeader_2x08_P2.54mm_Vertical": ("C68234", "Extended"),
+    "PinHeader_1x04_P2.54mm_Vertical": ("C5116483", "Extended"),
+    "JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal": ("C160404", "Extended"),
+    "Fuseholder_Blade_Mini_Keystone_3568": ("C3206956", "Extended"),    # Keystone 3568
+    # clema de 2 polos 5.08 mm: KEFA KF128-5.08-2P (misma separación que la Phoenix MKDS 3)
+    "TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal": ("C474952", "Extended"),
 }
 
 
