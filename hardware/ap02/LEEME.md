@@ -6,7 +6,19 @@ Una sola placa de **90 × 70 mm**, 2 capas, armada en fábrica (JLCPCB). Sirve p
 
 ![render](fabricacion/3d/render_perspectiva.png)
 
-## Rev C: dos correcciones (pedir esta versión, no la rev B)
+## Rev D: corte por hardware, botones Basic y Home Assistant (pedir esta versión)
+
+| Cambio | Por qué |
+|---|---|
+| **D7 y D8 (1N4148WS)**: la línea ALERTA del INA238 y del TMP1075 llega a los EN de los dos UCC27524 | Antes, los MOSFET solo se apagaban si el programa atendía la alerta. Ahora se apagan unos 20 ns después de la alerta (sobrecorriente, sobrevoltaje o 85 °C), aunque el ESP32 esté trabado. Los diodos aíslan el pull-up interno de 12 V de los EN, que no debe llegar a los 3.3 V. |
+| **Botones TS-1187A** en lugar de TL3342 | Pieza Basic de JLCPCB con la misma huella: un tipo Extended menos (~3 USD por pedido). |
+| **Programa fw 1.2** | La alerta del medidor responde en menos de 1 ms (antes, unos 26 ms). Además, el equipo **aparece solo en Home Assistant** por MQTT: luz con brillo y efectos, relevador, voltaje, corriente, potencia, energía, temperatura, señal y falla (`HA 0` lo retira). |
+
+Se verificó con ERC y DRC (incluidas advertencias): 0 errores, 0 sin conectar, 0 diferencias. La serigrafía dice "rev D".
+
+En `fabricacion/jlcpcb/` hay además una BOM y un CPL **`_solo_SMD`**: las clemas, el portafusible y el relevador se sueldan a mano y el cargo de montaje baja de ~60 a ~39 USD por pedido (ver `RESUMEN_JLCPCB.txt`).
+
+## Rev C: dos correcciones
 
 Al revisar la rev B para diseñar el sistema AP-1 encontré dos errores. Los dos ya están corregidos:
 

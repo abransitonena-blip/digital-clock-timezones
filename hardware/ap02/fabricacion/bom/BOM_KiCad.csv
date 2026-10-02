@@ -13,6 +13,7 @@
 "D4","1N4148W","Diode_SMD:D_SOD-123","1","Rueda libre de la bobina"
 "D5","LED","LED_SMD:LED_0603_1608Metric","1","LED de estado"
 "D6","SS210","Diode_SMD:D_SMA","1","Rueda libre del buck de 12 V (LMR16006 no es síncrono) - rev C"
+"D7,D8","1N4148WS","Diode_SMD:D_SOD-323","2","Corte por hardware (rev D): ALERT en bajo apaga el driver 1-2 sin esperar al programa,Corte por hardware del driver 3-4 (el diodo aísla el pull-up interno de 12 V del EN)"
 "DZ1","MMSZ5242B 12V","Diode_SMD:D_SOD-123","1","Limita la compuerta a 12 V con 24 V de entrada"
 "F1","ATO 20A","Fuse:Fuseholder_Blade_ATO_Littelfuse_Pudenz_2_Pin","1","Fusible de navaja ATO (20 A para tiras, 5 A para letreros)"
 "J1","ENTRADA 12-24V","TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal","1","Entrada 12-24 V DC (+ / -), hasta 20 A"

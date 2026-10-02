@@ -93,11 +93,15 @@ C_ = [
     ("RF2", "10k", R, R06, {"1": "FB2", "2": "GND"}, "Divisor de 12 V"),
     # --- canales ---
     ("U3", "UCC27524D", "Driver_FET:UCC27524D", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
-     {"1": None, "2": "PWM1", "3": "GND", "4": "PWM2", "5": "GO2", "6": "V12G", "7": "GO1", "8": None},
+     {"1": "EN12", "2": "PWM1", "3": "GND", "4": "PWM2", "5": "GO2", "6": "V12G", "7": "GO1", "8": "EN12"},
      "Driver doble canales 1 y 2"),
     ("U4", "UCC27524D", "Driver_FET:UCC27524D", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
-     {"1": None, "2": "PWM3", "3": "GND", "4": "PWM4", "5": "GO4", "6": "V12G", "7": "GO3", "8": None},
+     {"1": "EN34", "2": "PWM3", "3": "GND", "4": "PWM4", "5": "GO4", "6": "V12G", "7": "GO3", "8": "EN34"},
      "Driver doble canales 3 y 4"),
+    ("D7", "1N4148WS", "Device:D", "Diode_SMD:D_SOD-323", {"1": "ALERT", "2": "EN12"},
+     "Corte por hardware (rev D): ALERT en bajo apaga el driver 1-2 sin esperar al programa"),
+    ("D8", "1N4148WS", "Device:D", "Diode_SMD:D_SOD-323", {"1": "ALERT", "2": "EN34"},
+     "Corte por hardware del driver 3-4 (el diodo aísla el pull-up interno de 12 V del EN)"),
     ("U8", "TMP1075D", "Sensor_Temperature:TMP1075D", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
      {"1": "SDA", "2": "SCL", "3": "ALERT", "4": "GND", "5": "GND", "6": "GND", "7": "GND", "8": "3V3"},
      "Temperatura junto a drivers y MOSFET (I2C 0x48); alerta a 85 C"),
@@ -180,7 +184,7 @@ POS = {
     "TP1": (5.5, 47.5, 0), "TP2": (38.5, 26.0, 0), "TP3": (54.0, 23.5, 0), "TP4": (54.0, 26.3, 0),
     "TP5": (56.6, 23.5, 0), "TP6": (56.6, 26.3, 0),
     "QR1": (26.0, 53.0, 0), "QR2": (26.0, 46.0, 0), "RG0": (23.6, 41.6, 0), "DZ1": (28.0, 40.4, 0),
-    "U3": (37.0, 37.0, 0), "U4": (51.0, 37.0, 0), "C11": (37.0, 32.5, 0), "C12": (51.0, 32.5, 0),
+    "D7": (40.2, 29.8, 0), "D8": (48.0, 29.8, 0), "U3": (37.0, 37.0, 0), "U4": (51.0, 37.0, 0), "C11": (37.0, 32.5, 0), "C12": (51.0, 32.5, 0),
     "C1": (10.0, 27.0, 180), "C2": (10.0, 12.8, 180), "D1": (20.5, 32.6, 0), "C3": (6.5, 51.0, 0),
     "U2": (24.0, 22.0, 0), "L2": (30.0, 22.0, 0), "C8": (24.0, 25.5, 0), "C9": (19.5, 22.0, 90),
     "C10": (34.5, 22.0, 90), "RF1": (24.0, 18.5, 0), "RF2": (28.5, 18.5, 0),
@@ -452,7 +456,7 @@ def schematic():
 
 
 SILK = [  # (texto, x, y, alto mm, capa)
-    ("LetreroLab AP-0.2 rev C", 38.5, 3.2, 1.5, "F"),
+    ("LetreroLab AP-0.2 rev D", 38.5, 3.2, 1.5, "F"),
     ("12-24V 20A, mide y protege", 38.0, 5.6, 1.0, "F"),
     ("+V", 5.0, 60.6, 1.0, "F"), ("+V", 10.08, 60.6, 1.0, "F"),
     ("+", 17.5, 60.6, 1.2, "F"), ("-", 22.58, 60.6, 1.2, "F"),

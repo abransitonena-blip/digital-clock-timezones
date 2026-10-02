@@ -1,12 +1,12 @@
-AP02: 44 tipos de pieza, 79 piezas por placa.
+AP02: 45 tipos de pieza, 81 piezas por placa.
 Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
 
 Pedido completo (BOM/CPL normales):      20 tipos Extended  -> ~60 USD de cargo
 Pedido económico (BOM/CPL _solo_SMD):    13 tipos Extended  -> ~39 USD de cargo;
    se sueldan a mano 7 piezas de patas: F1, J1, J3, J4, J5, J6, K1
-Piezas Basic/Preferred: ~0.64 USD por placa (precio de catálogo, sin las Extended).
+Piezas Basic/Preferred: ~0.66 USD por placa (precio de catálogo, sin las Extended).
 
-Basic (22):
+Basic (23):
   4.7uF 50V              C29823         C3
   100nF                  C14663         C4,C8,C14,C16,C17,C18
   10uF 50V               C13585         C5,C9
@@ -19,6 +19,7 @@ Basic (22):
   1N4148W                C81598         D4
   LED                    C2286          D5
   SS210                  C14996         D6
+  1N4148WS               C2128          D7,D8
   AO3400A                C20917         Q5
   100k                   C25803         R5
   10k                    C25804         R6,R7,R10,R11,R15,RF2,RG0,RP1,RP2,RP3,RP4,RPD1,RPD2,RPD3,RPD4

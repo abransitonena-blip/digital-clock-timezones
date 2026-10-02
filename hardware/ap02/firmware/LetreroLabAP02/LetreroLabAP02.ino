@@ -29,6 +29,7 @@
      W red,clave  conectar a Wi-Fi     W -  olvidar Wi-Fi  Q uri[,usuario,clave]  MQTT   Q -  sin MQTT
      K clave  clave de la app/OTA (vacío = sin clave)      @ grupo orden  enviar a un grupo (* = todos)
      J n  límite de corriente total 1..25 A (protección)   F 0  borrar una falla     U 0  reiniciar el contador de kWh
+     HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
 #include <WiFi.h>
@@ -47,7 +48,7 @@
 #include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-0.2 fw 1.1"
+#define VERSION "AP-0.2 fw 1.2"
 
 // ---------------- pines de la placa AP-0.2 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 (drivers UCC27524 -> MOSFET)
@@ -86,7 +87,7 @@ DNSServer dns;
 NetworkUDP udp;
 esp_mqtt_client_handle_t mq = nullptr;
 QueueHandle_t colaMq;
-bool modoAP = false, hayRTC = false, sucio = false, mqConectado = false;
+bool modoAP = false, hayRTC = false, sucio = false, mqConectado = false, haActivo = true;
 uint32_t tSucio = 0, t0 = 0, tInicioWifi = 0;
 uint8_t paso = 0;
 bool porHorario = true, porLuz = true;
@@ -124,6 +125,7 @@ void cargar() {
   mqUri = pref.getString("mquri", "");
   mqUsr = pref.getString("mqusr", "");
   mqClave = pref.getString("mqclave", "");
+  haActivo = pref.getBool("ha", true);
   clave = pref.getString("clave", "");
 }
 void guardarEscena(uint8_t n) { if (n < 4) { char k[8]; snprintf(k, 8, "esc%u", n); pref.putBytes(k, &cfg, sizeof(cfg)); } }
@@ -255,7 +257,9 @@ void iniciarSensores() {
   hayINA = leer16(INA, 0x3E) == 0x5449;             // "TI"
   if (hayINA) {
     escribir16(INA, 0x00, 0x0010);                  // ADCRANGE = 1: +-40.96 mV (hasta 40 A con 1 mOhm)
-    escribir16(INA, 0x01, 0xF922);                  // continuo: bus, shunt y temperatura; 540 us; promedio de 16
+    // continuo: bus 150 us, shunt 540 us, temperatura 150 us; promedio de 16 para las lecturas.
+    // La alerta compara cada conversión sin promediar (menos de 1 ms) y en la rev D apaga los drivers por hardware.
+    escribir16(INA, 0x01, 0xF512);
     escribir16(INA, 0x0B, 0x8000);                  // alerta retenida hasta leer DIAG_ALRT
     escribir16(INA, 0x0E, (uint16_t)(30.0f / 0.003125f));     // sobrevoltaje: 30 V
     escribir16(INA, 0x10, (uint16_t)((int)(100 / 0.125f) << 4)); // temperatura del INA: 100 C
@@ -377,6 +381,52 @@ void mqPublicar() {
     esp_mqtt_client_publish(mq, t.c_str(), e.c_str(), e.length(), 1, 1);
   }
 }
+// Home Assistant (descubrimiento MQTT, como Shelly, Tasmota o WLED): el equipo aparece solo con su luz, el relevador
+// y sensores de V, A, W, kWh, temperatura y falla. "HA 0" lo retira de Home Assistant.
+void haUno(const String& uid, const char* tipo, const char* obj, const String& cfgJson) {
+  String t = String("homeassistant/") + tipo + "/" + uid + "/" + obj + "/config";
+  String e;
+  if (haActivo) {
+    e = "{\"~\":\"" + temaBase() + "\",\"unique_id\":\"" + uid + "_" + obj + "\",\"object_id\":\"" + nombre + "_" + obj +
+        "\",\"availability_topic\":\"~/conectado\",\"payload_available\":\"1\",\"payload_not_available\":\"0\"," + cfgJson +
+        ",\"device\":{\"identifiers\":[\"" + uid + "\"],\"name\":\"" + nombre + "\",\"manufacturer\":\"LetreroLab\",\"model\":\"AP-0.2\",\"sw_version\":\"" VERSION "\",\"configuration_url\":\"http://" +
+        WiFi.localIP().toString() + "\"}}";
+  }
+  esp_mqtt_client_publish(mq, t.c_str(), e.c_str(), e.length(), 1, 1);   // vacío y retenido = borrar
+}
+void haPublicar() {
+  if (!mq || !mqConectado) return;
+  String uid = "letrerolab_" + WiFi.macAddress();
+  uid.replace(":", "");
+  uid.toLowerCase();
+  String fx = "[";
+  for (uint8_t i = 0; i < N_MODOS; i++) { if (i) fx += ','; fx += '\''; fx += NOMBRE[i]; fx += '\''; }
+  fx += ']';
+  String lista = fx; lista.replace('\'', '"');
+  haUno(uid, "light", "luz", "\"name\":\"Letrero\",\"schema\":\"template\",\"command_topic\":\"~/cmd\",\"state_topic\":\"~/estado\","
+        "\"command_on_template\":\"P 1{% if brightness is defined %}\\nB {{ (brightness / 2.55) | round | int }}{% endif %}"
+        "{% if effect is defined %}\\nM {{ " + fx + ".index(effect) }}{% endif %}\",\"command_off_template\":\"P 0\","
+        "\"state_template\":\"{{ 'on' if value_json.p == 1 else 'off' }}\","
+        "\"brightness_template\":\"{{ (value_json.b * 2.55) | round | int }}\","
+        "\"effect_list\":" + lista + ",\"effect_template\":\"{{ value_json.n }}\"");
+  haUno(uid, "switch", "rele", "\"name\":\"Relevador\",\"command_topic\":\"~/cmd\",\"payload_on\":\"X 1\",\"payload_off\":\"X 0\","
+        "\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json.x }}\",\"state_on\":\"1\",\"state_off\":\"0\"");
+  struct Sen { const char *obj, *nom, *campo, *unidad, *clase, *estado; bool diag; };
+  static const Sen SEN[] = {
+    {"vin", "Voltaje", "vin", "V", "voltage", "measurement", false},
+    {"i", "Corriente", "i", "A", "current", "measurement", false},
+    {"w", "Potencia", "w", "W", "power", "measurement", false},
+    {"kwh", "Energía", "kwh", "kWh", "energy", "total_increasing", false},
+    {"tc", "Temperatura", "tc", "°C", "temperature", "measurement", false},
+    {"rssi", "Señal Wi-Fi", "rssi", "dBm", "signal_strength", "measurement", true},
+  };
+  for (const Sen& x : SEN)
+    haUno(uid, "sensor", x.obj, String("\"name\":\"") + x.nom + "\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json." +
+          x.campo + " }}\",\"unit_of_measurement\":\"" + x.unidad + "\",\"device_class\":\"" + x.clase +
+          "\",\"state_class\":\"" + x.estado + "\"" + (x.diag ? ",\"entity_category\":\"diagnostic\"" : ""));
+  haUno(uid, "sensor", "falla", "\"name\":\"Falla\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json.fn }}\","
+        "\"entity_category\":\"diagnostic\"");
+}
 void mqEvento(void*, esp_event_base_t, int32_t id, void* datos) {   // corre en la tarea de MQTT
   esp_mqtt_event_handle_t ev = (esp_mqtt_event_handle_t)datos;
   if (id == MQTT_EVENT_CONNECTED) {
@@ -388,6 +438,7 @@ void mqEvento(void*, esp_event_base_t, int32_t id, void* datos) {   // corre en 
     esp_mqtt_client_subscribe(ev->client, t.c_str(), 1);
     t = temaBase() + "/conectado";
     esp_mqtt_client_publish(ev->client, t.c_str(), "1", 1, 1, 1);
+    haPublicar();
   } else if (id == MQTT_EVENT_DISCONNECTED) {
     mqConectado = false;
   } else if (id == MQTT_EVENT_DATA && ev->data_len > 0 && ev->data_len < 120) {
@@ -469,6 +520,12 @@ bool pedirReinicio = false;
 
 // devuelve true si cambió algo (se publica el estado)
 bool ejecutar(const char* s, bool remoto) {
+  if (!strncmp(s, "HA", 2) && (s[2] == ' ' || !s[2])) {        // HA 0|1: aparecer o no en Home Assistant
+    haActivo = atoi(s + 2) != 0 || !s[2];
+    pref.putBool("ha", haActivo);
+    haPublicar();
+    return true;
+  }
   const char* p = s + 1;
   char c = s[0];
   switch (c) {
@@ -794,7 +851,11 @@ void loop() {
   revisarUDP();
   if (irListo) { irListo = false; teclaIR(irCodigo); }
   char buf[128];
-  while (xQueueReceive(colaMq, buf, 0) == pdTRUE) if (ejecutar(buf, true)) mqPublicar();
+  while (xQueueReceive(colaMq, buf, 0) == pdTRUE) {     // varias órdenes por mensaje, una por renglón
+    bool cambio = false;
+    for (char* l = strtok(buf, "\n"); l; l = strtok(nullptr, "\n")) cambio |= ejecutar(l, true);
+    if (cambio) mqPublicar();
+  }
 
   revisarProteccion();
   static uint32_t tRevisa = 0, tAnuncio = 0, tRtc = 0, tMed = 0, tPub = 0;
