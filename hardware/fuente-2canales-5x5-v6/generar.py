@@ -230,3 +230,31 @@ here = os.path.dirname(os.path.abspath(__file__))
 for name, fn in (("cobre_planchar.svg", copper_svg), ("componentes_arriba.svg", top_svg), ("smd_lado_cobre.svg", bottom_svg), ("serigrafia_planchar.svg", lambda: silk_svg(True)), ("serigrafia_vista.svg", lambda: silk_svg(False))):
     open(os.path.join(here, name), "w").write(fn())
 print("SVG escritos")
+
+# ---------- imágenes de montaje paso a paso (pieza resaltada) ----------
+def resaltar(base, prefijos, espejo=False, color="#e8590c"):
+    marcas = []
+    for p in pads:
+        if any(p[0].startswith(px) for px in prefijos):
+            x = W - p[2] if espejo else p[2]
+            if p[5] == "r" and not p[0].startswith("BR"):
+                marcas.append(f'<rect x="{x-p[6]/2-0.9:.2f}" y="{p[3]-p[7]/2-0.9:.2f}" width="{p[6]+1.8}" height="{p[7]+1.8}" rx="1" fill="{color}" fill-opacity="0.45" stroke="{color}" stroke-width="0.4"/>')
+            else:
+                marcas.append(f'<circle cx="{x:.2f}" cy="{p[3]:.2f}" r="2.5" fill="{color}" fill-opacity="0.45" stroke="{color}" stroke-width="0.4"/>')
+    return base.replace("</svg>", "".join(marcas) + "</svg>")
+PASOS = [
+    ("01_rc", ["RCa", "RCb"], True),
+    ("02_rd", ["RD"], False),
+    ("03_rs", ["RS"], False),
+    ("04_rv", ["RV1"], False),
+    ("05_br", ["BR"], False),
+    ("06_c", ["C1", "C2"], False),
+    ("07_ce", ["CE"], False),
+    ("08_j", ["J1", "J2"], False),
+    ("09_in", ["WL", "WN"], False),
+]
+os.makedirs(os.path.join(here, "pasos"), exist_ok=True)
+for nombre, pre, cobre in PASOS:
+    base = bottom_svg() if cobre else silk_svg(False)
+    open(os.path.join(here, "pasos", nombre + ".svg"), "w").write(resaltar(base, pre, espejo=cobre))
+print("imágenes de pasos escritas")
