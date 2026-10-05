@@ -30,6 +30,8 @@
      Módulo IND (0-10 V): canales 1-4 = salidas 0-10 V, contactor 1 sigue al encendido, O 100 / O 0 = contactor 2
      Módulo PIX: PX a b c d  LED por salida (0-600)   PS n  segmentos o letras (0 = una por salida)
                  PO n  orden de color 0 GRB, 1 RGB, 2 BRG; C r g b = color de los efectos; J = límite de corriente
+     Módulo DMX: PD dir canales  dirección del primer equipo y canales (1, 3 o 4)   PX n  equipos
+     VIVO 0|1  control en vivo por Art-Net / sACN (xLights, QLC+, Jinx!)   UNI n  universo inicial
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
@@ -49,7 +51,7 @@
 #include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.3"
+#define VERSION "AP-1 fw 1.4"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -134,6 +136,20 @@ String aviso;
 struct Vecino { String nombre, grupo; IPAddress ip; uint32_t visto; };
 Vecino vecinos[16];
 
+// ---------------- control en vivo: Art-Net y sACN (E1.31) ----------------
+// Programas como xLights, QLC+, Jinx! o Resolume mandan los niveles cuadro por cuadro por la red.
+// Mientras lleguen datos (y la luz esté encendida) mandan ellos; 2.5 s sin datos vuelven los efectos.
+// Pixeles: 170 LED RGB por universo (510 canales). DMX: el universo pasa tal cual (512 canales).
+// Base e IND: canales 1-4 = salidas 1-4; 5-6 = focos de corriente constante (base).
+const uint16_t ART_PUERTO = 6454, SACN_PUERTO = 5568, VIVO_UNIS = 16;
+NetworkUDP udpArt, udpSacn;
+bool vivoActivo = true;
+uint16_t vivoUni = 1;                       // universo inicial (el mismo número en Art-Net y en sACN)
+uint8_t vivoDatos[VIVO_UNIS * 512];
+uint32_t tVivo = 0, vivoPaquetes = 0;
+bool vivo() { return vivoActivo && tVivo && millis() - tVivo < 2500; }
+void vivoIniciar();                         // (más abajo, junto a la red)
+
 // ---------------- memoria (con retardo para no gastar la flash) ----------------
 void marcar() { sucio = true; tSucio = millis(); }
 void guardarAhora() { pref.putBytes("cfg", &cfg, sizeof(cfg)); sucio = false; }
@@ -141,6 +157,8 @@ void cargar() {
   if (pref.getBytes("cfg", &cfg, sizeof(cfg)) != sizeof(cfg) || cfg.firma != DEF.firma || cfg.modo >= N_MODOS) cfg = DEF;
   if (cfg.limiteA < 1 || cfg.limiteA > 25) cfg.limiteA = 20;
   whTotal = whGuardado = pref.getDouble("wh", 0);
+  vivoActivo = pref.getBool("vivo", true);
+  vivoUni = pref.getUShort("uni", 1);
   char def[16];
   snprintf(def, sizeof(def), "letrero-%04x", (uint16_t)(ESP.getEfuseMac() >> 32));
   nombre = pref.getString("nombre", def);
@@ -491,6 +509,10 @@ void dmxEnviar(uint32_t t) {
   uint32_t esc = (uint32_t)maxb * factor / 100;                                        // 0..1000
   memset(dmxBuf, 0, sizeof(dmxBuf));
   uint16_t p = dmxDir;
+  if (vivo()) {                                          // el universo del programa externo pasa tal cual (con el brillo)
+    for (uint16_t i = 0; i < 512; i++) dmxBuf[1 + i] = (uint32_t)vivoDatos[i] * esc / 1000;
+    tot = 0;
+  }
   for (uint16_t g = 0; g < tot && p + dmxCh <= 513; g++, p += dmxCh) {
     uint8_t r, v, a;
     pixColor(g, tot, nseg, t, T, &r, &v, &a);
@@ -521,14 +543,20 @@ void pixEnviar(uint32_t t) {
   if ((cfg.modo == 1 || cfg.modo == 2 || cfg.modo == 5) && t - t0 >= T) { t0 = t; paso++; }
   uint8_t maxb = cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
   uint32_t esc = (uint32_t)maxb * factor / 100 * ablFactor / 1000;                       // 0..1000
+  bool enVivo = vivo();
   for (uint8_t o = 0; o < 4; o++) {
     uint16_t n = pixN[o];
     if (!n) continue;
     rmt_data_t* p = pixBuf;
     for (uint16_t i = 0; i < n; i++, g++) {
       uint8_t c[3], r, v, a;
-      pixColor(g, tot, nseg, t, T, &r, &v, &a);
-      r = pixNivel(r, esc); v = pixNivel(v, esc); a = pixNivel(a, esc);
+      if (enVivo) {                                                                        // RGB del programa externo
+        const uint8_t* q = vivoDatos + (uint32_t)g * 3;
+        r = (uint32_t)q[0] * esc / 1000; v = (uint32_t)q[1] * esc / 1000; a = (uint32_t)q[2] * esc / 1000;
+      } else {
+        pixColor(g, tot, nseg, t, T, &r, &v, &a);
+        r = pixNivel(r, esc); v = pixNivel(v, esc); a = pixNivel(a, esc);
+      }
       if (pixOrden == 1) { c[0] = r; c[1] = v; c[2] = a; }
       else if (pixOrden == 2) { c[0] = a; c[1] = r; c[2] = v; }
       else { c[0] = v; c[1] = r; c[2] = a; }                                             // GRB (WS2812B)
@@ -698,6 +726,8 @@ String estadoJSON() {
   s += ",\"av\":"; s += auxVent;
   s += ",\"lux\":"; s += isnan(lux) ? "null" : String(lux, 0);
   s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix; s += ",\"dmx\":"; s += modoDmx;
+  s += ",\"vivo\":{\"on\":"; s += vivoActivo; s += ",\"u\":"; s += vivoUni; s += ",\"rx\":"; s += vivo();
+  s += ",\"p\":"; s += vivoPaquetes; s += '}';
   if (modoPix) {
     s += ",\"pix\":{\"n\":["; for (uint8_t k = 0; k < 4; k++) { if (k) s += ','; s += pixN[k]; }
     s += "],\"s\":"; s += pixSeg; s += ",\"o\":"; s += pixOrden; s += ",\"abl\":"; s += ablFactor / 10;
@@ -990,6 +1020,20 @@ bool ejecutar(const char* s, bool remoto) {
     pixGuardar();
     return true;
   }
+  if (!strncmp(s, "VIVO", 4)) {                               // VIVO 0|1: control en vivo por Art-Net / sACN
+    vivoActivo = atoi(s + 4) != 0 || !s[4];
+    pref.putBool("vivo", vivoActivo);
+    tVivo = 0;
+    if (WiFi.isConnected()) vivoIniciar();
+    return true;
+  }
+  if (!strncmp(s, "UNI", 3)) {                                // UNI n: universo inicial
+    vivoUni = constrain(atoi(s + 3), 0, 32767);
+    pref.putUShort("uni", vivoUni);
+    tVivo = 0;
+    if (WiFi.isConnected()) vivoIniciar();
+    return true;
+  }
   if (!strncmp(s, "HA", 2) && (s[2] == ' ' || !s[2])) {        // HA 0|1: aparecer o no en Home Assistant
     haActivo = atoi(s + 2) != 0 || !s[2];
     pref.putBool("ha", haActivo);
@@ -1246,6 +1290,71 @@ void revisarHorarios() {
     if (p.activo && (p.dias & (1 << wd)) && p.h * 60 + p.m == m) { aplicarAccion(p.acc, p.val); cambio = true; }
   if (cambio) mqPublicar();
 }
+void vivoGuardar(uint16_t uni, const uint8_t* d, int n) {
+  if (uni < vivoUni || uni - vivoUni >= VIVO_UNIS || n <= 0) return;
+  uint16_t paso = modoDmx ? 512 : 510;                       // pixeles: 170 LED RGB completos por universo
+  memcpy(vivoDatos + (uint32_t)(uni - vivoUni) * paso, d, min<int>(n, paso));
+  tVivo = millis();
+  if (!tVivo) tVivo = 1;                                    // 0 = sin datos
+  vivoPaquetes++;
+}
+void vivoAplicar() {                                         // base e IND
+  for (uint8_t c = 0; c < 4; c++) salida(c, vivoDatos[c]);
+  if (!modoInd) {
+    uint8_t maxb = cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
+    for (uint8_t k = 0; k < 2; k++) focoCC(k, (uint32_t)GAMMA12[(uint16_t)vivoDatos[4 + k] * maxb / 100] * factor / 1000);
+  }
+}
+void artResponder(IPAddress a) {                             // ArtPollReply: así los programas encuentran el equipo
+  uint8_t r[239] = {0};
+  memcpy(r, "Art-Net", 8);
+  r[9] = 0x21;                                               // OpPollReply
+  IPAddress ip = WiFi.localIP();
+  for (uint8_t i = 0; i < 4; i++) r[10 + i] = ip[i];
+  r[14] = 0x36; r[15] = 0x19;                                // puerto 6454
+  r[17] = 14;                                                // versión
+  r[18] = (vivoUni >> 8) & 0x7F; r[19] = (vivoUni >> 4) & 0x0F;
+  r[23] = 0xD0;                                              // indicadores normales, dirección por el equipo
+  strncpy((char*)r + 26, nombre.c_str(), 17);
+  snprintf((char*)r + 44, 64, "LetreroLab %s %s", VERSION, baseModelo);
+  snprintf((char*)r + 108, 64, "#0001 [%04lu] OK", (unsigned long)(vivoPaquetes % 10000));
+  r[173] = 1;                                                // un puerto
+  r[174] = 0x80;                                             // salida DMX512
+  r[182] = 0x80;                                             // transmitiendo
+  r[190] = vivoUni & 0x0F;
+  uint8_t mac[6]; WiFi.macAddress(mac); memcpy(r + 201, mac, 6);
+  for (uint8_t i = 0; i < 4; i++) r[207 + i] = ip[i];
+  r[211] = 1; r[212] = 0x08;                                 // dirección de 15 bits
+  udpArt.beginPacket(a, ART_PUERTO); udpArt.write(r, sizeof(r)); udpArt.endPacket();
+}
+void vivoIniciar() {                                         // al conectarse a la red
+  udpArt.stop(); udpSacn.stop();
+  if (!vivoActivo) return;
+  udpArt.begin(ART_PUERTO);
+  udpSacn.beginMulticast(IPAddress(239, 255, vivoUni >> 8, vivoUni & 0xFF), SACN_PUERTO);   // y unicast
+}
+void revisarVivo() {
+  if (!vivoActivo) return;
+  static uint8_t b[640];
+  for (uint8_t k = 0; k < 16; k++) {                         // varios universos por vuelta
+    int n = udpArt.parsePacket();
+    if (n <= 0) break;
+    n = udpArt.read(b, sizeof(b));
+    if (n < 12 || memcmp(b, "Art-Net", 8)) continue;
+    uint16_t op = b[8] | (b[9] << 8);
+    if (op == 0x5000 && n > 18) vivoGuardar(((b[15] & 0x7F) << 8) | b[14], b + 18, min<int>((b[16] << 8) | b[17], n - 18));
+    else if (op == 0x2000) artResponder(udpArt.remoteIP());
+  }
+  for (uint8_t k = 0; k < 16; k++) {
+    int n = udpSacn.parsePacket();
+    if (n <= 0) break;
+    n = udpSacn.read(b, sizeof(b));
+    if (n < 126 || memcmp(b + 4, "ASC-E1.17", 9) || b[21] != 0x04 || b[43] != 0x02 || b[117] != 0x02) continue;
+    if (b[112] & 0x40) { tVivo = 0; continue; }               // el programa terminó: vuelven los efectos
+    if (b[125] != 0) continue;                               // solo niveles (código de inicio 0)
+    vivoGuardar((b[113] << 8) | b[114], b + 126, min<int>(((b[123] << 8) | b[124]) - 1, n - 126));
+  }
+}
 void revisarUDP() {
   int n = udp.parsePacket();
   if (n <= 0 || n > 150) { if (n > 0) udp.clear(); return; }
@@ -1337,6 +1446,7 @@ void loop() {
       dns.stop(); WiFi.softAPdisconnect(true); WiFi.mode(WIFI_STA); modoAP = false;
     }
     mqIniciar();
+    vivoIniciar();
     Serial.printf("Wi-Fi %s  IP %s  http://%s.local\n", wifiRed.c_str(), WiFi.localIP().toString().c_str(), nombre.c_str());
   }
   conectadoAntes = conectado;
@@ -1349,6 +1459,7 @@ void loop() {
   leerSerie();
   leerBoton();
   revisarUDP();
+  revisarVivo();
   if (irListo) { irListo = false; teclaIR(irCodigo); }
   char buf[128];
   while (xQueueReceive(colaMq, buf, 0) == pdTRUE) {     // varias órdenes por mensaje, una por renglón
@@ -1425,8 +1536,10 @@ void loop() {
   } else if (activo && falla == SIN_FALLA) {
     uint32_t r = min<uint32_t>(1000, (t - tRampa) * 1000 / 600);          // arranque suave de 0.6 s
     factor = (uint16_t)(r * factorTemperatura() / 1000);
-    if (!modoPix) efectos(t);
-    if (!modoInd && !modoPix) for (uint8_t k = 0; k < 2; k++) focoCC(k, (uint32_t)GAMMA12[cfg.cc[k] * 255 / 100] * factor / 1000);
+    bool enVivo = vivo();
+    if (enVivo && !modoPix) vivoAplicar();
+    else if (!modoPix) efectos(t);
+    if (!modoInd && !modoPix && !enVivo) for (uint8_t k = 0; k < 2; k++) focoCC(k, (uint32_t)GAMMA12[cfg.cc[k] * 255 / 100] * factor / 1000);
   } else {
     tRampa = t;
     factor = 0;

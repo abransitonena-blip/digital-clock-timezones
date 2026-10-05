@@ -53,6 +53,8 @@ Con este módulo, el programador AP-1 se vuelve un **controlador DMX con Wi-Fi**
 - **LED verde (D5):** parpadea mientras se transmite. La app muestra cuántos cuadros se han enviado.
 - **Home Assistant:** aparece como luz **RGB** con brillo y efectos, igual que el módulo de pixeles.
 
+- **Control en vivo (nodo Art-Net / sACN):** con QLC+ u otra consola por software, el universo que llega por Wi-Fi sale tal cual por la línea DMX. El módulo funciona como un **nodo Art-Net a DMX inalámbrico**. Ver [ECOSISTEMA.md](../ECOSISTEMA.md#control-en-vivo-desde-la-computadora-art-net--sacn).
+
 ## Circuito
 
 - **Entrada y fuente de 12 V:** las de la plantilla. Fusible de 3 A, diodo contra polaridad invertida, supresor y LMR16006.

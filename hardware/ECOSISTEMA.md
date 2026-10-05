@@ -62,6 +62,27 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
   - si no tiene medidor ni eco, es un IND: `LL-IND`.
 - Con `MODELO texto` se puede poner el modelo a mano. Lo que empieza con `LL-IND` activa el modo industrial, lo que empieza con `LL-PIX`, el de pixeles, y lo que empieza con `LL-DMX`, el de DMX512.
 
+## Control en vivo desde la computadora (Art-Net / sACN)
+
+Desde el programa 1.4, cualquier equipo AP-1 recibe **Art-Net** (puerto 6454) y **sACN / E1.31** (puerto 5568) por Wi-Fi. Así se pueden animar letreros cuadro por cuadro con programas gratuitos o profesionales:
+- **xLights** (animaciones y música para letreros y fachadas);
+- **QLC+** (consola de iluminación);
+- **Jinx!** y **Resolume** (video sobre matrices de pixeles).
+
+| Módulo | Cómo se usan los canales |
+|---|---|
+| PIX | 170 LED RGB por universo (510 canales): salida 1, luego 2, 3 y 4, como una sola cadena |
+| DMX | El universo pasa tal cual a la línea DMX (512 canales) |
+| BASE | Canales 1-4 = salidas 1-4; 5-6 = focos de corriente constante |
+| IND | Canales 1-4 = salidas 0-10 V |
+
+- Mientras lleguen datos y la luz esté encendida, **manda el programa externo**. Con 2.5 s sin datos, o cuando el programa avisa que terminó (sACN), vuelven los efectos y los horarios normales.
+- Se respetan el **brillo máximo**, el modo **ahorro** y, en el PIX, el **límite de corriente medida**. El horario de apagado también apaga la animación.
+- **Universo inicial:** `UNI n` (o en la app). Es el mismo número en Art-Net y en sACN; por omisión, 1. `VIVO 0` lo desactiva.
+- **Configurar xLights:** en *Controllers* agrega un controlador **Ethernet**, protocolo **E1.31** o **ArtNet**, con la **IP del equipo** (la muestra la app) y universo inicial 1. Para un PIX con 300 LED: 2 universos (170 + 130).
+- Usa **unicast** (la IP del equipo). El multicast de sACN solo se escucha en el primer universo.
+- El equipo responde al **ArtPoll**, así que aparece solo en los programas que buscan nodos Art-Net.
+
 ## Reglas de seguridad del ecosistema (no cambian)
 
 1. **La red de 127/240 V no entra a ninguna placa LetreroLab.** Las luces de red se encienden con un **contactor o relevador de estado sólido de riel DIN certificado**, instalado por un electricista. La placa solo mueve la bobina de 12-24 V.

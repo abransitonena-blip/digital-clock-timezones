@@ -49,6 +49,8 @@ Funciona con **WS2812B, SK6812 (RGB), WS2813 y WS2815**, de 5, 12 o 24 V.
 - **Velocidad:** 30 cuadros por segundo. El ESP32-C3 tiene 2 canales RMT de salida, así que las 4 salidas se mandan una tras otra; con 300 LED por salida son unos 36 ms por cuadro (unos 27 cuadros por segundo).
 - **Home Assistant:** la luz aparece con **color RGB**, brillo y efectos, más los sensores de voltaje, corriente, potencia y energía.
 
+- **Control en vivo:** también se puede animar desde **xLights**, Jinx! o Resolume por Art-Net / sACN (170 LED por universo). Ver [ECOSISTEMA.md](../ECOSISTEMA.md#control-en-vivo-desde-la-computadora-art-net--sacn).
+
 ## Circuito
 
 - **Entrada:** los mismos bloques probados de la base.
