@@ -98,6 +98,8 @@ def build_board(S):
                 b.Add(ni); pad.SetNet(ni)
         if ref in getattr(S, "OCULTAR_REF", ()):   # bornes con etiquetas propias en la serigrafía
             fp.Reference().SetVisible(False)
+        if ref.startswith("JP"):                 # puente de soldadura: igual que el símbolo (salidas.py no lo manda a la BOM)
+            fp.SetExcludedFromBOM(False)
         if ref.startswith("TP"):
             fp.SetExcludedFromBOM(False)
             fp.Reference().SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))     # mínimo de JLCPCB

@@ -9,7 +9,7 @@ NOM=LetreroLab_proyecto_completo
 T=$(mktemp -d); D=$T/$NOM; mkdir -p "$D"
 cd "$H"
 # placas del ecosistema (las de 127 V antiguas no van: la red no entra a ninguna placa nueva)
-for d in ap1-base ap1-prog ap1-ind ap1-pix ap1-plantilla ap1-gabinete ap1-ensamble ap02 tools PEDIDO_JLCPCB \
+for d in ap1-base ap1-prog ap1-ind ap1-pix ap1-plantilla ap1-dmx ap1-gabinete ap1-ensamble ap02 tools PEDIDO_JLCPCB \
          fuente-os-127v/gen controlador-flechas-36v/gen; do
   mkdir -p "$D/$(dirname "$d")"
   cp -r "$d" "$D/$(dirname "$d")/"

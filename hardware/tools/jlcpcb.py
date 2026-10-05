@@ -28,6 +28,7 @@ CONOCIDOS = {
     ("UCC27524D", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C465729", "Extended"),
     ("AL8860MP", "MSOP-8-1EP_3x3mm_P0.65mm_EP1.5x1.8mm"): ("C500782", "Extended"),
     ("TMP1075D", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C2878381", "Extended"),
+    ("SP3485EN", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C8963", "Basic"),            # SP3485EN-L/TR (RS-485 a 3.3 V)
     ("BSC028N06LS3", "TDSON-8-1"): ("C534316", "Extended"),
     ("BSC016N06NS", "TDSON-8-1"): ("C454269", "Extended"),
     ("47uH", "L_Changjiang_FNR4030S"): ("C167888", "Extended"),           # FNR4030S470MT

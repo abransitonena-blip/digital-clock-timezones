@@ -16,9 +16,9 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
                      conector LL 2x8: enclavado (11 mm) o cable plano IDC de hasta 1 m
         ┌───────────────────────┼────────────────────────┐
 ┌───────┴────────┐  ┌────────┴────────┐  ┌────────┴────────┐  ┌─────────────────┐
-│ AP-1 BASE      │  │ AP-1 IND        │  │ AP-1 PIX        │  │ (próximos)      │
-│ 4 x 8 A PWM    │  │ 4 x 0-10 V      │  │ 4 salidas de    │  │ DALI, RS-485,   │
-│ 2 x 1 A CC     │  │   aislados      │  │ pixeles 5-24 V  │  │ CC 60 V         │
+│ AP-1 BASE      │  │ AP-1 IND        │  │ AP-1 PIX        │  │ AP-1 DMX        │
+│ 4 x 8 A PWM    │  │ 4 x 0-10 V      │  │ 4 salidas de    │  │ DMX512 (RS-485) │
+│ 2 x 1 A CC     │  │   aislados      │  │ pixeles 5-24 V  │  │ reflectores RGB │
 │ AUX 12 V       │  │ 2 contactores   │  │ brillo limitado │  │                 │
 └────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
 ```
@@ -33,6 +33,7 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
 | **Naves industriales y oficinas** | campanas LED, paneles, reflectores con driver **dimeable 0-10 V / 1-10 V** | **IND** | Atenúa hasta 4 grupos de drivers por 0-10 V aislado, y enciende o apaga su alimentación con el contactor |
 | **Todo en una sola placa, sin módulos** | letrero sencillo con relevador | **AP-0.2** | Placa única de 90 × 70 mm |
 | **Letreros de pixeles (WS2812/SK6812/WS2815)** | letras en secuencia, arcoíris, fachadas | **PIX** ([guía](ap1-pix/LEEME.md)) | 4 salidas con +V con fusible, datos a 5 V y GND; brillo limitado por corriente medida |
+| **Equipos DMX512** | reflectores RGB/RGBW, barras, decodificadores DMX para tiras, atenuadores DMX | **DMX** ([guía](ap1-dmx/LEEME.md)) | Manda un universo DMX512 por RS-485; cada equipo es un "pixel" con los 10 modos |
 | **Sistemas DALI** | edificios con DALI | *DALI (propuesto)* | Bus DALI aislado |
 
 ## Cómo se conectan
@@ -47,7 +48,7 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
 | Pata | Señal | Pata | Señal |
 |---|---|---|---|
 | 1, 2 | +12 V del módulo al programador | 3, 4, 16 | GND |
-| 5-8 | PWM 1-4 (BASE: MOSFET · IND: 0-10 V · PIX: datos de pixeles) | 9, 10 | CTRL 1-2 (BASE: focos CC · IND: contactor 2) |
+| 5-8 | PWM 1-4 (BASE: MOSFET · IND: 0-10 V · PIX: datos de pixeles · DMX: TX, eco, DE) | 9, 10 | CTRL 1-2 (BASE: focos CC · IND: contactor 2) |
 | 11, 12 | SDA, SCL (memoria y sensores) | 13 | ALERTA (corte por hardware en la BASE) |
 | 14 | AUX (BASE: relevador · IND: contactor 1) | 15 | 3.3 V del programador a los sensores |
 
@@ -57,8 +58,9 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
 - Un módulo nuevo se formatea solo la primera vez:
   - si tiene medidor de corriente (INA238), es una BASE: `AP-1 universal`;
   - si tiene medidor pero no sensor de temperatura, es un PIX: `LL-PIX`;
-  - si no tiene medidor, es un IND: `LL-IND`.
-- Con `MODELO texto` se puede poner el modelo a mano. Lo que empieza con `LL-IND` activa el modo industrial, y lo que empieza con `LL-PIX`, el de pixeles.
+  - si no tiene medidor pero el transceptor RS-485 regresa el eco, es un DMX: `LL-DMX`;
+  - si no tiene medidor ni eco, es un IND: `LL-IND`.
+- Con `MODELO texto` se puede poner el modelo a mano. Lo que empieza con `LL-IND` activa el modo industrial, lo que empieza con `LL-PIX`, el de pixeles, y lo que empieza con `LL-DMX`, el de DMX512.
 
 ## Reglas de seguridad del ecosistema (no cambian)
 
@@ -89,7 +91,7 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
 | Módulo | Para qué | Idea de circuito |
 |---|---|---|
 | **DALI** | Edificios con drivers DALI | Fuente de bus DALI de 16 V limitada a 250 mA y transceptor aislado con optoacopladores |
-| **RS-485** | Módulos a cientos de metros con cable de red (CAT5) | Extensor del conector LL por RS-485 (Modbus RTU) con autodescubrimiento por dirección |
+| **RS-485 (LL remoto)** | Módulos a cientos de metros con cable de red (CAT5) | Extensor del conector LL por RS-485 (Modbus RTU) con autodescubrimiento por dirección |
 | **CC 60 V** | Focos de corriente constante con más LED en serie | AL8862 (60 V, 1 A) en lugar del AL8860 (42 V) |
 
 Cada uno se diseña con la misma librería (`tools/placa.py`), la misma medida, el mismo conector y la misma memoria. Así el programador y el gabinete siguen siendo los mismos.

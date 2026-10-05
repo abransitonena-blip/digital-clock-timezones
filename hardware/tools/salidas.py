@@ -46,7 +46,7 @@ def jlc_files(jlc):
     b = pcbnew.LoadBoard(PCB)
     groups, cpl, tht = {}, {}, set()
     for f in b.GetFootprints():
-        if f.IsExcludedFromBOM() or f.GetReference().startswith(("H", "TP")):
+        if f.IsExcludedFromBOM() or f.GetReference().startswith(("H", "TP", "JP")):
             continue
         ref, val, fpn = f.GetReference(), f.GetValue(), f.GetFPID().GetLibItemName().wx_str()
         groups.setdefault((val, fpn), []).append(ref)

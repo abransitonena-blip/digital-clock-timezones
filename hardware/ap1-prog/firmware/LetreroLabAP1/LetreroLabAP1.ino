@@ -49,7 +49,7 @@
 #include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.2"
+#define VERSION "AP-1 fw 1.3"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -114,6 +114,7 @@ volatile bool alerta = false;
 bool hayBase = false, hayOLED = false, hayLux = false, auxVent = false;
 bool modoInd = false;                       // módulo AP-1 IND (0-10 V + contactores) en lugar de la base
 bool modoPix = false;                       // módulo AP-1 PIX (pixeles direccionables) en lugar de la base
+bool modoDmx = false;                       // módulo AP-1 DMX (DMX512): cada equipo DMX es un "pixel" (modoPix también)
 char baseModelo[17] = "", baseSerie[33] = "";
 uint32_t baseHoras = 0;
 uint16_t baseNormal[6] = {0};              // consumo normal aprendido por salida (mA, a 100 %)
@@ -349,6 +350,7 @@ void eepEscribir(uint8_t dir, const void* buf, uint8_t n) {   // páginas de 8 b
     dir += k; b += k; n -= k;
   }
 }
+bool dmxDetectar();                          // módulo DMX (más abajo)
 void leerBase() {
   uint8_t cab[3];
   hayBase = eepLeer(0, cab, 3);
@@ -356,12 +358,14 @@ void leerBase() {
   if (cab[0] != 'L' || cab[1] != 'L' || cab[2] != 1) {            // base nueva: se le da formato
     uint8_t vacio[37] = {'L', 'L', 1};
     // BASE: medidor + temperatura; PIX: solo medidor; IND: ninguno de los dos
-    strcpy((char*)vacio + 3, hayINA ? (hayTMP ? "AP-1 universal" : "LL-PIX") : "LL-IND");
+    // sin medidor: DMX si el transceptor regresa el eco, si no IND
+    strcpy((char*)vacio + 3, hayINA ? (hayTMP ? "AP-1 universal" : "LL-PIX") : (dmxDetectar() ? "LL-DMX" : "LL-IND"));
     eepEscribir(0, vacio, sizeof(vacio));
   }
   eepLeer(3, baseModelo, 16); baseModelo[16] = 0;
   modoInd = !strncmp(baseModelo, "LL-IND", 6);
-  modoPix = !strncmp(baseModelo, "LL-PIX", 6);
+  modoDmx = !strncmp(baseModelo, "LL-DMX", 6);
+  modoPix = modoDmx || !strncmp(baseModelo, "LL-PIX", 6);
   eepLeer(20, baseNormal, 12);
   eepLeer(32, &baseHoras, 4);
   eepLeer(36, &baseReposo, 2);
@@ -394,6 +398,31 @@ const uint8_t EEP_PIX = 64;
 uint16_t pixN[4] = {0, 0, 0, 0};
 uint8_t pixSeg = 0, pixOrden = 0;           // segmentos (0 = uno por salida); orden 0 GRB, 1 RGB, 2 BRG
 uint16_t ablFactor = 1000;                  // limitación de brillo por corriente medida (0..1000)
+// ---- módulo DMX: DMX512 por RS-485 (SP3485). DI = PWM1 (TX de UART1), RO = PWM2, DE = PWM3; /RE fijo en bajo,
+// así el receptor regresa el eco de lo que se manda: con eso se reconoce el módulo. Dirección y canales: bytes 74-76.
+const uint8_t EEP_DMX = 74;
+uint16_t dmxDir = 1;                        // canal DMX del primer equipo (1-512)
+uint8_t dmxCh = 3;                          // canales por equipo: 1 atenuador, 3 RGB, 4 RGBW
+uint8_t dmxBuf[513];                        // [0] = código de inicio (0); [1..512] = canales
+uint32_t dmxCuadros = 0;
+void dmxAjustar() {                         // que todos los equipos quepan en el universo
+  if (dmxDir + (uint32_t)pixN[0] * dmxCh > 513) pixN[0] = (513 - dmxDir) / dmxCh;
+}
+bool dmxDetectar() {
+  for (uint8_t c = 0; c < 3; c++) ledcDetach(PWM_PIN[c]);
+  pinMode(PWM_PIN[0], OUTPUT); pinMode(PWM_PIN[2], OUTPUT); pinMode(PWM_PIN[1], INPUT);
+  digitalWrite(PWM_PIN[2], HIGH);                            // DE: transmitir
+  bool ok = true;
+  for (uint8_t i = 0; i < 8 && ok; i++) {
+    digitalWrite(PWM_PIN[0], i & 1);
+    delayMicroseconds(20);
+    ok = digitalRead(PWM_PIN[1]) == (i & 1);
+  }
+  digitalWrite(PWM_PIN[0], LOW); digitalWrite(PWM_PIN[2], LOW);
+  for (uint8_t c = 0; c < 3; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); dutyActual[c] = 9999; }
+  Serial.printf("Eco DMX: %s\n", ok ? "si" : "no");
+  return ok;
+}
 rmt_data_t* pixBuf = nullptr;
 uint32_t tPix = 0;
 void pixLeer() {
@@ -404,16 +433,34 @@ void pixLeer() {
     pixN[k] = v == 0xFFFF ? (k == 0 ? 60 : 0) : min<uint16_t>(v, PIX_MAX);   // módulo nuevo: 60 LED en la salida 1
   }
   pixSeg = b[8] == 0xFF ? 0 : b[8];
-  pixOrden = b[9] > 2 ? 0 : b[9];
+  pixOrden = b[9] > 2 ? (modoDmx ? 1 : 0) : b[9];               // DMX: RGB por omisión; tiras: GRB
+  if (modoDmx) {
+    uint8_t d[3];
+    if (!eepLeer(EEP_DMX, d, 3)) return;
+    uint16_t dir = d[0] | (d[1] << 8);
+    dmxDir = (dir < 1 || dir > 512) ? 1 : dir;
+    dmxCh = (d[2] == 1 || d[2] == 3 || d[2] == 4) ? d[2] : 3;
+    pixN[1] = pixN[2] = pixN[3] = 0;                          // una sola línea DMX
+    if (pixN[0] == 60 && b[0] == 0xFF) pixN[0] = 8;           // módulo nuevo: 8 equipos RGB
+    dmxAjustar();
+  }
 }
 void pixGuardar() {
   uint8_t b[10];
   for (uint8_t k = 0; k < 4; k++) { b[2 * k] = pixN[k] & 0xFF; b[2 * k + 1] = pixN[k] >> 8; }
   b[8] = pixSeg; b[9] = pixOrden;
   eepEscribir(EEP_PIX, b, 10);
+  if (modoDmx) { uint8_t d[3] = {(uint8_t)(dmxDir & 0xFF), (uint8_t)(dmxDir >> 8), dmxCh}; eepEscribir(EEP_DMX, d, 3); }
 }
 uint16_t pixTotal() { return pixN[0] + pixN[1] + pixN[2] + pixN[3]; }
 void pixIniciar() {
+  if (modoDmx) {
+    for (uint8_t c = 0; c < 4; c++) { ledcDetach(PWM_PIN[c]); pinMode(PWM_PIN[c], OUTPUT); digitalWrite(PWM_PIN[c], LOW); }
+    digitalWrite(PWM_PIN[2], HIGH);                           // DE: el módulo solo transmite
+    Serial1.setTxBufferSize(1024);                            // el cuadro se manda sin detener el programa
+    Serial1.begin(250000, SERIAL_8N2, PWM_PIN[1], PWM_PIN[0]);
+    return;
+  }
   for (uint8_t c = 0; c < 4; c++) { ledcDetach(PWM_PIN[c]); pinMode(PWM_PIN[c], OUTPUT); digitalWrite(PWM_PIN[c], LOW); }
   pixBuf = (rmt_data_t*)malloc(PIX_MAX * 24 * sizeof(rmt_data_t));
 }
@@ -435,7 +482,38 @@ void pixColor(uint16_t g, uint16_t tot, uint8_t nseg, uint32_t t, uint16_t T, ui
   }
   *r = (uint16_t)cr * k / 255; *v = (uint16_t)cg * k / 255; *a = (uint16_t)cb * k / 255;
 }
+uint8_t pixNivel(uint8_t x, uint32_t esc) { return min<uint32_t>(255, ((uint32_t)GAMMA12[x] * esc / 1000) >> 4); }   // curva 2.2 y brillo
+void dmxEnviar(uint32_t t) {
+  uint16_t T = 1500 - cfg.vel * 140, tot = pixN[0];
+  uint8_t nseg = pixSeg ? pixSeg : min<uint16_t>(max<uint16_t>(tot, 1), 255);   // 0: cada equipo es una "letra"
+  if ((cfg.modo == 1 || cfg.modo == 2 || cfg.modo == 5) && t - t0 >= T) { t0 = t; paso++; }
+  uint8_t maxb = cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
+  uint32_t esc = (uint32_t)maxb * factor / 100;                                        // 0..1000
+  memset(dmxBuf, 0, sizeof(dmxBuf));
+  uint16_t p = dmxDir;
+  for (uint16_t g = 0; g < tot && p + dmxCh <= 513; g++, p += dmxCh) {
+    uint8_t r, v, a;
+    pixColor(g, tot, nseg, t, T, &r, &v, &a);
+    r = pixNivel(r, esc); v = pixNivel(v, esc); a = pixNivel(a, esc);
+    if (dmxCh == 1) { dmxBuf[p] = max(r, max(v, a)); continue; }                       // atenuador
+    uint8_t w = 0;
+    if (dmxCh == 4) { w = min(r, min(v, a)); r -= w; v -= w; a -= w; }                 // RGBW: el blanco común al LED W
+    uint8_t* c = dmxBuf + p;
+    if (pixOrden == 1) { c[0] = r; c[1] = v; c[2] = a; }
+    else if (pixOrden == 2) { c[0] = a; c[1] = r; c[2] = v; }
+    else { c[0] = v; c[1] = r; c[2] = a; }
+    if (dmxCh == 4) c[3] = w;
+  }
+  Serial1.flush();                                      // termina el cuadro anterior (22.6 ms a 250 kbit/s)
+  Serial1.updateBaudRate(83333);                        // BREAK: un 0 a 83.3 kbit/s = 108 us en bajo, 24 us de MAB
+  Serial1.write((uint8_t)0);
+  Serial1.flush();
+  Serial1.updateBaudRate(250000);
+  Serial1.write(dmxBuf, sizeof(dmxBuf));                // código de inicio 0 y 512 canales
+  dmxCuadros++;
+}
 void pixEnviar(uint32_t t) {
+  if (modoDmx) { dmxEnviar(t); return; }
   if (!pixBuf) return;
   uint16_t T = 1500 - cfg.vel * 140, tot = pixTotal(), g = 0;
   uint8_t usadas = (pixN[0] > 0) + (pixN[1] > 0) + (pixN[2] > 0) + (pixN[3] > 0);
@@ -450,9 +528,7 @@ void pixEnviar(uint32_t t) {
     for (uint16_t i = 0; i < n; i++, g++) {
       uint8_t c[3], r, v, a;
       pixColor(g, tot, nseg, t, T, &r, &v, &a);
-      r = min<uint32_t>(255, ((uint32_t)GAMMA12[r] * esc / 1000) >> 4);                 // curva 2.2 y brillo
-      v = min<uint32_t>(255, ((uint32_t)GAMMA12[v] * esc / 1000) >> 4);
-      a = min<uint32_t>(255, ((uint32_t)GAMMA12[a] * esc / 1000) >> 4);
+      r = pixNivel(r, esc); v = pixNivel(v, esc); a = pixNivel(a, esc);
       if (pixOrden == 1) { c[0] = r; c[1] = v; c[2] = a; }
       else if (pixOrden == 2) { c[0] = a; c[1] = r; c[2] = v; }
       else { c[0] = v; c[1] = r; c[2] = a; }                                             // GRB (WS2812B)
@@ -621,10 +697,12 @@ String estadoJSON() {
   s += ",\"cc\":["; s += cfg.cc[0]; s += ','; s += cfg.cc[1]; s += "],\"ym\":"; s += cfg.auxModo;
   s += ",\"av\":"; s += auxVent;
   s += ",\"lux\":"; s += isnan(lux) ? "null" : String(lux, 0);
-  s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix;
+  s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix; s += ",\"dmx\":"; s += modoDmx;
   if (modoPix) {
     s += ",\"pix\":{\"n\":["; for (uint8_t k = 0; k < 4; k++) { if (k) s += ','; s += pixN[k]; }
-    s += "],\"s\":"; s += pixSeg; s += ",\"o\":"; s += pixOrden; s += ",\"abl\":"; s += ablFactor / 10; s += '}';
+    s += "],\"s\":"; s += pixSeg; s += ",\"o\":"; s += pixOrden; s += ",\"abl\":"; s += ablFactor / 10;
+    if (modoDmx) { s += ",\"d\":"; s += dmxDir; s += ",\"ch\":"; s += dmxCh; s += ",\"fr\":"; s += dmxCuadros; }
+    s += '}';
   }
   s += ",\"base\":{\"ok\":"; s += hayBase; s += ",\"mod\":\""; s += baseModelo; s += "\",\"sn\":\""; s += baseSerie;
   s += "\",\"h\":"; s += baseHoras; s += ",\"n\":[";
@@ -897,12 +975,18 @@ bool ordenDeGrupo(const char* o) {                       // por grupo solo viaja
 // devuelve true si cambió algo (se publica el estado)
 bool ejecutar(const char* s, bool remoto) {
   if (!strncmp(s, "DIAG", 4)) { iniciarDiag(false); return true; }
-  if (!strncmp(s, "PX", 2) || !strncmp(s, "PS", 2) || !strncmp(s, "PO", 2)) {   // configuración de pixeles
+  if (!strncmp(s, "PX", 2) || !strncmp(s, "PS", 2) || !strncmp(s, "PO", 2) || !strncmp(s, "PD", 2)) {   // pixeles y DMX
     if (!modoPix) return false;
     const char* q = s + 2;
     if (s[1] == 'X') for (uint8_t k = 0; k < 4; k++) { while (*q == ' ') q++; if (*q) pixN[k] = constrain(numero(q), 0, PIX_MAX); }
-    else if (s[1] == 'S') pixSeg = constrain(numero(q), 0, 64);
-    else pixOrden = constrain(numero(q), 0, 2);
+    else if (s[1] == 'S') pixSeg = constrain(numero(q), 0, modoDmx ? 255 : 64);
+    else if (s[1] == 'O') pixOrden = constrain(numero(q), 0, 2);
+    else if (modoDmx) {                                       // PD dirección canales  (p. ej. PD 1 3)
+      dmxDir = constrain(numero(q), 1, 512);
+      while (*q == ' ') q++;
+      if (*q) { int c = numero(q); dmxCh = (c == 1 || c == 4) ? c : 3; }
+    } else return false;
+    if (modoDmx) { pixN[1] = pixN[2] = pixN[3] = 0; dmxAjustar(); }
     pixGuardar();
     return true;
   }
@@ -921,7 +1005,8 @@ bool ejecutar(const char* s, bool remoto) {
     eepEscribir(3, b, 16);
     memcpy(baseModelo, b, 16); baseModelo[16] = 0;
     modoInd = !strncmp(baseModelo, "LL-IND", 6);
-    modoPix = !strncmp(baseModelo, "LL-PIX", 6);
+    modoDmx = !strncmp(baseModelo, "LL-DMX", 6);
+    modoPix = modoDmx || !strncmp(baseModelo, "LL-PIX", 6);
     pedirReinicio = true;                                   // frecuencias y Home Assistant según el módulo
     return true;
   }
@@ -1329,6 +1414,7 @@ void loop() {
 
   bool activo = cfg.encendido && porHorario && porLuz;
   if (modoInd) digitalWrite(PIN_AUX, activo ? HIGH : LOW);     // contactor 1: sigue al encendido de la luz
+  else if (modoDmx) digitalWrite(PIN_AUX, (dmxCuadros >> 3) & 1);  // LED DMX: parpadea mientras se transmite
   else digitalWrite(PIN_AUX, cfg.auxModo ? auxVent : ((activo && cfg.aux) ? HIGH : LOW));
   uint16_t per = falla ? 80 : (modoAP ? 150 : (conectado ? (activo ? 1000 : 250) : 500));
   digitalWrite(PIN_LED, falla ? ((t / per) % 6 < 2) : ((t / per) & 1));    // falla: doble destello

@@ -55,6 +55,16 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><label>Letras</label><input type="number" min="0" max="64" id="pxs" style="width:80px">
    <select id="pxo"><option value="0">GRB (WS2812B)</option><option value="1">RGB</option><option value="2">BRG</option></select></div>
   <div class="row"><button class="b" id="pxg">Guardar en el módulo</button><span id="pxabl" class="muted"></span></div></div>
+ <div class="card" id="tdmx" style="display:none"><h3>Módulo DMX512</h3>
+  <p class="muted">Cada equipo DMX (reflector RGB, barra, atenuador) es un "pixel": los efectos usan el color de arriba.
+  Pon en cada equipo su dirección: el primero en la dirección inicial y los siguientes de tantos en tantos canales.</p>
+  <div class="row"><label>Equipos</label><input type="number" min="0" max="512" id="dmn" style="width:80px">
+   <label style="min-width:auto">Dirección</label><input type="number" min="1" max="512" id="dmd" style="width:80px"></div>
+  <div class="row"><label>Canales</label><select id="dmc"><option value="1">1 (atenuador)</option><option value="3">3 (RGB)</option>
+   <option value="4">4 (RGBW)</option></select><select id="dmo"><option value="1">RGB</option><option value="0">GRB</option><option value="2">BRG</option></select></div>
+  <div class="row"><label>Grupos</label><input type="number" min="0" max="255" id="dms" style="width:80px">
+   <span class="muted">para la secuencia (0 = cada equipo)</span></div>
+  <div class="row"><button class="b" id="dmg">Guardar en el módulo</button><span id="dmf" class="muted"></span></div></div>
  <div class="card" id="tind" style="display:none"><h3>Módulo industrial (0-10 V)</h3>
   <p class="muted">Los canales 1-4 son salidas 0-10 V aisladas: el brillo y los efectos atenúan los drivers de las luminarias.
   El contactor 1 enciende la alimentación de las luces junto con el letrero; el 2 es manual o por horario.</p>
@@ -151,7 +161,9 @@ function pinta(){
  if(!cambiando){$("vel").value=E.s;$("bri").value=E.b;$("umb").value=E.u;$("ch").value=E.ch;$("w").value=E.c[3];
   $("rgb").value="#"+E.c.slice(0,3).map(v=>v.toString(16).padStart(2,"0")).join("")}
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
- $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px?"":"none";
+ $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";$("tdmx").style.display=E.dmx?"":"none";
+ if(E.dmx&&E.pix&&document.activeElement.tagName!="INPUT"&&document.activeElement.tagName!="SELECT"){$("dmn").value=E.pix.n[0];$("dmd").value=E.pix.d;$("dmc").value=E.pix.ch;$("dmo").value=E.pix.o;$("dms").value=E.pix.s}
+ if(E.dmx&&E.pix)$("dmf").textContent=` ${E.pix.fr} cuadros enviados`;
  if(E.px&&E.pix&&document.activeElement.tagName!="INPUT"){for(let k=0;k<4;k++)$("px"+(k+1)).value=E.pix.n[k];$("pxs").value=E.pix.s;$("pxo").value=E.pix.o}
  if(E.px&&E.pix)$("pxabl").textContent=E.pix.abl<100?` Brillo limitado al ${E.pix.abl}% por corriente`:"";$("tcc").style.display=$("taux").style.display=E.ind?"none":"";
  $("k2").textContent=E.cc[0]?"Contactor 2 encendido":"Contactor 2 apagado";$("k2").className="b"+(E.cc[0]?" on":"");
@@ -194,7 +206,7 @@ desliza("vel",v=>"V "+v);desliza("lim",v=>"J "+v);desliza("bri",v=>"B "+v);desli
 const colorCmd=()=>{const h=$("rgb").value;return`C ${parseInt(h.substr(1,2),16)} ${parseInt(h.substr(3,2),16)} ${parseInt(h.substr(5,2),16)} ${$("w").value}`};
 $("rgb").onchange=()=>api(colorCmd());$("ch").onchange=()=>api("N "+$("ch").value);
 $("pw").onclick=()=>api("P "+(E.p?0:1));
-$("pxg").onclick=async()=>{await api(`PX ${$("px1").value} ${$("px2").value} ${$("px3").value} ${$("px4").value}`);await api("PS "+$("pxs").value);api("PO "+$("pxo").value)};$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
+$("pxg").onclick=async()=>{await api(`PX ${$("px1").value} ${$("px2").value} ${$("px3").value} ${$("px4").value}`);await api("PS "+$("pxs").value);api("PO "+$("pxo").value)};$("dmg").onclick=async()=>{await api(`PD ${$("dmd").value} ${$("dmc").value}`);await api("PX "+$("dmn").value);await api("PS "+$("dms").value);api("PO "+$("dmo").value)};$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
 desliza("cc1",v=>`O ${v} ${E.cc[1]}`);desliza("cc2",v=>`O ${E.cc[0]} ${v}`);$("ym").onchange=()=>api("Y "+$("ym").value);
 $("dgo").onclick=()=>{api("DIAG");msg("Probando salidas...")};$("apr").onclick=()=>{api("APRENDER");msg("Aprendiendo...")};
 $("bmodok").onclick=()=>{api("MODELO "+$("bmod").value);msg("Modelo guardado en la base")};
