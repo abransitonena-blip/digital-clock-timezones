@@ -71,6 +71,14 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><label><input type="checkbox" id="vvon"> Activo</label><label style="min-width:auto">Universo</label>
    <input type="number" min="0" max="32767" id="vvu" style="width:90px"><button class="b" id="vvg">Guardar</button></div>
   <p class="muted" id="vvst"></p></div>
+ <div class="card" id="tio" style="display:none"><h3>Entradas y salidas (AP INPUT / AP OUTPUT)</h3>
+  <p class="muted">Salidas de 24 V: toca para encender o apagar. Las cargas de red se mandan con un contactor.</p>
+  <div class="row" id="iosal"></div>
+  <div class="row" id="ioent"></div>
+  <p class="muted">Qué hace cada entrada al activarse ("mientras": al soltar hace lo contrario).</p>
+  <div class="row"><select id="ion"></select><select id="ioa"></select>
+   <input type="number" min="0" max="100" id="iov" style="width:70px" title="valor: salida 1-28, escena 0-3, brillo %, AUX 0/1">
+   <label><input type="checkbox" id="iom"> mientras</label><button class="b" id="iog">Guardar</button></div></div>
  <div class="card" id="tind" style="display:none"><h3>Módulo industrial (0-10 V)</h3>
   <p class="muted">Los canales 1-4 son salidas 0-10 V aisladas: el brillo y los efectos atenúan los drivers de las luminarias.
   El contactor 1 enciende la alimentación de las luces junto con el letrero; el 2 es manual o por horario.</p>
@@ -150,7 +158,7 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
 </main><div id="msg"></div>
 <script>
 const $=i=>document.getElementById(i),MOD=["Fijo","Secuencia","Parpadeo","Respirar","Sec. suave","Alternado","Color","Arcoíris","Flash","Vela"],
-DIAS="DLMMJVS",DN=["dom","lun","mar","mié","jue","vie","sáb"],ACC=["Apagar todo","Encender todo","Salida AUX","Escena","Brillo"];let E={},cambiando=0;
+DIAS="DLMMJVS",DN=["dom","lun","mar","mié","jue","vie","sáb"],ACC=["Apagar todo","Encender todo","Salida AUX","Escena","Brillo","Encender salida","Apagar salida","Alternar salida","Alternar luz"];let E={},cambiando=0;
 const TZ=[["CST6","México centro (CDMX, GDL, MTY)"],["EST5","Cancún / Quintana Roo"],["MST7","Sonora / Mazatlán"],
 ["PST8PDT,M3.2.0,M11.1.0","Tijuana"],["CST6CDT,M3.2.0,M11.1.0","Frontera norte / Chicago"],["EST5EDT,M3.2.0,M11.1.0","Nueva York"],
 ["PST8PDT,M3.2.0,M11.1.0","Los Ángeles"],["COT5","Colombia"],["PET5","Perú"],["ECT5","Ecuador"],["VET4","Venezuela"],
@@ -167,7 +175,7 @@ function pinta(){
  if(!cambiando){$("vel").value=E.s;$("bri").value=E.b;$("umb").value=E.u;$("ch").value=E.ch;$("w").value=E.c[3];
   $("rgb").value="#"+E.c.slice(0,3).map(v=>v.toString(16).padStart(2,"0")).join("")}
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
- $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";
+ $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();
  if(E.vivo){if(document.activeElement.id!="vvu")$("vvu").value=E.vivo.u;$("vvon").checked=!!E.vivo.on;
   $("vvst").textContent=!E.vivo.on?"Apagado":E.vivo.rx?`Recibiendo (${E.vivo.p} paquetes) en ${E.ip||"esta IP"}`:`Esperando datos en ${E.ip||"esta IP"}, Art-Net 6454 / sACN 5568`}$("tdmx").style.display=E.dmx?"":"none";
  if(E.dmx&&E.pix&&document.activeElement.tagName!="INPUT"&&document.activeElement.tagName!="SELECT"){$("dmn").value=E.pix.n[0];$("dmd").value=E.pix.d;$("dmc").value=E.pix.ch;$("dmo").value=E.pix.o;$("dms").value=E.pix.s}
@@ -193,6 +201,14 @@ function pinta(){
  $("mlim").textContent=`Límite ${E.lim} A`+(E.fp<100&&E.p&&!E.f?` · brillo limitado al ${E.fp}% (arranque o temperatura)`:"");
  if(!cambiando)$("lim").value=E.lim;$("limv").textContent=E.lim+" A";
 }
+function io(){const I=E.io;if(!I)return;$("tio").style.display=I.o||I.i?"":"none";let h="";
+ for(let m=0;m<4;m++)if(I.o>>m&1)for(let b=0;b<7;b++){const n=m*7+b+1;h+=`<button class="b${I.s[m]>>b&1?" on":""}" data-sa="${n}">S${n}</button>`}
+ $("iosal").innerHTML=h||'<span class="muted">Sin AP OUTPUT</span>';h="";
+ for(let m=0;m<4;m++)if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1,a=I.e[m]>>b&1;h+=`<span class="pill" style="${a?"background:var(--a);color:#000":""}">E${n}</span>`}
+ $("ioent").innerHTML=h||'<span class="muted">Sin AP INPUT</span>';
+ if(!document.querySelector("#tio :focus")){const c=$("ion").value;$("ion").innerHTML=I.r.map(r=>`<option value="${r[0]}">Entrada ${r[0]}</option>`).join("");
+  if(c&&I.r.some(r=>r[0]==c))$("ion").value=c;regla()}}
+function regla(){const r=(E.io.r||[]).find(x=>x[0]==$("ion").value);if(!r)return;$("ioa").value=r[1]==255?"-":r[1];$("iov").value=r[2];$("iom").checked=!!r[3]}
 function progs(){let h="";E.a.forEach((p,i)=>{h+=`<div class="card" style="margin:8px 0"><div class="row dias">${[...DIAS].map((d,j)=>
  `<label><input type="checkbox" data-d="${j}" ${p[1]>>j&1?"checked":""}>${d}</label>`).join("")}</div>
  <div class="row"><input type="time" value="${hm(p[2]*60+p[3])}"><select>${ACC.map((a,j)=>`<option value="${j}" ${j==p[4]?"selected":""}>${a}</option>`).join("")}</select>
@@ -214,7 +230,10 @@ desliza("vel",v=>"V "+v);desliza("lim",v=>"J "+v);desliza("bri",v=>"B "+v);desli
 const colorCmd=()=>{const h=$("rgb").value;return`C ${parseInt(h.substr(1,2),16)} ${parseInt(h.substr(3,2),16)} ${parseInt(h.substr(5,2),16)} ${$("w").value}`};
 $("rgb").onchange=()=>api(colorCmd());$("ch").onchange=()=>api("N "+$("ch").value);
 $("pw").onclick=()=>api("P "+(E.p?0:1));
-$("pxg").onclick=async()=>{await api(`PX ${$("px1").value} ${$("px2").value} ${$("px3").value} ${$("px4").value}`);await api("PS "+$("pxs").value);api("PO "+$("pxo").value)};$("vvg").onclick=async()=>{await api("UNI "+$("vvu").value);api("VIVO "+($("vvon").checked?1:0))};$("dmg").onclick=async()=>{await api(`PD ${$("dmd").value} ${$("dmc").value}`);await api("PX "+$("dmn").value);await api("PS "+$("dms").value);api("PO "+$("dmo").value)};$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
+$("pxg").onclick=async()=>{await api(`PX ${$("px1").value} ${$("px2").value} ${$("px3").value} ${$("px4").value}`);await api("PS "+$("pxs").value);api("PO "+$("pxo").value)};$("ioa").innerHTML='<option value="-">Nada</option>'+ACC.map((a,j)=>`<option value="${j}">${a}</option>`).join("");
+$("iosal").onclick=e=>{const n=e.target.dataset.sa;if(n)api(`SA ${n} 2`)};$("ion").onchange=regla;
+$("iog").onclick=()=>{const n=$("ion").value,a=$("ioa").value;if(n)api(a=="-"?`EA ${n} -`:`EA ${n} ${a} ${$("iov").value||0} ${$("iom").checked?1:0}`)};
+$("vvg").onclick=async()=>{await api("UNI "+$("vvu").value);api("VIVO "+($("vvon").checked?1:0))};$("dmg").onclick=async()=>{await api(`PD ${$("dmd").value} ${$("dmc").value}`);await api("PX "+$("dmn").value);await api("PS "+$("dms").value);api("PO "+$("dmo").value)};$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
 desliza("cc1",v=>`O ${v} ${E.cc[1]}`);desliza("cc2",v=>`O ${E.cc[0]} ${v}`);$("ym").onchange=()=>api("Y "+$("ym").value);
 $("dgo").onclick=()=>{api("DIAG");msg("Probando salidas...")};$("apr").onclick=()=>{api("APRENDER");msg("Aprendiendo...")};
 $("bmodok").onclick=()=>{api("MODELO "+$("bmod").value);msg("Modelo guardado en la base")};

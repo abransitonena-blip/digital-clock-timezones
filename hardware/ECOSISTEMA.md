@@ -1,5 +1,7 @@
 # Ecosistema LetreroLab AP-1: un programador, módulos para cada tipo de luz
 
+> La marca y el mapa completo del ecosistema (con AP INPUT, AP OUTPUT y montaje DIN) están en [AP_ELECTRIC.md](AP_ELECTRIC.md).
+
 **Idea:** un solo **programador** (el cerebro, con Wi-Fi) y **módulos de potencia** intercambiables (los músculos).
 Todos los módulos tienen:
 - la misma medida, 88 × 56 mm;

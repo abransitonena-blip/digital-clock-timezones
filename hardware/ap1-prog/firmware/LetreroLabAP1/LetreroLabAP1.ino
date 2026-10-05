@@ -32,6 +32,9 @@
                  PO n  orden de color 0 GRB, 1 RGB, 2 BRG; C r g b = color de los efectos; J = límite de corriente
      Módulo DMX: PD dir canales  dirección del primer equipo y canales (1, 3 o 4)   PX n  equipos
      VIVO 0|1  control en vivo por Art-Net / sACN (xLights, QLC+, Jinx!)   UNI n  universo inicial
+     AP OUTPUT / AP INPUT (Qwiic): SA n 0|1|2  salida n (1-28) apagar/encender/alternar
+                 EA n acc val [modo]  regla de la entrada n (1-32): acc como en los horarios; modo 1 = al soltar, lo contrario
+                 EA n -  sin regla.  Acciones: 0 apagar 1 encender 2 AUX 3 escena 4 brillo 5/6/7 salida val on/off/alternar 8 alternar luz
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
@@ -51,7 +54,7 @@
 #include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.4"
+#define VERSION "AP-1 fw 1.5"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -150,6 +153,16 @@ uint32_t tVivo = 0, vivoPaquetes = 0;
 bool vivo() { return vivoActivo && tVivo && millis() - tVivo < 2500; }
 void vivoIniciar();                         // (más abajo, junto a la red)
 
+// ---------------- AP OUTPUT / AP INPUT: módulos de salidas y entradas por I2C (Qwiic) ----------------
+// TCA9554 en 0x20-0x23 = AP OUTPUT (P0-P6 salidas de 24 V, P7 LED RUN); 0x24-0x27 = AP INPUT (8 entradas aisladas).
+// Salidas S1..S28 (0x20 = S1-S7, 0x21 = S8-S14...), entradas E1..E32 (0x24 = E1-E8...). Al arrancar todo apagado.
+const uint8_t IO_N = 4, ACC_NADA = 255;
+uint8_t ioOut = 0, ioIn = 0;                // módulos presentes (un bit por dirección)
+uint8_t salEstado[IO_N] = {0}, entEstado[IO_N] = {0}, entCrudo[IO_N] = {0};
+struct Regla { uint8_t acc, val, modo; };   // qué hace cada entrada al activarse (modo 1: al soltar, lo contrario)
+Regla reglas[IO_N * 8];
+bool ioCambio = false;
+
 // ---------------- memoria (con retardo para no gastar la flash) ----------------
 void marcar() { sucio = true; tSucio = millis(); }
 void guardarAhora() { pref.putBytes("cfg", &cfg, sizeof(cfg)); sucio = false; }
@@ -158,6 +171,8 @@ void cargar() {
   if (cfg.limiteA < 1 || cfg.limiteA > 25) cfg.limiteA = 20;
   whTotal = whGuardado = pref.getDouble("wh", 0);
   vivoActivo = pref.getBool("vivo", true);
+  if (pref.getBytes("reglas", reglas, sizeof(reglas)) != sizeof(reglas))
+    for (auto& r : reglas) r = Regla{ACC_NADA, 0, 0};
   vivoUni = pref.getUShort("uni", 1);
   char def[16];
   snprintf(def, sizeof(def), "letrero-%04x", (uint16_t)(ESP.getEfuseMac() >> 32));
@@ -728,6 +743,19 @@ String estadoJSON() {
   s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix; s += ",\"dmx\":"; s += modoDmx;
   s += ",\"vivo\":{\"on\":"; s += vivoActivo; s += ",\"u\":"; s += vivoUni; s += ",\"rx\":"; s += vivo();
   s += ",\"p\":"; s += vivoPaquetes; s += '}';
+  s += ",\"io\":{\"o\":"; s += ioOut; s += ",\"i\":"; s += ioIn; s += ",\"s\":[";
+  for (uint8_t m = 0; m < IO_N; m++) { if (m) s += ','; s += salEstado[m]; }
+  s += "],\"e\":[";
+  for (uint8_t m = 0; m < IO_N; m++) { if (m) s += ','; s += entEstado[m]; }
+  s += "],\"r\":[";                                          // reglas solo de los módulos de entradas presentes
+  bool primera = true;
+  for (uint8_t n = 0; n < IO_N * 8; n++) {
+    if (!(ioIn & (1 << (n / 8)))) continue;
+    if (!primera) s += ',';
+    primera = false;
+    s += '['; s += n + 1; s += ','; s += reglas[n].acc; s += ','; s += reglas[n].val; s += ','; s += reglas[n].modo; s += ']';
+  }
+  s += "]}";
   if (modoPix) {
     s += ",\"pix\":{\"n\":["; for (uint8_t k = 0; k < 4; k++) { if (k) s += ','; s += pixN[k]; }
     s += "],\"s\":"; s += pixSeg; s += ",\"o\":"; s += pixOrden; s += ",\"abl\":"; s += ablFactor / 10;
@@ -790,6 +818,25 @@ void haPublicar() {
     for (auto& q : QUITAR) {
       String t = String("homeassistant/") + q[0] + "/" + uid + "/" + q[1] + "/config";
       esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1);
+    }
+  }
+  for (uint8_t m = 0; m < IO_N; m++) {                         // AP OUTPUT y AP INPUT presentes
+    for (uint8_t b = 0; b < 7; b++) {
+      uint8_t n = m * 7 + b + 1;
+      String obj = String("s") + n;
+      if (ioOut & (1 << m))
+        haUno(uid, "switch", obj.c_str(), String("\"name\":\"Salida ") + n + "\",\"command_topic\":\"~/cmd\","
+              "\"payload_on\":\"SA " + n + " 1\",\"payload_off\":\"SA " + n + " 0\",\"state_topic\":\"~/estado\","
+              "\"value_template\":\"{{ (value_json.io.s[" + m + "] // " + (1 << b) + ") % 2 }}\",\"state_on\":\"1\",\"state_off\":\"0\"");
+      else { String t = String("homeassistant/switch/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
+    }
+    for (uint8_t b = 0; b < 8; b++) {
+      uint8_t n = m * 8 + b + 1;
+      String obj = String("e") + n;
+      if (ioIn & (1 << m))
+        haUno(uid, "binary_sensor", obj.c_str(), String("\"name\":\"Entrada ") + n + "\",\"state_topic\":\"~/estado\","
+              "\"value_template\":\"{{ (value_json.io.e[" + m + "] // " + (1 << b) + ") % 2 }}\",\"payload_on\":\"1\",\"payload_off\":\"0\"");
+      else { String t = String("homeassistant/binary_sensor/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
     }
   }
   if (modoInd) {                                               // módulo industrial: contactor 2 manual
@@ -916,8 +963,91 @@ void aplicarAccion(uint8_t acc, uint8_t val) {
     case 2: cfg.aux = val ? 1 : 0; break;
     case 3: cargarEscena(val); break;
     case 4: cfg.brillo = constrain(val, 0, 100); break;
+    case 5: case 6: case 7:                                   // salida val (1-28) encender / apagar / alternar
+      if (val >= 1 && val <= IO_N * 7) {
+        uint8_t m = (val - 1) / 7, b = (val - 1) % 7;
+        if (acc == 5) salEstado[m] |= 1 << b; else if (acc == 6) salEstado[m] &= ~(1 << b); else salEstado[m] ^= 1 << b;
+        ioCambio = true;
+      }
+      return;
+    case 8: cfg.encendido = !cfg.encendido; break;            // alternar la luz (pulsador)
+    default: return;
   }
   marcar();
+}
+bool tcaEscribir(uint8_t dir, uint8_t reg, uint8_t v) {
+  Wire.beginTransmission(dir); Wire.write(reg); Wire.write(v);
+  return Wire.endTransmission() == 0;
+}
+int tcaLeer(uint8_t dir, uint8_t reg) {
+  Wire.beginTransmission(dir); Wire.write(reg);
+  if (Wire.endTransmission(false) != 0 || Wire.requestFrom(dir, (uint8_t)1) != 1) return -1;
+  return Wire.read();
+}
+void ioBuscar() {                                             // al arrancar y cada 5 s (se pueden conectar en marcha)
+  uint8_t o = 0, i = 0;
+  for (uint8_t m = 0; m < IO_N; m++) {
+    if (i2cPresente(0x20 + m)) o |= 1 << m;
+    if (i2cPresente(0x24 + m)) i |= 1 << m;
+  }
+  for (uint8_t m = 0; m < IO_N; m++) {
+    if ((i & (1 << m)) && !(ioIn & (1 << m))) {             // entrada nueva: polaridad invertida (1 = activa)
+      tcaEscribir(0x24 + m, 2, 0xFF); tcaEscribir(0x24 + m, 3, 0xFF);
+      int v = tcaLeer(0x24 + m, 0);
+      entEstado[m] = entCrudo[m] = v < 0 ? 0 : v;             // el estado inicial no dispara reglas
+    }
+    if ((o & (1 << m)) && !(ioOut & (1 << m))) salEstado[m] = 0;   // salida nueva: empieza apagada
+  }
+  if (o != ioOut || i != ioIn) {
+    ioOut = o; ioIn = i; ioCambio = true;
+    Serial.printf("AP OUTPUT: %02X  AP INPUT: %02X\n", ioOut, ioIn);
+    haPublicar();
+  }
+}
+void ioEntrada(uint8_t n, bool activa) {                      // n = 0..31
+  const Regla& r = reglas[n];
+  if (r.acc == ACC_NADA) return;
+  if (activa) aplicarAccion(r.acc, r.val);
+  else if (r.modo == 1) {                                     // "mientras": al soltar, lo contrario
+    if (r.acc == 0 || r.acc == 1) aplicarAccion(1 - r.acc, 0);
+    else if (r.acc == 2) aplicarAccion(2, !r.val);
+    else if (r.acc == 5 || r.acc == 6) aplicarAccion(11 - r.acc, r.val);
+  }
+}
+void ioActualizar(uint32_t t) {
+  static uint32_t tLee = 0, tBusca = 0, tEscribe = 0;
+  if (t - tBusca > 5000) { tBusca = t; ioBuscar(); }
+  if (!ioOut && !ioIn) return;
+  if (t - tLee >= 20) {                                       // entradas cada 20 ms; dos lecturas iguales = estable
+    tLee = t;
+    for (uint8_t m = 0; m < IO_N; m++) {
+      if (!(ioIn & (1 << m))) continue;
+      int v = tcaLeer(0x24 + m, 0);
+      if (v < 0) continue;
+      if (v == entCrudo[m] && v != entEstado[m]) {
+        uint8_t dif = v ^ entEstado[m];
+        entEstado[m] = v;
+        for (uint8_t b = 0; b < 8; b++) if (dif & (1 << b)) ioEntrada(m * 8 + b, v & (1 << b));
+        ioCambio = true;
+      }
+      entCrudo[m] = v;
+    }
+  }
+  bool run = (t / 500) & 1;                                   // LED RUN parpadeando: el programa está al mando
+  static bool runAntes = false;
+  if (ioCambio || run != runAntes || t - tEscribe > 1000) {   // cada segundo se reescribe todo (por si se reconectó)
+    for (uint8_t m = 0; m < IO_N; m++) {
+      if (!(ioOut & (1 << m))) continue;
+      tcaEscribir(0x20 + m, 1, (salEstado[m] & 0x7F) | (run ? 0 : 0x80));
+      tcaEscribir(0x20 + m, 3, 0x00);                         // todas salidas
+    }
+    if (ioCambio) mqPublicar();
+    ioCambio = false; runAntes = run;
+    if (t - tEscribe > 1000) tEscribe = t;
+  }
+}
+void ioApagar() {
+  for (uint8_t m = 0; m < IO_N; m++) { salEstado[m] = 0; if (ioOut & (1 << m)) tcaEscribir(0x20 + m, 1, 0x80); }
 }
 
 bool pedirReinicio = false;
@@ -1020,6 +1150,30 @@ bool ejecutar(const char* s, bool remoto) {
     pixGuardar();
     return true;
   }
+  if (!strncmp(s, "SA ", 3)) {                                 // SA n 0|1|2: salida de AP OUTPUT
+    const char* q = s + 3;
+    int n = numero(q), v = numero(q);
+    if (n < 1 || n > IO_N * 7 || v < 0 || v > 2) return false;
+    aplicarAccion(v == 2 ? 7 : (v ? 5 : 6), n);
+    return true;
+  }
+  if (!strncmp(s, "EA ", 3)) {                                 // EA n acc val [modo] / EA n -: regla de una entrada
+    const char* q = s + 3;
+    int n = numero(q);
+    if (n < 1 || n > IO_N * 8) return false;
+    while (*q == ' ') q++;
+    Regla r{ACC_NADA, 0, 0};
+    if (*q != '-') {
+      int acc = numero(q), val = numero(q);
+      while (*q == ' ') q++;
+      int modo = *q ? numero(q) : 0;
+      if (acc < 0 || acc > 8 || val < 0 || val > 255) return false;
+      r = Regla{(uint8_t)acc, (uint8_t)val, (uint8_t)(modo ? 1 : 0)};
+    }
+    reglas[n - 1] = r;
+    pref.putBytes("reglas", reglas, sizeof(reglas));
+    return true;
+  }
   if (!strncmp(s, "VIVO", 4)) {                               // VIVO 0|1: control en vivo por Art-Net / sACN
     vivoActivo = atoi(s + 4) != 0 || !s[4];
     pref.putBool("vivo", vivoActivo);
@@ -1085,7 +1239,7 @@ bool ejecutar(const char* s, bool remoto) {
       Prog& g = cfg.prog[i];
       if (*p == '-') { g = Prog{}; break; }
       int dias = numero(p), h = numero(p), m = numero(p), acc = numero(p), val = numero(p);
-      if (h > 23 || m > 59 || acc > 4) return false;
+      if (h > 23 || m > 59 || acc > 8) return false;
       g = Prog{1, (uint8_t)(dias & 127), (uint8_t)h, (uint8_t)m, (uint8_t)acc, (uint8_t)val};
     } break;
     case 'T': { int an = numero(p), me = numero(p), di = numero(p), h = numero(p), mi = numero(p), se = numero(p);
@@ -1403,6 +1557,7 @@ void setup() {
   hayRTC = (Wire.endTransmission() == 0);
   if (hayRTC) rtcLeer();
   iniciarSensores();
+  ioBuscar();
   leerBase();
   if (modoInd) for (uint8_t c = 0; c < 4; c++) { ledcChangeFrequency(PWM_PIN[c], IND_HZ, PWM_BITS); dutyActual[c] = 9999; pwm(c, 0); }
   if (modoPix) { pixLeer(); pixIniciar(); }
@@ -1430,7 +1585,7 @@ void setup() {
 
   ArduinoOTA.setHostname(nombre.c_str());
   if (clave.length()) ArduinoOTA.setPassword(clave.c_str());
-  ArduinoOTA.onStart([]() { apagarTodo(); });
+  ArduinoOTA.onStart([]() { apagarTodo(); ioApagar(); });
   Serial.println(VERSION);
 }
 
@@ -1460,6 +1615,7 @@ void loop() {
   leerBoton();
   revisarUDP();
   revisarVivo();
+  ioActualizar(t);
   if (irListo) { irListo = false; teclaIR(irCodigo); }
   char buf[128];
   while (xQueueReceive(colaMq, buf, 0) == pdTRUE) {     // varias órdenes por mensaje, una por renglón

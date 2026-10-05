@@ -1,0 +1,25 @@
+AP_Input: 15 tipos de pieza, 59 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       5 tipos Extended  -> ~15 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     2 tipos Extended  -> ~6 USD de cargo;
+   se sueldan a mano 5 piezas de patas: J3, J4, J5, J6, J7
+Piezas Basic/Preferred: ~0.16 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (7):
+  100nF                  C14663         C1
+  VERDE                  C72043         DL1,DL2,DL3,DL4,DL5,DL6,DL7,DL8
+  LTV-217-B              C115450        OK1,OK2,OK3,OK4,OK5,OK6,OK7,OK8
+  10k                    C25804         RA1,RA2,RU1,RU2,RU3,RU4,RU5,RU6,RU7,RU8
+  4.7k                   C17936         RI1,RI2,RI3,RI4,RI5,RI6,RI7,RI8
+  2.2k                   C4190          RL1,RL2,RL3,RL4,RL5,RL6,RL7,RL8
+  1k                     C21190         RP1,RP2,RP3,RP4,RP5,RP6,RP7,RP8
+Extended (8):
+  QWIIC ENTRADA          C160404        J1
+  QWIIC SALIDA           C160404        J2
+  I2C                    C5116483       J3  [THT]
+  I1-I3                  C474953        J4  [THT]
+  I4-I6                  C474953        J5  [THT]
+  I7-I8                  C474952        J6  [THT]
+  COM                    C474952        J7  [THT]
+  TCA9554PWR             -              U1
