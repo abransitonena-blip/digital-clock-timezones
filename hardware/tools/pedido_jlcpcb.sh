@@ -6,8 +6,8 @@ set -e
 H=$(cd "$(dirname "$0")/.." && pwd)
 OUT=$H/PEDIDO_JLCPCB
 rm -rf "$OUT"; mkdir -p "$OUT"
-for par in "ap1-base:AP1_Base:1_BASE" "ap1-prog:AP1_Programador:2_PROGRAMADOR" "ap1-ind:AP1_Industrial:3_MODULO_INDUSTRIAL" \
-           "ap02:AP02:4_AP02_placa_unica"; do
+for par in "ap1-base:AP1_Base:1_BASE" "ap1-prog:AP1_Programador:2_PROGRAMADOR" "ap1-ind:AP1_Industrial:3_MODULO_INDUSTRIAL" "ap1-pix:AP1_Pixel:4_MODULO_PIXELES" \
+           "ap02:AP02:5_AP02_placa_unica"; do
   IFS=: read -r dir proj nombre <<< "$par"
   src=$H/$dir/fabricacion/jlcpcb
   dst=$OUT/$nombre

@@ -45,6 +45,16 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><input type="color" id="rgb"><label style="min-width:auto">Blanco</label><input type="range" min="0" max="255" id="w"></div>
   <div class="row"><label>Canales</label><select id="ch"><option value="1">1</option><option value="2">2</option>
   <option value="3">3 (flechas / RGB)</option><option value="4">4 (RGBW)</option></select></div></div>
+ <div class="card" id="tpix" style="display:none"><h3>Módulo de pixeles</h3>
+  <p class="muted">LED de cada salida (0-600). Los efectos usan el color de arriba; "letras" divide la cadena en partes iguales
+  para la secuencia (0 = una por salida).</p>
+  <div class="row"><label>Salida 1</label><input type="number" min="0" max="600" id="px1" style="width:80px">
+   <label style="min-width:auto">2</label><input type="number" min="0" max="600" id="px2" style="width:80px"></div>
+  <div class="row"><label>Salida 3</label><input type="number" min="0" max="600" id="px3" style="width:80px">
+   <label style="min-width:auto">4</label><input type="number" min="0" max="600" id="px4" style="width:80px"></div>
+  <div class="row"><label>Letras</label><input type="number" min="0" max="64" id="pxs" style="width:80px">
+   <select id="pxo"><option value="0">GRB (WS2812B)</option><option value="1">RGB</option><option value="2">BRG</option></select></div>
+  <div class="row"><button class="b" id="pxg">Guardar en el módulo</button><span id="pxabl" class="muted"></span></div></div>
  <div class="card" id="tind" style="display:none"><h3>Módulo industrial (0-10 V)</h3>
   <p class="muted">Los canales 1-4 son salidas 0-10 V aisladas: el brillo y los efectos atenúan los drivers de las luminarias.
   El contactor 1 enciende la alimentación de las luces junto con el letrero; el 2 es manual o por horario.</p>
@@ -141,7 +151,9 @@ function pinta(){
  if(!cambiando){$("vel").value=E.s;$("bri").value=E.b;$("umb").value=E.u;$("ch").value=E.ch;$("w").value=E.c[3];
   $("rgb").value="#"+E.c.slice(0,3).map(v=>v.toString(16).padStart(2,"0")).join("")}
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
- $("tind").style.display=E.ind?"":"none";$("tcc").style.display=$("taux").style.display=E.ind?"none":"";
+ $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px?"":"none";
+ if(E.px&&E.pix&&document.activeElement.tagName!="INPUT"){for(let k=0;k<4;k++)$("px"+(k+1)).value=E.pix.n[k];$("pxs").value=E.pix.s;$("pxo").value=E.pix.o}
+ if(E.px&&E.pix)$("pxabl").textContent=E.pix.abl<100?` Brillo limitado al ${E.pix.abl}% por corriente`:"";$("tcc").style.display=$("taux").style.display=E.ind?"none":"";
  $("k2").textContent=E.cc[0]?"Contactor 2 encendido":"Contactor 2 apagado";$("k2").className="b"+(E.cc[0]?" on":"");
  if(!cambiando){$("cc1").value=E.cc[0];$("cc2").value=E.cc[1]}$("cc1v").textContent=E.cc[0]+"%";$("cc2v").textContent=E.cc[1]+"%";
  if(document.activeElement!==$("ym"))$("ym").value=E.ym;salidas();
@@ -181,7 +193,8 @@ const desliza=(id,f)=>{const e=$(id);e.oninput=()=>{cambiando=1};e.onchange=()=>
 desliza("vel",v=>"V "+v);desliza("lim",v=>"J "+v);desliza("bri",v=>"B "+v);desliza("umb",v=>"L "+E.l+" "+v);desliza("w",()=>colorCmd());
 const colorCmd=()=>{const h=$("rgb").value;return`C ${parseInt(h.substr(1,2),16)} ${parseInt(h.substr(3,2),16)} ${parseInt(h.substr(5,2),16)} ${$("w").value}`};
 $("rgb").onchange=()=>api(colorCmd());$("ch").onchange=()=>api("N "+$("ch").value);
-$("pw").onclick=()=>api("P "+(E.p?0:1));$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
+$("pw").onclick=()=>api("P "+(E.p?0:1));
+$("pxg").onclick=async()=>{await api(`PX ${$("px1").value} ${$("px2").value} ${$("px3").value} ${$("px4").value}`);await api("PS "+$("pxs").value);api("PO "+$("pxo").value)};$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
 desliza("cc1",v=>`O ${v} ${E.cc[1]}`);desliza("cc2",v=>`O ${E.cc[0]} ${v}`);$("ym").onchange=()=>api("Y "+$("ym").value);
 $("dgo").onclick=()=>{api("DIAG");msg("Probando salidas...")};$("apr").onclick=()=>{api("APRENDER");msg("Aprendiendo...")};
 $("bmodok").onclick=()=>{api("MODELO "+$("bmod").value);msg("Modelo guardado en la base")};

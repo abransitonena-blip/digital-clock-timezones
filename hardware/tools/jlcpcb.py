@@ -39,6 +39,7 @@ CONOCIDOS = {
     ("TSOP38238", "Vishay_MINICAST-3Pin"): ("C141632", "Extended"),
     ("B1212S-1WR3", "Converter_DCDC_Murata_MEE1SxxxxSC_THT"): ("C49260979", "Extended"),
     ("SRD-12VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C30431", "Extended"),
+    ("74HCT125D", "SOIC-14_3.9x8.7mm_P1.27mm"): ("C5962", "Extended"),          # Nexperia 74HCT125D,653
 }
 
 # Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.
@@ -51,6 +52,7 @@ POR_HUELLA = {
     "Fuseholder_Blade_Mini_Keystone_3568": ("C3206956", "Extended"),    # Keystone 3568
     # clema de 2 polos 5.08 mm: KEFA KF128-5.08-2P (misma separación que la Phoenix MKDS 3)
     "TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal": ("C474952", "Extended"),
+    "TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal": ("C474953", "Extended"),   # KEFA KF128-5.08-3P
 }
 
 

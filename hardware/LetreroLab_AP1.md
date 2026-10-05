@@ -11,6 +11,8 @@ El sistema tiene tres partes:
 | **Placa de LEDs o focos** | La que lleva la luz: letrero BAÑOS, flechas, lámpara, tira… | **Sí**, una por modelo. Se conecta a las clemas de la base |
 | **Módulo industrial IND** (`ap1-ind/`) | En lugar de la base: 4 salidas **0-10 V aisladas** para drivers de naves industriales, paneles y reflectores, y 2 salidas para la **bobina de un contactor** que enciende luces de 127/240 V (la red no entra a la placa) | No. El programador lo reconoce solo |
 
+| **Módulo de pixeles PIX** (`ap1-pix/`) | En lugar de la base: 4 salidas para tiras y letreros de **pixeles direccionables** (WS2812/SK6812/WS2815, 5-24 V), con brillo limitado por corriente medida | No. El programador lo reconoce solo |
+
 > Todo el ecosistema (qué módulo usar con cada tipo de luz, cable o enclavado, módulos propuestos) está en **[ECOSISTEMA.md](ECOSISTEMA.md)**.
 
 **Por qué conviene así:**

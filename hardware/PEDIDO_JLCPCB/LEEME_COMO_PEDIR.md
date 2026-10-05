@@ -7,9 +7,10 @@ Todo está en la carpeta **`PEDIDO_JLCPCB/`** (y comprimido en `PEDIDO_JLCPCB.zi
 | `1_BASE` | AP-1 base universal (4 capas) | Potencia: letreros, tiras y focos de corriente constante |
 | `2_PROGRAMADOR` | AP-1 programador | El cerebro con Wi-Fi: va encima de la base o del módulo industrial |
 | `3_MODULO_INDUSTRIAL` | AP-1 IND | 0-10 V aislado y contactores (naves, luces de red) |
-| `4_AP02_placa_unica` | AP-0.2 rev D | Todo en una sola placa (alternativa sencilla al AP-1) |
+| `4_MODULO_PIXELES` | AP-1 PIX | Pixeles direccionables WS2812/SK6812/WS2815 (letras en secuencia, efectos de color) |
+| `5_AP02_placa_unica` | AP-0.2 rev D | Todo en una sola placa (alternativa sencilla al AP-1) |
 
-**Sistema mínimo:** 1 base + 1 programador. Para naves industriales: 1 IND + 1 programador.
+**Sistema mínimo:** 1 base + 1 programador. Para naves industriales: 1 IND + 1 programador. Para letreros de pixeles: 1 PIX + 1 programador.
 
 Cada carpeta trae:
 - `1_..._GERBER.zip`: la placa (se sube tal cual, sin descomprimir).
@@ -23,15 +24,15 @@ Cada carpeta trae:
 1. **Order now → Add gerber file**: sube `1_..._GERBER.zip`. Las medidas y las capas se leen solas.
 2. Opciones de la placa (lo que no está en la tabla se deja como venga):
 
-| Opción | BASE | PROGRAMADOR | IND | AP-0.2 |
-|---|---|---|---|---|
-| Layers | **4** | 2 | 2 | 2 |
-| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm |
-| Outer Copper Weight | **2 oz** | 1 oz | 1 oz | **2 oz** |
-| Inner Copper Weight | 1 oz | — | — | — |
-| Layer stackup | JLC04161H-7628 | — | — | — |
-| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo | HASL sin plomo |
-| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual | igual |
+| Opción | BASE | PROGRAMADOR | IND | PIX | AP-0.2 |
+|---|---|---|---|---|---|
+| Layers | **4** | 2 | 2 | 2 | 2 |
+| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm |
+| Outer Copper Weight | **2 oz** | 1 oz | 1 oz | **2 oz** | **2 oz** |
+| Inner Copper Weight | 1 oz | — | — | — | — |
+| Layer stackup | JLC04161H-7628 | — | — | — | — |
+| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo |
+| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual | igual | igual |
 
 3. Activa **PCB Assembly**:
    - **Assembly side: Top Side.** Todas las piezas SMD van arriba.
@@ -77,6 +78,7 @@ Si prefieres que JLCPCB suelde también estas piezas, usa la carpeta `ensamble_c
 | BASE | ~54 USD | ~36 USD |
 | PROGRAMADOR | ~27 USD | ~18 USD |
 | IND | ~24 USD | ~9 USD |
+| PIX | ~36 USD | ~24 USD |
 | AP-0.2 | ~57 USD | ~39 USD |
 
 Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred no pagan ese cargo. A eso se suman la placa, las piezas y el montaje por unidad.

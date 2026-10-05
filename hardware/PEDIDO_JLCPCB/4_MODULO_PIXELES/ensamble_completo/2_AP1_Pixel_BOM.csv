@@ -1,0 +1,26 @@
+Comment,Designator,Footprint,LCSC Part #,Cantidad,Clase JLCPCB
+330uF 50V,C1,CP_Elec_10x10.5,C2687701,1,Extended
+10uF 50V,"C2,C3,C6",C_1206_3216Metric,C13585,3,Basic
+100nF,"C4,C5,C8,C10",C_0603_1608Metric,C14663,4,Basic
+22uF 25V,C7,C_1206_3216Metric,C12891,1,Basic
+SMBJ26A,D1,D_SMB,C19077580,1,Preferred
+SS210,D7,D_SMA,C14996,1,Basic
+MMSZ5242B 12V,DZ1,D_SOD-123,C19077426,1,Preferred
+MINI 15A,F1,Fuseholder_Blade_Mini_Keystone_3568,C3206956,1,Extended
+3A,"FO1,FO2,FO3,FO4",Fuse_1206_3216Metric,C355685,4,Extended
+ENTRADA 5-24V,J1,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
+PIXELES 1,J2,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
+PIXELES 2,J3,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
+PIXELES 3,J4,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
+PIXELES 4,J5,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
+PROGRAMADOR,J7,PinSocket_2x08_P2.54mm_Vertical,C30734,1,Extended
+47uH,L1,L_Changjiang_FNR4030S,C167888,1,Extended
+BSC028N06LS3,QR1,TDSON-8-1,C534316,1,Extended
+56k,RB1,R_0603_1608Metric,C23206,1,Basic
+10k,"RB2,RG0",R_0603_1608Metric,C25804,2,Basic
+100,"RD1,RD2,RD3,RD4",R_0603_1608Metric,C22775,4,Basic
+1mR 2512 2W,RS1,R_2512_Kelvin_NetTie,C2924520,1,Extended
+INA238,U1,VSSOP-10_3x3mm_P0.5mm,C2868250,1,Extended
+LMR16006XDDC,U2,SOT-23-6,C87080,1,Extended
+74HCT125D,U3,SOIC-14_3.9x8.7mm_P1.27mm,C5962,1,Extended
+M24C02-WMN6TP,U4,SOIC-8_3.9x4.9mm_P1.27mm,C7562,1,Preferred

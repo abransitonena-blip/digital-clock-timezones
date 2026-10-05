@@ -28,6 +28,8 @@
      J n  límite de corriente total 1..25 A (protección)   F 0  borrar una falla     U 0  reiniciar el contador de kWh
      DIAG  probar salidas     APRENDER  probar y guardar el consumo normal     MODELO texto  modelo de la base
      Módulo IND (0-10 V): canales 1-4 = salidas 0-10 V, contactor 1 sigue al encendido, O 100 / O 0 = contactor 2
+     Módulo PIX: PX a b c d  LED por salida (0-600)   PS n  segmentos o letras (0 = una por salida)
+                 PO n  orden de color 0 GRB, 1 RGB, 2 BRG; C r g b = color de los efectos; J = límite de corriente
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
@@ -47,7 +49,7 @@
 #include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.1"
+#define VERSION "AP-1 fw 1.2"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -111,6 +113,7 @@ volatile bool alerta = false;
 // base (memoria AT24CS02), Qwiic y diagnóstico
 bool hayBase = false, hayOLED = false, hayLux = false, auxVent = false;
 bool modoInd = false;                       // módulo AP-1 IND (0-10 V + contactores) en lugar de la base
+bool modoPix = false;                       // módulo AP-1 PIX (pixeles direccionables) en lugar de la base
 char baseModelo[17] = "", baseSerie[33] = "";
 uint32_t baseHoras = 0;
 uint16_t baseNormal[6] = {0};              // consumo normal aprendido por salida (mA, a 100 %)
@@ -174,6 +177,7 @@ uint32_t linealInd(uint32_t duty) {
   return (uint32_t)constrain(x * f1 * c / (a - x * f1 * b) * PWM_MAX + 0.5f, 0.0f, (float)PWM_MAX);
 }
 void pwm(uint8_t c, uint32_t duty) {
+  if (modoPix) return;                                      // en el módulo PIX los pines son datos de pixeles
   if (duty == dutyActual[c]) return;
   dutyActual[c] = duty;
   if (modoInd) duty = linealInd(duty);
@@ -351,11 +355,13 @@ void leerBase() {
   if (!hayBase) return;
   if (cab[0] != 'L' || cab[1] != 'L' || cab[2] != 1) {            // base nueva: se le da formato
     uint8_t vacio[37] = {'L', 'L', 1};
-    strcpy((char*)vacio + 3, hayINA ? "AP-1 universal" : "LL-IND");   // sin medidor: es el módulo industrial
+    // BASE: medidor + temperatura; PIX: solo medidor; IND: ninguno de los dos
+    strcpy((char*)vacio + 3, hayINA ? (hayTMP ? "AP-1 universal" : "LL-PIX") : "LL-IND");
     eepEscribir(0, vacio, sizeof(vacio));
   }
   eepLeer(3, baseModelo, 16); baseModelo[16] = 0;
   modoInd = !strncmp(baseModelo, "LL-IND", 6);
+  modoPix = !strncmp(baseModelo, "LL-PIX", 6);
   eepLeer(20, baseNormal, 12);
   eepLeer(32, &baseHoras, 4);
   eepLeer(36, &baseReposo, 2);
@@ -378,6 +384,96 @@ void leerBase() {
   for (uint8_t i = 0; i < 16; i++) sprintf(baseSerie + 2 * i, "%02X", sn[i]);
 }
 void guardarNormal() { eepEscribir(20, baseNormal, 12); eepEscribir(36, &baseReposo, 2); }
+
+// ---- módulo PIX: pixeles WS2812/SK6812/WS2815 en PWM 1-4 ----
+// El ESP32-C3 tiene 2 canales RMT de salida: las 4 salidas se mandan una tras otra, abriendo el canal para cada una.
+// La cantidad de LED, los segmentos ("letras") y el orden de color viven en la memoria del módulo (bytes 64-73):
+// el letrero lleva su propia configuración.
+const uint16_t PIX_MAX = 600;              // LED por salida
+const uint8_t EEP_PIX = 64;
+uint16_t pixN[4] = {0, 0, 0, 0};
+uint8_t pixSeg = 0, pixOrden = 0;           // segmentos (0 = uno por salida); orden 0 GRB, 1 RGB, 2 BRG
+uint16_t ablFactor = 1000;                  // limitación de brillo por corriente medida (0..1000)
+rmt_data_t* pixBuf = nullptr;
+uint32_t tPix = 0;
+void pixLeer() {
+  uint8_t b[10];
+  if (!eepLeer(EEP_PIX, b, 10)) return;
+  for (uint8_t k = 0; k < 4; k++) {
+    uint16_t v = b[2 * k] | (b[2 * k + 1] << 8);
+    pixN[k] = v == 0xFFFF ? (k == 0 ? 60 : 0) : min<uint16_t>(v, PIX_MAX);   // módulo nuevo: 60 LED en la salida 1
+  }
+  pixSeg = b[8] == 0xFF ? 0 : b[8];
+  pixOrden = b[9] > 2 ? 0 : b[9];
+}
+void pixGuardar() {
+  uint8_t b[10];
+  for (uint8_t k = 0; k < 4; k++) { b[2 * k] = pixN[k] & 0xFF; b[2 * k + 1] = pixN[k] >> 8; }
+  b[8] = pixSeg; b[9] = pixOrden;
+  eepEscribir(EEP_PIX, b, 10);
+}
+uint16_t pixTotal() { return pixN[0] + pixN[1] + pixN[2] + pixN[3]; }
+void pixIniciar() {
+  for (uint8_t c = 0; c < 4; c++) { ledcDetach(PWM_PIN[c]); pinMode(PWM_PIN[c], OUTPUT); digitalWrite(PWM_PIN[c], LOW); }
+  pixBuf = (rmt_data_t*)malloc(PIX_MAX * 24 * sizeof(rmt_data_t));
+}
+// color del pixel g (las 4 salidas cuentan como una sola cadena) según el modo; los mismos 10 modos que la base
+void pixColor(uint16_t g, uint16_t tot, uint8_t nseg, uint32_t t, uint16_t T, uint8_t* r, uint8_t* v, uint8_t* a) {
+  uint8_t cr = cfg.color[0], cg = cfg.color[1], cb = cfg.color[2];
+  if (!cr && !cg && !cb) cr = cg = cb = 255;                     // sin color elegido: blanco
+  uint8_t s = (uint32_t)g * nseg / max<uint16_t>(tot, 1), k = 255;
+  switch (cfg.modo) {
+    case 1: k = s == paso % nseg ? 255 : 0; break;                                     // SECUENCIA por letras
+    case 2: k = (paso & 1) ? 255 : 0; break;                                           // PARPADEO
+    case 3: k = triangulo(t, 4UL * T); break;                                          // RESPIRAR
+    case 4: { uint32_t per = (uint32_t)nseg * T, f = (t + per - (uint32_t)s * T) % per;   // SECUENCIA SUAVE
+              k = f < 2UL * T ? triangulo(f, 2UL * T) : 0; } break;
+    case 5: k = ((s & 1) ^ (paso & 1)) ? 255 : 0; break;                               // ALTERNADO
+    case 7: rueda(((uint32_t)g * 768 / max<uint16_t>(tot, 1) + t / (T / 64 + 1)) % 768, &cr, &cg, &cb); break;  // ARCOIRIS
+    case 8: { uint32_t f = t % (2UL * T); k = (f < 60 || (f > 180 && f < 240)) ? 255 : 0; } break;  // FLASH
+    case 9: k = 150 + (esp_random() % 106); break;                                     // VELA (cada LED distinto)
+  }
+  *r = (uint16_t)cr * k / 255; *v = (uint16_t)cg * k / 255; *a = (uint16_t)cb * k / 255;
+}
+void pixEnviar(uint32_t t) {
+  if (!pixBuf) return;
+  uint16_t T = 1500 - cfg.vel * 140, tot = pixTotal(), g = 0;
+  uint8_t usadas = (pixN[0] > 0) + (pixN[1] > 0) + (pixN[2] > 0) + (pixN[3] > 0);
+  uint8_t nseg = pixSeg ? pixSeg : max<uint8_t>(usadas, 1);
+  if ((cfg.modo == 1 || cfg.modo == 2 || cfg.modo == 5) && t - t0 >= T) { t0 = t; paso++; }
+  uint8_t maxb = cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
+  uint32_t esc = (uint32_t)maxb * factor / 100 * ablFactor / 1000;                       // 0..1000
+  for (uint8_t o = 0; o < 4; o++) {
+    uint16_t n = pixN[o];
+    if (!n) continue;
+    rmt_data_t* p = pixBuf;
+    for (uint16_t i = 0; i < n; i++, g++) {
+      uint8_t c[3], r, v, a;
+      pixColor(g, tot, nseg, t, T, &r, &v, &a);
+      r = min<uint32_t>(255, ((uint32_t)GAMMA12[r] * esc / 1000) >> 4);                 // curva 2.2 y brillo
+      v = min<uint32_t>(255, ((uint32_t)GAMMA12[v] * esc / 1000) >> 4);
+      a = min<uint32_t>(255, ((uint32_t)GAMMA12[a] * esc / 1000) >> 4);
+      if (pixOrden == 1) { c[0] = r; c[1] = v; c[2] = a; }
+      else if (pixOrden == 2) { c[0] = a; c[1] = r; c[2] = v; }
+      else { c[0] = v; c[1] = r; c[2] = a; }                                             // GRB (WS2812B)
+      for (uint8_t j = 0; j < 3; j++)
+        for (int8_t bit = 7; bit >= 0; bit--, p++) {                                     // 0.1 us por tick
+          bool uno = (c[j] >> bit) & 1;
+          p->level0 = 1; p->duration0 = uno ? 7 : 4; p->level1 = 0; p->duration1 = uno ? 6 : 8;
+        }
+    }
+    if (rmtInit(PWM_PIN[o], RMT_TX_MODE, RMT_MEM_NUM_BLOCKS_2, 10000000)) {
+      rmtWrite(PWM_PIN[o], pixBuf, (size_t)n * 24, 50);
+      rmtDeinit(PWM_PIN[o]);
+    }
+    pinMode(PWM_PIN[o], OUTPUT); digitalWrite(PWM_PIN[o], LOW);                           // reinicio de la tira
+  }
+  if (hayINA) {                                     // limitación automática: 90 % del límite de corriente configurado
+    if (amp > cfg.limiteA * 0.9f) ablFactor = max<int>(100, ablFactor - 60);
+    else if (amp < cfg.limiteA * 0.8f && ablFactor < 1000) ablFactor = min<int>(1000, ablFactor + 10);
+  }
+}
+
 
 // ---- sensor de luz BH1750 (Qwiic, opcional) ----
 void leerLuz() {
@@ -525,7 +621,11 @@ String estadoJSON() {
   s += ",\"cc\":["; s += cfg.cc[0]; s += ','; s += cfg.cc[1]; s += "],\"ym\":"; s += cfg.auxModo;
   s += ",\"av\":"; s += auxVent;
   s += ",\"lux\":"; s += isnan(lux) ? "null" : String(lux, 0);
-  s += ",\"ind\":"; s += modoInd;
+  s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix;
+  if (modoPix) {
+    s += ",\"pix\":{\"n\":["; for (uint8_t k = 0; k < 4; k++) { if (k) s += ','; s += pixN[k]; }
+    s += "],\"s\":"; s += pixSeg; s += ",\"o\":"; s += pixOrden; s += ",\"abl\":"; s += ablFactor / 10; s += '}';
+  }
   s += ",\"base\":{\"ok\":"; s += hayBase; s += ",\"mod\":\""; s += baseModelo; s += "\",\"sn\":\""; s += baseSerie;
   s += "\",\"h\":"; s += baseHoras; s += ",\"n\":[";
   for (uint8_t i = 0; i < 6; i++) { if (i) s += ','; s += baseNormal[i]; }
@@ -569,10 +669,21 @@ void haPublicar() {
   String lista = fx; lista.replace('\'', '"');
   haUno(uid, "light", "luz", "\"name\":\"Letrero\",\"schema\":\"template\",\"command_topic\":\"~/cmd\",\"state_topic\":\"~/estado\","
         "\"command_on_template\":\"P 1{% if brightness is defined %}\\nB {{ (brightness / 2.55) | round | int }}{% endif %}"
-        "{% if effect is defined %}\\nM {{ " + fx + ".index(effect) }}{% endif %}\",\"command_off_template\":\"P 0\","
+        "{% if effect is defined %}\\nM {{ " + fx + ".index(effect) }}{% endif %}" +
+        String(modoPix ? "{% if red is defined %}\\nC {{ red }} {{ green }} {{ blue }} 0{% endif %}" : "") +
+        "\",\"command_off_template\":\"P 0\","
         "\"state_template\":\"{{ 'on' if value_json.p == 1 else 'off' }}\","
-        "\"brightness_template\":\"{{ (value_json.b * 2.55) | round | int }}\","
+        "\"brightness_template\":\"{{ (value_json.b * 2.55) | round | int }}\"," +
+        String(modoPix ? "\"red_template\":\"{{ value_json.c[0] }}\",\"green_template\":\"{{ value_json.c[1] }}\","
+                         "\"blue_template\":\"{{ value_json.c[2] }}\"," : "") +
         "\"effect_list\":" + lista + ",\"effect_template\":\"{{ value_json.n }}\"");
+  if (modoPix) {                                               // módulo de pixeles: sin AUX, focos CC ni diagnóstico
+    const char* QUITAR[][2] = {{"switch", "aux"}, {"number", "cc1"}, {"number", "cc2"}, {"button", "diag"}, {"sensor", "tc"}};
+    for (auto& q : QUITAR) {
+      String t = String("homeassistant/") + q[0] + "/" + uid + "/" + q[1] + "/config";
+      esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1);
+    }
+  }
   if (modoInd) {                                               // módulo industrial: contactor 2 manual
     haUno(uid, "switch", "k2", "\"name\":\"Contactor 2\",\"command_topic\":\"~/cmd\",\"payload_on\":\"O 100\","
           "\"payload_off\":\"O 0\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ 1 if value_json.cc[0] > 0 else 0 }}\","
@@ -587,13 +698,13 @@ void haPublicar() {
           "\"unit_of_measurement\":\"dBm\",\"device_class\":\"signal_strength\",\"entity_category\":\"diagnostic\"");
     return;
   }
-  haUno(uid, "switch", "aux", "\"name\":\"AUX\",\"command_topic\":\"~/cmd\",\"payload_on\":\"X 1\",\"payload_off\":\"X 0\","
+  if (!modoPix) haUno(uid, "switch", "aux", "\"name\":\"AUX\",\"command_topic\":\"~/cmd\",\"payload_on\":\"X 1\",\"payload_off\":\"X 0\","
         "\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json.x }}\",\"state_on\":\"1\",\"state_off\":\"0\"");
-  for (uint8_t k = 0; k < 2; k++)
+  for (uint8_t k = 0; k < 2 && !modoPix; k++)
     haUno(uid, "number", k ? "cc2" : "cc1", String("\"name\":\"Foco CC ") + (k + 1) + "\",\"command_topic\":\"~/cmd\","
           "\"command_template\":\"O " + (k ? "- " : "") + "{{ value | int }}\",\"state_topic\":\"~/estado\","
           "\"value_template\":\"{{ value_json.cc[" + k + "] }}\",\"min\":0,\"max\":100,\"unit_of_measurement\":\"%\"");
-  haUno(uid, "button", "diag", "\"name\":\"Probar salidas\",\"command_topic\":\"~/cmd\",\"payload_press\":\"DIAG\","
+  if (!modoPix) haUno(uid, "button", "diag", "\"name\":\"Probar salidas\",\"command_topic\":\"~/cmd\",\"payload_press\":\"DIAG\","
         "\"entity_category\":\"diagnostic\"");
   struct Sen { const char *obj, *nom, *campo, *unidad, *clase, *estado; bool diag; };
   static const Sen SEN[] = {
@@ -605,6 +716,7 @@ void haPublicar() {
     {"rssi", "Señal Wi-Fi", "rssi", "dBm", "signal_strength", "measurement", true},
   };
   for (const Sen& x : SEN)
+    if (!(modoPix && !strcmp(x.obj, "tc")))                    // el módulo PIX no tiene sensor de temperatura
     haUno(uid, "sensor", x.obj, String("\"name\":\"") + x.nom + "\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json." +
           x.campo + " }}\",\"unit_of_measurement\":\"" + x.unidad + "\",\"device_class\":\"" + x.clase +
           "\",\"state_class\":\"" + x.estado + "\"" + (x.diag ? ",\"entity_category\":\"diagnostic\"" : ""));
@@ -710,7 +822,7 @@ void salidaPrueba(int8_t k, uint32_t duty) {            // solo la salida k ence
 }
 float medirA() { delay(30); leerSensores(); return amp; }   // 30 ms: una conversión promediada nueva del INA238
 void iniciarDiag(bool aprender) {
-  if (falla != SIN_FALLA || !hayINA) return;
+  if (falla != SIN_FALLA || !hayINA || modoInd || modoPix) return;   // el diagnóstico es para los MOSFET de la base
   diagAprender = aprender; diagSalida = 0; diagFase = 0; tDiag = millis(); aviso = "";
   for (auto& r : prueba) r = Prueba{D_SIN, 0};
   apagarTodo();
@@ -785,6 +897,15 @@ bool ordenDeGrupo(const char* o) {                       // por grupo solo viaja
 // devuelve true si cambió algo (se publica el estado)
 bool ejecutar(const char* s, bool remoto) {
   if (!strncmp(s, "DIAG", 4)) { iniciarDiag(false); return true; }
+  if (!strncmp(s, "PX", 2) || !strncmp(s, "PS", 2) || !strncmp(s, "PO", 2)) {   // configuración de pixeles
+    if (!modoPix) return false;
+    const char* q = s + 2;
+    if (s[1] == 'X') for (uint8_t k = 0; k < 4; k++) { while (*q == ' ') q++; if (*q) pixN[k] = constrain(numero(q), 0, PIX_MAX); }
+    else if (s[1] == 'S') pixSeg = constrain(numero(q), 0, 64);
+    else pixOrden = constrain(numero(q), 0, 2);
+    pixGuardar();
+    return true;
+  }
   if (!strncmp(s, "HA", 2) && (s[2] == ' ' || !s[2])) {        // HA 0|1: aparecer o no en Home Assistant
     haActivo = atoi(s + 2) != 0 || !s[2];
     pref.putBool("ha", haActivo);
@@ -800,6 +921,7 @@ bool ejecutar(const char* s, bool remoto) {
     eepEscribir(3, b, 16);
     memcpy(baseModelo, b, 16); baseModelo[16] = 0;
     modoInd = !strncmp(baseModelo, "LL-IND", 6);
+    modoPix = !strncmp(baseModelo, "LL-PIX", 6);
     pedirReinicio = true;                                   // frecuencias y Home Assistant según el módulo
     return true;
   }
@@ -1089,6 +1211,7 @@ void setup() {
   iniciarSensores();
   leerBase();
   if (modoInd) for (uint8_t c = 0; c < 4; c++) { ledcChangeFrequency(PWM_PIN[c], IND_HZ, PWM_BITS); dutyActual[c] = 9999; pwm(c, 0); }
+  if (modoPix) { pixLeer(); pixIniciar(); }
   hayOLED = i2cPresente(OLED);
   if (hayOLED) oledIniciar();
   hayLux = i2cPresente(0x23);
@@ -1216,12 +1339,13 @@ void loop() {
   } else if (activo && falla == SIN_FALLA) {
     uint32_t r = min<uint32_t>(1000, (t - tRampa) * 1000 / 600);          // arranque suave de 0.6 s
     factor = (uint16_t)(r * factorTemperatura() / 1000);
-    efectos(t);
-    if (!modoInd) for (uint8_t k = 0; k < 2; k++) focoCC(k, (uint32_t)GAMMA12[cfg.cc[k] * 255 / 100] * factor / 1000);
+    if (!modoPix) efectos(t);
+    if (!modoInd && !modoPix) for (uint8_t k = 0; k < 2; k++) focoCC(k, (uint32_t)GAMMA12[cfg.cc[k] * 255 / 100] * factor / 1000);
   } else {
     tRampa = t;
     factor = 0;
     apagarTodo();
   }
   if (modoInd) { focoCC(0, cfg.cc[0] ? PWM_MAX : 0); focoCC(1, 0); }   // contactor 2: manual (O), no atenúa
+  if (modoPix && t - tPix >= (factor ? 33u : 500u)) { tPix = t; pixEnviar(t); }   // 30 cuadros/s; apagado: negro cada 0.5 s
 }

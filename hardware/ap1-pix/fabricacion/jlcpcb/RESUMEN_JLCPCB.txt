@@ -1,0 +1,36 @@
+AP1_Pixel: 25 tipos de pieza, 37 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):      12 tipos Extended  -> ~36 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     8 tipos Extended  -> ~24 USD de cargo;
+   se sueldan a mano 7 piezas de patas: F1, J1, J2, J3, J4, J5, J7
+Piezas Basic/Preferred: ~0.38 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (7):
+  10uF 50V               C13585         C2,C3,C6
+  100nF                  C14663         C4,C5,C8,C10
+  22uF 25V               C12891         C7
+  SS210                  C14996         D7
+  56k                    C23206         RB1
+  10k                    C25804         RB2,RG0
+  100                    C22775         RD1,RD2,RD3,RD4
+Preferred (3):
+  SMBJ26A                C19077580      D1
+  MMSZ5242B 12V          C19077426      DZ1
+  M24C02-WMN6TP          C7562          U4
+Extended (15):
+  330uF 50V              C2687701       C1
+  MINI 15A               C3206956       F1  [THT]
+  3A                     C355685        FO1,FO2,FO3,FO4
+  ENTRADA 5-24V          C474952        J1  [THT]
+  PIXELES 1              C474953        J2  [THT]
+  PIXELES 2              C474953        J3  [THT]
+  PIXELES 3              C474953        J4  [THT]
+  PIXELES 4              C474953        J5  [THT]
+  PROGRAMADOR            C30734         J7  [THT]
+  47uH                   C167888        L1
+  BSC028N06LS3           C534316        QR1
+  1mR 2512 2W            C2924520       RS1
+  INA238                 C2868250       U1
+  LMR16006XDDC           C87080         U2
+  74HCT125D              C5962          U3
