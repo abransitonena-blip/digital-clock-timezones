@@ -93,3 +93,13 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
 | **CC 60 V** | Focos de corriente constante con más LED en serie | AL8862 (60 V, 1 A) en lugar del AL8860 (42 V) |
 
 Cada uno se diseña con la misma librería (`tools/placa.py`), la misma medida, el mismo conector y la misma memoria. Así el programador y el gabinete siguen siendo los mismos.
+
+## Base para ideas nuevas: AP-1 PLANTILLA
+
+La placa [`ap1-plantilla`](ap1-plantilla/LEEME.md) es el punto de partida de cualquier módulo nuevo:
+- trae lo que todo módulo necesita: entrada 12-24 V protegida, fuente de 12 V para el programador, memoria de identidad, zócalo J7 y la zona libre bajo la antena;
+- **J8** repite las 16 señales del conector LL para cablear prototipos;
+- un **área de 12 × 10 agujeros** a 2.54 mm sirve como placa perforada.
+
+**Para probar una idea:** se pide armada, se escribe `MODELO LL-PROTO` y el programa usa su modo general (PWM 1-4, CTRL 1-2 y AUX).
+**Para diseñar el módulo final:** se copia la carpeta y se agregan las piezas al generador. La guía también explica cómo agregar el modo `LL-XXX` al programa, la app y Home Assistant.

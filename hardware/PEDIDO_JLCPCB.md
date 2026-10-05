@@ -9,8 +9,9 @@ Todo está en la carpeta **`PEDIDO_JLCPCB/`** (y comprimido en `PEDIDO_JLCPCB.zi
 | `3_MODULO_INDUSTRIAL` | AP-1 IND | 0-10 V aislado y contactores (naves, luces de red) |
 | `4_MODULO_PIXELES` | AP-1 PIX | Pixeles direccionables WS2812/SK6812/WS2815 (letras en secuencia, efectos de color) |
 | `5_AP02_placa_unica` | AP-0.2 rev D | Todo en una sola placa (alternativa sencilla al AP-1) |
+| `6_PLANTILLA_modulos_nuevos` | AP-1 PLANTILLA | Base para probar y diseñar módulos nuevos: entrada protegida, 12 V, memoria, conector LL repetido en J8 y área de prototipos ([guía](ap1-plantilla/LEEME.md)) |
 
-**Sistema mínimo:** 1 base + 1 programador. Para naves industriales: 1 IND + 1 programador. Para letreros de pixeles: 1 PIX + 1 programador.
+**Sistema mínimo:** 1 base + 1 programador. Para naves industriales: 1 IND + 1 programador. Para letreros de pixeles: 1 PIX + 1 programador. Para probar ideas: 1 PLANTILLA + 1 programador.
 
 Cada carpeta trae:
 - `1_..._GERBER.zip`: la placa (se sube tal cual, sin descomprimir).
@@ -24,15 +25,15 @@ Cada carpeta trae:
 1. **Order now → Add gerber file**: sube `1_..._GERBER.zip`. Las medidas y las capas se leen solas.
 2. Opciones de la placa (lo que no está en la tabla se deja como venga):
 
-| Opción | BASE | PROGRAMADOR | IND | PIX | AP-0.2 |
-|---|---|---|---|---|---|
-| Layers | **4** | 2 | 2 | 2 | 2 |
-| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm |
-| Outer Copper Weight | **2 oz** | 1 oz | 1 oz | **2 oz** | **2 oz** |
-| Inner Copper Weight | 1 oz | — | — | — | — |
-| Layer stackup | JLC04161H-7628 | — | — | — | — |
-| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo |
-| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual | igual | igual |
+| Opción | BASE | PROGRAMADOR | IND | PIX | AP-0.2 | PLANTILLA |
+|---|---|---|---|---|---|---|
+| Layers | **4** | 2 | 2 | 2 | 2 || 2 |
+| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm |
+| Outer Copper Weight | **2 oz** | 1 oz | 1 oz | **2 oz** | **2 oz** | 1 oz |
+| Inner Copper Weight | 1 oz | — | — | — | — | — |
+| Layer stackup | JLC04161H-7628 | — | — | — | — | — |
+| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo |
+| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual | igual | igual | igual |
 
 3. Activa **PCB Assembly**:
    - **Assembly side: Top Side.** Todas las piezas SMD van arriba.
@@ -68,6 +69,7 @@ Cada carpeta trae:
 | PROGRAMADOR | J1 (macho 2×8, **por abajo**), J4 (macho 1×4), U4 (receptor IR TSOP38238) | C68234, C5116483, C141632 |
 | IND | J1 (2 polos 5.08 mm), J2 (4 polos 3.5 mm), J3 (8 polos 3.5 mm), J7 (zócalo 2×8), U2 (convertidor B1212S-1WR3, C49260979) | Igual que la base |
 | AP-0.2 | Clemas, portafusible ATO, relevador (C30431) | Igual |
+| PLANTILLA | J1 (2 polos 5.08 mm), J7 (zócalo 2×8), J8 (macho 2×8) | C474952, C30734, C68234 |
 
 Si prefieres que JLCPCB suelde también estas piezas, usa la carpeta `ensamble_completo`. Las que no tengan código, búscalas en la página de la BOM ("Search") o déjalas en "Do not place".
 
@@ -87,8 +89,8 @@ Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred 
 
 ## Revisión hecha antes de generar los archivos
 
-- ERC 0 y DRC 0 (incluidas advertencias), 0 sin conectar, 0 diferencias entre esquema y placa, en las 4 placas.
-- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 4 placas:
+- ERC 0 y DRC 0 (incluidas advertencias), 0 sin conectar, 0 diferencias entre esquema y placa, en las 6 placas.
+- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 6 placas:
   - pista y separación mínimas de 0.127 mm;
   - agujeros de 0.3 mm o más;
   - anillos de vía de 0.1 mm o más;

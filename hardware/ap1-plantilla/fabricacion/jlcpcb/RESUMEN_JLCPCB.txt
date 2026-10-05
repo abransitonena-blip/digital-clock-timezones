@@ -1,0 +1,26 @@
+AP1_Plantilla: 15 tipos de pieza, 18 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       6 tipos Extended  -> ~18 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     3 tipos Extended  -> ~9 USD de cargo;
+   se sueldan a mano 3 piezas de patas: J1, J7, J8
+Piezas Basic/Preferred: ~0.36 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (7):
+  10uF 50V               C13585         C1,C2,C4
+  100nF                  C14663         C3,C6
+  22uF 25V               C12891         C5
+  SS34                   C8678          D1
+  SS210                  C14996         D3
+  150k                   C22807         RB1
+  10k                    C25804         RB2
+Preferred (2):
+  SMBJ26A                C19077580      D2
+  M24C02-WMN6TP          C7562          U1
+Extended (6):
+  3A                     C355685        F1
+  ENTRADA 12-24V         C474952        J1  [THT]
+  PROGRAMADOR            C30734         J7  [THT]
+  SEÑALES LL             C68234         J8  [THT]
+  47uH                   C167888        L1
+  LMR16006XDDC           C87080         U2

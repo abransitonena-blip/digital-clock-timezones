@@ -31,7 +31,7 @@ mm = pcbnew.FromMM
 def _defaults(S):
     for k, v in dict(HOLES=[], NETCLASS={}, POWER_ZONES=[], KEEPOUT_NETS=(), PRE=[], PREVIAS=[], VIAS=[],
                      SIN_COBRE=[], RETORNO=[], SILK=[], FLAGS=[], NOTES=[], SUBTITLES=[], COMPANY="", PAPER="A3", DRU="",
-                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], SIN_RELLENO=[], ZONAS_FINALES=[],
+                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], SIN_RELLENO=[], ZONAS_FINALES=[], SOLO_PLACA=[],
                      PLANOS=[("GND", "In1"), ("GND", "In2")]).items():
         if not hasattr(S, k):
             setattr(S, k, v)
@@ -102,6 +102,14 @@ def build_board(S):
             fp.SetExcludedFromBOM(False)
             fp.Reference().SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))     # mínimo de JLCPCB
             fp.Reference().SetTextThickness(mm(0.15))
+    for i, (ref, huella, x, y, rot) in enumerate(S.SOLO_PLACA):   # piezas solo de placa (área de prototipos, logos)
+        lib, name = huella.split(":")
+        carpeta = os.path.join(HUELLAS, lib + ".pretty") if lib == "LetreroLab" else os.path.join(FPL, lib + ".pretty")
+        fp = pcbnew.FootprintLoad(carpeta, name)
+        fp.SetFPID(pcbnew.LIB_ID(lib, name)); fp.SetReference(ref); fp.SetPosition(P(x, y)); fp.SetOrientationDegrees(rot)
+        fp.SetBoardOnly(True); fp.SetExcludedFromBOM(True); fp.SetExcludedFromPosFiles(True)
+        fp.Reference().SetVisible(False); fp.Value().SetVisible(False)
+        b.Add(fp)
     for i, (x, y) in enumerate(S.HOLES):
         fp = pcbnew.FootprintLoad(os.path.join(FPL, "MountingHole.pretty"), "MountingHole_3.2mm_M3")
         fp.SetFPID(pcbnew.LIB_ID("MountingHole", "MountingHole_3.2mm_M3"))
