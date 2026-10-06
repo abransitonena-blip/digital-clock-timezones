@@ -10,13 +10,13 @@
 
 **La red no entra a esta placa.** La placa solo da la señal 0-10 V y mueve la bobina de 12/24 V del contactor. El contactor y su cableado de 127/240 V los instala un electricista, en un tablero, con su protección.
 
-## Bornes (todos al frente)
+## Conectores (AP CONNECT, sin borneras; todos al frente)
 
-| Borne | Señal | Qué se conecta |
-|---|---|---|
-| **J1** `+ -` | Entrada 12-24 V DC (máx. 26 V) | Fuente de riel DIN de 12 o 24 V |
-| **J2** `+V K1 +V K2` | Bobinas de 2 contactores (0.5 A c/u) | Bobina de 12 V si la fuente es de 12 V; de 24 V si es de 24 V. También sirve un relevador de estado sólido de entrada DC |
-| **J3** `1+ 1- … 4+ 4-` | 4 salidas 0-10 V **aisladas** | DIM+ (morado) y DIM- (gris) de los drivers. Varios drivers en paralelo por canal |
+| Conector | Tipo | Señal | Qué se conecta |
+|---|---|---|---|
+| **J1** | JST VH 2 patas: 1 = +, 2 = - | Entrada 12-24 V DC (máx. 26 V) | Fuente de riel DIN de 12 o 24 V |
+| **K1, K2** (J2, J4) | JST XH 2 patas: 1 = +V, 2 = salida | Bobinas de 2 contactores (0.5 A c/u) | Bobina de 12 V si la fuente es de 12 V; de 24 V si es de 24 V. También sirve un relevador de estado sólido de entrada DC |
+| **0-10V 1-4** (J5, J6, J8, J9) | JST XH 2 patas: 1 = DIM+, 2 = DIM- | 4 salidas 0-10 V **aisladas** | DIM+ (morado) y DIM- (gris) de los drivers. Varios drivers en paralelo por canal |
 
 ## Cómo funciona
 
@@ -47,10 +47,10 @@ Al enclavar el programador, el módulo se reconoce solo:
 
 ## Pedir en JLCPCB
 
-- 2 capas, 1 oz, 88 × 56 mm. Los archivos están en `fabricacion/jlcpcb/`, con la BOM normal y la `_solo_SMD`; los bornes, el zócalo y el convertidor SIP se sueldan a mano.
+- 2 capas, 1 oz, 88 × 56 mm. Los archivos están en `fabricacion/jlcpcb/`, con la BOM normal y la `_solo_SMD`; los conectores, el zócalo y el convertidor SIP se sueldan a mano.
 - Antes de pedir, confirma los códigos LCSC de las piezas Extended:
   - **B1212S-1WR3** (Mornsun, SIP-4). Se puede cambiar por cualquier 12 V a 12 V de 1 W con las mismas patas: 1 −Vin, 2 +Vin, 3 −Vout, 4 +Vout.
-  - LMR16006, fusible 1206 y bornes.
+  - LMR16006, fusible 1206 y conectores.
 - Piezas Basic o Preferred (sin cargo de montaje por tipo): LTV-217-B, LM358DR2G, AO3400A, SS34, SMBJ26A y todos los pasivos.
 
 ## Pruebas antes de instalar

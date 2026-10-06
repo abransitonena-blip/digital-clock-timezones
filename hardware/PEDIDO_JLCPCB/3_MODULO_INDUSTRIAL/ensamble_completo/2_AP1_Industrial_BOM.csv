@@ -9,10 +9,14 @@ SMBJ26A,D2,D_SMB,C19077580,1,Preferred
 SS210,D3,D_SMA,C14996,1,Basic
 MMSZ5242B 12V,"DZ1,DZ2,DZ3,DZ4",D_SOD-123,C19077426,4,Preferred
 3A,F1,Fuse_1206_3216Metric,C355685,1,Extended
-ENTRADA 12-24V,J1,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
-CONTACTORES,J2,"TerminalBlock_Phoenix_PT-1,5-4-3.5-H_1x04_P3.50mm_Horizontal",,1,Extended (elegir en JLCPCB)
-0-10V,J3,"TerminalBlock_Phoenix_PT-1,5-8-3.5-H_1x08_P3.50mm_Horizontal",,1,Extended (elegir en JLCPCB)
+ENTRADA 12-24V,J1,JST_VH_B2P-VH_1x02_P3.96mm_Vertical,C160315,1,Extended
+K1,J2,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,C158012,1,Extended
+K2,J4,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,C158012,1,Extended
+0-10V 1,J5,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,C158012,1,Extended
+0-10V 2,J6,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,C158012,1,Extended
 PROGRAMADOR,J7,PinSocket_2x08_P2.54mm_Vertical,C30734,1,Extended
+0-10V 3,J8,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,C158012,1,Extended
+0-10V 4,J9,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,C158012,1,Extended
 47uH,L1,L_Changjiang_FNR4030S,C167888,1,Extended
 LTV-217-B,"OK1,OK2,OK3,OK4",SOP-4_4.4x2.6mm_P1.27mm,C115450,4,Basic
 AO3400A,"Q1,Q2",SOT-23,C20917,2,Basic

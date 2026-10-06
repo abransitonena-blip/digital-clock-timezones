@@ -6,7 +6,7 @@ SS34,D1,D_SMA,C8678,1,Basic
 SMBJ26A,D2,D_SMB,C19077580,1,Preferred
 SS210,D3,D_SMA,C14996,1,Basic
 3A,F1,Fuse_1206_3216Metric,C355685,1,Extended
-ENTRADA 12-24V,J1,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
+ENTRADA 12-24V,J1,JST_VH_B2P-VH_1x02_P3.96mm_Vertical,C160315,1,Extended
 PROGRAMADOR,J7,PinSocket_2x08_P2.54mm_Vertical,C30734,1,Extended
 SEÑALES LL,J8,PinHeader_2x08_P2.54mm_Vertical,C68234,1,Extended
 47uH,L1,L_Changjiang_FNR4030S,C167888,1,Extended

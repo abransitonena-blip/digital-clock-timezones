@@ -8,11 +8,11 @@ SS210,D7,D_SMA,C14996,1,Basic
 MMSZ5242B 12V,DZ1,D_SOD-123,C19077426,1,Preferred
 MINI 15A,F1,Fuseholder_Blade_Mini_Keystone_3568,C3206956,1,Extended
 3A,"FO1,FO2,FO3,FO4",Fuse_1206_3216Metric,C355685,4,Extended
-ENTRADA 5-24V,J1,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
-PIXELES 1,J2,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
-PIXELES 2,J3,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
-PIXELES 3,J4,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
-PIXELES 4,J5,TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal,C474953,1,Extended
+ENTRADA 5-24V,J1,JST_VH_B4P-VH_1x04_P3.96mm_Vertical,C160317,1,Extended
+PIXELES 1,J2,JST_VH_B3P-VH_1x03_P3.96mm_Vertical,C160316,1,Extended
+PIXELES 2,J3,JST_VH_B3P-VH_1x03_P3.96mm_Vertical,C160316,1,Extended
+PIXELES 3,J4,JST_VH_B3P-VH_1x03_P3.96mm_Vertical,C160316,1,Extended
+PIXELES 4,J5,JST_VH_B3P-VH_1x03_P3.96mm_Vertical,C160316,1,Extended
 PROGRAMADOR,J7,PinSocket_2x08_P2.54mm_Vertical,C30734,1,Extended
 47uH,L1,L_Changjiang_FNR4030S,C167888,1,Extended
 BSC028N06LS3,QR1,TDSON-8-1,C534316,1,Extended

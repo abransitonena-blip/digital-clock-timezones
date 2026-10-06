@@ -11,12 +11,12 @@
 
 Funciona con **WS2812B, SK6812 (RGB), WS2813 y WS2815**, de 5, 12 o 24 V.
 
-## Bornes (todos al frente)
+## Conectores (AP CONNECT, sin borneras; todos al frente)
 
-| Borne | Señal | Qué se conecta |
-|---|---|---|
-| **J1** `+ -` | Entrada 5-24 V DC, hasta 15 A | Fuente del **mismo voltaje que las tiras** |
-| **J2-J5** `+V Dn -` | 4 salidas de pixeles | **+V** de la tira (fusible de 3 A), **DATOS** (DIN de la tira) y **GND** |
+| Conector | Tipo | Señal | Qué se conecta |
+|---|---|---|---|
+| **J1** | JST VH 4 patas: 1-2 = +, 3-4 = - (10 A por pata) | Entrada 5-24 V DC, hasta 15 A | Fuente del **mismo voltaje que las tiras** (2 hilos de + y 2 de -) |
+| **J2-J5** | JST VH 3 patas: 1 +V, 2 DATOS, 3 GND | 4 salidas de pixeles | **+V** de la tira (fusible de 3 A), **DATOS** (DIN de la tira) y **GND** |
 
 **Tiras largas o de mucho consumo:**
 - cada salida tiene un fusible de 3 A, que alcanza para unos 50 LED de 5 V en blanco total, o 1-2 m de tira de 12/24 V;
@@ -70,7 +70,7 @@ Funciona con **WS2812B, SK6812 (RGB), WS2813 y WS2815**, de 5, 12 o 24 V.
 ## Pedir en JLCPCB
 
 - 2 capas, **2 oz**, 88 × 56 mm. Los archivos están en `fabricacion/jlcpcb/`, con la BOM normal y la `_solo_SMD`.
-- Bornes, zócalo y portafusible se sueldan a mano.
+- Conectores, zócalo y portafusible se sueldan a mano en el pedido económico (traen código LCSC).
 
 ## Pruebas antes de instalar
 

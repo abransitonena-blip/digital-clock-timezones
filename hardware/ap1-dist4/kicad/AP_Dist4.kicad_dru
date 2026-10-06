@@ -1,4 +1,4 @@
 (version 1)
 (rule "aislamiento"
-  (condition "(A.NetClass == 'Campo' || A.NetClass == 'CampoPot') && B.NetClass != 'Campo' && B.NetClass != 'CampoPot' && !A.memberOfFootprint('OK*') && !B.memberOfFootprint('OK*')")
+  (condition "(A.NetClass == 'Campo' || A.NetClass == 'CampoPot') && B.NetClass != 'Campo' && B.NetClass != 'CampoPot' && !A.memberOfFootprint('OK*') && !B.memberOfFootprint('OK*') && !A.memberOfFootprint('J1') && !B.memberOfFootprint('J1')")
   (constraint clearance (min 2.5mm)))

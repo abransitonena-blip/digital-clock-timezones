@@ -17,12 +17,12 @@ import os, sys, uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools"))
 import placa  # noqa: E402
+import conectores  # noqa: E402
 
 PROJECT = "AP_Input"
 NS = uuid.UUID("7286ead3-dd88-4189-ac48-9236c8a80839")
 ROOT_UUID = "73c0f81f-b2ef-43f0-90c6-7d91ce77f8c0"
 R06, C06, R12 = "Resistor_SMD:R_0603_1608Metric", "Capacitor_SMD:C_0603_1608Metric", "Resistor_SMD:R_1206_3216Metric"
-MKDS3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-%d-5.08_1x0%d_P5.08mm_Horizontal"
 QWIIC = "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 SJ = "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 R, C = "Device:R", "Device:C"
@@ -44,17 +44,15 @@ C_ = [
     ("JP2", "A1", "Jumper:SolderJumper_2_Open", SJ, {"1": "3V3", "2": "A1"}, "Dirección: cerrado suma 2"),
     ("RA1", "10k", R, R06, {"1": "A0", "2": "GND"}, "A0 en 0 si JP1 abierto"),
     ("RA2", "10k", R, R06, {"1": "A1", "2": "GND"}, "A1 en 0 si JP2 abierto"),
-    ("J4", "I1-I3", "Connector:Screw_Terminal_01x03", MKDS3 % (3, 3), {"1": "I1", "2": "I2", "3": "I3"}, "Entradas 1-3"),
-    ("J5", "I4-I6", "Connector:Screw_Terminal_01x03", MKDS3 % (3, 3), {"1": "I4", "2": "I5", "3": "I6"}, "Entradas 4-6"),
-    ("J6", "I7-I8", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "I7", "2": "I8"}, "Entradas 7-8"),
-    ("J7", "COM", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "COM", "2": "COM"},
-     "Común de las entradas: el 0 V de la fuente de los sensores"),
     ("TP1", "3V3", "Connector:TestPoint", "TestPoint:TestPoint_Pad_D1.5mm", {"1": "3V3"}, "Prueba: 3.3 V"),
     ("TP2", "GND", "Connector:TestPoint", "TestPoint:TestPoint_Pad_D1.5mm", {"1": "GND"}, "Prueba: tierra"),
 ]
 OX = [6.0, 13.5, 21.0, 28.5, 36.0, 43.5, 51.0, 58.5]       # x de cada canal (optoacoplador y su columna)
+CX = [3.5 + 8.6 * k for k in range(8)]                      # pata 1 del conector de cada entrada
 for k, x in enumerate(OX, start=1):
     C_ += [
+        ("J%d" % (k + 3), "E%d" % k, conectores.SYM[2], conectores.XH2, {"1": "I%d" % k, "2": "COM"},
+         "Entrada %d: 1 = señal (+12-24 V), 2 = común (0 V de los sensores). JST XH" % k),
         ("RI%d" % k, "4.7k", R, R12, {"1": "I%d" % k, "2": "IA%d" % k}, "Entrada %d: 4.9 mA a 24 V" % k),
         ("RP%d" % k, "1k", R, R06, {"1": "IA%d" % k, "2": "COM"}, "Umbral de 6 V y protección inversa, entrada %d" % k),
         ("OK%d" % k, "LTV-217-B", "Isolator:PC817", "Package_SO:SOP-4_4.4x2.6mm_P1.27mm",
@@ -73,9 +71,10 @@ POS = {
     "J1": (14.0, 3.6, 180), "J2": (58.0, 3.6, 180), "J3": (30.0, 3.5, 90),
     "U1": (46.0, 11.0, 0), "C1": (46.0, 15.6, 0),
     "JP1": (21.0, 9.0, 0), "JP2": (21.0, 12.5, 0), "RA1": (26.0, 9.0, 0), "RA2": (26.0, 12.5, 0),
-    "J4": (4.0, YT, 0), "J5": (21.0, YT, 0), "J6": (38.0, YT, 0), "J7": (50.0, YT, 0),
     "TP1": (63.0, 12.0, 0), "TP2": (63.0, 16.0, 0),
 }
+for k, x in enumerate(CX, start=1):
+    POS["J%d" % (k + 3)] = (x, 51.0, 0)
 for k, x in enumerate(OX, start=1):
     POS.update({"OK%d" % k: (x, 29.25, 90), "RI%d" % k: (x - 1.3, 36.0, 90), "RP%d" % k: (x + 1.9, 36.5, 90),
                 "RU%d" % k: (x - 1.2, 22.8, 90), "RL%d" % k: (x + 1.2, 22.8, 90), "DL%d" % k: (x + 1.2, 19.2, 90)})
@@ -90,9 +89,7 @@ DRU = """(rule "aislamiento"
   (constraint clearance (min 2.5mm)))
 """
 SILK = [
-    ("I1", 4.0, 45.6, 0.9, "F"), ("I2", 9.08, 45.6, 0.9, "F"), ("I3", 14.16, 45.6, 0.9, "F"),
-    ("I4", 21.0, 45.6, 0.9, "F"), ("I5", 26.08, 45.6, 0.9, "F"), ("I6", 31.16, 45.6, 0.9, "F"),
-    ("I7", 38.0, 45.6, 0.9, "F"), ("I8", 43.08, 45.6, 0.9, "F"), ("COM", 50.0, 45.6, 0.9, "F"), ("COM", 55.08, 45.6, 0.9, "F"),
+    *[("E%d" % (k + 1), x + 1.25, 46.4, 0.9, "F") for k, x in enumerate(CX)],
     ("AISLADO 12-24V", 63.0, 34.0, 0.9, "F"),
     ("ENTRA", 14.0, 7.6, 0.8, "F"), ("SIGUE", 58.0, 7.6, 0.8, "F"),
     ("AP ELECTRIC  AP INPUT  8 x 12-24V", 36.0, 54.8, 1.0, "B"),
@@ -108,7 +105,7 @@ COMPANY = "PCB 72 x 56 mm (4 módulos DIN), 2 capas, 1 oz"
 COSTURA = 5.0
 COSTURA_REDES = ("GND", "COM")
 PAPER = "A3"
-OCULTAR_REF = ("J1", "J2", "J4", "J5", "J6", "J7")
+OCULTAR_REF = ("J1", "J2") + tuple("J%d" % k for k in range(4, 12))
 
 if __name__ == "__main__":
     if "--cajas" in sys.argv:

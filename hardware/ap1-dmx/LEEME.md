@@ -12,16 +12,16 @@
 
 Con este módulo, el programador AP-1 se vuelve un **controlador DMX con Wi-Fi**: los mismos 10 modos, horarios, app, grupos y Home Assistant, sin consola de iluminación.
 
-## Bornes
+## Conectores (AP CONNECT, sin borneras)
 
-| Borne | Señal | Qué se conecta |
-|---|---|---|
-| **J1** `+ -` | Entrada 12-24 V DC | Fuente certificada (el módulo consume menos de 0.2 A) |
-| **J2** `GND D- D+` | Línea DMX | Cable DMX o par trenzado (UTP): **GND** a la malla (pata 1 del XLR), **D-** a la pata 2 y **D+** a la pata 3 |
+| Conector | Tipo | Señal | Qué se conecta |
+|---|---|---|---|
+| **J1** | JST VH 2 patas: 1 = +, 2 = - | Entrada 12-24 V DC | Fuente certificada (el módulo consume menos de 0.2 A) |
+| **J2** | JST XH 3 patas: 1 GND, 2 D-, 3 D+ | Línea DMX | Cable DMX o par trenzado (UTP): **GND** a la malla (pata 1 del XLR), **D-** a la pata 2 y **D+** a la pata 3 |
 
 - **JP1 (terminación de 120 Ω):** en DMX la terminación va en el **último equipo** de la línea. El módulo normalmente queda al **principio**, así que JP1 se deja **abierto**. Ciérralo con una gota de soldadura solo si el módulo queda al final.
 - **Cable:** hasta 32 equipos y unos 300 m en una sola línea, conectados en cadena (de un equipo al siguiente, sin derivaciones en estrella). En el último equipo pon un terminador de 120 Ω.
-- Para conectores XLR, usa un adaptador de borne a XLR de 3 o 5 patas (pata 1 GND, 2 D-, 3 D+).
+- Para conectores XLR, arma un cable de XH 3 patas a XLR de 3 o 5 patas (pata 1 GND, 2 D-, 3 D+).
 
 ## Cómo funciona
 

@@ -16,12 +16,12 @@ import os, sys, uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools"))
 import placa  # noqa: E402
+import conectores  # noqa: E402
 
 PROJECT = "AP_Dist4"
 NS = uuid.UUID("61d5e27d-4e2f-4644-8f42-21416861ad6d")
 ROOT_UUID = "837d2a4a-1b19-4f86-ae14-24aad2f3368c"
 R06, C06, R12 = "Resistor_SMD:R_0603_1608Metric", "Capacitor_SMD:C_0603_1608Metric", "Resistor_SMD:R_1206_3216Metric"
-MKDS3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-%d-5.08_1x0%d_P5.08mm_Horizontal"
 QWIIC = "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 SJ = "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 R, C = "Device:R", "Device:C"
@@ -41,8 +41,8 @@ C_ = [
     ("JP2", "A1", "Jumper:SolderJumper_2_Open", SJ, {"1": "3V3", "2": "A1"}, "Dirección: cerrado suma 2"),
     ("RA1", "10k", R, R06, {"1": "A0", "2": "GND"}, "A0 en 0 si JP1 abierto"),
     ("RA2", "10k", R, R06, {"1": "A1", "2": "GND"}, "A1 en 0 si JP2 abierto"),
-    ("J1", "ENTRADA 12-24V", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN", "2": "LGND"},
-     "Fuente de los LED: + y 0 V (hasta 10 A)"),
+    ("J1", "ENTRADA 12-24V", conectores.SYM_XT60, conectores.XT60, {"1": "LGND", "2": "VIN"},
+     "Fuente de los LED: XT60, + y - como las marcas del conector (hasta 10 A)"),
     # fuente presente
     ("RIV", "4.7k", R, R12, {"1": "VIN", "2": "IAV"}, "Aviso de fuente presente"),
     ("RPV", "1k", R, R06, {"1": "IAV", "2": "LGND"}, "Umbral de unos 6 V"),
@@ -50,13 +50,13 @@ C_ = [
      {"1": "IAV", "2": "LGND", "3": "GND", "4": "SENV"}, "Fuente presente (aislado)"),
     ("RUV", "10k", R, R06, {"1": "3V3", "2": "SENV"}, "Pull-up"),
 ]
-FX = [21.7, 37.7, 53.7, 69.7]                     # x de la pata 1 de cada portafusible
+FX = [25.2, 41.2, 57.2, 73.2]                     # x de la pata 1 de cada portafusible
 for k, fx in enumerate(FX, start=1):
     ox = fx + 6.0
     C_ += [
         ("F%d" % k, "MINI 5A", "Device:Fuse", "Fuse:Fuseholder_Blade_Mini_Keystone_3568", {"1": "VIN", "2": "OUT%d" % k},
          "Fusible de la rama %d (mini de auto, 32 V, hasta 7.5 A)" % k),
-        ("J%d" % (k + 1), "RAMA %d" % k, "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2),
+        ("J%d" % (k + 1), "RAMA %d" % k, conectores.SYM[2], conectores.VH2,
          {"1": "OUT%d" % k, "2": "LGND"}, "Salida de la rama %d: + y 0 V" % k),
         ("RR%d" % k, "4.7k", R, R12, {"1": "VIN", "2": "RA%d" % k}, "LED rojo de la rama %d" % k),
         ("DR%d" % k, "ROJO", "Device:LED", "LED_SMD:LED_0603_1608Metric", {"1": "OUT%d" % k, "2": "RA%d" % k},
@@ -74,13 +74,14 @@ for k, fx in enumerate(FX, start=1):
 W, H = 88.0, 56.0
 RADIO_ESQUINA = 2.0
 HOLES = [(3.5, 3.5), (84.5, 39.5), (84.5, 52.5)]
-YT = 49.8
+YT = 50.4                                         # fila de los conectores VH de las ramas
+XJ, YJ = 17.0, 44.0                               # XT60 de entrada: pata 1; el enchufe sale por la izquierda
 YF = 24.0                                          # fila de las patas de entrada de los portafusibles
 POS = {
     "J6": (14.0, 3.6, 180), "J7": (58.0, 3.6, 180),
     "U1": (36.0, 6.5, 0), "C1": (36.0, 11.0, 0), "RF": (44.0, 4.0, 90),
     "JP1": (66.0, 6.0, 0), "JP2": (66.0, 9.5, 0), "RA1": (71.0, 6.0, 0), "RA2": (71.0, 9.5, 0),
-    "J1": (3.6, YT, 0),
+    "J1": (XJ, YJ, 90),
     "OKV": (10.0, 15.25, 90), "RIV": (8.5, 20.9, 0), "RPV": (13.0, 20.9, 0), "RUV": (10.0, 8.8, 90),
 }
 for k, fx in enumerate(FX, start=1):
@@ -98,26 +99,27 @@ CAMPO = ["IAV"] + ["%s%d" % (n, k) for n in ("IA", "RA", "GA") for k in range(1,
 NETCLASS = {"CampoPot": (0.6, 0.3, POT), "Campo": (0.3, 0.2, CAMPO)}
 # tronco de +V (2.5 mm): de J1 sube por la izquierda y corre por las patas de entrada de los 4 portafusibles;
 # cada rama baja de la pata de salida del fusible al + de su borne
-PRE = [("VIN", 2.5, [(3.6, YT), (3.6, YF), (FX[-1], YF)]),
-       ("VIN", 0.6, [(7.04, 20.9), (7.04, YF)])]                 # aviso de fuente presente
+# XT60: pata 1 = "-" (abajo, y 44) y pata 2 = "+" (arriba, y 36.8), como las marcas del conector
+PRE = [("VIN", 2.5, [(XJ, YJ - 7.2), (XJ, YF), (FX[-1], YF)]),
+       ("VIN", 0.6, [(7.04, 20.9), (7.04, YF), (XJ, YF)])]       # aviso de fuente presente
 for k, fx in enumerate(FX, start=1):
     PRE.append(("OUT%d" % k, 2.5, [(fx, YF + 9.92), (fx, 41.0), (fx - 1.7, 43.0), (fx - 1.7, YT)]))
 ZONA_CAMPO = [(0.3, 17.0), (87.7, 17.0), (87.7, 55.7), (0.3, 55.7)]
 ZONAS_FINALES = [("LGND", ZONA_CAMPO), ("LGND", ZONA_CAMPO, "B")]
 SIN_COBRE = [[(0.3, 13.5), (87.7, 13.5), (87.7, 17.0), (0.3, 17.0)]]     # franja de aislamiento de 3.5 mm
 DRU = """(rule "aislamiento"
-  (condition "(A.NetClass == 'Campo' || A.NetClass == 'CampoPot') && B.NetClass != 'Campo' && B.NetClass != 'CampoPot' && !A.memberOfFootprint('OK*') && !B.memberOfFootprint('OK*')")
+  (condition "(A.NetClass == 'Campo' || A.NetClass == 'CampoPot') && B.NetClass != 'Campo' && B.NetClass != 'CampoPot' && !A.memberOfFootprint('OK*') && !B.memberOfFootprint('OK*') && !A.memberOfFootprint('J1') && !B.memberOfFootprint('J1')")
   (constraint clearance (min 2.5mm)))
 """
 SILK = [
-    ("+", 3.6, 45.6, 1.2, "F"), ("0V", 8.68, 45.6, 0.9, "F"),
+    ("ENTRADA 12-24V", 9.0, 50.6, 0.9, "F"), ("XT60", 9.0, 52.2, 0.9, "F"),
     ("AP SIGN DIST 4", 50.0, 54.8, 1.0, "B"),
     ("AISLAMIENTO 3.5 mm", 44.0, 15.25, 0.8, "B"),
     ("Solo 12-24 V DC. Fusibles mini de auto, máx. 7.5 A por rama, 10 A en total", 44.0, 52.8, 0.8, "B"),
     ("Dirección: JP1 +1  JP2 +2  (0x24-0x27)", 66.0, 12.6, 0.8, "B"),
 ]
 for k, fx in enumerate(FX, start=1):
-    SILK += [("R%d+" % k, fx - 1.7, 45.6, 0.9, "F"), ("0V", fx + 3.38, 45.6, 0.9, "F"),
+    SILK += [("R%d+" % k, fx - 1.7, 45.0, 0.9, "F"), ("0V", fx + 2.26, 45.0, 0.9, "F"),
              ("V", fx + 7.5, 37.4, 0.8, "F"), ("F", fx + 4.5, 37.4, 0.8, "F")]
 FLAGS = [("GND", 20.32, 20.32), ("3V3", 35.56, 20.32), ("VIN", 50.8, 20.32), ("LGND", 66.04, 20.32)]
 NOTES = [(150.0, 15.0, "AP ELECTRIC · AP SIGN DIST 4: 4 ramas de 12-24 V DC con fusible mini, LED verde (voltaje) y rojo\\n"

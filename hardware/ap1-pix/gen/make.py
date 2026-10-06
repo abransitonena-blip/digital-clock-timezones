@@ -6,8 +6,8 @@ enclava encima y cabe en el mismo gabinete. El programa lo reconoce por su memor
 - Entrada 5-24 V DC hasta 15 A: fusible mini de auto (ATM), protección de polaridad con MOSFET de nivel lógico
   (funciona desde 5 V), supresor SMBJ26A y medidor INA238 con shunt de 1 mOhm: el programa limita el brillo para no
   pasar de la corriente configurada (como el "ABL" de WLED, pero medido de verdad).
-- 4 salidas de pixeles con borne de 3 polos (+V con fusible propio de 3 A, DATOS, GND).
-- Datos: PWM 1-4 del programador -> buffer 74HCT125 alimentado a 5 V -> 100 Ohm -> borne. Señal de 5 V limpia aunque
+- 4 salidas de pixeles con conector JST VH de 3 patas (+V con fusible propio de 3 A, DATOS, GND).
+- Datos: PWM 1-4 del programador -> buffer 74HCT125 alimentado a 5 V -> 100 Ohm -> conector. Señal de 5 V limpia aunque
   la tira sea de 12 o 24 V y el cable mida varios metros.
 - Fuente de 5 V (LMR16006) para el buffer; el programador toma la entrada directa (acepta 5-26 V).
 
@@ -18,19 +18,19 @@ import os, sys, uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools"))
 import placa  # noqa: E402
+import conectores  # noqa: E402
 
 PROJECT = "AP1_Pixel"
 NS = uuid.UUID("5d8e2a14-3c6f-4b7a-9d0e-1f2a3b4c5d6f")
 ROOT_UUID = "d1e2f3a4-b5c6-4d7e-8f90-a1b2c3d4e5f6"
 R06, C06, C12 = "Resistor_SMD:R_0603_1608Metric", "Capacitor_SMD:C_0603_1608Metric", "Capacitor_SMD:C_1206_3216Metric"
-MKDS3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-%d-5.08_1x0%d_P5.08mm_Horizontal"
 TDSON = "Package_TO_SOT_SMD:TDSON-8-1"
 SMA = "Diode_SMD:D_SMA"
 R, C, CP = "Device:R", "Device:C", "Device:C_Polarized"
 
 C_ = [
     # --- entrada, protección y medición ---
-    ("J1", "ENTRADA 5-24V", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN_RAW", "2": "GNDIN"},
+    ("J1", "ENTRADA 5-24V", conectores.SYM[4], conectores.VH4, {"1": "VIN_RAW", "2": "VIN_RAW", "3": "GNDIN", "4": "GNDIN"},
      "Entrada 5-24 V DC (+ / -), hasta 15 A"),
     ("F1", "MINI 15A", "Device:Fuse", "Fuse:Fuseholder_Blade_Mini_Keystone_3568", {"1": "VIN_RAW", "2": "VF"},
      "Fusible mini de auto (ATM): 15 A máximo; se cambia sin soldar"),
@@ -82,10 +82,10 @@ C_ = [
     ("TP2", "5V", "Connector:TestPoint", "TestPoint:TestPoint_Pad_D1.5mm", {"1": "V5"}, "Prueba: 5 V del buffer"),
     ("TP3", "GND", "Connector:TestPoint", "TestPoint:TestPoint_Pad_D1.5mm", {"1": "GND"}, "Prueba: tierra"),
 ]
-SAL_X = (14.9, 31.25, 47.6, 63.95)              # pata 1 (+V) del borne de cada salida
+SAL_X = (20.0, 35.5, 51.0, 66.5)              # pata 1 (+V) del borne de cada salida
 for k, x in enumerate(SAL_X, start=1):
     C_ += [
-        ("J%d" % (k + 1), "PIXELES %d" % k, "Connector:Screw_Terminal_01x03", MKDS3 % (3, 3),
+        ("J%d" % (k + 1), "PIXELES %d" % k, conectores.SYM[3], conectores.VH3,
          {"1": "VO%d" % k, "2": "DAT%d" % k, "3": "GND"}, "Salida de pixeles %d: +V (con fusible), DATOS, GND" % k),
         ("FO%d" % k, "3A", "Device:Fuse", "Fuse:Fuse_1206_3216Metric", {"1": "VIN", "2": "VO%d" % k},
          "Fusible de la salida %d (3 A); para tiras largas inyectar +V aparte" % k),
@@ -97,7 +97,7 @@ RADIO_ESQUINA = 2.0
 HOLES = [(3.5, 3.5), (84.5, 39.5), (84.5, 52.5)]     # iguales que la base
 YT = 49.8
 POS = {
-    "J1": (3.6, YT, 0), "J7": (47.0, 6.0, 0),
+    "J1": (2.6, 50.4, 0), "J7": (47.0, 6.0, 0),
     "F1": (3.5, 28.0, 0), "RS1": (20.7, 29.7, 180), "U1": (17.5, 23.2, 0), "C4": (17.5, 20.4, 0),
     "QR1": (8.7, 39.5, 270), "RG0": (13.0, 35.0, 270), "DZ1": (9.5, 34.6, 0),
     "C1": (29.5, 14.5, 90), "D1": (34.6, 25.0, 90), "C2": (39.5, 40.3, 270), "C3": (56.0, 40.3, 270),
@@ -110,7 +110,7 @@ POS = {
     "TP1": (40.0, 31.0, 0), "TP2": (2.6, 16.0, 0), "TP3": (44.0, 31.0, 0),
 }
 for k, x in enumerate(SAL_X, start=1):
-    POS["J%d" % (k + 1)] = (x, YT, 0)
+    POS["J%d" % (k + 1)] = (x, 50.4, 0)
     POS["FO%d" % k] = (x, 40.9, 270)          # entrada (VIN) arriba, salida (VOk) abajo
 
 NETCLASS = {
@@ -118,11 +118,12 @@ NETCLASS = {
     "Media": (0.6, 0.2, ["V5", "SW"]),
 }
 POWER_ZONES = [
-    ("VIN_RAW", [(0.6, 25.5), (5.6, 25.5), (5.6, 52.2), (0.6, 52.2)]),
+    ("VIN_RAW", [(0.6, 25.5), (5.6, 25.5), (5.6, 45.6), (8.3, 45.6), (8.3, 52.2), (0.6, 52.2)]),   # J1 patas 1-2
     ("VF", [(11.6, 26.4), (18.6, 26.4), (18.6, 32.6), (11.6, 32.6)]),
     ("VIN", [(22.9, 18.0), (36.0, 18.0), (36.0, 33.4), (72.0, 33.4), (72.0, 39.6), (13.4, 39.6), (13.4, 33.4),
              (22.9, 33.4)]),
-    ("GNDIN", [(6.6, 42.2), (10.8, 42.2), (10.8, 52.2), (6.6, 52.2)]),
+    ("GNDIN", [(6.6, 42.2), (10.8, 42.2), (10.8, 44.0), (16.4, 44.0), (16.4, 52.2), (8.9, 52.2), (8.9, 45.0),
+               (6.6, 45.0)]),                                                                       # J1 patas 3-4
 ] + [("VO%d" % k, [(x - 1.4, 42.6), (x + 1.4, 42.6), (x + 1.4, 52.2), (x - 1.4, 52.2)]) for k, x in enumerate(SAL_X, 1)]
 KEEPOUT_NETS = ("VIN", "VIN_RAW", "VF", "GNDIN", "VO1", "VO2", "VO3", "VO4")
 PRE = [
@@ -134,12 +135,12 @@ PRE = [
 SIN_COBRE = [[(72.5, 0.3), (87.7, 0.3), (87.7, 30.5), (72.5, 30.5)]]     # bajo la antena del programador
 
 SILK = [
-    ("+", 3.6, 46.0, 1.2, "F"), ("-", 8.68, 46.0, 1.2, "F"),
+    ("+ +  - -", 8.5, 45.0, 0.9, "F"),
     ("LetreroLab AP-1 PIX  5-24V", 44.0, 54.8, 1.0, "B"),
     ("Tiras largas: inyectar +V desde la fuente", 30.0, 2.0, 0.8, "B"),
 ]
 for k, x in enumerate(SAL_X, start=1):
-    SILK += [("+V", x, 45.8, 0.9, "F"), ("D%d" % k, x + 5.08, 45.8, 0.9, "F"), ("-", x + 10.16, 45.8, 1.2, "F")]
+    SILK += [("+V", x, 45.0, 0.9, "F"), ("D%d" % k, x + 3.96, 45.0, 0.9, "F"), ("-", x + 7.92, 45.0, 1.2, "F")]
 FLAGS = [("VIN_RAW", 20.32, 20.32), ("GND", 35.56, 20.32), ("VIN", 50.8, 20.32), ("GNDIN", 66.04, 20.32),
          ("V5", 81.28, 20.32), ("3V3", 96.52, 20.32), ("VF", 111.76, 20.32)]
 NOTES = [(150.0, 15.0, "LetreroLab AP-1 PIX: 4 salidas de pixeles (+V con fusible, DATOS a 5 V, GND).\n"
@@ -149,7 +150,7 @@ SUBTITLES = ["Placa de 2 capas para ensamble en fábrica (JLCPCB)", "5-24 V DC, 
 COMPANY = "PCB 88 x 56 mm, 2 capas, cobre 2 oz"
 COSTURA = 5.0
 PAPER = "A2"
-OCULTAR_REF = ("J2", "J3", "J4", "J5")
+OCULTAR_REF = ("J1", "J2", "J3", "J4", "J5")
 
 if __name__ == "__main__":
     if "--cajas" in sys.argv:

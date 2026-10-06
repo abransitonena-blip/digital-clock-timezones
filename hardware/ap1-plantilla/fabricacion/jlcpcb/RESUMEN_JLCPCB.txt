@@ -19,7 +19,7 @@ Preferred (2):
   M24C02-WMN6TP          C7562          U1
 Extended (6):
   3A                     C355685        F1
-  ENTRADA 12-24V         C474952        J1  [THT]
+  ENTRADA 12-24V         C160315        J1  [THT]
   PROGRAMADOR            C30734         J7  [THT]
   SEÑALES LL             C68234         J8  [THT]
   47uH                   C167888        L1

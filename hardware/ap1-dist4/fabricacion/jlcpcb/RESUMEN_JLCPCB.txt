@@ -1,7 +1,7 @@
 AP_Dist4: 16 tipos de pieza, 52 piezas por placa.
 Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
 
-Pedido completo (BOM/CPL normales):       4 tipos Extended  -> ~12 USD de cargo
+Pedido completo (BOM/CPL normales):       5 tipos Extended  -> ~15 USD de cargo
 Pedido económico (BOM/CPL _solo_SMD):     2 tipos Extended  -> ~6 USD de cargo;
    se sueldan a mano 9 piezas de patas: F1,F2,F3,F4, J1, J2, J3, J4, J5
 Piezas Basic/Preferred: ~0.17 USD por placa (precio de catálogo, sin las Extended).
@@ -16,11 +16,11 @@ Basic (7):
   1k                     C21190         RP1,RP2,RP3,RP4,RPV
 Extended (9):
   MINI 5A                C3206956       F1,F2,F3,F4  [THT]
-  ENTRADA 12-24V         C474952        J1  [THT]
-  RAMA 1                 C474952        J2  [THT]
-  RAMA 2                 C474952        J3  [THT]
-  RAMA 3                 C474952        J4  [THT]
-  RAMA 4                 C474952        J5  [THT]
+  ENTRADA 12-24V         C98732         J1  [THT]
+  RAMA 1                 C160315        J2  [THT]
+  RAMA 2                 C160315        J3  [THT]
+  RAMA 3                 C160315        J4  [THT]
+  RAMA 4                 C160315        J5  [THT]
   QWIIC ENTRADA          C160404        J6
   QWIIC SALIDA           C160404        J7
-  TCA9554PWR             -              U1
+  TCA9554PWR             C477924        U1

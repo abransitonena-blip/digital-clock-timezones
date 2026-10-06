@@ -41,6 +41,8 @@ CONOCIDOS = {
     ("B1212S-1WR3", "Converter_DCDC_Murata_MEE1SxxxxSC_THT"): ("C49260979", "Extended"),
     ("SRD-12VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C30431", "Extended"),
     ("74HCT125D", "SOIC-14_3.9x8.7mm_P1.27mm"): ("C5962", "Extended"),          # Nexperia 74HCT125D,653
+    ("TCA9554PWR", "TSSOP-16_4.4x5mm_P0.65mm"): ("C477924", "Extended"),        # TI, expansor I2C 8 bits
+    ("ADS1115IDGSR", "TSSOP-10_3x3mm_P0.5mm"): ("C37593", "Extended"),          # TI, ADC 16 bits I2C (VSSOP-10)
 }
 
 # Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.
@@ -54,6 +56,14 @@ POR_HUELLA = {
     # clema de 2 polos 5.08 mm: KEFA KF128-5.08-2P (misma separación que la Phoenix MKDS 3)
     "TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal": ("C474952", "Extended"),
     "TerminalBlock_Phoenix_MKDS-3-3-5.08_1x03_P5.08mm_Horizontal": ("C474953", "Extended"),   # KEFA KF128-5.08-3P
+    # AP CONNECT: conectores con cable en lugar de borneras (códigos verificados en lcsc.com / jlcpcb.com)
+    "AMASS_XT60PW-M_1x02_P7.20mm_Horizontal": ("C98732", "Extended"),   # XT60PW-M, 30 A
+    "JST_VH_B2P-VH_1x02_P3.96mm_Vertical": ("C160315", "Extended"),      # JST B2P-VH, 10 A por pata
+    "JST_VH_B3P-VH_1x03_P3.96mm_Vertical": ("C160316", "Extended"),      # JST B3P-VH
+    "JST_VH_B4P-VH_1x04_P3.96mm_Vertical": ("C160317", "Extended"),      # JST B4P-VH (2 patas + y 2 patas -: 20 A)
+    "JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical": ("C158012", "Extended"),    # JST B2B-XH-A, 3 A
+    "JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical": ("C144394", "Extended"),    # JST B3B-XH-A
+    "JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical": ("C144395", "Extended"),    # JST B4B-XH-A
 }
 
 

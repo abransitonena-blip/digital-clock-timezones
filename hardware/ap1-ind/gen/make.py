@@ -20,21 +20,20 @@ import os, sys, uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools"))
 import placa  # noqa: E402
+import conectores  # noqa: E402
 
 PROJECT = "AP1_Industrial"
 NS = uuid.UUID("7a2e4c11-5b3d-4f6a-8c9e-2d1f0a3b4c5d")
 ROOT_UUID = "c4d5e6f7-a8b9-4c0d-9e1f-2a3b4c5d6e7f"
 R06, C06, C12 = "Resistor_SMD:R_0603_1608Metric", "Capacitor_SMD:C_0603_1608Metric", "Capacitor_SMD:C_1206_3216Metric"
-MKDS3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-%d-5.08_1x0%d_P5.08mm_Horizontal"
-PT15 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-%d-3.5-H_1x0%d_P3.50mm_Horizontal"
 SMA = "Diode_SMD:D_SMA"
 SOIC8 = "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
 R, C = "Device:R", "Device:C"
 
 C_ = [
     # --- entrada y fuente de 12 V ---
-    ("J1", "ENTRADA 12-24V", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN_RAW", "2": "GND"},
-     "Entrada 12-24 V DC (+ / -), máx. 26 V"),
+    ("J1", "ENTRADA 12-24V", conectores.SYM[2], conectores.VH2, {"1": "VIN_RAW", "2": "GND"},
+     "Entrada 12-24 V DC: 1 = +, 2 = -, máx. 26 V (JST VH)"),
     ("F1", "3A", "Device:Fuse", "Fuse:Fuse_1206_3216Metric", {"1": "VIN_RAW", "2": "VF"},
      "Fusible de la placa (el mismo de la base)"),
     ("D1", "SS34", "Device:D_Schottky", SMA, {"1": "VIN", "2": "VF"}, "Polaridad invertida (en serie)"),
@@ -52,8 +51,10 @@ C_ = [
     ("RB1", "150k", R, R06, {"1": "V12", "2": "FB"}, "Divisor: 0.765 V x 16 = 12.2 V"),
     ("RB2", "10k", R, R06, {"1": "FB", "2": "GND"}, "Divisor"),
     # --- contactores (bobina a +V de la entrada) ---
-    ("J2", "CONTACTORES", "Connector:Screw_Terminal_01x04", PT15 % (4, 4),
-     {"1": "VIN", "2": "K1", "3": "VIN", "4": "K2"}, "Bobina del contactor 1 y 2 (+V y salida conmutada), 0.5 A c/u"),
+    ("J2", "K1", conectores.SYM[2], conectores.XH2, {"1": "VIN", "2": "K1"},
+     "Bobina del contactor 1: 1 = +V, 2 = salida conmutada, 0.5 A (JST XH)"),
+    ("J4", "K2", conectores.SYM[2], conectores.XH2, {"1": "VIN", "2": "K2"},
+     "Bobina del contactor 2: 1 = +V, 2 = salida conmutada, 0.5 A (JST XH)"),
     ("Q1", "AO3400A", "Transistor_FET:AO3400A", "Package_TO_SOT_SMD:SOT-23", {"1": "AUX", "2": "GND", "3": "K1"},
      "Contactor 1 (sigue al encendido de la luz)"),
     ("Q2", "AO3400A", "Transistor_FET:AO3400A", "Package_TO_SOT_SMD:SOT-23", {"1": "CC1", "2": "GND", "3": "K2"},
@@ -75,9 +76,8 @@ C_ = [
      "Seguidores de los canales 3 y 4"),
     ("C8", "100nF", C, C06, {"1": "ISO12", "2": "ISOGND"}, "Desacoplo U3"),
     ("C9", "100nF", C, C06, {"1": "ISO12", "2": "ISOGND"}, "Desacoplo U4"),
-    ("J3", "0-10V", "Connector:Screw_Terminal_01x08", PT15 % (8, 8),
-     {"1": "DIM1", "2": "ISOGND", "3": "DIM2", "4": "ISOGND", "5": "DIM3", "6": "ISOGND", "7": "DIM4", "8": "ISOGND"},
-     "Atenuación 0-10 V: DIM+ y DIM- de cada canal (aislados de la fuente)"),
+    *[("J%d" % (4, 5, 6, 8, 9)[k], "0-10V %d" % k, conectores.SYM[2], conectores.XH2, {"1": "DIM%d" % k, "2": "ISOGND"},
+       "Atenuación 0-10 V canal %d: 1 = DIM+, 2 = DIM- (aislado de la fuente; JST XH)" % k) for k in range(1, 5)],
     # --- identidad, conector del programador, pruebas ---
     ("U5", "M24C02-WMN6TP", "Memory_EEPROM:M24C02-WMN", SOIC8,
      {"1": "GND", "2": "GND", "3": "GND", "4": "GND", "5": "SDA", "6": "SCL", "7": "GND", "8": "3V3"},
@@ -113,7 +113,8 @@ RADIO_ESQUINA = 2.0
 HOLES = [(3.5, 3.5), (84.5, 39.5), (84.5, 52.5)]     # iguales que la base
 YT = 49.8
 POS = {
-    "J3": (3.0, YT, 0), "J1": (48.0, YT, 0), "J2": (62.0, YT, 0), "J7": (47.0, 6.0, 0),
+    "J1": (47.5, 50.4, 0), "J2": (58.5, 51.0, 0), "J4": (67.2, 51.0, 0), "J7": (47.0, 6.0, 0),
+    "J5": (3.0, 51.0, 0), "J6": (11.7, 51.0, 0), "J8": (20.4, 51.0, 0), "J9": (29.1, 51.0, 0),
     # fuente de 12 V: misma ubicación que en la base
     "U1": (11.0, 9.0, 0), "L1": (11.0, 4.0, 0), "C3": (7.8, 7.8, 90), "D3": (15.2, 5.0, 90), "C4": (15.2, 11.0, 90),
     "C5": (4.6, 10.4, 180), "RB1": (5.0, 12.5, 0), "RB2": (9.6, 12.4, 0),
@@ -165,11 +166,10 @@ PRE = [
 ]
 
 SILK = [
-    ("1+", 3.0, 45.6, 0.9, "F"), ("1-", 6.5, 45.6, 0.9, "F"), ("2+", 10.0, 45.6, 0.9, "F"), ("2-", 13.5, 45.6, 0.9, "F"),
-    ("3+", 17.0, 45.6, 0.9, "F"), ("3-", 20.5, 45.6, 0.9, "F"), ("4+", 24.0, 45.6, 0.9, "F"), ("4-", 27.5, 45.6, 0.9, "F"),
-    ("0-10V AISLADO", 33.0, 46.2, 0.9, "F"),
-    ("+", 48.0, 46.0, 1.2, "F"), ("-", 53.08, 46.0, 1.2, "F"),
-    ("+V", 62.0, 45.6, 0.9, "F"), ("K1", 65.5, 45.6, 0.9, "F"), ("+V", 69.0, 45.6, 0.9, "F"), ("K2", 72.5, 45.6, 0.9, "F"),
+    ("1", 4.25, 46.6, 0.9, "F"), ("2", 12.95, 46.6, 0.9, "F"), ("3", 21.65, 46.6, 0.9, "F"), ("4", 30.35, 46.6, 0.9, "F"),
+    ("0-10V AISLADO (1 DIM+ 2 DIM-)", 18.0, 55.4, 0.8, "F"),
+    ("1+  2-", 49.5, 45.2, 0.9, "F"),
+    ("K1", 59.75, 46.6, 0.9, "F"), ("K2", 68.45, 46.6, 0.9, "F"),
     ("LetreroLab AP-1 IND  12-24V", 44.0, 54.8, 1.0, "B"),
     ("AISLAMIENTO 3 mm", 20.0, 30.3, 0.8, "B"),
     ("Contactor: bobina 12/24 V. La red NO entra a esta placa", 44.0, 2.0, 0.8, "B"),
@@ -185,7 +185,7 @@ COMPANY = "PCB 88 x 56 mm, 2 capas, 1 oz"
 COSTURA = 4.0                                      # vías de costura cada 4 mm en las dos tierras
 COSTURA_REDES = ("GND", "ISOGND")
 PAPER = "A2"
-OCULTAR_REF = ("J3", "J2")
+OCULTAR_REF = ("J1", "J2", "J4", "J5", "J6", "J8", "J9")
 
 if __name__ == "__main__":
     if "--cajas" in sys.argv:

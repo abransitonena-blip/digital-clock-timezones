@@ -33,9 +33,10 @@ El programador se enclava en cualquiera de ellos, lee la memoria y **sabe solo q
 | **Focos LED de corriente constante** | COB, LED de 1-3 W en serie, reflectores sin driver | **BASE** (salidas CC) | Da 1 A constante y atenuable a cada foco, sin driver externo |
 | **Luces de red de 127/240 V, solo encender y apagar** | focos normales, lámparas, letreros con su propia fuente | **IND** (o el AUX de la BASE) | Mueve la **bobina** de un contactor o relevador de estado sólido de riel DIN certificado, con horarios, app y Home Assistant |
 | **Naves industriales y oficinas** | campanas LED, paneles, reflectores con driver **dimeable 0-10 V / 1-10 V** | **IND** | Atenúa hasta 4 grupos de drivers por 0-10 V aislado, y enciende o apaga su alimentación con el contactor |
-| **Todo en una sola placa, sin módulos** | letrero sencillo con relevador | **AP-0.2** | Placa única de 90 × 70 mm |
+| **Todo en una sola placa, sin módulos** | letrero sencillo con relevador | *AP-0.2 (histórico, ya no se pide)* | Usa BASE + PROGRAMADOR |
 | **Letreros de pixeles (WS2812/SK6812/WS2815)** | letras en secuencia, arcoíris, fachadas | **PIX** ([guía](ap1-pix/LEEME.md)) | 4 salidas con +V con fusible, datos a 5 V y GND; brillo limitado por corriente medida |
 | **Equipos DMX512** | reflectores RGB/RGBW, barras, decodificadores DMX para tiras, atenuadores DMX | **DMX** ([guía](ap1-dmx/LEEME.md)) | Manda un universo DMX512 por RS-485; cada equipo es un "pixel" con los 10 modos |
+| **Sensores analógicos** | nivel de cisternas, presión, temperatura 4-20 mA / 0-10 V | **AI4** ([guía](ap1-ai4/LEEME.md)) | 4 entradas con umbrales que mandan luces y salidas |
 | **Sistemas DALI** | edificios con DALI | *DALI (propuesto)* | Bus DALI aislado |
 
 ## Cómo se conectan

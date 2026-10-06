@@ -13,12 +13,12 @@ Si un tramo hace corto, **solo se apaga esa rama** y el LED rojo dice cuál fue.
 
 > Solo **12-24 V DC** (máximo 26 V), de una fuente certificada. Los portafusibles mini de auto son de 32 V: la red **nunca** se conecta aquí.
 
-## Bornes
+## Conectores (AP CONNECT, sin borneras)
 
-| Borne | Qué se conecta |
-|---|---|
-| `+` `0V` (J1) | Fuente de los LED, **hasta 10 A** en total |
-| `R1+ 0V` … `R4+ 0V` | Cada rama: + y 0 V de un grupo de LED |
+| Conector | Tipo | Qué se conecta |
+|---|---|---|
+| **J1** ENTRADA | **XT60** macho (sale por el lado izquierdo) | Fuente de los LED, **hasta 10 A**. Polaridad: la marcada en el conector y en la placa ("+" y "-") |
+| **J2-J5** R1-R4 | **JST VH** 2 patas: 1 = +, 2 = 0 V | Cada rama: un grupo de LED |
 | Qwiic ENTRA / SIGUE | (opcional) bus de control hacia el CORE y el siguiente módulo |
 
 ## Fusibles
@@ -66,7 +66,7 @@ Si una rama no tiene carga y su fusible está abierto, el rojo y el verde encien
 
 - 2 capas, **2 oz**, 88 × 56 mm. Archivos en `fabricacion/jlcpcb/` (y en `PEDIDO_JLCPCB/10_AP_SIGN_DIST4`).
 - **U1 TCA9554PWR no trae código LCSC:** búscalo por nombre en la revisión de la BOM.
-- Bornes y portafusibles se sueldan a mano en el pedido económico.
+- Conectores y portafusibles se sueldan a mano en el pedido económico (o JLCPCB los suelda en "ensamble completo"; todos traen código LCSC).
 - Soporte para riel DIN: `ap1-gabinete/din/soporte_din_88x56.stl`.
 
 ## Pruebas antes de instalar
@@ -74,4 +74,4 @@ Si una rama no tiene carga y su fusible está abierto, el rojo y el verde encien
 1. Alimenta con 24 V sin fusibles: todo apagado. Con el Qwiic conectado, E5 activa y E1-E4 inactivas.
 2. Pon fusibles: los 4 verdes encienden y E1-E4 se activan.
 3. Rama 1 con una carga de 1 A y fusible de 1 A; luego haz un corto en la rama. Se abre solo F1: el rojo de la rama 1 enciende, E1 se apaga y las otras ramas siguen funcionando.
-4. **Calor:** con 10 A en total por 30 min, mide los bornes y las pistas. No deben pasar de unos 60 °C.
+4. **Calor:** con 10 A en total por 30 min, mide el XT60, los conectores VH y las pistas. No deben pasar de unos 60 °C.

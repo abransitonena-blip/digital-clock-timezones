@@ -18,6 +18,7 @@ import os, sys, uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools"))
 import placa  # noqa: E402
+import conectores  # noqa: E402
 
 PROJECT = "AP1_Base"
 NS = uuid.UUID("3f1c9a52-6d7e-4b8a-9e0f-1a2b3c4d5e61")
@@ -25,16 +26,15 @@ ROOT_UUID = "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e"
 R06, C06, C12 = "Resistor_SMD:R_0603_1608Metric", "Capacitor_SMD:C_0603_1608Metric", "Capacitor_SMD:C_1206_3216Metric"
 R12 = "Resistor_SMD:R_1206_3216Metric"
 TDSON = "Package_TO_SOT_SMD:TDSON-8-1"
-MKDS3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-%d-5.08_1x0%d_P5.08mm_Horizontal"
-PT15 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-%d-3.5-H_1x0%d_P3.50mm_Horizontal"
 R, C, CP = "Device:R", "Device:C", "Device:C_Polarized"
 FET = "Transistor_FET:BSC028N06LS3"
 SMA = "Diode_SMD:D_SMA"
 
 C_ = [
     # --- entrada, protección y medición ---
-    ("J1", "ENTRADA 12-24V", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN_RAW", "2": "GNDIN"},
-     "Entrada 12-24 V DC (+ / -), hasta 20 A"),
+    ("J1", "ENTRADA 12-24V", conectores.SYM[4], conectores.VH4,
+     {"1": "VIN_RAW", "2": "VIN_RAW", "3": "GNDIN", "4": "GNDIN"},
+     "Entrada 12-24 V DC: patas 1-2 = +, 3-4 = -, hasta 20 A (JST VH, 10 A por pata)"),
     ("F1", "MINI 20A", "Device:Fuse", "Fuse:Fuseholder_Blade_Mini_Keystone_3568", {"1": "VIN_RAW", "2": "VF"},
      "Fusible mini de auto (ATM): 20 A tiras, 5-10 A letreros; se cambia sin soldar"),
     ("RS1", "1mR 2512 2W", "Device:R_Shunt", "LetreroLab:R_2512_Kelvin_NetTie",
@@ -56,8 +56,8 @@ C_ = [
      "Filtro de entrada (105 C, bajo ESR, larga vida)"),
     ("C3", "10uF 50V", C, C12, {"1": "VIN", "2": "GND"}, "Desacoplo cerámico de +V junto a J3"),
     ("C13", "10uF 50V", C, C12, {"1": "VIN", "2": "GND"}, "Desacoplo cerámico de +V junto a J3"),
-    ("J3", "+V SALIDA", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN", "2": "VIN"},
-     "+12/24 V común de tiras y letreros (2 polos)"),
+    ("J3", "+V SALIDA", conectores.SYM[2], conectores.VH2, {"1": "VIN", "2": "VIN"},
+     "+12/24 V común de tiras y letreros (2 patas, 20 A; JST VH)"),
     ("TP1", "VIN", "Connector:TestPoint", "TestPoint:TestPoint_Pad_D1.5mm", {"1": "VIN"}, "Prueba: entrada medida"),
     # --- fuente conmutada 12 V ---
     ("U2", "LMR16006XDDC", "Regulator_Switching:LMR16006YQ", "Package_TO_SOT_SMD:SOT-23-6",
@@ -74,9 +74,10 @@ C_ = [
     # --- corriente constante (focos) ---
     ("F2", "3A", "Device:Fuse", "Fuse:Fuse_1206_3216Metric", {"1": "VCC", "2": "VIN"},
      "Fusible propio de los canales de corriente constante"),
-    ("J5", "FOCOS CC", "Connector:Screw_Terminal_01x04", PT15 % (4, 4),
-     {"1": "LEDA1", "2": "LEDK1", "3": "LEDA2", "4": "LEDK2"},
-     "Salidas de corriente constante: + y - de cada foco (flotantes: no unir a tierra)"),
+    ("J5", "FOCO CC 1", conectores.SYM[2], conectores.XH2, {"1": "LEDA1", "2": "LEDK1"},
+     "Foco de corriente constante 1: 1 = +, 2 = - (flotante: no unir a tierra; JST XH)"),
+    ("J8", "FOCO CC 2", conectores.SYM[2], conectores.XH2, {"1": "LEDA2", "2": "LEDK2"},
+     "Foco de corriente constante 2: 1 = +, 2 = - (flotante: no unir a tierra; JST XH)"),
 ]
 for k, (u, l, d, rs, c, rc) in enumerate((("U6", "L2", "D2", "RSC1", "C11", "RC1"),
                                           ("U7", "L3", "D3", "RSC2", "C12", "RC2")), start=1):
@@ -104,8 +105,8 @@ C_ += [
      "Corte por hardware del driver 3-4 (el diodo aísla el pull-up interno de 12 V del EN)"),
     ("C8", "1uF 25V", C, C06, {"1": "V12", "2": "GND"}, "Desacoplo driver 1-2"),
     ("C9", "1uF 25V", C, C06, {"1": "V12", "2": "GND"}, "Desacoplo driver 3-4"),
-    ("J4", "CANALES", "Connector:Screw_Terminal_01x04", MKDS3 % (4, 4),
-     {"1": "CH1", "2": "CH2", "3": "CH3", "4": "CH4"}, "Negativo conmutado de cada canal (8 A c/u)"),
+    ("J4", "CANALES", conectores.SYM[4], conectores.VH4,
+     {"1": "CH1", "2": "CH2", "3": "CH3", "4": "CH4"}, "Negativo conmutado de cada canal (8 A c/u; JST VH, 10 A por pata)"),
 ]
 for n in range(1, 5):
     C_ += [
@@ -120,7 +121,7 @@ C_ += [
      "Salida AUX (lado bajo)"),
     ("RAUX", "10k", R, R06, {"1": "AUX", "2": "GND"}, "AUX apagada sin programador (vence el pull-up débil del ESP al arrancar)"),
     ("D4", "SS34", "Device:D_Schottky", SMA, {"1": "V12", "2": "AUXD"}, "Rueda libre de la bobina externa"),
-    ("J6", "AUX 12V", "Connector:Screw_Terminal_01x02", PT15 % (2, 2), {"1": "V12", "2": "AUXD"},
+    ("J6", "AUX 12V", conectores.SYM[2], conectores.XH2, {"1": "V12", "2": "AUXD"},
      "AUX: +12 V y salida conmutada, máx. 0.3 A (relevador/contactor/ventilador)"),
     ("U8", "TMP1075D", "Sensor_Temperature:TMP1075D", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
      {"1": "SDA", "2": "SCL", "3": "ALERT", "4": "GND", "5": "GND", "6": "GND", "7": "GND", "8": "3V3"},
@@ -145,7 +146,8 @@ HOLES = [(3.5, 3.5), (84.5, 39.5), (84.5, 52.5)]     # (84.5, 39.5): tornillo de
 YT = 49.8
 QX = (46.1, 53.1, 60.1, 67.1)
 POS = {
-    "J5": (3.0, YT, 0), "J3": (20.0, YT, 0), "J1": (32.0, YT, 0), "J4": (44.5, YT, 0), "J6": (67.0, YT, 0),
+    "J5": (3.0, 51.0, 0), "J8": (11.6, 51.0, 0), "J3": (19.6, 50.4, 0), "J1": (30.0, 50.4, 0), "J4": (48.0, 50.4, 0),
+    "J6": (66.5, 51.0, 0),
     "J7": (47.0, 6.0, 0),
     "F1": (30.6, 38.0, 90), "RS1": (24.1, 28.6, 0), "U1": (24.1, 23.2, 180), "C4": (24.1, 19.8, 0),
     "C1": (24.0, 13.0, 0), "C3": (24.0, 33.8, 0), "C13": (24.0, 36.6, 0), "D1": (23.6, 41.0, 0),
@@ -172,25 +174,28 @@ NETCLASS = {
 }
 
 POWER_ZONES = [
-    ("VIN_RAW", [(29.0, 36.6), (35.3, 36.6), (35.3, 52.2), (29.0, 52.2)]),
+    # entrada por J1 (VH 4 patas): patas 1-2 en VIN_RAW (x 30.0 y 33.96), patas 3-4 en GNDIN (x 37.92 y 41.88)
+    ("VIN_RAW", [(28.6, 36.6), (35.4, 36.6), (35.4, 52.2), (28.6, 52.2)]),
     ("VF", [(25.7, 26.3), (35.7, 26.3), (35.7, 30.9), (25.7, 30.9)]),
     ("VIN", [(16.9, 11.5), (22.3, 11.5), (22.3, 14.5), (20.4, 14.5), (20.4, 26.3), (25.2, 26.3), (25.2, 31.4),
-             (28.3, 31.4), (28.3, 52.2), (16.9, 52.2)]),
-    ("GNDIN", [(35.9, 36.4), (41.9, 36.4), (41.9, 41.6), (39.4, 41.6), (39.4, 52.2), (35.9, 52.2)]),
+             (28.1, 31.4), (28.1, 52.2), (16.9, 52.2)]),
+    ("GNDIN", [(35.9, 36.4), (41.9, 36.4), (41.9, 41.6), (43.7, 43.4), (43.7, 52.2), (35.9, 52.2)]),
     ("GND", [(37.75, 32.0), (41.7, 32.0), (41.7, 35.3), (37.75, 35.3)]),            # fuentes de QR1
-    ("CH1", [(43.9, 36.4), (48.3, 36.4), (48.3, 42.5), (46.2, 44.6), (46.2, 52.2), (42.6, 52.2), (42.6, 42.0),
-             (43.9, 41.0)]),
-    ("CH2", [(50.9, 36.4), (55.3, 36.4), (55.3, 42.4), (51.4, 46.3), (51.4, 52.2), (46.8, 52.2), (46.8, 45.0),
-             (49.4, 42.4), (50.9, 42.4)]),
-    ("CH3", [(57.9, 36.4), (62.3, 36.4), (62.3, 42.4), (56.5, 48.2), (56.5, 52.2), (52.0, 52.2), (52.0, 47.0),
-             (56.6, 42.4), (57.9, 42.4)]),
-    ("CH4", [(64.9, 36.4), (69.3, 36.4), (69.3, 42.4), (61.6, 50.1), (61.6, 52.2), (57.1, 52.2), (57.1, 49.0),
-             (63.7, 42.4), (64.9, 42.4)]),
+    # canales: del drenador de cada MOSFET a su pata de J4 (VH, x 48 / 51.96 / 55.92 / 59.88); 0.66 mm entre zonas
+    ("CH1", [(43.9, 36.4), (48.3, 36.4), (48.3, 42.0), (49.65, 43.35), (49.65, 52.2), (46.35, 52.2), (46.35, 44.6),
+             (43.9, 42.15)]),
+    ("CH2", [(50.9, 36.4), (55.3, 36.4), (55.3, 42.4), (53.61, 44.09), (53.61, 52.2), (50.31, 52.2), (50.31, 42.4),
+             (50.9, 42.4)]),
+    ("CH3", [(57.9, 36.4), (62.3, 36.4), (62.3, 42.4), (57.57, 47.13), (57.57, 52.2), (54.27, 52.2), (54.27, 45.3),
+             (57.17, 42.4), (57.9, 42.4)]),
+    ("CH4", [(64.9, 36.4), (69.3, 36.4), (69.3, 42.4), (61.53, 50.17), (61.53, 52.2), (58.23, 52.2), (58.23, 48.27),
+             (64.1, 42.4), (64.9, 42.4)]),
 ] + [("GND", [(x - 1.1, 32.2), (x + 2.6, 32.2), (x + 2.6, 35.3), (x - 1.1, 35.3)]) for x in QX]
 KEEPOUT_NETS = ("VIN", "VIN_RAW", "VF", "GNDIN", "CH1", "CH2", "CH3", "CH4")
 VIAS = ([(x, y) for x in (38.4, 39.4, 40.4, 41.2) for y in (32.7, 33.6)]
         + [(x + dx, y) for x in QX for dx in (-0.5, 0.7, 1.9) for y in (32.9, 34.0)]
-        + [(26.9, 33.8), (26.9, 36.6), (27.4, 41.0)])
+        + [(26.9, 33.8), (26.9, 36.6), (27.4, 41.0)]
+        + [(61.37, 29.34), (52.6, 11.7)])                 # junto a RP3 y a U9/C14: unen sus islas de GND al plano
 PRE = [
     # conmutación de los AL8860: misma ruta en los dos canales (el canal 2 está 12.5 mm abajo)
     ("SWC1", 0.6, [(7.11, 18.47), (7.11, 17.88), (8.06, 17.88), (8.69, 17.25), (8.69, 15.16), (9.63, 14.22), (11.67, 14.22), (15.05, 17.60), (14.30, 18.35), (14.30, 23.00)]),
@@ -223,13 +228,11 @@ RETORNO = [[(35.5, 29.6), (71.0, 29.6), (71.0, 44.5), (35.5, 44.5)]]   # regreso
 
 SILK = [
     ("LetreroLab AP-1 BASE", 70.0, 45.0, 1.2, "B"),
-    ("+V", 20.0, 46.0, 1.0, "F"), ("+V", 25.08, 46.0, 1.0, "F"),
-    ("+", 32.0, 46.0, 1.2, "F"), ("-", 37.08, 46.0, 1.2, "F"),
-    ("CH1", 44.5, 46.0, 1.0, "F"), ("CH2", 49.58, 46.0, 1.0, "F"),
-    ("CH3", 54.66, 46.0, 1.0, "F"), ("CH4", 59.74, 46.0, 1.0, "F"),
-    ("1+", 3.0, 45.6, 0.9, "F"), ("1-", 6.5, 45.6, 0.9, "F"), ("2+", 10.0, 45.6, 0.9, "F"), ("2-", 13.5, 45.6, 0.9, "F"),
-    ("FOCOS CC 1A", 8.3, 42.6, 0.9, "F"),
-    ("12V", 67.0, 45.6, 0.9, "F"), ("AUX", 70.5, 45.6, 0.9, "F"),
+    ("+V +V", 21.6, 45.2, 0.9, "F"),
+    ("+  +  -  -", 35.9, 45.2, 0.9, "F"),
+    ("1   2   3   4", 53.9, 45.2, 0.9, "F"),
+    ("CC1", 4.25, 46.6, 0.9, "F"), ("CC2", 12.85, 46.6, 0.9, "F"),
+    ("AUX", 67.75, 46.6, 0.9, "F"),
     ("LetreroLab AP-1 BASE universal  12-24V 20A", 44.0, 54.8, 1.0, "B"),
     ("Salidas CC flotantes: no unir a tierra", 20.0, 2.0, 0.9, "B"),
 ]
@@ -245,7 +248,7 @@ COSTURA = 5.0                             # vías GND cada 5 mm: une F.Cu/B.Cu c
 COMPANY = "PCB 88 x 56 mm, 4 capas JLC04161H-7628, externas 2 oz, internas 1 oz"
 PAPER = "A2"
 MODELOS = {}
-OCULTAR_REF = ("J5", "J6")
+OCULTAR_REF = ("J1", "J3", "J4", "J5", "J6", "J8")
 
 if __name__ == "__main__":
     if "--cajas" in sys.argv:

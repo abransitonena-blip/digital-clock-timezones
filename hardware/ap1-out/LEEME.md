@@ -11,15 +11,14 @@
 
 > La red de 127/220 V **no entra a esta placa**. Bombas, motores y luces de red se encienden con un contactor o relevador de estado sólido de riel DIN certificado, instalado por un electricista. Esta placa solo mueve su bobina de 24 V DC.
 
-## Bornes
+## Conectores (AP CONNECT, sin borneras)
 
-| Borne | Qué se conecta |
-|---|---|
-| `+24` `0V` (J4) | Fuente de 24 V DC. **La misma fuente que alimenta la base**: el 0 V es la tierra del programador |
-| `Q1` … `Q7` | Un lado de cada carga. La salida conecta a 0 V cuando está activa |
-| `+24` `+24` (J7) | El otro lado de las cargas (+24 V, después del fusible) |
+| Conector | Tipo | Qué se conecta |
+|---|---|---|
+| **J4** 24V | JST VH 2 patas: 1 = +24 V, 2 = 0 V | Fuente de 24 V DC. **La misma fuente que alimenta la base**: el 0 V es la tierra del programador |
+| **Q1-Q7** | JST XH 2 patas por salida: 1 = +24 V, 2 = salida | Cada carga va **entre las dos patas** de su conector: un cable de 2 hilos por bobina o válvula |
 
-**Cableado de una carga:** `+24` → bobina o válvula → `Qn`. Los diodos para bobinas ya vienen dentro del ULN2003: no hace falta poner diodos en las bobinas.
+**Cableado de una carga:** pata 1 (+24 V) → bobina o válvula → pata 2 (salida). Los diodos para bobinas ya vienen dentro del ULN2003: no hace falta poner diodos en las bobinas.
 
 ## Límites (verificados con la hoja del ULN2003)
 
@@ -53,7 +52,7 @@
 
 - 2 capas, 1 oz, 72 × 56 mm. Archivos en `fabricacion/jlcpcb/` (y en `PEDIDO_JLCPCB/9_AP_OUTPUT`).
 - **U1 TCA9554PWR no trae código LCSC** (no se pudo consultar el catálogo desde aquí). En la revisión de la BOM de JLCPCB, búscalo por nombre (`TCA9554PWR`, TSSOP-16) y elige uno en existencia.
-- Los bornes y J3 se sueldan a mano en el pedido económico.
+- Los conectores y J3 se sueldan a mano en el pedido económico (o en "ensamble completo"; traen código LCSC).
 - **Montaje en riel DIN:** soporte imprimible `ap1-gabinete/din/soporte_din_72x56.stl`.
 
 ## Pruebas antes de instalar

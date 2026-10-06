@@ -1,9 +1,9 @@
-AP1_Industrial: 27 tipos de pieza, 64 piezas por placa.
+AP1_Industrial: 31 tipos de pieza, 68 piezas por placa.
 Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
 
-Pedido completo (BOM/CPL normales):       8 tipos Extended  -> ~24 USD de cargo
+Pedido completo (BOM/CPL normales):       7 tipos Extended  -> ~21 USD de cargo
 Pedido económico (BOM/CPL _solo_SMD):     3 tipos Extended  -> ~9 USD de cargo;
-   se sueldan a mano 5 piezas de patas: J1, J2, J3, J7, U2
+   se sueldan a mano 9 piezas de patas: J1, J2, J4, J5, J6, J7, J8, J9, U2
 Piezas Basic/Preferred: ~1.03 USD por placa (precio de catálogo, sin las Extended).
 
 Basic (16):
@@ -27,12 +27,16 @@ Preferred (3):
   SMBJ26A                C19077580      D2
   MMSZ5242B 12V          C19077426      DZ1,DZ2,DZ3,DZ4
   M24C02-WMN6TP          C7562          U5
-Extended (8):
+Extended (12):
   3A                     C355685        F1
-  ENTRADA 12-24V         C474952        J1  [THT]
-  CONTACTORES            -              J2  [THT]
-  0-10V                  -              J3  [THT]
+  ENTRADA 12-24V         C160315        J1  [THT]
+  K1                     C158012        J2  [THT]
+  K2                     C158012        J4  [THT]
+  0-10V 1                C158012        J5  [THT]
+  0-10V 2                C158012        J6  [THT]
   PROGRAMADOR            C30734         J7  [THT]
+  0-10V 3                C158012        J8  [THT]
+  0-10V 4                C158012        J9  [THT]
   47uH                   C167888        L1
   LMR16006XDDC           C87080         U1
   B1212S-1WR3            C49260979      U2  [THT]

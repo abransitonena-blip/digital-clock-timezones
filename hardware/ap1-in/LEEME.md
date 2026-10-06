@@ -11,12 +11,14 @@
 - **contactos auxiliares** de contactores (confirmar que una bomba arrancó);
 - finales de carrera, botones de paro y alarmas.
 
-## Bornes
+## Conectores (AP CONNECT, sin borneras)
 
-| Borne | Qué se conecta |
+Un **JST XH de 2 patas por entrada** (E1-E8): un cable por sensor, con seguro, que no entra al revés.
+
+| Pata | Qué se conecta |
 |---|---|
-| `I1` … `I8` | La señal: +12 a +24 V = activa |
-| `COM` `COM` | El 0 V de la fuente que alimenta los sensores o contactos |
+| 1 | La señal: +12 a +24 V = activa |
+| 2 | Común: el 0 V de la fuente que alimenta ese sensor o contacto (las 8 patas 2 están unidas) |
 
 **Ejemplos de cableado:**
 - **Pulsador o contacto seco:** `+24 V` de la fuente → pulsador → `In`; y el `0 V` de esa fuente → `COM`.
@@ -75,7 +77,7 @@ Las entradas también aparecen en **Home Assistant** (un sensor por entrada, "En
 
 - 2 capas, 1 oz, 72 × 56 mm. Archivos en `fabricacion/jlcpcb/` (y en `PEDIDO_JLCPCB/8_AP_INPUT`).
 - **U1 TCA9554PWR no trae código LCSC:** búscalo por nombre en la revisión de la BOM.
-- Los bornes y J3 se sueldan a mano en el pedido económico.
+- Los conectores XH y J3 se sueldan a mano en el pedido económico (o en "ensamble completo"; traen código LCSC).
 - **Montaje en riel DIN:** `ap1-gabinete/din/soporte_din_72x56.stl`.
 
 ## Pruebas antes de instalar

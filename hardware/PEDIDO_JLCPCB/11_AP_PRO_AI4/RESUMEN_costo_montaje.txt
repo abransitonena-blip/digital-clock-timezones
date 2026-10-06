@@ -1,0 +1,28 @@
+AP_AI4: 17 tipos de pieza, 33 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       5 tipos Extended  -> ~15 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     3 tipos Extended  -> ~9 USD de cargo;
+   se sueldan a mano 5 piezas de patas: J3, J4, J7, J8, J9
+Piezas Basic/Preferred: ~0.21 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (7):
+  100nF                  C14663         C1,CF1,CF2,CF3,CF4
+  10uF 50V               C13585         C2
+  SS34                   C8678          D1
+  10k                    C25804         RB1,RB2,RB3,RB4
+  150                    C17471         RM1,RM2,RM3,RM4
+  1k                     C21190         RS1,RS2,RS3,RS4
+  22k                    C31850         RT1,RT2,RT3,RT4
+Preferred (1):
+  SMBJ26A                C19077580      D2
+Extended (9):
+  3A                     C355685        F1
+  QWIIC ENTRADA          C160404        J1
+  QWIIC SALIDA           C160404        J2
+  AI1                    C144394        J3  [THT]
+  AI2                    C144394        J4  [THT]
+  24V                    C160315        J7  [THT]
+  AI3                    C144394        J8  [THT]
+  AI4                    C144394        J9  [THT]
+  ADS1115IDGSR           C37593         U1

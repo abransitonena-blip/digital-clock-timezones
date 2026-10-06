@@ -8,7 +8,7 @@ El sistema tiene tres partes:
 |---|---|---|
 | **Base universal** (`ap1-base/`) | Placa de potencia: entrada protegida y medida, 4 canales de 8 A, 2 canales de **corriente constante** para focos, salida AUX, sensores y la memoria de la base | **No**: es la misma para todos |
 | **Programador** (`ap1-prog/`) | El cerebro: ESP32-C3 con Wi-Fi, USB-C, botones, IR, LEDs y conector Qwiic. **Se enclava encima** de la base | No |
-| **Placa de LEDs o focos** | La que lleva la luz: letrero BAÑOS, flechas, lámpara, tira… | **Sí**, una por modelo. Se conecta a las clemas de la base |
+| **Placa de LEDs o focos** | La que lleva la luz: letrero BAÑOS, flechas, lámpara, tira… | **Sí**, una por modelo. Se conecta a los conectores de la base (JST VH y XH) |
 | **Módulo industrial IND** (`ap1-ind/`) | En lugar de la base: 4 salidas **0-10 V aisladas** para drivers de naves industriales, paneles y reflectores, y 2 salidas para la **bobina de un contactor** que enciende luces de 127/240 V (la red no entra a la placa) | No. El programador lo reconoce solo |
 
 | **Módulo de pixeles PIX** (`ap1-pix/`) | En lugar de la base: 4 salidas para tiras y letreros de **pixeles direccionables** (WS2812/SK6812/WS2815, 5-24 V), con brillo limitado por corriente medida | No. El programador lo reconoce solo |
@@ -31,7 +31,7 @@ El sistema tiene tres partes:
 |---|---|---|---|
 | Tamaño | 88 × 56 mm, esquinas redondeadas | 52 × 42 mm | 88 × 56 mm de planta |
 | Capas / cobre | **4 capas**: exteriores 2 oz, interiores 1 oz | 2 capas, 1 oz | |
-| Piezas | 67 (todo SMD, salvo clemas, portafusible y zócalo) | 41 | |
+| Piezas | 68 (todo SMD, salvo conectores, portafusible y zócalo) | 41 | |
 
 Frente a la AP-0.2 (90 × 70 mm, 6300 mm²), la base ocupa **4928 mm² (22 % menos)** y además trae los 2 canales de corriente constante, la memoria de identidad y la salida AUX.
 
@@ -58,7 +58,7 @@ Frente a la AP-0.2 (90 × 70 mm, 6300 mm²), la base ocupa **4928 mm² (22 % men
 - **Montaje:** separador de **11 mm** (zócalo de 8.5 mm + plástico del conector de 2.5 mm) con **tornillo de nylon**. Queda junto a la antena y uno de metal la desafinaría.
 - **No se puede poner al revés:** girado 180°, el programador se sale de la base y el agujero no coincide.
 - **Antena:** la base tiene una **zona sin cobre** (x 72.5–88, y 0–30.5) justo debajo de la antena del ESP32-C3, en las cuatro capas.
-- **Altura:** bajo el programador solo hay piezas bajas (≤ 4.5 mm). El portafusible y el capacitor alto quedan fuera, y las clemas quedan libres al frente.
+- **Altura:** bajo el programador solo hay piezas bajas (≤ 4.5 mm). El portafusible y el capacitor alto quedan fuera, y los conectores quedan libres al frente.
 - **Verificación:** las 16 patas del conector macho coinciden en posición y en señal con las 16 del zócalo.
 
 Señales del conector (iguales en las dos placas):
@@ -89,12 +89,13 @@ Señales del conector (iguales en las dos placas):
 
 **Salidas, todas en el borde de abajo para cablear por un solo lado de la caja:**
 
-| Clema | Salida |
+| Conector (AP CONNECT) | Salida |
 |---|---|
-| **J3** `+V +V` | Positivo común de tiras y letreros |
-| **J4** `CH1…CH4` | Negativo conmutado de cada canal, **8 A** c/u (MOSFET 2.8 mΩ + driver), PWM de 19.5 kHz desfasado |
-| **J5** `1+ 1- 2+ 2-` | **Focos de corriente constante**, 1 A cada uno; LEDs de hasta unos 2 V menos que la entrada (ver nota) |
-| **J6** `12V AUX` | 12 V y salida conmutada, máx. **0.3 A**: bobina de relevador o contactor, o ventilador |
+| **J1** JST VH 4 patas: 1-2 = +, 3-4 = - | **Entrada** 12-24 V DC, hasta 20 A (10 A por pata) |
+| **J3** JST VH 2 patas `+V +V` | Positivo común de tiras y letreros |
+| **J4** JST VH 4 patas `CH1…CH4` | Negativo conmutado de cada canal, **8 A** c/u (MOSFET 2.8 mΩ + driver), PWM de 19.5 kHz desfasado |
+| **J5, J8** JST XH 2 patas: 1 = +, 2 = - | **Focos de corriente constante 1 y 2**, 1 A cada uno; LEDs de hasta unos 2 V menos que la entrada (ver nota) |
+| **J6** JST XH 2 patas: 1 = 12 V, 2 = AUX | 12 V y salida conmutada, máx. **0.3 A**: bobina de relevador o contactor, o ventilador |
 
 **Corriente constante (AL8860):**
 - La corriente la fija una resistencia: `I = 0.1 V / R`. Con 0.1 Ω (la de serie) son **1 A**; con 0.15 Ω, 0.67 A; con 0.33 Ω, 0.3 A.
@@ -197,7 +198,7 @@ Son **dos pedidos** (o uno con dos diseños). Cada carpeta `fabricacion/jlcpcb/`
 - la BOM con el **código LCSC y la clase** (Basic / Preferred / Extended) de cada pieza;
 - el CPL;
 - `RESUMEN_JLCPCB.txt`, con cuántos tipos son Extended, el cargo aproximado de montaje (~3 USD por tipo, por pedido) y el costo de las piezas Basic;
-- un segundo juego **`_solo_SMD`** (BOM y CPL) para el **pedido económico**: JLCPCB arma solo lo SMD, y las clemas, conectores y portafusible se sueldan a mano. Así esas piezas no pagan cargo de montaje y no hace falta el ensamble THT.
+- un segundo juego **`_solo_SMD`** (BOM y CPL) para el **pedido económico**: JLCPCB arma solo lo SMD, y los conectores y el portafusible se sueldan a mano. Así esas piezas no pagan cargo de montaje y no hace falta el ensamble THT.
 
 **Ahorro en el cargo de montaje por pedido** (cada tipo Extended cuesta ~3 USD):
 

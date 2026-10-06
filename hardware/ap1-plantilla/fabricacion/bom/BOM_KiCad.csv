@@ -6,7 +6,7 @@
 "D2","SMBJ26A","Diode_SMD:D_SMB","1","Supresor de picos"
 "D3","SS210","Diode_SMD:D_SMA","1","Rueda libre del buck"
 "F1","3A","Fuse:Fuse_1206_3216Metric","1","Fusible de la placa"
-"J1","ENTRADA 12-24V","TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal","1","Entrada 12-24 V DC (+ / -), máx. 26 V"
+"J1","ENTRADA 12-24V","Connector_JST:JST_VH_B2P-VH_1x02_P3.96mm_Vertical","1","Entrada 12-24 V DC (+ / -), máx. 26 V"
 "J7","PROGRAMADOR","Connector_PinSocket_2.54mm:PinSocket_2x08_P2.54mm_Vertical","1","Zócalo del programador AP-1"
 "J8","SEÑALES LL","Connector_PinHeader_2.54mm:PinHeader_2x08_P2.54mm_Vertical","1","Las mismas señales del programador para cablear prototipos (pata 1 = 12 V)"
 "L1","47uH","Inductor_SMD:L_Changjiang_FNR4030S","1","Bobina del buck"

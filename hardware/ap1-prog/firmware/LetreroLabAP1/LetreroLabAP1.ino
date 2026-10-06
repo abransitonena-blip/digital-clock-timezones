@@ -35,7 +35,9 @@
      AP OUTPUT / AP INPUT (Qwiic): SA n 0|1|2  salida n (1-28) apagar/encender/alternar
                  EA n acc val [modo]  regla de la entrada n (1-32): acc como en los horarios; modo 1 = al soltar, lo contrario
                  EA n -  sin regla.  Acciones: 0 apagar 1 encender 2 AUX 3 escena 4 brillo 5/6/7 salida val on/off/alternar 8 alternar luz
-     ET x texto  etiqueta de un circuito: x = C1-C4 (canales), S1-S28 (salidas), E1-E32 (entradas)   ET x  borrar
+     ET x texto  etiqueta de un circuito: x = C1-C4 (canales), S1-S28 (salidas), E1-E32 (entradas), A1-A8 (analógicas)
+     AP PRO AI4: AI n 0|1  canal analógico n (1-8) en 0-10 V o 4-20 mA
+                 AU n umbral acc val [modo]  al pasar del umbral hace la acción (modo 1: al bajar, lo contrario)  AU n -
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
@@ -55,7 +57,7 @@
 #include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.6"
+#define VERSION "AP-1 fw 1.7"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -164,8 +166,16 @@ struct Regla { uint8_t acc, val, modo; };   // qué hace cada entrada al activar
 Regla reglas[IO_N * 8];
 bool ioCambio = false;
 // etiquetas por circuito ("SALA", "COCINA"...): se guardan en el programador y salen en la app y en Home Assistant
-String etC[4], etS[IO_N * 7], etE[IO_N * 8];
-String* etiqueta(char tipo, int n) {                        // tipo C/S/E, n desde 1
+// ---- AP PRO AI4: entradas analógicas (ADS1115 en 0x49 y 0x4A, 4 canales cada uno) ----
+const uint8_t AI_N = 2, AI_DIR = 0x49;
+uint8_t aiMods = 0;                         // módulos presentes (bit 0 = 0x49, bit 1 = 0x4A)
+uint8_t aiModo[AI_N * 4] = {0};             // 0 = 0-10 V, 1 = 4-20 mA
+float aiValor[AI_N * 4];                    // V o mA
+struct Umbral { float lim; uint8_t acc, val, modo; bool arriba; };
+Umbral umbrales[AI_N * 4];
+String etC[4], etS[IO_N * 7], etE[IO_N * 8], etA[AI_N * 4];
+String* etiqueta(char tipo, int n) {                        // tipo C/S/E/A, n desde 1
+  if (tipo == 'A' && n >= 1 && n <= AI_N * 4) return &etA[n - 1];
   if (tipo == 'C' && n >= 1 && n <= 4) return &etC[n - 1];
   if (tipo == 'S' && n >= 1 && n <= IO_N * 7) return &etS[n - 1];
   if (tipo == 'E' && n >= 1 && n <= IO_N * 8) return &etE[n - 1];
@@ -180,7 +190,11 @@ void cargar() {
   if (cfg.limiteA < 1 || cfg.limiteA > 25) cfg.limiteA = 20;
   whTotal = whGuardado = pref.getDouble("wh", 0);
   vivoActivo = pref.getBool("vivo", true);
-  for (char tipo : {'C', 'S', 'E'})
+  pref.getBytes("aimodo", aiModo, sizeof(aiModo));
+  if (pref.getBytes("umbral", umbrales, sizeof(umbrales)) != sizeof(umbrales))
+    for (auto& u : umbrales) u = Umbral{0, ACC_NADA, 0, 0, false};
+  for (auto& v : aiValor) v = NAN;
+  for (char tipo : {'C', 'S', 'E', 'A'})
     for (int n = 1; n <= IO_N * 8; n++) {
       String* e = etiqueta(tipo, n);
       if (e) { char k[8]; snprintf(k, sizeof(k), "et%c%d", tipo, n); *e = pref.getString(k, ""); }
@@ -769,9 +783,19 @@ String estadoJSON() {
     primera = false;
     s += '['; s += n + 1; s += ','; s += reglas[n].acc; s += ','; s += reglas[n].val; s += ','; s += reglas[n].modo; s += ']';
   }
+  s += "]},\"ai\":{\"m\":"; s += aiMods; s += ",\"v\":[";
+  for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += isnan(aiValor[n]) ? String("null") : String(aiValor[n], 2); }
+  s += "],\"t\":[";
+  for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += aiModo[n]; }
+  s += "],\"u\":[";
+  for (uint8_t n = 0; n < AI_N * 4; n++) {
+    if (n) s += ',';
+    const Umbral& u = umbrales[n];
+    s += '['; s += String(u.lim, 2); s += ','; s += u.acc; s += ','; s += u.val; s += ','; s += u.modo; s += ']';
+  }
   s += "]},\"et\":{";
   bool pe = true;
-  for (char tipo : {'C', 'S', 'E'})
+  for (char tipo : {'C', 'S', 'E', 'A'})
     for (int n = 1; n <= IO_N * 8; n++) {
       String* e = etiqueta(tipo, n);
       if (!e || !e->length()) continue;
@@ -864,6 +888,14 @@ void haPublicar() {
               "\"value_template\":\"{{ (value_json.io.e[" + m + "] // " + (1 << b) + ") % 2 }}\",\"payload_on\":\"1\",\"payload_off\":\"0\"");
       else { String t = String("homeassistant/binary_sensor/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
     }
+  }
+  for (uint8_t n = 0; n < AI_N * 4; n++) {                     // AP PRO AI4
+    String obj = String("a") + (n + 1);
+    if (aiMods & (1 << (n / 4)))
+      haUno(uid, "sensor", obj.c_str(), String("\"name\":\"") + (etA[n].length() ? etA[n] : String("Analógica ") + (n + 1)) +
+            "\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json.ai.v[" + n + "] }}\",\"unit_of_measurement\":\"" +
+            (aiModo[n] ? "mA\",\"device_class\":\"current\"" : "V\",\"device_class\":\"voltage\"") + ",\"state_class\":\"measurement\"");
+    else { String t = String("homeassistant/sensor/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
   }
   if (modoInd) {                                               // módulo industrial: contactor 2 manual
     haUno(uid, "switch", "k2", "\"name\":\"Contactor 2\",\"command_topic\":\"~/cmd\",\"payload_on\":\"O 100\","
@@ -1072,6 +1104,63 @@ void ioActualizar(uint32_t t) {
     if (t - tEscribe > 1000) tEscribe = t;
   }
 }
+// ADS1115: una conversión por canal (128 muestras/s); cada 25 ms se lee la anterior y se arranca la siguiente.
+// 0-10 V: divisor 22k/10k (x3.2) y escala de 4.096 V. 4-20 mA: 150 ohm, mismo divisor, escala de 1.024 V.
+bool adsArrancar(uint8_t m, uint8_t ch, bool mA) {
+  uint16_t cfg = 0x8000 | ((4 + ch) << 12) | ((mA ? 3 : 1) << 9) | 0x0100 | (4 << 5) | 0x0003;
+  Wire.beginTransmission(AI_DIR + m); Wire.write(1); Wire.write(cfg >> 8); Wire.write(cfg & 0xFF);
+  return Wire.endTransmission() == 0;
+}
+int32_t adsLeer(uint8_t m) {
+  Wire.beginTransmission(AI_DIR + m); Wire.write(0);
+  if (Wire.endTransmission(false) != 0 || Wire.requestFrom((uint8_t)(AI_DIR + m), (uint8_t)2) != 2) return INT32_MIN;
+  int16_t v = (Wire.read() << 8) | Wire.read();
+  return v;
+}
+void aiUmbral(uint8_t n) {                                  // reglas por umbral, con 2 % de histéresis
+  Umbral& u = umbrales[n];
+  if (u.acc == ACC_NADA || isnan(aiValor[n])) return;
+  float h = fabsf(u.lim) * 0.02f + (aiModo[n] ? 0.05f : 0.02f);
+  if (!u.arriba && aiValor[n] > u.lim + h) { u.arriba = true; aplicarAccion(u.acc, u.val); ioCambio = true; }
+  else if (u.arriba && aiValor[n] < u.lim - h) {
+    u.arriba = false; ioCambio = true;
+    if (u.modo == 1) {                                        // "mientras": al bajar, lo contrario
+      if (u.acc == 0 || u.acc == 1) aplicarAccion(1 - u.acc, 0);
+      else if (u.acc == 2) aplicarAccion(2, !u.val);
+      else if (u.acc == 5 || u.acc == 6) aplicarAccion(11 - u.acc, u.val);
+    }
+  }
+}
+void aiActualizar(uint32_t t) {
+  static uint32_t tPaso = 0, tBusca = 0;
+  static int8_t actual = -1;                                // canal cuya conversión está en curso
+  if (t - tBusca > 5000) {
+    tBusca = t;
+    uint8_t m = 0;
+    for (uint8_t k = 0; k < AI_N; k++) if (i2cPresente(AI_DIR + k)) m |= 1 << k;
+    if (m != aiMods) {
+      aiMods = m; actual = -1; ioCambio = true;
+      for (uint8_t n = 0; n < AI_N * 4; n++) if (!(m & (1 << (n / 4)))) aiValor[n] = NAN;
+      Serial.printf("AP PRO AI4: %02X\n", aiMods);
+      haPublicar();
+    }
+  }
+  if (!aiMods || t - tPaso < 25) return;
+  tPaso = t;
+  if (actual >= 0) {
+    int32_t v = adsLeer(actual / 4);
+    if (v != INT32_MIN) {
+      float vin = v * (aiModo[actual] ? 1.024f : 4.096f) / 32768.0f * 3.2f;
+      aiValor[actual] = aiModo[actual] ? vin / 150.0f * 1000.0f : vin;
+      aiUmbral(actual);
+      if (ioCambio && !ioOut && !ioIn) { mqPublicar(); ioCambio = false; }   // sin módulos de E/S: publicar aquí
+    }
+  }
+  for (uint8_t k = 1; k <= AI_N * 4; k++) {                  // siguiente canal de un módulo presente
+    uint8_t n = (actual + k) % (AI_N * 4);
+    if (aiMods & (1 << (n / 4))) { actual = adsArrancar(n / 4, n % 4, aiModo[n]) ? n : -1; break; }
+  }
+}
 void ioApagar() {
   for (uint8_t m = 0; m < IO_N; m++) { salEstado[m] = 0; if (ioOut & (1 << m)) tcaEscribir(0x20 + m, 1, 0x80); }
 }
@@ -1190,6 +1279,36 @@ bool ejecutar(const char* s, bool remoto) {
     char k[8]; snprintf(k, sizeof(k), "et%c%d", tipo, n);
     if (t.length()) pref.putString(k, t); else pref.remove(k);
     haPublicar();                                               // Home Assistant toma el nombre nuevo
+    return true;
+  }
+  if (!strncmp(s, "AI ", 3)) {                                 // AI n 0|1: 0-10 V o 4-20 mA
+    const char* q = s + 3;
+    int n = numero(q), m = numero(q);
+    if (n < 1 || n > AI_N * 4 || m < 0 || m > 1) return false;
+    aiModo[n - 1] = m; aiValor[n - 1] = NAN; umbrales[n - 1].arriba = false;
+    pref.putBytes("aimodo", aiModo, sizeof(aiModo));
+    haPublicar();                                               // cambia la unidad en Home Assistant
+    return true;
+  }
+  if (!strncmp(s, "AU ", 3)) {                                 // AU n umbral acc val [modo] / AU n -
+    const char* q = s + 3;
+    int n = numero(q);
+    if (n < 1 || n > AI_N * 4) return false;
+    while (*q == ' ') q++;
+    Umbral u{0, ACC_NADA, 0, 0, false};
+    if (*q != '-') {
+      char* fin;
+      float lim = strtof(q, &fin);
+      if (fin == q) return false;
+      q = fin;
+      int acc = numero(q), val = numero(q);
+      while (*q == ' ') q++;
+      int modo = *q ? numero(q) : 0;
+      if (acc < 0 || acc > 8 || val < 0 || val > 255) return false;
+      u = Umbral{lim, (uint8_t)acc, (uint8_t)val, (uint8_t)(modo ? 1 : 0), false};
+    }
+    umbrales[n - 1] = u;
+    pref.putBytes("umbral", umbrales, sizeof(umbrales));
     return true;
   }
   if (!strncmp(s, "SA ", 3)) {                                 // SA n 0|1|2: salida de AP OUTPUT
@@ -1658,6 +1777,7 @@ void loop() {
   revisarUDP();
   revisarVivo();
   ioActualizar(t);
+  aiActualizar(t);
   if (irListo) { irListo = false; teclaIR(irCodigo); }
   char buf[128];
   while (xQueueReceive(colaMq, buf, 0) == pdTRUE) {     // varias órdenes por mensaje, una por renglón

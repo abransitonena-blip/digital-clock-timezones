@@ -24,12 +24,12 @@ import os, sys, uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools"))
 import placa  # noqa: E402
+import conectores  # noqa: E402
 
 PROJECT = "AP1_Plantilla"
 NS = uuid.UUID("9b3c6e21-7a4d-4f8b-a1c2-3d4e5f60718a")
 ROOT_UUID = "e2f3a4b5-c6d7-4e8f-9a0b-1c2d3e4f5a6b"
 R06, C06, C12 = "Resistor_SMD:R_0603_1608Metric", "Capacitor_SMD:C_0603_1608Metric", "Capacitor_SMD:C_1206_3216Metric"
-MKDS3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-%d-5.08_1x0%d_P5.08mm_Horizontal"
 SMA = "Diode_SMD:D_SMA"
 R, C = "Device:R", "Device:C"
 
@@ -39,7 +39,7 @@ LL = {"1": "V12", "2": "V12", "3": "GND", "4": "GND", "5": "PWM1", "6": "PWM2", 
 
 C_ = [
     # --- entrada 12-24 V protegida (igual que el módulo IND) ---
-    ("J1", "ENTRADA 12-24V", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN_RAW", "2": "GND"},
+    ("J1", "ENTRADA 12-24V", conectores.SYM[2], conectores.VH2, {"1": "VIN_RAW", "2": "GND"},
      "Entrada 12-24 V DC (+ / -), máx. 26 V"),
     ("F1", "3A", "Device:Fuse", "Fuse:Fuse_1206_3216Metric", {"1": "VIN_RAW", "2": "VF"}, "Fusible de la placa"),
     ("D1", "SS34", "Device:D_Schottky", SMA, {"1": "VIN", "2": "VF"}, "Polaridad invertida (en serie)"),
@@ -78,7 +78,7 @@ RADIO_ESQUINA = 2.0
 HOLES = [(3.5, 3.5), (84.5, 39.5), (84.5, 52.5)]
 YT = 49.8
 POS = {
-    "J1": (3.6, YT, 0), "J7": (47.0, 6.0, 0), "J8": (60.0, 48.0, 90),
+    "J1": (3.0, 50.4, 0), "J7": (47.0, 6.0, 0), "J8": (60.0, 48.0, 90),
     "F1": (15.0, 43.2, 0), "D1": (21.5, 43.2, 0), "D2": (29.0, 43.2, 0), "C1": (35.0, 42.8, 90), "C2": (38.0, 42.8, 90),
     "U2": (11.0, 9.0, 0), "L1": (11.0, 4.0, 0), "C3": (7.8, 7.8, 90), "D3": (15.2, 5.0, 90), "C4": (15.2, 11.0, 90),
     "C5": (4.6, 10.4, 180), "RB1": (5.0, 12.5, 0), "RB2": (9.6, 12.4, 0),
@@ -96,7 +96,7 @@ PRE = [
 SIN_COBRE = [[(72.5, 0.3), (87.7, 0.3), (87.7, 30.5), (72.5, 30.5)]]     # bajo la antena del programador
 
 SILK = [
-    ("+", 3.6, 46.0, 1.2, "F"), ("-", 8.68, 46.0, 1.2, "F"),
+    ("1+  2-", 5.0, 45.2, 0.9, "F"),
     ("PROTOTIPOS 2.54 mm", 18.0, 27.0, 1.0, "B"),
     ("J8: 1-2 12V  3-4,16 GND  5-8 PWM1-4  9-10 CTRL1-2", 62.5, 40.6, 0.8, "F"),
     ("11 SDA  12 SCL  13 ALERTA  14 AUX  15 3V3", 62.5, 42.0, 0.8, "F"),

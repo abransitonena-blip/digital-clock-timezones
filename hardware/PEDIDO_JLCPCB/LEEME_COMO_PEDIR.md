@@ -1,108 +1,123 @@
-# Cómo pedir las placas a JLCPCB con todo y componentes
+# Cómo pedir las placas AP ELECTRIC armadas
 
-Todo está en la carpeta **`PEDIDO_JLCPCB/`** (y comprimido en `PEDIDO_JLCPCB.zip`). Hay una subcarpeta por placa:
+Todo está en **`PEDIDO_JLCPCB.zip`** (carpeta `PEDIDO_JLCPCB/`). Hay una subcarpeta por placa. **Ya no hay borneras de tornillo:** todo se conecta con cables armados (AP CONNECT: XT60, JST VH, JST XH y Qwiic), y **todas las piezas traen código LCSC**.
 
 | Carpeta | Placa | Para qué |
 |---|---|---|
-| `1_BASE` | AP-1 base universal (4 capas) | Potencia: letreros, tiras y focos de corriente constante |
-| `2_PROGRAMADOR` | AP-1 programador | El cerebro con Wi-Fi: va encima de la base o del módulo industrial |
-| `3_MODULO_INDUSTRIAL` | AP-1 IND | 0-10 V aislado y contactores (naves, luces de red) |
-| `4_MODULO_PIXELES` | AP-1 PIX | Pixeles direccionables WS2812/SK6812/WS2815 (letras en secuencia, efectos de color) |
-| `5_AP02_placa_unica` | AP-0.2 rev D | Todo en una sola placa (alternativa sencilla al AP-1) |
-| `6_PLANTILLA_modulos_nuevos` | AP-1 PLANTILLA | Base para probar y diseñar módulos nuevos: entrada protegida, 12 V, memoria, conector LL repetido en J8 y área de prototipos ([guía](ap1-plantilla/LEEME.md)) |
-| `7_MODULO_DMX` | AP-1 DMX | Controlador DMX512 con Wi-Fi para reflectores RGB/RGBW, barras y decodificadores DMX ([guía](ap1-dmx/LEEME.md)) |
-| `8_AP_INPUT` | AP ELECTRIC · AP INPUT | 8 entradas de 12-24 V aisladas: pulsadores, sensores, flotadores ([guía](ap1-in/LEEME.md)) |
-| `9_AP_OUTPUT` | AP ELECTRIC · AP OUTPUT | 7 salidas de 24 V DC: bobinas de contactor, electroválvulas ([guía](ap1-out/LEEME.md)) |
-| `10_AP_SIGN_DIST4` | AP ELECTRIC · AP SIGN DIST 4 | Distribución DC de 4 ramas con fusible y diagnóstico para letreros ([guía](ap1-dist4/LEEME.md)) |
+| `1_BASE` | AP BASE (4 capas) | Potencia: 4 canales de 8 A, 2 focos de corriente constante, AUX; entrada de 20 A |
+| `2_PROGRAMADOR` | AP CORE | El cerebro con Wi-Fi: va encima de la base o de un módulo |
+| `3_MODULO_INDUSTRIAL` | AP-1 IND | 0-10 V aislado y 2 contactores (naves, luces de red por contactor) |
+| `4_MODULO_PIXELES` | AP-1 PIX | Pixeles WS2812/SK6812/WS2815 |
+| `6_PLANTILLA_modulos_nuevos` | PLANTILLA | Base para probar y diseñar módulos nuevos |
+| `7_MODULO_DMX` | AP-1 DMX | Controlador DMX512 con Wi-Fi |
+| `8_AP_INPUT` | AP INPUT | 8 entradas de 12-24 V aisladas |
+| `9_AP_OUTPUT` | AP OUTPUT | 7 salidas de 24 V DC (bobinas, válvulas) |
+| `10_AP_SIGN_DIST4` | AP SIGN DIST 4 | Distribución DC de 4 ramas con fusible y diagnóstico |
+| `11_AP_PRO_AI4` | AP PRO AI4 | 4 entradas analógicas 0-10 V / 4-20 mA |
 
-**Sistema mínimo:** 1 base + 1 programador. Para naves industriales: 1 IND + 1 programador. Para letreros de pixeles: 1 PIX + 1 programador. Para probar ideas: 1 PLANTILLA + 1 programador. Para equipos DMX: 1 DMX + 1 programador. Primer prototipo AP ELECTRIC: 1 BASE + 1 programador + 1 AP INPUT + 1 AP OUTPUT ([AP_ELECTRIC.md](AP_ELECTRIC.md)).
+La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el sistema modular.
+
+**Combinaciones:**
+
+| Para | Pide |
+|---|---|
+| Sistema mínimo | 1 BASE + 1 PROGRAMADOR |
+| Prototipo AP ELECTRIC (luces, sensores, válvula) | 1 BASE + 1 PROGRAMADOR + 1 AP INPUT + 1 AP OUTPUT |
+| Bombeo y nivel | + 1 AI4 |
+| Letreros | PIX o DMX + 1 PROGRAMADOR (+ DIST 4) |
+| Naves | IND + 1 PROGRAMADOR |
 
 Cada carpeta trae:
 - `1_..._GERBER.zip`: la placa (se sube tal cual, sin descomprimir).
-- `ensamble_completo/`: BOM (`2_...`) y CPL (`3_...`) con **todas** las piezas.
-- `ensamble_economico_solo_SMD/`: BOM y CPL **sin las piezas de patas** (clemas, zócalos, portafusible). Esas se sueldan a mano y no pagan cargo de montaje. **Recomendado.**
+- `ensamble_completo/`: BOM (`2_...`) y CPL (`3_...`) con **todas** las piezas, incluidos conectores y portafusibles.
+- `ensamble_economico_solo_SMD/`: BOM y CPL **sin las piezas de patas** (conectores, zócalos, portafusibles). Esas se sueldan a mano y no pagan cargo de montaje.
 - `RESUMEN_costo_montaje.txt`: cuántos tipos de pieza Extended lleva cada opción y el cargo aproximado.
 - `vista_superior.png`: para comparar con la vista previa de JLCPCB.
+
+**¿Completo o económico?**
+- **Completo** si quieres recibir las placas listas para conectar. Recomendado ahora que todo son conectores con cable.
+- **Económico** si tienes cautín: los conectores de patas se sueldan en minutos.
 
 ## Paso a paso en jlcpcb.com
 
 1. **Order now → Add gerber file**: sube `1_..._GERBER.zip`. Las medidas y las capas se leen solas.
 2. Opciones de la placa (lo que no está en la tabla se deja como venga):
 
-| Opción | BASE | PROGRAMADOR | IND | PIX | AP-0.2 | PLANTILLA | DMX | INPUT | OUTPUT | DIST 4 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Layers | **4** | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm |
-| Outer Copper Weight | **2 oz** | 1 oz | 1 oz | **2 oz** | **2 oz** | 1 oz | 1 oz | 1 oz | 1 oz | **2 oz** |
-| Inner Copper Weight | 1 oz | — | — | — | — | — | — | — | — | — |
-| Layer stackup | JLC04161H-7628 | — | — | — | — | — | — | — | — | — |
-| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo |
-| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual | igual | igual | igual | igual | igual | igual | igual |
+| Opción | BASE | PIX, DIST 4 | Todas las demás |
+|---|---|---|---|
+| Layers | **4** | 2 | 2 |
+| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm |
+| Outer Copper Weight | **2 oz** | **2 oz** | 1 oz |
+| Inner Copper Weight | 1 oz | — | — |
+| Layer stackup | JLC04161H-7628 | — | — |
+| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo |
+| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual |
 
 3. Activa **PCB Assembly**:
-   - **Assembly side: Top Side.** Todas las piezas SMD van arriba.
-   - **PCBA Type: Standard.** La base es de 4 capas y lleva piezas Extended.
+   - **Assembly side: Top Side.** Todas las piezas van arriba.
+   - **PCBA Type: Standard** (la BASE es de 4 capas y hay piezas de patas).
    - **Tooling holes: Added by JLCPCB.**
    - **Confirm parts placement: Yes.** Un técnico revisa giros y posiciones antes de armar.
-4. **Next → sube la BOM y el CPL** de la carpeta que elegiste (económico o completo). Si pregunta por columnas:
+4. **Next → sube la BOM y el CPL** de la carpeta que elegiste. Si pregunta por columnas:
    - Comment → Comment;
    - Designator → Designator;
    - Footprint → Footprint;
    - LCSC Part # → JLCPCB Part #.
 5. **Revisión de la BOM:**
-   - Todas las piezas SMD ya traen su código LCSC, **menos el TCA9554PWR (U1) de AP INPUT, AP OUTPUT y DIST 4**: búscalo por nombre en la página ("Search"), en encapsulado TSSOP-16, y elige uno en existencia.
+   - Todas las piezas traen su código LCSC.
    - Revisa que digan "In stock". Si alguna se agotó, el buscador de JLCPCB ofrece una equivalente: mismo valor, encapsulado y voltaje igual o mayor.
-   - Las filas sin código son piezas de patas para soldar a mano: marca **"Do not place"**.
+   - Los puentes de soldadura (JP) y los puntos de prueba (TP) no son piezas y no aparecen.
 6. **Vista previa de colocación (lo más importante):** revisa el **giro** de las piezas con polaridad y gíralas en la página si hace falta:
    - circuitos integrados: el punto de la pata 1;
-   - MOSFET;
    - diodos: la raya del cátodo;
    - LED;
-   - capacitor electrolítico (C1): la franja negativa;
-   - conector USB-C;
+   - capacitores electrolíticos;
+   - conectores: el seguro del lado correcto;
    - módulo ESP32.
 
-   Compara con `vista_superior.png`. KiCad y JLCPCB no siempre usan el mismo ángulo de origen, así que esta revisión siempre hace falta.
+   Compara con `vista_superior.png`.
 7. Paga. Si dejaste "Confirm parts placement: Yes", te piden aprobar las fotos antes de soldar.
 
-## Piezas que se sueldan a mano (pedido económico)
+## Piezas de patas (se sueldan a mano en el pedido económico)
 
-| Placa | Piezas | Dónde se compran |
+| Placa | Piezas | Códigos LCSC |
 |---|---|---|
-| BASE | J1, J3 (clema 2 polos 5.08 mm), J4 (4 polos 5.08 mm), J5 (4 polos 3.5 mm), J6 (2 polos 3.5 mm), F1 (portafusible mini Keystone 3568), J7 (zócalo hembra 2×8, 8.5 mm de alto) | Phoenix MKDS 3 y PT 1,5 o equivalentes (KEFA KF128-5.08-2P es C474952); portafusible C3206956; zócalo C30734 |
-| PROGRAMADOR | J1 (macho 2×8, **por abajo**), J4 (macho 1×4), U4 (receptor IR TSOP38238) | C68234, C5116483, C141632 |
-| IND | J1 (2 polos 5.08 mm), J2 (4 polos 3.5 mm), J3 (8 polos 3.5 mm), J7 (zócalo 2×8), U2 (convertidor B1212S-1WR3, C49260979) | Igual que la base |
-| AP-0.2 | Clemas, portafusible ATO, relevador (C30431) | Igual |
-| PLANTILLA | J1 (2 polos 5.08 mm), J7 (zócalo 2×8), J8 (macho 2×8) | C474952, C30734, C68234 |
-| DMX | J1 (2 polos 5.08 mm), J2 (3 polos 5.08 mm), J7 (zócalo 2×8) | C474952, C474953, C30734 |
-| AP INPUT | J3 (macho 1×4), J4-J5 (3 polos 5.08 mm), J6-J7 (2 polos 5.08 mm) | C5116483, C474953, C474952 |
-| AP OUTPUT | J3 (macho 1×4), J4 (2 polos 5.08 mm), J5-J7 (3 polos 5.08 mm) | C5116483, C474952, C474953 |
-| DIST 4 | J1-J5 (2 polos 5.08 mm), F1-F4 (portafusible mini Keystone 3568) | C474952, C3206956 |
+| BASE | J1 (VH 4), J3 (VH 2), J4 (VH 4), J5 y J8 (XH 2), J6 (XH 2), F1 (portafusible mini), J7 (zócalo 2×8) | C160317, C160315, C158012, C3206956, C30734 |
+| PROGRAMADOR | J1 (macho 2×8, **por abajo**), J4 (macho 1×4), U4 (receptor IR) | C68234, C5116483, C141632 |
+| IND | J1 (VH 2), J2/J4 (XH 2), J5/J6/J8/J9 (XH 2), J7 (zócalo 2×8), U2 (convertidor SIP) | C160315, C158012, C30734, C49260979 |
+| PIX | J1 (VH 4), J2-J5 (VH 3), F1 (portafusible mini), J7 (zócalo) | C160317, C160316, C3206956, C30734 |
+| PLANTILLA | J1 (VH 2), J7 (zócalo), J8 (macho 2×8) | C160315, C30734, C68234 |
+| DMX | J1 (VH 2), J2 (XH 3), J7 (zócalo) | C160315, C144394, C30734 |
+| AP INPUT | J4-J11 (XH 2), J3 (macho 1×4) | C158012, C5116483 |
+| AP OUTPUT | J4 (VH 2), J5-J11 (XH 2), J3 (macho 1×4) | C160315, C158012, C5116483 |
+| DIST 4 | J1 (XT60), J2-J5 (VH 2), F1-F4 (portafusibles mini) | C98732, C160315, C3206956 |
+| AI4 | J7 (VH 2), J3/J4/J8/J9 (XH 3) | C160315, C144394 |
 
-Si prefieres que JLCPCB suelde también estas piezas, usa la carpeta `ensamble_completo`. Las que no tengan código, búscalas en la página de la BOM ("Search") o déjalas en "Do not place".
-
-## Costo aproximado del montaje (por pedido, no por placa)
+## Costo aproximado del cargo de montaje (por pedido, no por placa)
 
 | Placa | Completo | Económico (solo SMD) |
 |---|---|---|
-| BASE | ~54 USD | ~36 USD |
+| BASE | ~51 USD | ~36 USD |
 | PROGRAMADOR | ~27 USD | ~18 USD |
-| IND | ~24 USD | ~9 USD |
+| IND | ~21 USD | ~9 USD |
 | PIX | ~36 USD | ~24 USD |
-| AP-0.2 | ~57 USD | ~39 USD |
 | PLANTILLA | ~18 USD | ~9 USD |
 | DMX | ~18 USD | ~9 USD |
-| AP INPUT | ~15 USD | ~6 USD |
+| AP INPUT | ~12 USD | ~6 USD |
 | AP OUTPUT | ~18 USD | ~9 USD |
-| DIST 4 | ~12 USD | ~6 USD |
+| DIST 4 | ~15 USD | ~6 USD |
+| AI4 | ~15 USD | ~9 USD |
 
-Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred no pagan ese cargo. A eso se suman la placa, las piezas y el montaje por unidad.
+- Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred no pagan ese cargo.
+- A eso se suman la placa, las piezas y el montaje por unidad.
 
-**Primera tanda sugerida:** 5 de cada placa, que es el mínimo de JLCPCB. Así se prueban antes de pedir más.
+**Primera tanda sugerida:** 5 de cada placa, que es el mínimo de JLCPCB. Así se prueban antes de pedir más (pruebas en la guía `LEEME.md` de cada placa).
+
+**Otros fabricantes** (PCBWay, Seeed, NextPCB, fabricantes en México), **impresión 3D** de gabinetes y soportes DIN, y **tornillería:** ver `OTROS_FABRICANTES_Y_3D.md`.
 
 ## Revisión hecha antes de generar los archivos
 
-- ERC 0 y DRC 0 (incluidas advertencias), 0 sin conectar, 0 diferencias entre esquema y placa, en las 10 placas.
+- **ERC 0 y DRC 0** (incluidas advertencias), 0 sin conectar y 0 diferencias entre esquema y placa, en las 10 placas.
 - **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 10 placas:
   - pista y separación mínimas de 0.127 mm;
   - agujeros de 0.3 mm o más;
@@ -110,6 +125,4 @@ Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred 
   - 0.5 mm entre agujeros de redes distintas;
   - 0.3 mm al borde;
   - textos de 0.8 mm o más.
-- Se corrigieron dos cosas para JLCPCB:
-  - el módulo ESP32 traía 12 vías de 0.2 mm (fuera del proceso estándar), que quedaron como 4 vías de 0.3 mm;
-  - el shunt de 4 terminales (WSK2512) estaba agotado en LCSC; se cambió por un HoJLR2512 de 1 mΩ y 2 W en existencia, con una huella que mantiene la medición Kelvin.
+- **Códigos LCSC verificados** en lcsc.com / jlcpcb.com para los conectores AP CONNECT, el TCA9554PWR (C477924) y el ADS1115 (C37593).

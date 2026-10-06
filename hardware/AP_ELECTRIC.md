@@ -20,8 +20,8 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | Familia | Función | Qué existe hoy | Estado |
 |---|---|---|---|
 | **AP BASE** | Potencia y protecciones propias, sin Wi-Fi | `ap1-base`: 12-24 V, 4 canales de 8 A, 2 focos de corriente constante, AUX; corte por hardware ante sobrecorriente, sobrevoltaje y 85 °C | Diseñada (4 capas) |
-| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 1.6 |
-| **AP INPUT** | Pulsadores y sensores | **`ap1-in` (nuevo):** 8 entradas de 12-24 V aisladas, con reglas por entrada | Diseñado |
+| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 1.7 |
+| **AP INPUT** | Pulsadores y sensores | **`ap1-in`:** 8 entradas de 12-24 V aisladas, con reglas por entrada. **`ap1-ai4`:** 4 entradas analógicas 0-10 V / 4-20 mA con umbrales | Diseñados |
 | **AP OUTPUT** | Actuadores, relevadores, contactores | **`ap1-out` (nuevo):** 7 salidas de 24 V DC (300 mA) para bobinas y válvulas | Diseñado |
 | **AP LIGHT** | Iluminación según el driver o foco | `ap1-pix` (pixeles), `ap1-dmx` (DMX512), `ap1-ind` (0-10 V aislado), corriente constante en la base | Diseñados |
 | **AP METER** | Medición y diagnóstico | Medidor INA238 en la base: V, A, W, kWh, diagnóstico por salida | Dentro de la base; módulo propio pendiente |
@@ -34,7 +34,7 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | Línea | Para quién | Qué la forma hoy | Lo que falta |
 |---|---|---|---|
 | **AP CASA**: control y automatización del hogar | Casas, departamentos, negocios pequeños | CORE + **BASE 4** (`ap1-base`: 4 circuitos de LED de 12-24 V) + AP INPUT (apagadores y sensores) + AP OUTPUT. **BASE 8** = BASE 4 + AP OUTPUT, o dos BASE | Caja de escritorio o pared con **etiquetas por circuito** (ya en el programa) y tapas de colores |
-| **AP PRO**: control y E/S para proyectos exigentes | Talleres, bombeo, riego, naves | **DI8** = AP INPUT (`ap1-in`); **DO8** = AP OUTPUT (`ap1-out`, hoy 7 salidas); 0-10 V aislado = `ap1-ind` | **AI4** (entradas analógicas 0-10 V / 4-20 mA), bornes enchufables, RS-485/Modbus |
+| **AP PRO**: control y E/S para proyectos exigentes | Talleres, bombeo, riego, naves | **DI8** = AP INPUT (`ap1-in`); **DO8** = AP OUTPUT (`ap1-out`, hoy 7 salidas); 0-10 V aislado = `ap1-ind` | **AI4 hecho** (`ap1-ai4`: 0-10 V / 4-20 mA con umbrales); falta RS-485/Modbus |
 | **AP FIT**: accesorios para instalar | Instaladores | Soporte DIN imprimible (`ap1-gabinete/din`), guías de cableado por módulo | Kit físico: conectores, punteras, clips DIN, prensaestopas, portafusibles |
 | **AP SIGN**: letras luminosas, cajas de luz, neón LED | Letreros | BASE (canales de 8 A, efectos), **PIX** (pixeles), **DMX**, **DIST 4** (nuevo: 4 ramas protegidas con diagnóstico) | "SIGN COLOR" como módulo dedicado (hoy: PIX o DMX con decodificador) |
 
@@ -48,18 +48,22 @@ Los circuitos de la propuesta (SALA, COCINA, ENTRADA, PATIO) **no pueden ser cir
 ### Control ≠ Potencia (AP FIT)
 
 - **Idea de la propuesta:** conectores de control pequeños y conectores de potencia más grandes y de **otra forma**, para que **no se puedan cruzar**. Es una buena regla.
-- **Hoy:** todas las placas usan bornes de tornillo de 5.08 mm (y de 3.5 mm en la base). Las tensiones están separadas por placa, pero el conector es el mismo.
-- **Siguiente versión:** bornes **enchufables**, que se desconectan para dar servicio sin quitar los cables:
-  - control en paso de 3.5 mm, color verde;
-  - potencia en paso de 5.08/7.62 mm, en otro color y con codificación mecánica.
+- **Hecho: AP CONNECT.** Ya no hay borneras de tornillo. Todo se conecta con cables armados, de familias que no se pueden cruzar:
 
-  Hace falta elegir la pieza con su hoja de datos y su código LCSC.
+| Familia | Uso | Paso / corriente |
+|---|---|---|
+| **Qwiic** (JST SH) | Bus I2C entre CORE y módulos | 1.0 mm |
+| **JST XH** 2-4 patas | Control: entradas, salidas de 24 V, 0-10 V, DMX, sensores, focos de 1 A | 2.5 mm, 3 A |
+| **JST VH** 2-4 patas | Potencia: canales, pixeles, ramas, entradas de módulos | 3.96 mm, 10 A por pata |
+| **XT60** | Entrada de mucha corriente (DIST 4) | 30 A |
+
+  Todos tienen seguro o forma con polaridad y código LCSC. Detalle en `tools/conectores.py` y [FABRICANTES.md](FABRICANTES.md).
 
 ### Mantenimiento sencillo
 
 | Propuesta | Estado |
 |---|---|
-| Borneras extraíbles para servicio | Pendiente (ver Control ≠ Potencia) |
+| Borneras extraíbles para servicio | **Hecho:** conectores con cable (AP CONNECT): se desconecta el cable y sale la placa |
 | Etiquetas por circuito | **Hecho en el programa 1.6:** `ET S3 Cocina` o desde la app; salen en Home Assistant |
 | Tapas mate reemplazables | Gabinete imprimible; tapas de color: pendiente |
 | Diagnóstico | Medición y prueba de salidas en la BASE; ramas y fusibles en la DIST 4; LED RUN en AP OUTPUT |
@@ -114,7 +118,7 @@ Todo funciona **sin internet**. Con Wi-Fi, además aparece en Home Assistant: lu
 ## Carcasas personalizables (propuesta)
 
 - Mismo soporte y misma tapa en **grafito, blanco, verde, azul y naranja**, con placa de identificación intercambiable.
-- Las **etiquetas eléctricas** (bornes, tensiones, advertencias) van **grabadas o impresas de forma permanente**, del mismo color neutro en todas las versiones, para que se lean siempre.
+- Las **etiquetas eléctricas** (conectores, tensiones, advertencias) van **grabadas o impresas de forma permanente**, del mismo color neutro en todas las versiones, para que se lean siempre.
 
 ## Lo que falta para acercarse a "tipo PLC"
 

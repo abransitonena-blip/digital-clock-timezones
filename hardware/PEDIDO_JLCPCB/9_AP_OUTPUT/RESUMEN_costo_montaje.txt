@@ -1,9 +1,9 @@
-AP_Output: 17 tipos de pieza, 32 piezas por placa.
+AP_Output: 21 tipos de pieza, 36 piezas por placa.
 Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
 
 Pedido completo (BOM/CPL normales):       6 tipos Extended  -> ~18 USD de cargo
 Pedido económico (BOM/CPL _solo_SMD):     3 tipos Extended  -> ~9 USD de cargo;
-   se sueldan a mano 5 piezas de patas: J3, J4, J5, J6, J7
+   se sueldan a mano 9 piezas de patas: J3, J4, J5, J6, J7, J8, J9, J10, J11
 Piezas Basic/Preferred: ~0.32 USD por placa (precio de catálogo, sin las Extended).
 
 Basic (7):
@@ -16,13 +16,17 @@ Basic (7):
   ULN2003ADR             C7512          U2
 Preferred (1):
   SMBJ26A                C19077580      D2
-Extended (9):
+Extended (13):
   3A                     C355685        F1
   QWIIC ENTRADA          C160404        J1
   QWIIC SALIDA           C160404        J2
   I2C                    C5116483       J3  [THT]
-  24V                    C474952        J4  [THT]
-  Q1-Q3                  C474953        J5  [THT]
-  Q4-Q6                  C474953        J6  [THT]
-  Q7 +24 +24             C474953        J7  [THT]
-  TCA9554PWR             -              U1
+  24V                    C160315        J4  [THT]
+  Q1                     C158012        J5  [THT]
+  Q2                     C158012        J6  [THT]
+  Q3                     C158012        J7  [THT]
+  Q4                     C158012        J8  [THT]
+  Q5                     C158012        J9  [THT]
+  Q6                     C158012        J10  [THT]
+  Q7                     C158012        J11  [THT]
+  TCA9554PWR             C477924        U1

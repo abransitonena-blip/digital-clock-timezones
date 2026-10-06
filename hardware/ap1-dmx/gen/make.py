@@ -11,7 +11,7 @@ Circuito:
   de lo que se manda y el programa reconoce solo el módulo la primera vez.
 - D4 SM712: protección contra descargas y picos en A/B (-7 V / +12 V, el rango de RS-485).
 - R2 120 ohm + JP1 (puente de soldadura, abierto): terminación, solo si el módulo queda al final de la línea.
-- J2 borne de 3 polos con el orden del XLR de DMX: 1 GND (malla), 2 DATOS- (B), 3 DATOS+ (A).
+- J2 conector JST XH de 3 patas con el orden del XLR de DMX: 1 GND (malla), 2 DATOS- (B), 3 DATOS+ (A).
 - D5 LED verde: parpadea mientras se transmite (AUX).
 - Memoria M24C02: modelo "LL-DMX", dirección DMX, canales por equipo y cantidad de equipos.
 
@@ -23,12 +23,12 @@ import os, sys, uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools"))
 import placa  # noqa: E402
+import conectores  # noqa: E402
 
 PROJECT = "AP1_DMX"
 NS = uuid.UUID("d9101cc6-dde9-4f33-bb0d-f1c999bc2753")
 ROOT_UUID = "62f188a7-63eb-44f5-8bc7-e7ef4c7c7873"
 R06, C06, C12 = "Resistor_SMD:R_0603_1608Metric", "Capacitor_SMD:C_0603_1608Metric", "Capacitor_SMD:C_1206_3216Metric"
-MKDS3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-3-%d-5.08_1x0%d_P5.08mm_Horizontal"
 SMA = "Diode_SMD:D_SMA"
 R, C = "Device:R", "Device:C"
 
@@ -38,7 +38,7 @@ LL = {"1": "V12", "2": "V12", "3": "GND", "4": "GND", "5": "PWM1", "6": "PWM2", 
 
 C_ = [
     # --- entrada 12-24 V protegida (igual que el módulo IND) ---
-    ("J1", "ENTRADA 12-24V", "Connector:Screw_Terminal_01x02", MKDS3 % (2, 2), {"1": "VIN_RAW", "2": "GND"},
+    ("J1", "ENTRADA 12-24V", conectores.SYM[2], conectores.VH2, {"1": "VIN_RAW", "2": "GND"},
      "Entrada 12-24 V DC (+ / -), máx. 26 V"),
     ("F1", "3A", "Device:Fuse", "Fuse:Fuse_1206_3216Metric", {"1": "VIN_RAW", "2": "VF"}, "Fusible de la placa"),
     ("D1", "SS34", "Device:D_Schottky", SMA, {"1": "VIN", "2": "VF"}, "Polaridad invertida (en serie)"),
@@ -78,7 +78,7 @@ C_ = [
     ("R2", "120", R, "Resistor_SMD:R_1206_3216Metric", {"1": "DMXA", "2": "TERM"}, "Terminación de la línea DMX"),
     ("JP1", "TERMINACION", "Jumper:SolderJumper_2_Open", "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm",
      {"1": "TERM", "2": "DMXB"}, "Cerrar con soldadura solo si este módulo queda al final de la línea"),
-    ("J2", "DMX", "Connector:Screw_Terminal_01x03", MKDS3 % (3, 3), {"1": "GND", "2": "DMXB", "3": "DMXA"},
+    ("J2", "DMX", conectores.SYM[3], conectores.XH3, {"1": "GND", "2": "DMXB", "3": "DMXA"},
      "Salida DMX: 1 GND/malla, 2 DATOS- (B), 3 DATOS+ (A), como las patas del XLR"),
     ("R3", "1k", R, R06, {"1": "AUX", "2": "LEDA"}, "LED de actividad"),
     ("D5", "VERDE", "Device:LED", "LED_SMD:LED_0603_1608Metric", {"1": "GND", "2": "LEDA"}, "Parpadea mientras se transmite DMX"),
@@ -89,13 +89,13 @@ RADIO_ESQUINA = 2.0
 HOLES = [(3.5, 3.5), (84.5, 39.5), (84.5, 52.5)]
 YT = 49.8
 POS = {
-    "J1": (3.6, YT, 0), "J7": (47.0, 6.0, 0),
+    "J1": (3.0, 50.4, 0), "J7": (47.0, 6.0, 0),
     "F1": (15.0, 43.2, 0), "D1": (21.5, 43.2, 0), "D2": (29.0, 43.2, 0), "C1": (35.0, 42.8, 90), "C2": (38.0, 42.8, 90),
     "U2": (11.0, 9.0, 0), "L1": (11.0, 4.0, 0), "C3": (7.8, 7.8, 90), "D3": (15.2, 5.0, 90), "C4": (15.2, 11.0, 90),
     "C5": (4.6, 10.4, 180), "RB1": (5.0, 12.5, 0), "RB2": (9.6, 12.4, 0),
     "U1": (57.0, 12.0, 0), "C6": (57.0, 16.4, 0),
     "TP1": (41.0, 41.0, 0), "TP2": (20.0, 6.0, 0), "TP3": (60.0, 20.0, 0), "TP4": (64.0, 20.0, 0),
-    "J2": (60.0, YT, 0), "U3": (62.0, 36.0, 0), "C7": (62.0, 31.4, 0), "R1": (56.0, 33.0, 90),
+    "J2": (60.0, 51.0, 0), "U3": (62.0, 36.0, 0), "C7": (62.0, 31.4, 0), "R1": (56.0, 33.0, 90),
     "D4": (70.0, 40.5, 0), "R2": (54.0, 41.0, 0), "JP1": (54.0, 44.2, 0),
     "R3": (76.0, 43.0, 0), "D5": (76.0, 46.0, 0),
 }
@@ -110,8 +110,8 @@ PRE = [
 SIN_COBRE = [[(72.5, 0.3), (87.7, 0.3), (87.7, 30.5), (72.5, 30.5)]]     # bajo la antena del programador
 
 SILK = [
-    ("+", 3.6, 46.0, 1.2, "F"), ("-", 8.68, 46.0, 1.2, "F"),
-    ("GND", 60.0, 45.6, 1.0, "F"), ("D-", 65.08, 45.6, 1.0, "F"), ("D+", 70.16, 45.6, 1.0, "F"),
+    ("1+  2-", 5.0, 45.2, 0.9, "F"),
+    ("1 GND  2 D-  3 D+", 62.5, 46.6, 0.8, "F"),
     ("1 GND   2 D-   3 D+", 65.0, 41.8, 0.8, "B"),
     ("DMX", 76.0, 49.2, 1.0, "F"), ("120R", 54.0, 46.4, 0.8, "F"),
     ("LetreroLab AP-1 DMX512  12-24V", 44.0, 54.8, 1.0, "B"),
