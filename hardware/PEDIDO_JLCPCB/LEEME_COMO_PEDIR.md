@@ -13,6 +13,7 @@ Todo está en la carpeta **`PEDIDO_JLCPCB/`** (y comprimido en `PEDIDO_JLCPCB.zi
 | `7_MODULO_DMX` | AP-1 DMX | Controlador DMX512 con Wi-Fi para reflectores RGB/RGBW, barras y decodificadores DMX ([guía](ap1-dmx/LEEME.md)) |
 | `8_AP_INPUT` | AP ELECTRIC · AP INPUT | 8 entradas de 12-24 V aisladas: pulsadores, sensores, flotadores ([guía](ap1-in/LEEME.md)) |
 | `9_AP_OUTPUT` | AP ELECTRIC · AP OUTPUT | 7 salidas de 24 V DC: bobinas de contactor, electroválvulas ([guía](ap1-out/LEEME.md)) |
+| `10_AP_SIGN_DIST4` | AP ELECTRIC · AP SIGN DIST 4 | Distribución DC de 4 ramas con fusible y diagnóstico para letreros ([guía](ap1-dist4/LEEME.md)) |
 
 **Sistema mínimo:** 1 base + 1 programador. Para naves industriales: 1 IND + 1 programador. Para letreros de pixeles: 1 PIX + 1 programador. Para probar ideas: 1 PLANTILLA + 1 programador. Para equipos DMX: 1 DMX + 1 programador. Primer prototipo AP ELECTRIC: 1 BASE + 1 programador + 1 AP INPUT + 1 AP OUTPUT ([AP_ELECTRIC.md](AP_ELECTRIC.md)).
 
@@ -28,15 +29,15 @@ Cada carpeta trae:
 1. **Order now → Add gerber file**: sube `1_..._GERBER.zip`. Las medidas y las capas se leen solas.
 2. Opciones de la placa (lo que no está en la tabla se deja como venga):
 
-| Opción | BASE | PROGRAMADOR | IND | PIX | AP-0.2 | PLANTILLA | DMX | INPUT | OUTPUT |
-|---|---|---|---|---|---|---|---|---|---|
-| Layers | **4** | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm |
-| Outer Copper Weight | **2 oz** | 1 oz | 1 oz | **2 oz** | **2 oz** | 1 oz | 1 oz | 1 oz | 1 oz |
-| Inner Copper Weight | 1 oz | — | — | — | — | — | — | — | — |
-| Layer stackup | JLC04161H-7628 | — | — | — | — | — | — | — | — |
-| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo |
-| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual | igual | igual | igual | igual | igual | igual |
+| Opción | BASE | PROGRAMADOR | IND | PIX | AP-0.2 | PLANTILLA | DMX | INPUT | OUTPUT | DIST 4 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Layers | **4** | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
+| PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm | 1.6 mm |
+| Outer Copper Weight | **2 oz** | 1 oz | 1 oz | **2 oz** | **2 oz** | 1 oz | 1 oz | 1 oz | 1 oz | **2 oz** |
+| Inner Copper Weight | 1 oz | — | — | — | — | — | — | — | — | — |
+| Layer stackup | JLC04161H-7628 | — | — | — | — | — | — | — | — | — |
+| Surface finish | HASL sin plomo (o ENIG) | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo | HASL sin plomo |
+| Mark on PCB (número de pedido) | Remove (o "specify position") | igual | igual | igual | igual | igual | igual | igual | igual | igual |
 
 3. Activa **PCB Assembly**:
    - **Assembly side: Top Side.** Todas las piezas SMD van arriba.
@@ -49,7 +50,7 @@ Cada carpeta trae:
    - Footprint → Footprint;
    - LCSC Part # → JLCPCB Part #.
 5. **Revisión de la BOM:**
-   - Todas las piezas SMD ya traen su código LCSC, **menos el TCA9554PWR (U1) de AP INPUT y AP OUTPUT**: búscalo por nombre en la página ("Search"), en encapsulado TSSOP-16, y elige uno en existencia.
+   - Todas las piezas SMD ya traen su código LCSC, **menos el TCA9554PWR (U1) de AP INPUT, AP OUTPUT y DIST 4**: búscalo por nombre en la página ("Search"), en encapsulado TSSOP-16, y elige uno en existencia.
    - Revisa que digan "In stock". Si alguna se agotó, el buscador de JLCPCB ofrece una equivalente: mismo valor, encapsulado y voltaje igual o mayor.
    - Las filas sin código son piezas de patas para soldar a mano: marca **"Do not place"**.
 6. **Vista previa de colocación (lo más importante):** revisa el **giro** de las piezas con polaridad y gíralas en la página si hace falta:
@@ -76,6 +77,7 @@ Cada carpeta trae:
 | DMX | J1 (2 polos 5.08 mm), J2 (3 polos 5.08 mm), J7 (zócalo 2×8) | C474952, C474953, C30734 |
 | AP INPUT | J3 (macho 1×4), J4-J5 (3 polos 5.08 mm), J6-J7 (2 polos 5.08 mm) | C5116483, C474953, C474952 |
 | AP OUTPUT | J3 (macho 1×4), J4 (2 polos 5.08 mm), J5-J7 (3 polos 5.08 mm) | C5116483, C474952, C474953 |
+| DIST 4 | J1-J5 (2 polos 5.08 mm), F1-F4 (portafusible mini Keystone 3568) | C474952, C3206956 |
 
 Si prefieres que JLCPCB suelde también estas piezas, usa la carpeta `ensamble_completo`. Las que no tengan código, búscalas en la página de la BOM ("Search") o déjalas en "Do not place".
 
@@ -92,6 +94,7 @@ Si prefieres que JLCPCB suelde también estas piezas, usa la carpeta `ensamble_c
 | DMX | ~18 USD | ~9 USD |
 | AP INPUT | ~15 USD | ~6 USD |
 | AP OUTPUT | ~18 USD | ~9 USD |
+| DIST 4 | ~12 USD | ~6 USD |
 
 Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred no pagan ese cargo. A eso se suman la placa, las piezas y el montaje por unidad.
 
@@ -99,8 +102,8 @@ Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred 
 
 ## Revisión hecha antes de generar los archivos
 
-- ERC 0 y DRC 0 (incluidas advertencias), 0 sin conectar, 0 diferencias entre esquema y placa, en las 9 placas.
-- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 9 placas:
+- ERC 0 y DRC 0 (incluidas advertencias), 0 sin conectar, 0 diferencias entre esquema y placa, en las 10 placas.
+- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 10 placas:
   - pista y separación mínimas de 0.127 mm;
   - agujeros de 0.3 mm o más;
   - anillos de vía de 0.1 mm o más;

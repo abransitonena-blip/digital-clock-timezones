@@ -79,6 +79,10 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><select id="ion"></select><select id="ioa"></select>
    <input type="number" min="0" max="100" id="iov" style="width:70px" title="valor: salida 1-28, escena 0-3, brillo %, AUX 0/1">
    <label><input type="checkbox" id="iom"> mientras</label><button class="b" id="iog">Guardar</button></div></div>
+ <div class="card"><h3>Etiquetas por circuito</h3>
+  <p class="muted">Ponle nombre a cada canal, salida o entrada (SALA, COCINA, BOMBA...). Sale en la app y en Home Assistant.</p>
+  <div class="row"><select id="etx"></select><input id="ett" maxlength="16" placeholder="nombre" style="flex:1">
+   <button class="b" id="etg">Guardar</button></div></div>
  <div class="card" id="tind" style="display:none"><h3>Módulo industrial (0-10 V)</h3>
   <p class="muted">Los canales 1-4 son salidas 0-10 V aisladas: el brillo y los efectos atenúan los drivers de las luminarias.
   El contactor 1 enciende la alimentación de las luces junto con el letrero; el 2 es manual o por horario.</p>
@@ -175,7 +179,7 @@ function pinta(){
  if(!cambiando){$("vel").value=E.s;$("bri").value=E.b;$("umb").value=E.u;$("ch").value=E.ch;$("w").value=E.c[3];
   $("rgb").value="#"+E.c.slice(0,3).map(v=>v.toString(16).padStart(2,"0")).join("")}
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
- $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();
+ $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();etiquetas();
  if(E.vivo){if(document.activeElement.id!="vvu")$("vvu").value=E.vivo.u;$("vvon").checked=!!E.vivo.on;
   $("vvst").textContent=!E.vivo.on?"Apagado":E.vivo.rx?`Recibiendo (${E.vivo.p} paquetes) en ${E.ip||"esta IP"}`:`Esperando datos en ${E.ip||"esta IP"}, Art-Net 6454 / sACN 5568`}$("tdmx").style.display=E.dmx?"":"none";
  if(E.dmx&&E.pix&&document.activeElement.tagName!="INPUT"&&document.activeElement.tagName!="SELECT"){$("dmn").value=E.pix.n[0];$("dmd").value=E.pix.d;$("dmc").value=E.pix.ch;$("dmo").value=E.pix.o;$("dms").value=E.pix.s}
@@ -202,12 +206,18 @@ function pinta(){
  if(!cambiando)$("lim").value=E.lim;$("limv").textContent=E.lim+" A";
 }
 function io(){const I=E.io;if(!I)return;$("tio").style.display=I.o||I.i?"":"none";let h="";
- for(let m=0;m<4;m++)if(I.o>>m&1)for(let b=0;b<7;b++){const n=m*7+b+1;h+=`<button class="b${I.s[m]>>b&1?" on":""}" data-sa="${n}">S${n}</button>`}
+ for(let m=0;m<4;m++)if(I.o>>m&1)for(let b=0;b<7;b++){const n=m*7+b+1;h+=`<button class="b${I.s[m]>>b&1?" on":""}" data-sa="${n}">S${n}${et("s",n)}</button>`}
  $("iosal").innerHTML=h||'<span class="muted">Sin AP OUTPUT</span>';h="";
- for(let m=0;m<4;m++)if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1,a=I.e[m]>>b&1;h+=`<span class="pill" style="${a?"background:var(--a);color:#000":""}">E${n}</span>`}
+ for(let m=0;m<4;m++)if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1,a=I.e[m]>>b&1;h+=`<span class="pill" style="${a?"background:var(--a);color:#000":""}">E${n}${et("e",n)}</span>`}
  $("ioent").innerHTML=h||'<span class="muted">Sin AP INPUT</span>';
- if(!document.querySelector("#tio :focus")){const c=$("ion").value;$("ion").innerHTML=I.r.map(r=>`<option value="${r[0]}">Entrada ${r[0]}</option>`).join("");
+ if(!document.querySelector("#tio :focus")){const c=$("ion").value;$("ion").innerHTML=I.r.map(r=>`<option value="${r[0]}">Entrada ${r[0]}${et("e",r[0])}</option>`).join("");
   if(c&&I.r.some(r=>r[0]==c))$("ion").value=c;regla()}}
+function et(t,n){const v=(E.et||{})[t+n];return v?" · "+v.replace(/[<>&]/g,""):""}
+function etiquetas(){if(document.querySelector("#etx:focus,#ett:focus"))return;const I=E.io||{o:0,i:0},c=$("etx").value;let o="";
+ for(let n=1;n<=4;n++)o+=`<option value="C${n}">Canal ${n}${et("c",n)}</option>`;
+ for(let m=0;m<4;m++){if(I.o>>m&1)for(let b=0;b<7;b++){const n=m*7+b+1;o+=`<option value="S${n}">Salida ${n}${et("s",n)}</option>`}
+  if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="E${n}">Entrada ${n}${et("e",n)}</option>`}}
+ $("etx").innerHTML=o;if(c&&[...$("etx").options].some(x=>x.value==c))$("etx").value=c}
 function regla(){const r=(E.io.r||[]).find(x=>x[0]==$("ion").value);if(!r)return;$("ioa").value=r[1]==255?"-":r[1];$("iov").value=r[2];$("iom").checked=!!r[3]}
 function progs(){let h="";E.a.forEach((p,i)=>{h+=`<div class="card" style="margin:8px 0"><div class="row dias">${[...DIAS].map((d,j)=>
  `<label><input type="checkbox" data-d="${j}" ${p[1]>>j&1?"checked":""}>${d}</label>`).join("")}</div>
@@ -233,6 +243,7 @@ $("pw").onclick=()=>api("P "+(E.p?0:1));
 $("pxg").onclick=async()=>{await api(`PX ${$("px1").value} ${$("px2").value} ${$("px3").value} ${$("px4").value}`);await api("PS "+$("pxs").value);api("PO "+$("pxo").value)};$("ioa").innerHTML='<option value="-">Nada</option>'+ACC.map((a,j)=>`<option value="${j}">${a}</option>`).join("");
 $("iosal").onclick=e=>{const n=e.target.dataset.sa;if(n)api(`SA ${n} 2`)};$("ion").onchange=regla;
 $("iog").onclick=()=>{const n=$("ion").value,a=$("ioa").value;if(n)api(a=="-"?`EA ${n} -`:`EA ${n} ${a} ${$("iov").value||0} ${$("iom").checked?1:0}`)};
+$("etg").onclick=()=>{api(`ET ${$("etx").value} ${$("ett").value}`);$("ett").value=""};
 $("vvg").onclick=async()=>{await api("UNI "+$("vvu").value);api("VIVO "+($("vvon").checked?1:0))};$("dmg").onclick=async()=>{await api(`PD ${$("dmd").value} ${$("dmc").value}`);await api("PX "+$("dmn").value);await api("PS "+$("dms").value);api("PO "+$("dmo").value)};$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};
 desliza("cc1",v=>`O ${v} ${E.cc[1]}`);desliza("cc2",v=>`O ${E.cc[0]} ${v}`);$("ym").onchange=()=>api("Y "+$("ym").value);
 $("dgo").onclick=()=>{api("DIAG");msg("Probando salidas...")};$("apr").onclick=()=>{api("APRENDER");msg("Aprendiendo...")};

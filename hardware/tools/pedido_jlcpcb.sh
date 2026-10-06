@@ -9,7 +9,8 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 for par in "ap1-base:AP1_Base:1_BASE" "ap1-prog:AP1_Programador:2_PROGRAMADOR" "ap1-ind:AP1_Industrial:3_MODULO_INDUSTRIAL" "ap1-pix:AP1_Pixel:4_MODULO_PIXELES" \
            "ap02:AP02:5_AP02_placa_unica" "ap1-plantilla:AP1_Plantilla:6_PLANTILLA_modulos_nuevos" \
            "ap1-dmx:AP1_DMX:7_MODULO_DMX" \
-           "ap1-in:AP_Input:8_AP_INPUT" "ap1-out:AP_Output:9_AP_OUTPUT"; do
+           "ap1-in:AP_Input:8_AP_INPUT" "ap1-out:AP_Output:9_AP_OUTPUT" \
+           "ap1-dist4:AP_Dist4:10_AP_SIGN_DIST4"; do
   IFS=: read -r dir proj nombre <<< "$par"
   src=$H/$dir/fabricacion/jlcpcb
   dst=$OUT/$nombre

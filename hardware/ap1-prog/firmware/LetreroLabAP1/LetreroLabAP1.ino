@@ -35,6 +35,7 @@
      AP OUTPUT / AP INPUT (Qwiic): SA n 0|1|2  salida n (1-28) apagar/encender/alternar
                  EA n acc val [modo]  regla de la entrada n (1-32): acc como en los horarios; modo 1 = al soltar, lo contrario
                  EA n -  sin regla.  Acciones: 0 apagar 1 encender 2 AUX 3 escena 4 brillo 5/6/7 salida val on/off/alternar 8 alternar luz
+     ET x texto  etiqueta de un circuito: x = C1-C4 (canales), S1-S28 (salidas), E1-E32 (entradas)   ET x  borrar
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
@@ -54,7 +55,7 @@
 #include "driver/ledc.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.5"
+#define VERSION "AP-1 fw 1.6"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -162,6 +163,14 @@ uint8_t salEstado[IO_N] = {0}, entEstado[IO_N] = {0}, entCrudo[IO_N] = {0};
 struct Regla { uint8_t acc, val, modo; };   // qué hace cada entrada al activarse (modo 1: al soltar, lo contrario)
 Regla reglas[IO_N * 8];
 bool ioCambio = false;
+// etiquetas por circuito ("SALA", "COCINA"...): se guardan en el programador y salen en la app y en Home Assistant
+String etC[4], etS[IO_N * 7], etE[IO_N * 8];
+String* etiqueta(char tipo, int n) {                        // tipo C/S/E, n desde 1
+  if (tipo == 'C' && n >= 1 && n <= 4) return &etC[n - 1];
+  if (tipo == 'S' && n >= 1 && n <= IO_N * 7) return &etS[n - 1];
+  if (tipo == 'E' && n >= 1 && n <= IO_N * 8) return &etE[n - 1];
+  return nullptr;
+}
 
 // ---------------- memoria (con retardo para no gastar la flash) ----------------
 void marcar() { sucio = true; tSucio = millis(); }
@@ -171,6 +180,11 @@ void cargar() {
   if (cfg.limiteA < 1 || cfg.limiteA > 25) cfg.limiteA = 20;
   whTotal = whGuardado = pref.getDouble("wh", 0);
   vivoActivo = pref.getBool("vivo", true);
+  for (char tipo : {'C', 'S', 'E'})
+    for (int n = 1; n <= IO_N * 8; n++) {
+      String* e = etiqueta(tipo, n);
+      if (e) { char k[8]; snprintf(k, sizeof(k), "et%c%d", tipo, n); *e = pref.getString(k, ""); }
+    }
   if (pref.getBytes("reglas", reglas, sizeof(reglas)) != sizeof(reglas))
     for (auto& r : reglas) r = Regla{ACC_NADA, 0, 0};
   vivoUni = pref.getUShort("uni", 1);
@@ -755,7 +769,17 @@ String estadoJSON() {
     primera = false;
     s += '['; s += n + 1; s += ','; s += reglas[n].acc; s += ','; s += reglas[n].val; s += ','; s += reglas[n].modo; s += ']';
   }
-  s += "]}";
+  s += "]},\"et\":{";
+  bool pe = true;
+  for (char tipo : {'C', 'S', 'E'})
+    for (int n = 1; n <= IO_N * 8; n++) {
+      String* e = etiqueta(tipo, n);
+      if (!e || !e->length()) continue;
+      if (!pe) s += ',';
+      pe = false;
+      s += '"'; s += (char)tolower(tipo); s += n; s += "\":\""; s += *e; s += '"';
+    }
+  s += '}';
   if (modoPix) {
     s += ",\"pix\":{\"n\":["; for (uint8_t k = 0; k < 4; k++) { if (k) s += ','; s += pixN[k]; }
     s += "],\"s\":"; s += pixSeg; s += ",\"o\":"; s += pixOrden; s += ",\"abl\":"; s += ablFactor / 10;
@@ -825,7 +849,8 @@ void haPublicar() {
       uint8_t n = m * 7 + b + 1;
       String obj = String("s") + n;
       if (ioOut & (1 << m))
-        haUno(uid, "switch", obj.c_str(), String("\"name\":\"Salida ") + n + "\",\"command_topic\":\"~/cmd\","
+        haUno(uid, "switch", obj.c_str(), String("\"name\":\"") + (etS[n - 1].length() ? etS[n - 1] : String("Salida ") + n) +
+              "\",\"command_topic\":\"~/cmd\","
               "\"payload_on\":\"SA " + n + " 1\",\"payload_off\":\"SA " + n + " 0\",\"state_topic\":\"~/estado\","
               "\"value_template\":\"{{ (value_json.io.s[" + m + "] // " + (1 << b) + ") % 2 }}\",\"state_on\":\"1\",\"state_off\":\"0\"");
       else { String t = String("homeassistant/switch/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
@@ -834,7 +859,8 @@ void haPublicar() {
       uint8_t n = m * 8 + b + 1;
       String obj = String("e") + n;
       if (ioIn & (1 << m))
-        haUno(uid, "binary_sensor", obj.c_str(), String("\"name\":\"Entrada ") + n + "\",\"state_topic\":\"~/estado\","
+        haUno(uid, "binary_sensor", obj.c_str(), String("\"name\":\"") + (etE[n - 1].length() ? etE[n - 1] : String("Entrada ") + n) +
+              "\",\"state_topic\":\"~/estado\","
               "\"value_template\":\"{{ (value_json.io.e[" + m + "] // " + (1 << b) + ") % 2 }}\",\"payload_on\":\"1\",\"payload_off\":\"0\"");
       else { String t = String("homeassistant/binary_sensor/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
     }
@@ -1148,6 +1174,22 @@ bool ejecutar(const char* s, bool remoto) {
     } else return false;
     if (modoDmx) { pixN[1] = pixN[2] = pixN[3] = 0; dmxAjustar(); }
     pixGuardar();
+    return true;
+  }
+  if (!strncmp(s, "ET ", 3)) {                                 // ET S3 Cocina / ET S3 (borrar)
+    const char* q = s + 3;
+    while (*q == ' ') q++;
+    char tipo = toupper(*q++);
+    int n = numero(q);
+    String* e = etiqueta(tipo, n);
+    if (!e) return false;
+    String t = resto(q);
+    t.replace("\"", "'"); t.replace("\\", "/");            // sin comillas ni diagonales invertidas (JSON)
+    if (t.length() > 16) t = t.substring(0, 16);
+    *e = t;
+    char k[8]; snprintf(k, sizeof(k), "et%c%d", tipo, n);
+    if (t.length()) pref.putString(k, t); else pref.remove(k);
+    haPublicar();                                               // Home Assistant toma el nombre nuevo
     return true;
   }
   if (!strncmp(s, "SA ", 3)) {                                 // SA n 0|1|2: salida de AP OUTPUT

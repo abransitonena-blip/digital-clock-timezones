@@ -1,0 +1,17 @@
+Comment,Designator,Footprint,LCSC Part #,Cantidad,Clase JLCPCB
+100nF,C1,C_0603_1608Metric,C14663,1,Basic
+VERDE,"DG1,DG2,DG3,DG4",LED_0603_1608Metric,C72043,4,Basic
+ROJO,"DR1,DR2,DR3,DR4",LED_0603_1608Metric,C2286,4,Basic
+MINI 5A,"F1,F2,F3,F4",Fuseholder_Blade_Mini_Keystone_3568,C3206956,4,Extended
+ENTRADA 12-24V,J1,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
+RAMA 1,J2,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
+RAMA 2,J3,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
+RAMA 3,J4,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
+RAMA 4,J5,TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,1,Extended
+QWIIC ENTRADA,J6,JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal,C160404,1,Extended
+QWIIC SALIDA,J7,JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal,C160404,1,Extended
+LTV-217-B,"OK1,OK2,OK3,OK4,OKV",SOP-4_4.4x2.6mm_P1.27mm,C115450,5,Basic
+10k,"RA1,RA2,RF,RU1,RU2,RU3,RU4,RUV",R_0603_1608Metric,C25804,8,Basic
+4.7k,"RG1,RG2,RG3,RG4,RI1,RI2,RI3,RI4,RIV,RR1,RR2,RR3,RR4",R_1206_3216Metric,C17936,13,Basic
+1k,"RP1,RP2,RP3,RP4,RPV",R_0603_1608Metric,C21190,5,Basic
+TCA9554PWR,U1,TSSOP-16_4.4x5mm_P0.65mm,,1,Extended (elegir en JLCPCB)

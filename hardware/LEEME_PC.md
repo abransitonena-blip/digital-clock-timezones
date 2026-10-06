@@ -16,6 +16,7 @@ Este paquete (`LetreroLab_proyecto_completo.zip`) trae **todo** el ecosistema AP
 | `ap1-prog/` | Programador ESP32-C3. En `firmware/` están el código (`LetreroLabAP1/`) y los binarios (`binarios/`) |
 | `ap1-ind/` | Módulo industrial: 4 × 0-10 V aislados y 2 contactores |
 | `ap1-pix/` | Módulo de pixeles WS2812/SK6812/WS2815 |
+| `ap1-dist4/` | **AP SIGN DIST 4**: distribución DC de 4 ramas con fusible, LEDs y aviso aislado al CORE |
 | `ap1-in/`, `ap1-out/` | **AP ELECTRIC** AP INPUT (8 entradas aisladas) y AP OUTPUT (7 salidas de 24 V), por Qwiic. Mapa del ecosistema en `AP_ELECTRIC.md` |
 | `ap1-dmx/` | Módulo DMX512: controlador DMX con Wi-Fi para reflectores RGB/RGBW y equipos DMX. Guía en `ap1-dmx/LEEME.md` |
 | `ap1-plantilla/` | **Base para módulos nuevos**: entrada, fuente de 12 V, memoria, conector LL y área de prototipos. Guía en `ap1-plantilla/LEEME.md` |
