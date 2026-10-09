@@ -13,3 +13,6 @@ Igual que la v8 (todo de patitas, sin SMD), con estas correcciones:
 
 Archivos: `cobre_planchar.svg`, `serigrafia_planchar.svg` (espejo), `serigrafia_vista.svg`, `manual_montaje_5x5_v9.pdf`.
 Regenerar: `python3 generar.py` y luego `NODE_PATH=$(npm root -g) node hacer_manual.cjs`.
+
+## Diagnóstico
+`diagnostico_canal_5x5_v9.pdf`: lado del cobre (visto como queda en la placa) con 12 puntos de prueba numerados y tabla de qué debe marcar el multímetro en cada uno, para un canal que no da voltaje. Regenerar: `python3 hacer_diagnostico.py` y `NODE_PATH=$(npm root -g) node hacer_diagnostico.cjs`.
