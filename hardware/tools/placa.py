@@ -143,9 +143,10 @@ def _cobre(S):
 def _planos(S, b):
     """4 capas: planos internos completos (In1 = GND de referencia, In2 según PLANOS), presentes desde el ruteo."""
     capa = {"In1": pcbnew.In1_Cu, "In2": pcbnew.In2_Cu}
-    for net, nom in S.PLANOS[:len(_internas(S))]:
-        add_zone(b, net, capa[nom], [(0.3, 0.3), (S.W - 0.3, 0.3), (S.W - 0.3, S.H - 0.3), (0.3, S.H - 0.3)],
-                 prio=0, clearance=0.3, solid=False)
+    for item in S.PLANOS[:len(_internas(S))]:     # (red, capa[, polígono]): sin polígono, toda la placa
+        net, nom = item[:2]
+        pts = item[2] if len(item) > 2 else [(0.3, 0.3), (S.W - 0.3, 0.3), (S.W - 0.3, S.H - 0.3), (0.3, S.H - 0.3)]
+        add_zone(b, net, capa[nom], pts, prio=0, clearance=0.3, solid=False)
 
 
 def _costura(S, b, red="GND"):
@@ -404,8 +405,8 @@ def main(S):
             if z.GetIsRuleArea() and z.GetZoneName().startswith("ruteo_"):
                 b.Remove(z)
         for z in S.ZONAS_FINALES:          # planos que el ruteador trató como pistas normales (p. ej. tierra aislada)
-            add_zone(b, z[0], pcbnew.B_Cu if len(z) > 2 and z[2] == "B" else pcbnew.F_Cu, z[1], prio=10, clearance=0.3,
-                     solid=False)
+            add_zone(b, z[0], pcbnew.B_Cu if len(z) > 2 and z[2] == "B" else pcbnew.F_Cu, z[1], prio=5, clearance=0.3,
+                     solid=False)                    # debajo de las zonas de potencia (prioridad 10)
         for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
             add_zone(b, "GND", layer, [(0.3, 0.3), (S.W - 0.3, 0.3), (S.W - 0.3, S.H - 0.3), (0.3, S.H - 0.3)],
                      prio=0, clearance=0.3, solid=False)

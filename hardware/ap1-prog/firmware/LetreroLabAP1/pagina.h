@@ -100,7 +100,16 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><label>Escribir</label><input type="number" min="1" max="247" id="mwe" style="width:64px" placeholder="esclavo">
    <input type="number" min="0" max="65535" id="mwr" style="width:80px" placeholder="registro">
    <input type="number" min="0" max="65535" id="mwv" style="width:80px" placeholder="valor"><button class="b" id="mwg">Registro</button>
-   <button class="b" id="mcg1">Bobina ON</button><button class="b" id="mcg0">Bobina OFF</button></div></div>
+   <button class="b" id="mcg1">Bobina ON</button><button class="b" id="mcg0">Bobina OFF</button></div>
+  <p class="muted">Umbral: al pasar del valor hace la acción ("mientras": al bajar, lo contrario). Ej. potencia alta → apagar una salida.</p>
+  <div class="row"><select id="mun"></select><input type="number" step="any" id="muu" style="width:90px" title="umbral">
+   <select id="mua"></select><input type="number" min="0" max="255" id="muv" style="width:70px" title="valor">
+   <label><input type="checkbox" id="mum"> mientras</label><button class="b" id="mug">Guardar</button></div></div>
+ <div class="card" id="tlu" style="display:none"><h3>Luminarias (AP LIGHT)</h3>
+  <p class="muted">PWM4: L1-L16 (12-24 V atenuable). AO4: L17-L32 (0-10 V + contactor). "Sigue" = obedece a la luz principal.</p>
+  <div id="lulist"></div>
+  <div class="row"><label>Rampa</label><input type="number" min="0" max="60" step="0.5" id="lur" style="width:80px"><span class="muted">segundos</span>
+   <button class="b" id="lurg">Guardar</button></div></div>
  <div class="card"><h3>Etiquetas por circuito</h3>
   <p class="muted">Ponle nombre a cada canal, salida o entrada (SALA, COCINA, BOMBA...). Sale en la app y en Home Assistant.</p>
   <div class="row"><select id="etx"></select><input id="ett" maxlength="16" placeholder="nombre" style="flex:1">
@@ -141,6 +150,13 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <label style="min-width:auto">Apagar</label><input type="time" id="voff"></div>
   <div class="row"><button class="b" id="vok">Guardar</button><button class="b" id="vno">Sin ventana</button></div>
   <p class="muted">Fuera de la ventana todo queda apagado. Puede cruzar la medianoche (19:00 a 02:00).</p></div>
+ <div class="card"><h3>Horario solar</h3>
+  <div class="row"><label>Ubicación</label><input type="number" step="0.0001" id="glat" placeholder="latitud" style="width:110px">
+   <input type="number" step="0.0001" id="glon" placeholder="longitud" style="width:110px"><button class="b" id="gok">Guardar</button></div>
+  <p class="muted" id="solt">Sin ubicación. Ciudad de México: 19.4326 -99.1332 (búscala en un mapa).</p>
+  <div class="row"><button class="b" id="noche">Luz principal solo de noche</button></div>
+  <p class="muted">Como una fotocelda, pero sin sensor: enciende al ocaso y apaga al amanecer. Abajo, acciones con desfase (ej. 15 min antes del ocaso).</p>
+  <div id="soles"></div></div>
  <div class="card"><h3>Horarios (8)</h3><div id="progs"></div></div>
 </section>
 
@@ -184,7 +200,7 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
 </main><div id="msg"></div>
 <script>
 const $=i=>document.getElementById(i),MOD=["Fijo","Secuencia","Parpadeo","Respirar","Sec. suave","Alternado","Color","Arcoíris","Flash","Vela"],
-DIAS="DLMMJVS",DN=["dom","lun","mar","mié","jue","vie","sáb"],ACC=["Apagar todo","Encender todo","Salida AUX","Escena","Brillo","Encender salida","Apagar salida","Alternar salida","Alternar luz"];let E={},cambiando=0;
+DIAS="DLMMJVS",DN=["dom","lun","mar","mié","jue","vie","sáb"],ACC=["Apagar todo","Encender todo","Salida AUX","Escena","Brillo","Encender salida","Apagar salida","Alternar salida","Alternar luz","Encender luminaria","Apagar luminaria","Alternar luminaria"];let E={},cambiando=0;
 const TZ=[["CST6","México centro (CDMX, GDL, MTY)"],["EST5","Cancún / Quintana Roo"],["MST7","Sonora / Mazatlán"],
 ["PST8PDT,M3.2.0,M11.1.0","Tijuana"],["CST6CDT,M3.2.0,M11.1.0","Frontera norte / Chicago"],["EST5EDT,M3.2.0,M11.1.0","Nueva York"],
 ["PST8PDT,M3.2.0,M11.1.0","Los Ángeles"],["COT5","Colombia"],["PET5","Perú"],["ECT5","Ecuador"],["VET4","Venezuela"],
@@ -201,7 +217,7 @@ function pinta(){
  if(!cambiando){$("vel").value=E.s;$("bri").value=E.b;$("umb").value=E.u;$("ch").value=E.ch;$("w").value=E.c[3];
   $("rgb").value="#"+E.c.slice(0,3).map(v=>v.toString(16).padStart(2,"0")).join("")}
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
- $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();ai();mb();etiquetas();
+ $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();ai();mb();lu();solar();etiquetas();
  if(E.vivo){if(document.activeElement.id!="vvu")$("vvu").value=E.vivo.u;$("vvon").checked=!!E.vivo.on;
   $("vvst").textContent=!E.vivo.on?"Apagado":E.vivo.rx?`Recibiendo (${E.vivo.p} paquetes) en ${E.ip||"esta IP"}`:`Esperando datos en ${E.ip||"esta IP"}, Art-Net 6454 / sACN 5568`}$("tdmx").style.display=E.dmx?"":"none";
  if(E.dmx&&E.pix&&document.activeElement.tagName!="INPUT"&&document.activeElement.tagName!="SELECT"){$("dmn").value=E.pix.n[0];$("dmd").value=E.pix.d;$("dmc").value=E.pix.ch;$("dmo").value=E.pix.o;$("dms").value=E.pix.s}
@@ -250,14 +266,33 @@ function mb(){const M=E.mb;if(!M)return;$("tmb").style.display=M.b?"":"none";if(
   h+=`<div class="row"><label>M${n}${et("m",n)}</label><b style="min-width:90px">${p[6]?"--":(+p[5]).toFixed(2)}</b>
   <span class="muted">esclavo ${p[0]} · f${p[1]} · reg ${p[2]}${p[6]?" · "+(MBERR[p[6]]||"error "+p[6]):""}</span></div>`});
  $("mblist").innerHTML=h||'<span class="muted">Sin puntos: agrega uno abajo.</span>';
- if(!document.querySelector("#tmb :focus")){const c=$("mbn").value;$("mbn").innerHTML=o;if(c)$("mbn").value=c;mbpunto()}}
+ if(!document.querySelector("#tmb :focus")){const c=$("mbn").value,d=$("mun").value;$("mbn").innerHTML=o;$("mun").innerHTML=o;if(c)$("mbn").value=c;if(d)$("mun").value=d;mbpunto();mbumbral()}}
+function mbumbral(){const u=(E.mb.u||[])[+$("mun").value-1];if(!u)return;$("muu").value=u[0];$("mua").value=u[1]==255?"-":u[1];$("muv").value=u[2];$("mum").checked=!!u[3]}
 function mbpunto(){const p=(E.mb.p||[])[+$("mbn").value-1];if(!p||!p[0])return;$("mbe").value=p[0];$("mbf").value=p[1];$("mbr").value=p[2];$("mbt").value=p[3];$("mbx").value=p[4]}
+function lu(){const L=E.lu;if(!L)return;$("tlu").style.display=L.m?"":"none";if(!L.m)return;
+ if(document.querySelector("#tlu :focus")&&document.activeElement.type=="range")return;let h="";
+ for(let n=0;n<32;n++){const m=n<16?n>>2:4+((n-16)>>2);if(!(L.m>>m&1))continue;const on=L.o>>>n&1,sg=L.s>>>n&1;
+  h+=`<div class="row"><label>L${n+1}${et("l",n+1)}</label><input type="range" min="0" max="100" value="${L.n[n]}" data-lu="${n+1}" style="flex:1">
+  <span class="muted" style="min-width:42px">${L.n[n]}%</span><button class="b${on?" on":""}" data-lo="${n+1}">${on?"Encendida":"Apagada"}</button>
+  <label><input type="checkbox" data-ls="${n+1}" ${sg?"checked":""}> sigue</label></div>`}
+ $("lulist").innerHTML=h;if(!document.querySelector("#lur:focus"))$("lur").value=L.r}
+function hm2(m){return m<0?"--:--":String(m/60|0).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}
+function solar(){if(document.querySelector("#tsol :focus,#soles :focus,#glat:focus,#glon:focus"))return;const G=E.geo;
+ if(G){$("glat").value=G[0];$("glon").value=G[1];$("solt").textContent=`Hoy: amanecer ${hm2(E.solh[1])} · ocaso ${hm2(E.solh[0])}`}
+ $("noche").className="b"+(E.noche?" on":"");let h="";
+ (E.sol||[]).forEach((o,i)=>{h+=`<div class="row" data-si="${i}"><select data-k="ev"><option value="0" ${o[1]==0?"selected":""}>Ocaso</option><option value="1" ${o[1]==1?"selected":""}>Amanecer</option></select>
+  <input type="number" min="-180" max="180" value="${o[2]}" data-k="de" style="width:70px" title="minutos (+ después, - antes)">
+  <select data-k="ac">${ACC.map((a,j)=>`<option value="${j}" ${j==o[3]?"selected":""}>${a}</option>`).join("")}</select>
+  <input type="number" min="0" max="255" value="${o[4]}" data-k="va" style="width:60px" title="valor">
+  <button class="b${o[0]?" on":""}" data-sg="${i}">${o[0]?"Guardado":"Guardar"}</button><button class="b" data-sx="${i}">Borrar</button></div>`});
+ $("soles").innerHTML=h}
 function umbral(){const n=+$("ain").value,u=(E.ai.u||[])[n-1];if(!u)return;$("aiu").value=u[0];$("aia").value=u[1]==255?"-":u[1];$("aiv").value=u[2];$("aim").checked=!!u[3]}
 function et(t,n){const v=(E.et||{})[t+n];return v?" · "+v.replace(/[<>&]/g,""):""}
 function etiquetas(){if(document.querySelector("#etx:focus,#ett:focus"))return;const I=E.io||{o:0,i:0},c=$("etx").value;let o="";
  for(let n=1;n<=4;n++)o+=`<option value="C${n}">Canal ${n}${et("c",n)}</option>`;
  const M=(E.ai||{}).m||0;for(let n=1;n<=8;n++)if(M>>((n-1)>>2)&1)o+=`<option value="A${n}">Analógica ${n}${et("a",n)}</option>`;
  const B=E.mb||{b:0,p:[]};if(B.b)B.p.forEach((p,i)=>{if(p[0])o+=`<option value="M${i+1}">Modbus ${i+1}${et("m",i+1)}</option>`});
+ const LM=(E.lu||{}).m||0;for(let n=0;n<32;n++){const m=n<16?n>>2:4+((n-16)>>2);if(LM>>m&1)o+=`<option value="L${n+1}">Luminaria ${n+1}${et("l",n+1)}</option>`}
  for(let m=0;m<16;m++){if(I.o>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="S${n}">Salida ${n}${et("s",n)}</option>`}
   if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="E${n}">Entrada ${n}${et("e",n)}</option>`}}
  $("etx").innerHTML=o;if(c&&[...$("etx").options].some(x=>x.value==c))$("etx").value=c}
@@ -288,7 +323,17 @@ $("iosal").onclick=e=>{const n=e.target.dataset.sa;if(n)api(`SA ${n} 2`)};$("ion
 $("iog").onclick=()=>{const n=$("ion").value,a=$("ioa").value;if(n)api(a=="-"?`EA ${n} -`:`EA ${n} ${a} ${$("iov").value||0} ${$("iom").checked?1:0}`)};
 $("aia").innerHTML='<option value="-">Nada</option>'+ACC.map((a,j)=>`<option value="${j}">${a}</option>`).join("");
 $("ailist").onclick=e=>{const d=e.target.dataset;if(d.ai)api(`AI ${d.ai} ${d.m}`)};$("ain").onchange=umbral;
-$("mbn").onchange=mbpunto;
+$("mbn").onchange=mbpunto;$("mun").onchange=mbumbral;
+$("mua").innerHTML='<option value="-">Nada</option>'+ACC.map((a,j)=>`<option value="${j}">${a}</option>`).join("");
+$("mug").onclick=()=>{const n=$("mun").value,a=$("mua").value;api(a=="-"?`MU ${n} -`:`MU ${n} ${$("muu").value||0} ${a} ${$("muv").value||0} ${$("mum").checked?1:0}`)};
+$("lulist").addEventListener("change",e=>{const t=e.target;if(t.dataset.lu)api(`LU ${t.dataset.lu} ${t.value}`);if(t.dataset.ls)api(`LS ${t.dataset.ls} ${t.checked?1:0}`)});
+$("lulist").addEventListener("click",e=>{const t=e.target.closest("[data-lo]");if(t)api(`LO ${t.dataset.lo} 2`)});
+$("lurg").onclick=()=>api("LR "+($("lur").value||0));
+$("gok").onclick=()=>api(`GEO ${$("glat").value} ${$("glon").value}`);
+$("noche").onclick=()=>api("NOCHE "+(E.noche?0:1));
+$("soles").addEventListener("click",e=>{const g=e.target.closest("[data-sg]"),x=e.target.closest("[data-sx]");
+ if(x)return api(`SOL ${x.dataset.sx} -`);if(!g)return;const r=g.closest("[data-si]"),v=k=>r.querySelector(`[data-k=${k}]`).value;
+ api(`SOL ${g.dataset.sg} ${v("ev")} ${v("de")||0} ${v("ac")} ${v("va")||0}`)});
 $("mbg").onclick=()=>api(`MP ${$("mbn").value} ${$("mbe").value||1} ${$("mbf").value} ${$("mbr").value||0} ${$("mbt").value} ${$("mbx").value||1}`);
 $("mbb").onclick=()=>api(`MP ${$("mbn").value} -`);
 $("mwg").onclick=()=>api(`MW ${$("mwe").value||1} ${$("mwr").value||0} ${$("mwv").value||0}`);

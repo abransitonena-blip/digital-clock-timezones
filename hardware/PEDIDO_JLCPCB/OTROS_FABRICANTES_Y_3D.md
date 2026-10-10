@@ -41,7 +41,7 @@ Todos van en la BOM con código LCSC: JLCPCB los suelda en "ensamble completo", 
 
 Archivos a imprimir:
 - `ap1-gabinete/gabinete/caja_base.stl` y `caja_tapa.stl`;
-- `ap1-gabinete/din/soporte_din_88x56.stl` (BASE, IND, PIX, DMX, PLANTILLA, DIST 4, DO8, AP NODE, AP GATE);
+- `ap1-gabinete/din/soporte_din_88x56.stl` (BASE, IND, PIX, DMX, PLANTILLA, DIST 4, DO8, AP NODE, AP GATE, PWM4, AO4);
 - `ap1-gabinete/din/soporte_din_72x56.stl` (AP INPUT, AI4).
 
 Parámetros: **4 paredes, 40 % de relleno, ASA o PETG**. Para exteriores usa **ASA** (resiste UV).

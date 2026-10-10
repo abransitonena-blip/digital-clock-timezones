@@ -16,6 +16,8 @@ Todo está en **`PEDIDO_JLCPCB.zip`** (carpeta `PEDIDO_JLCPCB/`). Hay una subcar
 | `11_AP_PRO_AI4` | AP PRO AI4 | 4 entradas analógicas 0-10 V / 4-20 mA |
 | `12_AP_NODE` | AP NODE | Nodo remoto del AP BUS (24 V + CAN, hasta 250 m) |
 | `13_AP_GATE` | AP GATE | AP NODE + RS-485 / Modbus RTU (medidores de energía, variadores, PLC) |
+| `14_AP_LIGHT_PWM4` | AP LIGHT PWM4 (4 capas) | 4 canales de 12-24 V DC de 6 A atenuables, aislados (luminarias LED de 24 V, reflectores) |
+| `15_AP_LIGHT_AO4` | AP LIGHT AO4 | 4 circuitos de alumbrado de red: 0-10 V + bobina de contactor |
 
 La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el sistema modular.
 
@@ -27,6 +29,10 @@ La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el 
 | Prototipo AP ELECTRIC (luces, sensores, válvula) | 1 BASE + 1 PROGRAMADOR + 1 AP INPUT + 1 DO8 |
 | E/S en otro tablero (AP BUS) | 2 AP NODE (maestro y remoto) + DO8 y/o AP INPUT en cada uno |
 | Medir energía o mandar variadores (Modbus) | 1 AP GATE (puede ser también el maestro del AP BUS) |
+| Alumbrado público o de nave (luminarias de red 0-10 V) | 1 AP GATE o CORE + AO4 (+ contactores para iluminación) |
+| Luminarias LED de 24 V, reflectores, letras grandes | CORE + PWM4 (hasta 4) |
+
+Modelos completos por rama (hogar, industrial, letreros, alumbrado): `AP_ELECTRIC.md`. Qué contactor, SSR o variador poner en cada carga: `ACTUADORES_DE_POTENCIA.md`.
 | Bombeo y nivel | + 1 AI4 |
 | Letreros | PIX o DMX + 1 PROGRAMADOR (+ DIST 4) |
 | Naves | IND + 1 PROGRAMADOR |
@@ -47,7 +53,7 @@ Cada carpeta trae:
 1. **Order now → Add gerber file**: sube `1_..._GERBER.zip`. Las medidas y las capas se leen solas.
 2. Opciones de la placa (lo que no está en la tabla se deja como venga):
 
-| Opción | BASE | PIX, DIST 4, DO8 | Todas las demás |
+| Opción | BASE, PWM4 | PIX, DIST 4, DO8 | Todas las demás |
 |---|---|---|---|
 | Layers | **4** | 2 | 2 |
 | PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm |
@@ -98,6 +104,8 @@ Cada carpeta trae:
 | AI4 | J7 (VH 2), J3/J4/J8/J9 (XH 3) | C160315, C144394 |
 | AP NODE | J1/J2 (XH 4), J4 (macho 1×4) | C144395, C5116483 |
 | AP GATE | J1/J2 (XH 4), J4 (XH 3) | C144395, C144394 |
+| PWM4 | J1 (XT60), J2-J5 (VH 2), F1-F4 (portafusibles mini) | C98732, C160315, C3206956 |
+| AO4 | J3 (VH 2), J4-J7 (XH 4) | C160315, C144395 |
 
 ## Costo aproximado del cargo de montaje (por pedido, no por placa)
 
@@ -115,6 +123,8 @@ Cada carpeta trae:
 | AI4 | ~15 USD | ~9 USD |
 | AP NODE | ~36 USD | ~30 USD |
 | AP GATE | ~36 USD | ~30 USD |
+| PWM4 | ~27 USD | ~18 USD |
+| AO4 | ~21 USD | ~15 USD |
 
 - Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred no pagan ese cargo.
 - A eso se suman la placa, las piezas y el montaje por unidad.
@@ -125,12 +135,12 @@ Cada carpeta trae:
 
 ## Revisión hecha antes de generar los archivos
 
-- **ERC 0 y DRC 0** (incluidas advertencias), 0 sin conectar y 0 diferencias entre esquema y placa, en las 12 placas.
-- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 12 placas:
+- **ERC 0 y DRC 0** (incluidas advertencias), 0 sin conectar y 0 diferencias entre esquema y placa, en las 14 placas.
+- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 14 placas:
   - pista y separación mínimas de 0.127 mm;
   - agujeros de 0.3 mm o más;
   - anillos de vía de 0.1 mm o más;
   - 0.5 mm entre agujeros de redes distintas;
   - 0.3 mm al borde;
   - textos de 0.8 mm o más.
-- **Códigos LCSC verificados** en lcsc.com / jlcpcb.com para los conectores AP CONNECT, el TCA9554PWR (C477924), el ADS1115 (C37593), el NCV8406ASTT3G (C459816) y el TJA1051T/3 (C38695).
+- **Códigos LCSC verificados** en lcsc.com / jlcpcb.com para los conectores AP CONNECT, el TCA9554PWR (C477924), el ADS1115 (C37593), el NCV8406ASTT3G (C459816), el TJA1051T/3 (C38695) y el PCA9685PW (C2678753).

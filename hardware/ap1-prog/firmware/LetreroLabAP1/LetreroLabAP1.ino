@@ -43,6 +43,15 @@
                  registro desde 0, tipo 0 u16, 1 s16, 2 u32, 3 s32, 4 float, 5 float con palabras invertidas   MP n -
                  MW esclavo registro valor  escribir un registro (función 6)   MC esclavo bobina 0|1  bobina (función 5)
                  ET M1 texto  nombre del punto (sale en la app y en Home Assistant)
+                 MU n umbral acc val [modo]  acción al pasar del umbral el punto n (como AU)   MU n -
+     AP LIGHT (Qwiic): PWM4 = luminarias L1-L16 (0x41, 0x43, 0x51, 0x53), AO4 = L17-L32 (0x44-0x47: 0-10 V + contactor)
+                 LU n nivel  luminaria n al nivel 0-100 (0 = apagada)   LO n 0|1|2  apagar/encender/alternar
+                 LS n 0|1  la luminaria sigue a la luz principal (encendido, brillo, horario)   LR s  rampa de 0-60 s
+     Horario solar: GEO lat lon  ubicación (p. ej. GEO 19.43 -99.13)   NOCHE 0|1  la luz principal solo de noche
+                 SOL i evento desfase acc val [dias]  i = 0..7, evento 0 = ocaso, 1 = amanecer, desfase en minutos
+                 (-180..180), acc como en los horarios   SOL i -  borrar
+     Acciones: 0 apagar 1 encender 2 AUX 3 escena 4 brillo 5/6/7 salida on/off/alternar 8 alternar luz
+               9/10/11 luminaria val encender/apagar/alternar
      AP PRO AI4: AI n 0|1  canal analógico n (1-8) en 0-10 V o 4-20 mA
                  AU n umbral acc val [modo]  al pasar del umbral hace la acción (modo 1: al bajar, lo contrario)  AU n -
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
@@ -65,9 +74,10 @@
 #include "driver/twai.h"
 #include "apbus.h"
 #include "modbus.h"
+#include "luz.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.9"
+#define VERSION "AP-1 fw 2.0"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -197,13 +207,32 @@ uint32_t mbBaud = 0;                        // 0 = apagado
 uint8_t mbParidad = 0;
 struct MbPunto { uint8_t esclavo, funcion, tipo, libre; uint16_t reg; float escala; };   // esclavo 0 = sin usar
 MbPunto mbPuntos[MB_N];
+Umbral mbUmb[MB_N];                         // acción por umbral de cada punto (como las entradas analógicas)
 float mbVal[MB_N];
 uint8_t mbErr[MB_N];                        // 0 bien, 1 sin respuesta, 2 CRC, 3 trama equivocada, 10 + excepción
 uint32_t mbBien = 0, mbMal = 0;
-String etC[4], etS[IO_N * 8], etE[IO_N * 8], etA[AI_N * 4], etM[8];
+// ---- AP LIGHT: PWM4 (L1-L16, atenuación con curva de brillo) y AO4 (L17-L32: 0-10 V lineal + contactor) ----
+const uint8_t LU_N = 32, LU_DIR[8] = {0x41, 0x43, 0x51, 0x53, 0x44, 0x45, 0x46, 0x47};
+const uint8_t ACC_MAX = 11;
+uint8_t luMods = 0;                         // bit m = módulo LU_DIR[m] presente
+uint8_t luNivel[LU_N];                      // 0-100: el último nivel pedido
+uint32_t luOn = 0, luSigue = 0;             // encendida / sigue a la luz principal (un bit por luminaria)
+float luAct[LU_N];                          // nivel actual (con rampa)
+float luRampaS = 1.0f;
+bool luSucio = false;
+uint32_t tLuSucio = 0;
+// ---- horario solar ----
+float geoLat = NAN, geoLon = NAN;
+bool nocheSol = false;
+struct Sol { uint8_t activo, evento, dias, acc, val, libre; int16_t desfase; };
+Sol soles[8];
+int16_t solHoy[2] = {-1, -1};               // minuto local de hoy: [0] ocaso, [1] amanecer
+void solCalcular();                         // (más abajo, junto a los horarios)
+String etC[4], etS[IO_N * 8], etE[IO_N * 8], etA[AI_N * 4], etM[8], etL[32];
 String* etiqueta(char tipo, int n) {                        // tipo C/S/E/A, n desde 1
   if (tipo == 'A' && n >= 1 && n <= AI_N * 4) return &etA[n - 1];
   if (tipo == 'M' && n >= 1 && n <= 8) return &etM[n - 1];
+  if (tipo == 'L' && n >= 1 && n <= 32) return &etL[n - 1];
   if (tipo == 'C' && n >= 1 && n <= 4) return &etC[n - 1];
   if (tipo == 'S' && n >= 1 && n <= IO_N * 8) return &etS[n - 1];
   if (tipo == 'E' && n >= 1 && n <= IO_N * 8) return &etE[n - 1];
@@ -222,7 +251,7 @@ void cargar() {
   if (pref.getBytes("umbral", umbrales, sizeof(umbrales)) != sizeof(umbrales))
     for (auto& u : umbrales) u = Umbral{0, ACC_NADA, 0, 0, false};
   for (auto& v : aiValor) v = NAN;
-  for (char tipo : {'C', 'S', 'E', 'A', 'M'})
+  for (char tipo : {'C', 'S', 'E', 'A', 'M', 'L'})
     for (int n = 1; n <= IO_N * 8; n++) {
       String* e = etiqueta(tipo, n);
       if (e) { char k[8]; snprintf(k, sizeof(k), "et%c%d", tipo, n); *e = pref.getString(k, ""); }
@@ -234,6 +263,13 @@ void cargar() {
   vivoUni = pref.getUShort("uni", 1);
   if (pref.getBytes("mbpts", mbPuntos, sizeof(mbPuntos)) != sizeof(mbPuntos)) for (auto& p : mbPuntos) p = MbPunto{0, 3, 0, 0, 0, 1};
   for (uint8_t i = 0; i < MB_N; i++) { mbVal[i] = NAN; mbErr[i] = 1; }
+  if (pref.getBytes("mbumb", mbUmb, sizeof(mbUmb)) != sizeof(mbUmb)) for (auto& u : mbUmb) u = Umbral{0, ACC_NADA, 0, 0, false};
+  for (auto& u : mbUmb) u.arriba = false;
+  if (pref.getBytes("luniv", luNivel, sizeof(luNivel)) != sizeof(luNivel)) memset(luNivel, 100, sizeof(luNivel));
+  luOn = pref.getUInt("luon", 0); luSigue = pref.getUInt("lusig", 0); luRampaS = pref.getFloat("lurampa", 1.0f);
+  for (auto& a : luAct) a = 0;
+  geoLat = pref.getFloat("geolat", NAN); geoLon = pref.getFloat("geolon", NAN); nocheSol = pref.getBool("noche", false);
+  if (pref.getBytes("soles", soles, sizeof(soles)) != sizeof(soles)) for (auto& o : soles) o = Sol{0, 0, 127, 0, 0, 0, 0};
   char def[16];
   snprintf(def, sizeof(def), "letrero-%04x", (uint16_t)(ESP.getEfuseMac() >> 32));
   nombre = pref.getString("nombre", def);
@@ -825,7 +861,24 @@ String estadoJSON() {
     s += '['; s += p.esclavo; s += ','; s += p.funcion; s += ','; s += p.reg; s += ','; s += p.tipo; s += ',';
     s += String(p.escala, 4); s += ','; s += isnan(mbVal[i]) ? String("null") : String(mbVal[i], 3); s += ','; s += mbErr[i]; s += ']';
   }
-  s += "]},\"ai\":{\"m\":"; s += aiMods; s += ",\"v\":[";
+  s += "],\"u\":[";
+  for (uint8_t i = 0; i < MB_N; i++) {
+    if (i) s += ',';
+    const Umbral& u = mbUmb[i];
+    s += '['; s += String(u.lim, 2); s += ','; s += u.acc; s += ','; s += u.val; s += ','; s += u.modo; s += ']';
+  }
+  s += "]},\"lu\":{\"m\":"; s += luMods; s += ",\"o\":"; s += luOn; s += ",\"s\":"; s += luSigue;
+  s += ",\"r\":"; s += String(luRampaS, 1); s += ",\"n\":[";
+  for (uint8_t n = 0; n < LU_N; n++) { if (n) s += ','; s += luNivel[n]; }
+  s += "]},\"geo\":"; s += isnan(geoLat) ? String("null") : "[" + String(geoLat, 4) + "," + String(geoLon, 4) + "]";
+  s += ",\"noche\":"; s += nocheSol; s += ",\"solh\":["; s += solHoy[0]; s += ','; s += solHoy[1]; s += "],\"sol\":[";
+  for (uint8_t i = 0; i < 8; i++) {
+    if (i) s += ',';
+    const Sol& o = soles[i];
+    s += '['; s += o.activo; s += ','; s += o.evento; s += ','; s += o.desfase; s += ','; s += o.acc; s += ','; s += o.val;
+    s += ','; s += o.dias; s += ']';
+  }
+  s += "],\"ai\":{\"m\":"; s += aiMods; s += ",\"v\":[";
   for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += isnan(aiValor[n]) ? String("null") : String(aiValor[n], 2); }
   s += "],\"t\":[";
   for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += aiModo[n]; }
@@ -837,7 +890,7 @@ String estadoJSON() {
   }
   s += "]},\"et\":{";
   bool pe = true;
-  for (char tipo : {'C', 'S', 'E', 'A', 'M'})
+  for (char tipo : {'C', 'S', 'E', 'A', 'M', 'L'})
     for (int n = 1; n <= IO_N * 8; n++) {
       String* e = etiqueta(tipo, n);
       if (!e || !e->length()) continue;
@@ -936,6 +989,21 @@ void haPublicar() {
   }
   uint32_t ahora = ((uint32_t)ioOut << 16) | ioIn;
   if (ahora != antes) pref.putUInt("haio", ahora);
+  uint8_t luAntes = pref.getUChar("halu", 0);                 // AP LIGHT: una luz atenuable por luminaria
+  for (uint8_t n = 0; n < LU_N; n++) {
+    uint8_t m = n < 16 ? n / 4 : 4 + (n - 16) / 4;
+    String obj = String("l") + (n + 1);
+    if (luMods & (1 << m)) {
+      String k = String(n + 1), bit = String(1UL << n);
+      haUno(uid, "light", obj.c_str(), String("\"name\":\"") + (etL[n].length() ? etL[n] : String("Luminaria ") + k) +
+            "\",\"schema\":\"template\",\"command_topic\":\"~/cmd\",\"state_topic\":\"~/estado\","
+            "\"command_on_template\":\"{% if brightness is defined %}LU " + k + " {{ [((brightness / 2.55) | round | int), 1] | max }}"
+            "{% else %}LO " + k + " 1{% endif %}\",\"command_off_template\":\"LO " + k + " 0\","
+            "\"state_template\":\"{{ 'on' if (value_json.lu.o // " + bit + ") % 2 == 1 else 'off' }}\","
+            "\"brightness_template\":\"{{ (value_json.lu.n[" + n + "] * 2.55) | round | int }}\"");
+    } else if (luAntes & (1 << m)) { String t = String("homeassistant/light/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
+  }
+  if (luAntes != luMods) pref.putUChar("halu", luMods);
   for (uint8_t n = 0; n < MB_N; n++) {                          // AP GATE: puntos Modbus
     String obj = String("m") + (n + 1);
     if (mbBaud && mbPuntos[n].esclavo)
@@ -1083,6 +1151,14 @@ void aplicarAccion(uint8_t acc, uint8_t val) {
       }
       return;
     case 8: cfg.encendido = !cfg.encendido; break;            // alternar la luz (pulsador)
+    case 9: case 10: case 11:                                 // luminaria val (1-32) encender / apagar / alternar
+      if (val >= 1 && val <= LU_N) {
+        uint32_t b = 1UL << (val - 1);
+        bool on = acc == 9 ? true : acc == 10 ? false : !(luOn & b);
+        if (on) { luOn |= b; if (!luNivel[val - 1]) luNivel[val - 1] = 100; } else luOn &= ~b;
+        luSucio = true; tLuSucio = millis(); ioCambio = true;
+      }
+      return;
     default: return;
   }
   marcar();
@@ -1125,6 +1201,7 @@ void ioEntrada(uint8_t n, bool activa) {                      // n = 0..127
     if (r.acc == 0 || r.acc == 1) aplicarAccion(1 - r.acc, 0);
     else if (r.acc == 2) aplicarAccion(2, !r.val);
     else if (r.acc == 5 || r.acc == 6) aplicarAccion(11 - r.acc, r.val);
+    else if (r.acc == 9 || r.acc == 10) aplicarAccion(19 - r.acc, r.val);
   }
 }
 void ioActualizar(uint32_t t) {
@@ -1181,6 +1258,22 @@ void aiUmbral(uint8_t n) {                                  // reglas por umbral
       if (u.acc == 0 || u.acc == 1) aplicarAccion(1 - u.acc, 0);
       else if (u.acc == 2) aplicarAccion(2, !u.val);
       else if (u.acc == 5 || u.acc == 6) aplicarAccion(11 - u.acc, u.val);
+      else if (u.acc == 9 || u.acc == 10) aplicarAccion(19 - u.acc, u.val);
+    }
+  }
+}
+void mbUmbral(uint8_t n) {                                   // umbrales de los puntos Modbus, con 2 % de histéresis
+  Umbral& u = mbUmb[n];
+  if (u.acc == ACC_NADA || isnan(mbVal[n])) return;
+  float h = fabsf(u.lim) * 0.02f + 0.01f;
+  if (!u.arriba && mbVal[n] > u.lim + h) { u.arriba = true; aplicarAccion(u.acc, u.val); ioCambio = true; }
+  else if (u.arriba && mbVal[n] < u.lim - h) {
+    u.arriba = false; ioCambio = true;
+    if (u.modo == 1) {
+      if (u.acc == 0 || u.acc == 1) aplicarAccion(1 - u.acc, 0);
+      else if (u.acc == 2) aplicarAccion(2, !u.val);
+      else if (u.acc == 5 || u.acc == 6) aplicarAccion(11 - u.acc, u.val);
+      else if (u.acc == 9 || u.acc == 10) aplicarAccion(19 - u.acc, u.val);
     }
   }
 }
@@ -1332,6 +1425,73 @@ void busActualizar(uint32_t t) {
   digitalWrite(PIN_LED_BUS, hay ? HIGH : ((t / 125) & 1));   // fijo = bus con tráfico; rápido = nadie responde
 }
 
+// ---------------- AP LIGHT: luminarias por PCA9685 (PWM4 y AO4) ----------------
+bool pcaIniciar(uint8_t dir, float hz) {
+  if (!tcaEscribir(dir, PCA_MODE1, 0x10)) return false;       // dormido (para cambiar la frecuencia)
+  tcaEscribir(dir, PCA_PRESCALE, pcaPreescala(hz));
+  tcaEscribir(dir, PCA_MODE1, 0x20);                          // despierto, autoincremento, sin dirección "todos" (0x70)
+  delayMicroseconds(600);                                     // arranque del oscilador
+  return tcaEscribir(dir, PCA_MODE2, 0x04);                   // salidas en contrafase
+}
+bool pcaPoner(uint8_t dir, uint8_t canal, uint16_t v) {
+  uint8_t r[4];
+  pcaCanal(v, r);
+  Wire.beginTransmission(dir);
+  Wire.write(PCA_LED0 + 4 * canal);
+  Wire.write(r, 4);
+  return Wire.endTransmission() == 0;
+}
+bool luEncendida(uint8_t n) {                                 // con "sigue": la luz principal manda
+  if (luSigue & (1UL << n)) return cfg.encendido && porHorario && porLuz && falla == SIN_FALLA;
+  return luOn & (1UL << n);
+}
+uint8_t luObjetivo(uint8_t n) {
+  if (!luEncendida(n)) return 0;
+  if (luSigue & (1UL << n)) return cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
+  return luNivel[n];
+}
+void luActualizar(uint32_t t) {
+  static uint32_t tBusca = 0, tPaso = 0, tTodo = 0;
+  static uint16_t escrito[8][8];                              // último valor de cada canal (para mandar solo cambios)
+  static bool bobina[16];
+  if (t - tBusca > 5000 || !tBusca) {                         // módulos nuevos o desconectados
+    tBusca = t | 1;
+    uint8_t m = 0;
+    for (uint8_t k = 0; k < 8; k++) if (i2cPresente(LU_DIR[k])) m |= 1 << k;
+    for (uint8_t k = 0; k < 8; k++)
+      if ((m & (1 << k)) && !(luMods & (1 << k))) {
+        pcaIniciar(LU_DIR[k], k < 4 ? 500 : 1526);            // PWM4: 508 Hz; AO4: 1526 Hz (menos rizo en el 0-10 V)
+        for (uint8_t c = 0; c < 8; c++) { escrito[k][c] = 0xFFFF; }
+      }
+    if (m != luMods) { luMods = m; ioCambio = true; Serial.printf("AP LIGHT: %02X\n", luMods); haPublicar(); }
+  }
+  if (luSucio && t - tLuSucio > 3000) {                       // guardar sin gastar la flash con cada movimiento
+    luSucio = false;
+    pref.putBytes("luniv", luNivel, sizeof(luNivel)); pref.putUInt("luon", luOn); pref.putUInt("lusig", luSigue);
+  }
+  if (!luMods || t - tPaso < 20) return;
+  float dt = (t - tPaso) / 1000.0f;
+  tPaso = t;
+  bool todo = t - tTodo > 2000;                               // cada 2 s se reescribe todo (por si un módulo se reinició)
+  if (todo) tTodo = t;
+  for (uint8_t k = 0; k < 8; k++) {
+    if (!(luMods & (1 << k))) continue;
+    for (uint8_t c = 0; c < 4; c++) {
+      uint8_t n = k < 4 ? k * 4 + c : 16 + (k - 4) * 4 + c;
+      uint8_t obj = luObjetivo(n);
+      luAct[n] = dt > 1 ? obj : luzRampa(luAct[n], obj, dt, luRampaS);
+      uint16_t v = k < 4 ? GAMMA12[(uint16_t)(luAct[n] * 2.55f + 0.5f)]          // PWM4: curva de brillo del ojo
+                         : (uint16_t)(luAct[n] * 40.96f + 0.5f);                 // AO4: 0-10 V lineal (el driver aplica su curva)
+      if (v != escrito[k][c] || todo) { if (pcaPoner(LU_DIR[k], c, v)) escrito[k][c] = v; }
+      if (k >= 4) {                                           // contactor: cierra al encender, abre al terminar la rampa
+        bool b = obj > 0 || luAct[n] > 0.5f;
+        uint8_t i = (k - 4) * 4 + c;
+        if (b != bobina[i] || todo) { if (pcaPoner(LU_DIR[k], 4 + c, b ? 4096 : 0)) bobina[i] = b; }
+      }
+    }
+  }
+}
+
 // ---------------- AP GATE: maestro Modbus RTU (una petición a la vez, sin detener el programa) ----------------
 struct MbEscritura { uint8_t esclavo, funcion; uint16_t reg, valor; };
 MbEscritura mbCola[4];
@@ -1359,7 +1519,7 @@ void mbActualizar(uint32_t t) {
     uint8_t largo = mbLargoRespuesta(resp, nr), ex = 0;
     bool listo = largo && nr >= largo, vencido = t - tEnvio > 300;
     if (!listo && !vencido) return;
-    int8_t r = listo ? mbRevisar(resp, nr, pedido, &ex) : MB_CORTA;
+    int8_t r = listo ? mbRevisar(resp, nr, pedido, &ex) : (int8_t)MB_CORTA;
     uint8_t err = r == MB_OK ? 0 : r == MB_CORTA ? 1 : r == MB_CRC ? 2 : r == MB_EXCEPCION ? 10 + ex : 3;
     if (err) mbMal++; else mbBien++;
     if (actual < MB_N) {
@@ -1367,6 +1527,7 @@ void mbActualizar(uint32_t t) {
       float v = err ? NAN : mbValor(resp, p.tipo) * p.escala;
       if (err != mbErr[actual] || (!err && (isnan(mbVal[actual]) || fabsf(v - mbVal[actual]) > 1e-3f * (fabsf(v) + 1)))) mbCambio = true;
       mbVal[actual] = v; mbErr[actual] = err;
+      mbUmbral(actual);
     } else if (err) aviso = "Modbus: la escritura no respondió bien";
     esperando = false; tFin = t;
     return;
@@ -1539,6 +1700,91 @@ bool ejecutar(const char* s, bool remoto) {
     haPublicar();
     return true;
   }
+  if (!strncmp(s, "MU ", 3)) {                                 // MU n umbral acc val [modo] / MU n -
+    const char* q = s + 3;
+    int n = numero(q);
+    if (n < 1 || n > MB_N) return false;
+    while (*q == ' ') q++;
+    Umbral u{0, ACC_NADA, 0, 0, false};
+    if (!(*q == '-' && (q[1] == 0 || q[1] == ' '))) {      // "-" solo = sin umbral (un umbral puede ser negativo)
+      char* fin;
+      float lim = strtof(q, &fin);
+      if (fin == q) return false;
+      q = fin;
+      int acc = numero(q), val = numero(q);
+      while (*q == ' ') q++;
+      int modo = *q ? numero(q) : 0;
+      if (acc < 0 || acc > ACC_MAX || val < 0 || val > 255) return false;
+      u = Umbral{lim, (uint8_t)acc, (uint8_t)val, (uint8_t)(modo ? 1 : 0), false};
+    }
+    mbUmb[n - 1] = u;
+    pref.putBytes("mbumb", mbUmb, sizeof(mbUmb));
+    return true;
+  }
+  if (!strncmp(s, "LU ", 3) || !strncmp(s, "LO ", 3) || !strncmp(s, "LS ", 3)) {   // luminarias
+    const char* q = s + 3;
+    int n = numero(q), v = numero(q);
+    if (n < 1 || n > LU_N || v < 0) return false;
+    uint32_t b = 1UL << (n - 1);
+    if (s[1] == 'U') {                                        // LU n nivel
+      if (v > 100) return false;
+      luNivel[n - 1] = v;
+      if (v) luOn |= b; else luOn &= ~b;
+    } else if (s[1] == 'O') {                                 // LO n 0|1|2
+      if (v > 2) return false;
+      aplicarAccion(v == 2 ? 11 : (v ? 9 : 10), n);
+    } else {                                                  // LS n 0|1
+      if (v) luSigue |= b; else luSigue &= ~b;
+    }
+    luSucio = true; tLuSucio = millis();
+    return true;
+  }
+  if (!strncmp(s, "LR ", 3)) {                                 // LR segundos: rampa de las luminarias
+    const char* q = s + 3;
+    while (*q == ' ') q++;
+    char* fin;
+    float r = strtof(q, &fin);
+    if (fin == q || r < 0 || r > 60) return false;
+    luRampaS = r; pref.putFloat("lurampa", r);
+    return true;
+  }
+  if (!strncmp(s, "GEO ", 4)) {                                // GEO lat lon / GEO -
+    const char* q = s + 4;
+    while (*q == ' ') q++;
+    if (*q == '-' && (q[1] == 0 || q[1] == ' ')) { geoLat = geoLon = NAN; pref.remove("geolat"); pref.remove("geolon"); return true; }
+    char* fin;
+    float la = strtof(q, &fin);
+    if (fin == q) return false;
+    q = fin;
+    float lo = strtof(q, &fin);
+    if (fin == q || la < -66 || la > 66 || lo < -180 || lo > 180) return false;   // fuera de los círculos polares
+    geoLat = la; geoLon = lo; pref.putFloat("geolat", la); pref.putFloat("geolon", lo);
+    solCalcular();
+    return true;
+  }
+  if (!strncmp(s, "NOCHE ", 6)) {                              // NOCHE 0|1: la luz principal solo de noche (horario solar)
+    const char* q = s + 6;
+    nocheSol = numero(q) != 0; pref.putBool("noche", nocheSol);
+    return true;
+  }
+  if (!strncmp(s, "SOL ", 4)) {                                // SOL i evento desfase acc val [dias] / SOL i -
+    const char* q = s + 4;
+    int i = numero(q);
+    if (i < 0 || i > 7) return false;
+    while (*q == ' ') q++;
+    Sol o{0, 0, 127, 0, 0, 0, 0};
+    if (*q != '-') {
+      int ev = numero(q), de = numero(q), acc = numero(q), val = numero(q);
+      while (*q == ' ') q++;
+      int dias = *q ? numero(q) : 127;
+      if (ev < 0 || ev > 1 || de < -180 || de > 180 || acc < 0 || acc > ACC_MAX || val < 0 || val > 255 || dias < 1 || dias > 127)
+        return false;
+      o = Sol{1, (uint8_t)ev, (uint8_t)dias, (uint8_t)acc, (uint8_t)val, 0, (int16_t)de};
+    }
+    soles[i] = o;
+    pref.putBytes("soles", soles, sizeof(soles));
+    return true;
+  }
   if (!strncmp(s, "MW ", 3) || !strncmp(s, "MC ", 3)) {        // MW esclavo registro valor / MC esclavo bobina 0|1
     bool bobina = s[1] == 'C';
     const char* q = s + 3;
@@ -1586,7 +1832,7 @@ bool ejecutar(const char* s, bool remoto) {
       int acc = numero(q), val = numero(q);
       while (*q == ' ') q++;
       int modo = *q ? numero(q) : 0;
-      if (acc < 0 || acc > 8 || val < 0 || val > 255) return false;
+      if (acc < 0 || acc > ACC_MAX || val < 0 || val > 255) return false;
       u = Umbral{lim, (uint8_t)acc, (uint8_t)val, (uint8_t)(modo ? 1 : 0), false};
     }
     umbrales[n - 1] = u;
@@ -1610,7 +1856,7 @@ bool ejecutar(const char* s, bool remoto) {
       int acc = numero(q), val = numero(q);
       while (*q == ' ') q++;
       int modo = *q ? numero(q) : 0;
-      if (acc < 0 || acc > 8 || val < 0 || val > 255) return false;
+      if (acc < 0 || acc > ACC_MAX || val < 0 || val > 255) return false;
       r = Regla{(uint8_t)acc, (uint8_t)val, (uint8_t)(modo ? 1 : 0)};
     }
     reglas[n - 1] = r;
@@ -1682,7 +1928,7 @@ bool ejecutar(const char* s, bool remoto) {
       Prog& g = cfg.prog[i];
       if (*p == '-') { g = Prog{}; break; }
       int dias = numero(p), h = numero(p), m = numero(p), acc = numero(p), val = numero(p);
-      if (h > 23 || m > 59 || acc > 8) return false;
+      if (h > 23 || m > 59 || acc > ACC_MAX) return false;
       g = Prog{1, (uint8_t)(dias & 127), (uint8_t)h, (uint8_t)m, (uint8_t)acc, (uint8_t)val};
     } break;
     case 'T': { int an = numero(p), me = numero(p), di = numero(p), h = numero(p), mi = numero(p), se = numero(p);
@@ -1875,6 +2121,27 @@ void teclaIR(uint32_t k) {
 }
 
 // ---------------- tareas periódicas ----------------
+void solCalcular() {                                         // ocaso y amanecer de hoy (una vez al día o al cambiar GEO)
+  static int diaCalc = -1;
+  static float latCalc = NAN, lonCalc = NAN;
+  if (isnan(geoLat) || !horaValida()) { solHoy[0] = solHoy[1] = -1; return; }
+  time_t a = time(nullptr);
+  struct tm lt, ut;
+  localtime_r(&a, &lt); gmtime_r(&a, &ut);
+  if (lt.tm_yday == diaCalc && latCalc == geoLat && lonCalc == geoLon) return;
+  diaCalc = lt.tm_yday; latCalc = geoLat; lonCalc = geoLon;
+  int dif = (lt.tm_hour * 60 + lt.tm_min) - (ut.tm_hour * 60 + ut.tm_min);
+  if (lt.tm_yday != ut.tm_yday) dif += (lt.tm_year > ut.tm_year || (lt.tm_year == ut.tm_year && lt.tm_yday > ut.tm_yday)) ? 1440 : -1440;
+  for (uint8_t e = 0; e < 2; e++) {
+    float u = solMinutosUTC(lt.tm_year + 1900, lt.tm_mon + 1, lt.tm_mday, geoLat, geoLon, e == 1);
+    solHoy[e] = isnan(u) ? -1 : solLocal(u, dif);
+  }
+  Serial.printf("Horario solar: amanecer %02d:%02d  ocaso %02d:%02d\n", solHoy[1] / 60, solHoy[1] % 60, solHoy[0] / 60, solHoy[0] % 60);
+}
+bool esDeNoche(int16_t m) {                                    // entre el ocaso y el amanecer
+  if (solHoy[0] < 0 || solHoy[1] < 0 || m < 0) return true;
+  return solHoy[0] > solHoy[1] ? (m >= solHoy[0] || m < solHoy[1]) : (m >= solHoy[0] && m < solHoy[1]);
+}
 void revisarHorarios() {
   static int16_t ultimoMin = -1;
   uint8_t wd = 0;
@@ -1885,6 +2152,11 @@ void revisarHorarios() {
   bool cambio = false;
   for (auto& p : cfg.prog)
     if (p.activo && (p.dias & (1 << wd)) && p.h * 60 + p.m == m) { aplicarAccion(p.acc, p.val); cambio = true; }
+  solCalcular();
+  for (auto& o : soles) {                                     // horario solar: al ocaso o al amanecer, con desfase
+    if (!o.activo || !(o.dias & (1 << wd)) || solHoy[o.evento] < 0) continue;
+    if ((((solHoy[o.evento] + o.desfase) % 1440) + 1440) % 1440 == m) { aplicarAccion(o.acc, o.val); cambio = true; }
+  }
   if (cambio) mqPublicar();
 }
 void vivoGuardar(uint16_t uni, const uint8_t* d, int n) {
@@ -2082,6 +2354,7 @@ void loop() {
   revisarVivo();
   busActualizar(t);
   mbActualizar(t);
+  luActualizar(t);
   ioActualizar(t);
   aiActualizar(t);
   if (irListo) { irListo = false; teclaIR(irCodigo); }
@@ -2111,7 +2384,8 @@ void loop() {
     if (cfg.ldr && hayLux && !isnan(lux)) {             // solo de noche, con histéresis
       if (lux < cfg.umbral) porLuz = true;
       else if (lux > cfg.umbral * 1.5f + 2) porLuz = false;
-    } else porLuz = true;
+    } else if (nocheSol && !isnan(geoLat)) porLuz = esDeNoche(minutosAhora(nullptr));   // "fotocelda" por horario solar
+    else porLuz = true;
     if (!isnan(tTarjeta)) { if (tTarjeta > 45) auxVent = true; else if (tTarjeta < 38) auxVent = false; }
     vigilarConsumo();
     static uint32_t segundos = 0;                       // horas de uso de la base (garantía)

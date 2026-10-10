@@ -9,14 +9,14 @@ NOM=LetreroLab_proyecto_completo
 T=$(mktemp -d); D=$T/$NOM; mkdir -p "$D"
 cd "$H"
 # placas del ecosistema (las de 127 V antiguas no van: la red no entra a ninguna placa nueva)
-for d in ap1-base ap1-prog ap1-ind ap1-pix ap1-plantilla ap1-dmx ap1-in ap1-out ap1-dist4 ap1-ai4 ap1-node ap1-gate ap1-gabinete ap1-ensamble ap02 tools PEDIDO_JLCPCB \
+for d in ap1-base ap1-prog ap1-ind ap1-pix ap1-plantilla ap1-dmx ap1-in ap1-out ap1-dist4 ap1-ai4 ap1-node ap1-gate ap1-pwm4 ap1-ao4 ap1-gabinete ap1-ensamble ap02 tools PEDIDO_JLCPCB \
          fuente-os-127v/gen controlador-flechas-36v/gen; do
   mkdir -p "$D/$(dirname "$d")"
   cp -r "$d" "$D/$(dirname "$d")/"
 done
 find "$D" \( -name __pycache__ -o -name "*-backups" \) -prune -exec rm -rf {} +
 find "$D" \( -name "*.kicad_prl" -o -name "*.dsn" -o -name "*.ses" -o -name "*.log" -o -name "*.pyc" \) -delete
-cp AP_ELECTRIC.md AP_BUS.md ELECTRONICA_DE_POTENCIA.md FABRICANTES.md ECOSISTEMA.md PEDIDO_JLCPCB.md HOJA_DE_RUTA.md LetreroLab_AP1.md "$D/"
+cp AP_ELECTRIC.md AP_BUS.md ELECTRONICA_DE_POTENCIA.md ACTUADORES_DE_POTENCIA.md FABRICANTES.md ECOSISTEMA.md PEDIDO_JLCPCB.md HOJA_DE_RUTA.md LetreroLab_AP1.md "$D/"
 cp LEEME_PC.md "$D/LEEME_PRIMERO.md"
 rm -f "$H/$NOM.zip"
 (cd "$T" && zip -qr "$H/$NOM.zip" "$NOM")

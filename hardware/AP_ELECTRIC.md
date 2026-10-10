@@ -20,13 +20,13 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | Familia | Función | Qué existe hoy | Estado |
 |---|---|---|---|
 | **AP BASE** | Potencia y protecciones propias, sin Wi-Fi | `ap1-base`: 12-24 V, 4 canales de 8 A, 2 focos de corriente constante, AUX; corte por hardware ante sobrecorriente, sobrevoltaje y 85 °C | Diseñada (4 capas) |
-| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 1.9 |
+| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 2.0 |
 | **AP INPUT** | Pulsadores y sensores | **`ap1-in`:** 8 entradas de 12-24 V aisladas, con reglas por entrada. **`ap1-ai4`:** 4 entradas analógicas 0-10 V / 4-20 mA con umbrales | Diseñados |
 | **AP OUTPUT** | Actuadores, relevadores, contactores | **`ap1-out` = AP PRO DO8:** 8 salidas de 24 V DC **protegidas** (NCV8406A: 1.5 A por salida, corto y temperatura) para bobinas y válvulas | Diseñado (reemplaza a la versión de 7 salidas con ULN2003) |
-| **AP LIGHT** | Iluminación según el driver o foco | `ap1-pix` (pixeles), `ap1-dmx` (DMX512), `ap1-ind` (0-10 V aislado), corriente constante en la base | Diseñados |
+| **AP LIGHT** | Iluminación según el driver o foco | **`ap1-pwm4`** (4 × 6 A atenuables de 12-24 V, aislado), **`ap1-ao4`** (4 circuitos 0-10 V + contactor), `ap1-pix` (pixeles), `ap1-dmx` (DMX512), `ap1-ind` (0-10 V aislado), corriente constante en la base; **horario solar** en el programa 2.0 | Diseñados |
 | **AP METER** | Medición y diagnóstico | Medidor INA238 en la base: V, A, W, kWh, diagnóstico por salida | Dentro de la base; módulo propio pendiente |
 | **AP LINK** | Ethernet, Wi-Fi, inalámbrico, bus de campo | Wi-Fi en el CORE; **AP NODE** (`ap1-node`) con **AP BUS 24 V + CAN** para nodos remotos ([AP_BUS.md](AP_BUS.md)) | AP NODE diseñado; Ethernet pendiente |
-| **AP GATE** | PLC, aplicaciones, otros ecosistemas | MQTT, **Home Assistant**, API HTTP, **Art-Net/sACN**; placa **`ap1-gate`**: RS-485 / **Modbus RTU** (medidores de energía, variadores, PLC) + AP BUS | Diseñada; programa 1.9 |
+| **AP GATE** | PLC, aplicaciones, otros ecosistemas | MQTT, **Home Assistant**, API HTTP, **Art-Net/sACN**; placa **`ap1-gate`**: RS-485 / **Modbus RTU** (medidores de energía, variadores, PLC) + AP BUS | Diseñada; programa 2.0 |
 | **AP FIELD** | Gabinete para exteriores | `ap1-gabinete`: gabinete imprimible para interior y **soporte DIN** | Exterior pendiente (junta, prensaestopas, UV, condensación y pruebas IP) |
 
 ## Líneas de producto
@@ -36,7 +36,51 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | **AP CASA**: control y automatización del hogar | Casas, departamentos, negocios pequeños | CORE + **BASE 4** (`ap1-base`: 4 circuitos de LED de 12-24 V) + AP INPUT (apagadores y sensores) + DO8. **BASE 8** = BASE 4 + DO8, o dos BASE | Caja de escritorio o pared con **etiquetas por circuito** (ya en el programa) y tapas de colores |
 | **AP PRO**: control y E/S para proyectos exigentes | Talleres, bombeo, riego, naves | **DI8** = AP INPUT (`ap1-in`); **DO8** = AP PRO DO8 (`ap1-out`, 8 salidas protegidas); 0-10 V aislado = `ap1-ind` | **AI4 hecho** (`ap1-ai4`: 0-10 V / 4-20 mA con umbrales); **Modbus RTU hecho** (`ap1-gate`) |
 | **AP FIT**: accesorios para instalar | Instaladores | Soporte DIN imprimible (`ap1-gabinete/din`), guías de cableado por módulo | Kit físico: conectores, punteras, clips DIN, prensaestopas, portafusibles |
-| **AP SIGN**: letras luminosas, cajas de luz, neón LED | Letreros | BASE (canales de 8 A, efectos), **PIX** (pixeles), **DMX**, **DIST 4** (nuevo: 4 ramas protegidas con diagnóstico) | "SIGN COLOR" como módulo dedicado (hoy: PIX o DMX con decodificador) |
+| **AP SIGN**: letras luminosas, cajas de luz, neón LED | Letreros | BASE (canales de 8 A, efectos), **PIX** (pixeles), **DMX**, **DIST 4** (4 ramas protegidas con diagnóstico), **PWM4** (más canales de potencia), horario solar | "SIGN COLOR" como módulo dedicado (hoy: PIX o DMX con decodificador) |
+| **AP LIGHT**: alumbrado | Alumbrado público y de estacionamientos, naves, bodegas, fachadas, oficinas | **AO4** (luminarias de red con driver 0-10 V + contactor), **PWM4** (luminarias LED de 24 V), **horario solar** (ocaso/amanecer sin fotocelda), medidor de energía por Modbus (AP GATE) | DALI (pendiente: necesita fuente de bus DALI) |
+| **AP LINK / GATE**: comunicación | Varios tableros, equipos de terceros | **AP NODE** (AP BUS 24 V + CAN), **AP GATE** (+ RS-485 Modbus RTU), Wi-Fi, MQTT, Home Assistant | Ethernet |
+
+## Modelos: combinaciones listas por rama
+
+Cada modelo es una lista de placas que se piden juntas y se programan igual.
+- **Lo que va en la placa:** solo 12-24 V DC.
+- **La red:** la conmutan aparatos certificados de riel DIN. Cuáles y cómo se dimensionan: [ACTUADORES_DE_POTENCIA.md](ACTUADORES_DE_POTENCIA.md).
+
+### Hogar (AP CASA)
+
+| Modelo | Placas | Para |
+|---|---|---|
+| **CASA 4 LED** | CORE + BASE | 4 circuitos de iluminación LED de 12-24 V con atenuación, escenas y horarios |
+| **CASA 8 RED** | CORE + DO8 + AP INPUT + 8 contactores modulares | Focos y contactos de 127 V por contactor; apagadores de 24 V en la pared |
+| **CASA CLIMA** | CORE + DO8 + AI4 | Ventiladores, extractores y calentador por temperatura (transmisor 0-10 V) |
+
+### Industrial (AP PRO)
+
+| Modelo | Placas | Para |
+|---|---|---|
+| **PRO BOMBEO** | GATE + AI4 + DO8 + AP INPUT | Cisterna y tinaco: nivel 4-20 mA → bomba por contactor; flotador y térmico como entradas; variador o medidor por Modbus |
+| **PRO NAVE** | GATE + AO4 + DO8 + AP INPUT | Alumbrado atenuable de la nave, extractores, sensores de presencia y medición de energía por Modbus |
+| **PRO ENERGÍA** | GATE + DO8 | Medidores Modbus; con umbrales (`MU`) se desconectan cargas cuando la demanda pasa del límite |
+| **PRO REMOTO** | NODE (maestro) + NODE por tablero + DO8 / AP INPUT | Entradas y salidas en varios tableros, hasta 250 m, con un solo cable |
+
+### Letreros (AP SIGN)
+
+| Modelo | Placas | Para |
+|---|---|---|
+| **SIGN LETRAS** | CORE + BASE (o + PWM4) + DIST 4 | Letras corpóreas y cajas de luz por canales, con efectos y ramas protegidas |
+| **SIGN PIXEL** | CORE + PIX + DIST 4 | Letras en secuencia y animaciones con pixeles direccionables |
+| **SIGN SHOW** | CORE + DMX (o PIX) | Reflectores RGB/RGBW y control en vivo con Art-Net/sACN (xLights, QLC+) |
+
+Todos los letreros pueden encender al **ocaso** y apagar a una hora fija o al **amanecer** (horario solar, sin fotocelda).
+
+### Alumbrado (AP LIGHT)
+
+| Modelo | Placas | Para |
+|---|---|---|
+| **LIGHT CALLE** | GATE + AO4 + contactores AC-5b + supresor de picos | Alumbrado público, privadas y estacionamientos: enciende al ocaso, baja al 50 % a media noche, apaga al amanecer; consumo medido por Modbus |
+| **LIGHT NAVE** | CORE + AO4 (hasta 4 = 16 circuitos) | Naves y bodegas con luminarias de red atenuables 0-10 V |
+| **LIGHT DC** | CORE + PWM4 (hasta 4 = 16 canales) | Luminarias, reflectores y tiras de 24 V DC, hasta 20 A por PWM4 |
+| **LIGHT FACHADA** | CORE + PWM4 o DMX + horario solar | Iluminación arquitectónica con escenas y colores |
 
 ### AP CASA y la red de la casa (seguridad)
 

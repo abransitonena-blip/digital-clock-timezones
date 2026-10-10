@@ -1,0 +1,41 @@
+AP_PWM4: 30 tipos de pieza, 70 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       9 tipos Extended  -> ~27 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     6 tipos Extended  -> ~18 USD de cargo;
+   se sueldan a mano 9 piezas de patas: F1,F2,F3,F4, J1, J2, J3, J4, J5
+Piezas Basic/Preferred: ~0.51 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (16):
+  100nF                  C14663         C1,C5,CV1
+  10uF                   C15850         C2
+  10uF 50V               C13585         C6,CI1,CI2
+  22uF 25V               C12891         C7
+  1uF 25V                C15849         CU2,CU3,CV2
+  SS34                   C8678          D1,D2,D3,D4
+  SS210                  C14996         D9
+  VERDE                  C72043         DL1,DL2,DL3,DL4
+  LTV-217-B              C115450        OK1,OK2,OK3,OK4
+  10k                    C25804         RA1,RA2,RB2,RP1,RP2,RP3,RP4
+  150k                   C22807         RB1
+  2.2k                   C4190          RE1,RE2,RE3,RE4
+  4.7                    C23164         RG1,RG2,RG3,RG4
+  10k                    C17414         RL1,RL2,RL3,RL4
+  330                    C23138         RO1,RO2,RO3,RO4
+  78L05G-AB3-R           C71136         U6
+Preferred (1):
+  SMBJ26A                C19077580      DTV
+Extended (13):
+  MINI 7.5A              C3206956       F1,F2,F3,F4  [THT]
+  ENTRADA 12-24V         C98732         J1  [THT]
+  CANAL 1                C160315        J2  [THT]
+  CANAL 2                C160315        J3  [THT]
+  CANAL 3                C160315        J4  [THT]
+  CANAL 4                C160315        J5  [THT]
+  QWIIC ENTRADA          C160404        J6
+  QWIIC SALIDA           C160404        J7
+  47uH                   C167888        L1
+  BSC028N06LS3           C534316        Q1,Q2,Q3,Q4
+  PCA9685PW              C2678753       U1
+  UCC27524D              C465729        U2,U3
+  LMR16006XDDC           C87080         U5

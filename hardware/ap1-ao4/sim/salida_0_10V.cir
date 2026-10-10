@@ -1,0 +1,39 @@
+* Salida 0-10 V del AO4: LM324 (modelo de comportamiento) + seguidor P-MOSFET que absorbe la corriente de los drivers
+.param vset=1.65 icarga=5m ccable=10n
+VCC v24 0 24
+VS ns 0 PULSE(0.33 {vset} 10m 1u 1u 200m 400m)
+* amplificador: A0=1e5, polo 10 Hz (GBW 1 MHz), salida 0.02..22.5 V con 30 ohm
+EOP opi 0 VALUE={1e5*(V(ns)-V(ninv))}
+RP opi op1 1k
+CP op1 0 15.9u
+EB opo 0 VALUE={min(max(V(op1),0.02),22.5)}
+RO opo out 30
+* compuerta y P-MOSFET (tipo AO3401A: Vth -0.9 V)
+RGT out g 1k
+Q1 0 g dint QP
+.model QP PNP(IS=1.41f BF=180 VAF=18.7 IKF=80m ISE=0 NE=1.5 BR=4 RB=10 RC=2.5 CJE=8.063p CJC=4.493p TF=513.9p TR=1.6n)
+* M1: drenador a 0 V, fuente = nodo interno (dint). Escribir: M D G S B
+* realimentación: 20k / 10k (ganancia 3)
+RR ao ninv 20k
+RG ninv 0 10k
+CR out ninv 100n
+RPU v24 dint 22k
+RS dint ao 47
+CB ao 0 100n
+* cable y drivers: corriente que inyectan los drivers (1-10 V pasivos) + capacitancia del cable
+IDRV 0 ao {icarga}
+CC ao 0 {ccable}
+.control
+foreach il 0 1m 5m 10m
+  alterparam icarga=$il
+  reset
+  tran 20u 600m
+  meas tran a1 find v(ao) at=150m
+  meas tran a2 find v(ao) at=350m
+  meas tran pp max v(ao) from=300m to=400m
+  meas tran pm min v(ao) from=300m to=400m
+  print $il
+end
+quit
+.endc
+.end

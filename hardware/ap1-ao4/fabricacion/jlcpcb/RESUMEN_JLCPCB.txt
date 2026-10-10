@@ -1,0 +1,40 @@
+AP_AO4: 29 tipos de pieza, 96 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       7 tipos Extended  -> ~21 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     5 tipos Extended  -> ~15 USD de cargo;
+   se sueldan a mano 5 piezas de patas: J3, J4, J5, J6, J7
+Piezas Basic/Preferred: ~0.68 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (15):
+  100nF                  C14663         C1,C5,C7,C8,CB1,CB2,CB3,CB4,CR1,CR2,CR3,CR4
+  10uF                   C15850         C2
+  10uF 50V               C13585         C3,C4
+  1uF 25V                C15849         C6
+  1uF                    C15849         CFA1,CFA2,CFA3,CFA4,CFB1,CFB2,CFB3,CFB4
+  SS34                   C8678          D1
+  SS14                   C2480          D11,D12,D13,D14
+  VERDE                  C72043         DL1,DL2,DL3,DL4
+  10k                    C25804         RA1,RA2,RFA1,RFA2,RFA3,RFA4,RFB1,RFB2,RFB3,RFB4,RG1,RG2,RG3,RG4,RL1,RL2,RL3,RL4,RP1,RP2,RP3,RP4
+  1k                     C21190         RB1,RB2,RB3,RB4
+  20k                    C4184          RR1,RR2,RR3,RR4
+  47                     C23182         RS1,RS2,RS3,RS4
+  22k                    C31850         RU1,RU2,RU3,RU4
+  LM324DT                C71035         U2
+  78L05G-AB3-R           C71136         U4
+Preferred (3):
+  SMBJ26A                C19077580      D2
+  MMSZ5242B 12V          C19077426      DZ1,DZ2,DZ3,DZ4
+  MMBT5401               C7420356       QB1,QB2,QB3,QB4
+Extended (11):
+  3A                     C355685        F1
+  QWIIC ENTRADA          C160404        J1
+  QWIIC SALIDA           C160404        J2
+  24V                    C160315        J3  [THT]
+  CIRCUITO 1             C144395        J4  [THT]
+  CIRCUITO 2             C144395        J5  [THT]
+  CIRCUITO 3             C144395        J6  [THT]
+  CIRCUITO 4             C144395        J7  [THT]
+  NCV8406ASTT3G          C459816        Q1,Q2,Q3,Q4
+  PCA9685PW              C2678753       U1
+  74HCT125D              C5962          U3
