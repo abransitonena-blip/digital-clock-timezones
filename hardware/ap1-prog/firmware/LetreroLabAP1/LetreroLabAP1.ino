@@ -38,6 +38,11 @@
      ET x texto  etiqueta de un circuito: x = C1-C4 (canales), S1-S128 (salidas), E1-E128 (entradas), A1-A8 (analógicas)
      AP BUS (solo en la placa AP NODE): BUS 0  apagado   BUS 1  maestro   BUS 2 id  nodo remoto id = 1-3 (reinicia)
                  Nodo id: sus DO8 son S(32 id + 1)..S(32 id + 32) y sus AP INPUT E(32 id + 1).. en el maestro
+     Modbus RTU (solo en la placa AP GATE): MB baudios [paridad 0 8N1, 1 8E1, 2 8O1, 3 8N2]   MB 0  apagado (reinicia)
+                 MP n esclavo función registro tipo [escala]  punto n (1-8): función 3 (holding) o 4 (input),
+                 registro desde 0, tipo 0 u16, 1 s16, 2 u32, 3 s32, 4 float, 5 float con palabras invertidas   MP n -
+                 MW esclavo registro valor  escribir un registro (función 6)   MC esclavo bobina 0|1  bobina (función 5)
+                 ET M1 texto  nombre del punto (sale en la app y en Home Assistant)
      AP PRO AI4: AI n 0|1  canal analógico n (1-8) en 0-10 V o 4-20 mA
                  AU n umbral acc val [modo]  al pasar del umbral hace la acción (modo 1: al bajar, lo contrario)  AU n -
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
@@ -59,9 +64,10 @@
 #include "driver/ledc.h"
 #include "driver/twai.h"
 #include "apbus.h"
+#include "modbus.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.8"
+#define VERSION "AP-1 fw 1.9"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -185,9 +191,19 @@ bool busListo = false, busFallaSegura = false;
 uint32_t busUltimo[BUS_NODOS + 1] = {0};    // maestro: último estado de cada nodo; nodo: [0] = última orden
 uint32_t busRx = 0, busTx = 0;
 uint8_t busEnLinea();                       // (más abajo, junto al AP BUS)
-String etC[4], etS[IO_N * 8], etE[IO_N * 8], etA[AI_N * 4];
+// ---- AP GATE: maestro Modbus RTU por RS-485 (IO6 = TX, IO7 = RX, IO1 = DE y /RE) ----
+const uint8_t PIN_RS_TX = 6, PIN_RS_RX = 7, PIN_RS_DE = 1, MB_N = 8;
+uint32_t mbBaud = 0;                        // 0 = apagado
+uint8_t mbParidad = 0;
+struct MbPunto { uint8_t esclavo, funcion, tipo, libre; uint16_t reg; float escala; };   // esclavo 0 = sin usar
+MbPunto mbPuntos[MB_N];
+float mbVal[MB_N];
+uint8_t mbErr[MB_N];                        // 0 bien, 1 sin respuesta, 2 CRC, 3 trama equivocada, 10 + excepción
+uint32_t mbBien = 0, mbMal = 0;
+String etC[4], etS[IO_N * 8], etE[IO_N * 8], etA[AI_N * 4], etM[8];
 String* etiqueta(char tipo, int n) {                        // tipo C/S/E/A, n desde 1
   if (tipo == 'A' && n >= 1 && n <= AI_N * 4) return &etA[n - 1];
+  if (tipo == 'M' && n >= 1 && n <= 8) return &etM[n - 1];
   if (tipo == 'C' && n >= 1 && n <= 4) return &etC[n - 1];
   if (tipo == 'S' && n >= 1 && n <= IO_N * 8) return &etS[n - 1];
   if (tipo == 'E' && n >= 1 && n <= IO_N * 8) return &etE[n - 1];
@@ -206,7 +222,7 @@ void cargar() {
   if (pref.getBytes("umbral", umbrales, sizeof(umbrales)) != sizeof(umbrales))
     for (auto& u : umbrales) u = Umbral{0, ACC_NADA, 0, 0, false};
   for (auto& v : aiValor) v = NAN;
-  for (char tipo : {'C', 'S', 'E', 'A'})
+  for (char tipo : {'C', 'S', 'E', 'A', 'M'})
     for (int n = 1; n <= IO_N * 8; n++) {
       String* e = etiqueta(tipo, n);
       if (e) { char k[8]; snprintf(k, sizeof(k), "et%c%d", tipo, n); *e = pref.getString(k, ""); }
@@ -216,6 +232,8 @@ void cargar() {
   for (auto& r : reglas) r = Regla{ACC_NADA, 0, 0};
   if (nr) pref.getBytes("reglas", reglas, nr);
   vivoUni = pref.getUShort("uni", 1);
+  if (pref.getBytes("mbpts", mbPuntos, sizeof(mbPuntos)) != sizeof(mbPuntos)) for (auto& p : mbPuntos) p = MbPunto{0, 3, 0, 0, 0, 1};
+  for (uint8_t i = 0; i < MB_N; i++) { mbVal[i] = NAN; mbErr[i] = 1; }
   char def[16];
   snprintf(def, sizeof(def), "letrero-%04x", (uint16_t)(ESP.getEfuseMac() >> 32));
   nombre = pref.getString("nombre", def);
@@ -799,7 +817,15 @@ String estadoJSON() {
   }
   s += "]},\"bus\":{\"m\":"; s += busModo; s += ",\"id\":"; s += busId; s += ",\"ok\":"; s += busListo;
   s += ",\"n\":"; s += busEnLinea(); s += ",\"fs\":"; s += busFallaSegura; s += ",\"rx\":"; s += busRx;
-  s += "},\"ai\":{\"m\":"; s += aiMods; s += ",\"v\":[";
+  s += "},\"mb\":{\"b\":"; s += mbBaud; s += ",\"pa\":"; s += mbParidad; s += ",\"ok\":"; s += mbBien;
+  s += ",\"f\":"; s += mbMal; s += ",\"p\":[";
+  for (uint8_t i = 0; i < MB_N; i++) {
+    const MbPunto& p = mbPuntos[i];
+    if (i) s += ',';
+    s += '['; s += p.esclavo; s += ','; s += p.funcion; s += ','; s += p.reg; s += ','; s += p.tipo; s += ',';
+    s += String(p.escala, 4); s += ','; s += isnan(mbVal[i]) ? String("null") : String(mbVal[i], 3); s += ','; s += mbErr[i]; s += ']';
+  }
+  s += "]},\"ai\":{\"m\":"; s += aiMods; s += ",\"v\":[";
   for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += isnan(aiValor[n]) ? String("null") : String(aiValor[n], 2); }
   s += "],\"t\":[";
   for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += aiModo[n]; }
@@ -811,7 +837,7 @@ String estadoJSON() {
   }
   s += "]},\"et\":{";
   bool pe = true;
-  for (char tipo : {'C', 'S', 'E', 'A'})
+  for (char tipo : {'C', 'S', 'E', 'A', 'M'})
     for (int n = 1; n <= IO_N * 8; n++) {
       String* e = etiqueta(tipo, n);
       if (!e || !e->length()) continue;
@@ -910,6 +936,13 @@ void haPublicar() {
   }
   uint32_t ahora = ((uint32_t)ioOut << 16) | ioIn;
   if (ahora != antes) pref.putUInt("haio", ahora);
+  for (uint8_t n = 0; n < MB_N; n++) {                          // AP GATE: puntos Modbus
+    String obj = String("m") + (n + 1);
+    if (mbBaud && mbPuntos[n].esclavo)
+      haUno(uid, "sensor", obj.c_str(), String("\"name\":\"") + (etM[n].length() ? etM[n] : String("Modbus ") + (n + 1)) +
+            "\",\"state_topic\":\"~/estado\",\"value_template\":\"{{ value_json.mb.p[" + n + "][5] }}\",\"state_class\":\"measurement\"");
+    else { String t = String("homeassistant/sensor/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
+  }
   for (uint8_t n = 0; n < AI_N * 4; n++) {                     // AP PRO AI4
     String obj = String("a") + (n + 1);
     if (aiMods & (1 << (n / 4)))
@@ -1299,6 +1332,71 @@ void busActualizar(uint32_t t) {
   digitalWrite(PIN_LED_BUS, hay ? HIGH : ((t / 125) & 1));   // fijo = bus con tráfico; rápido = nadie responde
 }
 
+// ---------------- AP GATE: maestro Modbus RTU (una petición a la vez, sin detener el programa) ----------------
+struct MbEscritura { uint8_t esclavo, funcion; uint16_t reg, valor; };
+MbEscritura mbCola[4];
+uint8_t mbEnCola = 0;
+void mbIniciar() {
+  const uint32_t CFG[4] = {SERIAL_8N1, SERIAL_8E1, SERIAL_8O1, SERIAL_8N2};
+  pinMode(PIN_RS_DE, OUTPUT); digitalWrite(PIN_RS_DE, LOW);   // recibir
+  Serial1.begin(mbBaud, CFG[mbParidad & 3], PIN_RS_RX, PIN_RS_TX);
+  Serial.printf("Modbus RTU: %lu baudios, paridad %u\n", (unsigned long)mbBaud, mbParidad);
+}
+bool mbPedirEscritura(uint8_t esclavo, uint8_t funcion, uint16_t reg, uint16_t valor) {
+  if (!mbBaud || mbEnCola >= 4 || !esclavo || esclavo > 247) return false;
+  mbCola[mbEnCola++] = MbEscritura{esclavo, funcion, reg, valor};
+  return true;
+}
+void mbActualizar(uint32_t t) {
+  if (!mbBaud) return;
+  static uint8_t pedido[8], resp[64], nr = 0, actual = 255, siguiente = 0;   // actual: punto (0-7), 100 = escritura
+  static uint32_t tEnvio = 0, tFin = 0, tCiclo = 0;
+  static bool esperando = false, mbCambio = false;
+  static uint32_t tPub = 0;
+  if (mbCambio && t - tPub > 2000) { tPub = t; mbCambio = false; mqPublicar(); }   // lecturas nuevas: a la app y a HA
+  if (esperando) {
+    while (Serial1.available() && nr < sizeof(resp)) resp[nr++] = Serial1.read();
+    uint8_t largo = mbLargoRespuesta(resp, nr), ex = 0;
+    bool listo = largo && nr >= largo, vencido = t - tEnvio > 300;
+    if (!listo && !vencido) return;
+    int8_t r = listo ? mbRevisar(resp, nr, pedido, &ex) : MB_CORTA;
+    uint8_t err = r == MB_OK ? 0 : r == MB_CORTA ? 1 : r == MB_CRC ? 2 : r == MB_EXCEPCION ? 10 + ex : 3;
+    if (err) mbMal++; else mbBien++;
+    if (actual < MB_N) {
+      const MbPunto& p = mbPuntos[actual];
+      float v = err ? NAN : mbValor(resp, p.tipo) * p.escala;
+      if (err != mbErr[actual] || (!err && (isnan(mbVal[actual]) || fabsf(v - mbVal[actual]) > 1e-3f * (fabsf(v) + 1)))) mbCambio = true;
+      mbVal[actual] = v; mbErr[actual] = err;
+    } else if (err) aviso = "Modbus: la escritura no respondió bien";
+    esperando = false; tFin = t;
+    return;
+  }
+  if (t - tFin < 30) return;                                  // silencio entre peticiones (más que los 3.5 caracteres)
+  uint8_t n = 0;
+  if (mbEnCola) {                                             // las escrituras van primero
+    MbEscritura w = mbCola[0];
+    memmove(mbCola, mbCola + 1, sizeof(MbEscritura) * (--mbEnCola));
+    n = mbArmar(pedido, w.esclavo, w.funcion, w.reg, w.valor);
+    actual = 100;
+  } else {
+    if (siguiente == 0) {                                     // ciclo nuevo: cada punto se lee una vez por segundo
+      if (tCiclo && t - tCiclo < 1000) return;
+      tCiclo = t | 1;
+    }
+    for (; siguiente < MB_N && !mbPuntos[siguiente].esclavo; siguiente++) {}
+    if (siguiente >= MB_N) { siguiente = 0; return; }
+    const MbPunto& p = mbPuntos[siguiente];
+    n = mbLeer(pedido, p.esclavo, p.funcion, p.reg, p.tipo);
+    actual = siguiente++;
+  }
+  while (Serial1.available()) Serial1.read();                 // basura de la línea
+  digitalWrite(PIN_RS_DE, HIGH);
+  Serial1.write(pedido, n);
+  Serial1.flush();                                            // 8 bytes: 8.3 ms a 9600 baudios
+  digitalWrite(PIN_RS_DE, LOW);
+  nr = 0; esperando = true; tEnvio = millis();
+}
+
 bool pedirReinicio = false;
 
 // ---------------- diagnóstico de salidas con el medidor de la base ----------------
@@ -1407,6 +1505,47 @@ bool ejecutar(const char* s, bool remoto) {
     pref.putUChar("bus", m); pref.putUChar("busid", id);
     pedirReinicio = true;
     return true;
+  }
+  if (!strncmp(s, "MB ", 3)) {                                 // MB baudios [paridad] / MB 0
+    const char* q = s + 3;
+    long b = numero(q);
+    while (*q == ' ') q++;
+    int pa = *q ? numero(q) : 0;
+    if (b && (b < 1200 || b > 115200)) return false;
+    if (pa < 0 || pa > 3) return false;
+    if (b && hayBase) { aviso = "Modbus solo en la placa AP GATE"; return false; }   // IO6/IO7 son CH3/CH4 de la base
+    pref.putUInt("mbbaud", b); pref.putUChar("mbpar", pa);
+    pedirReinicio = true;
+    return true;
+  }
+  if (!strncmp(s, "MP ", 3)) {                                 // MP n esclavo función registro tipo [escala] / MP n -
+    const char* q = s + 3;
+    int n = numero(q);
+    if (n < 1 || n > MB_N) return false;
+    while (*q == ' ') q++;
+    MbPunto p{0, 3, 0, 0, 0, 1};
+    if (*q != '-') {
+      int e = numero(q), fn = numero(q);
+      long r = numero(q);
+      int tp = numero(q);
+      while (*q == ' ') q++;
+      float esc = 1;
+      if (*q) { char* fin; esc = strtof(q, &fin); if (fin == q || esc == 0) return false; }
+      if (e < 1 || e > 247 || (fn != 3 && fn != 4) || r < 0 || r > 65535 || tp < 0 || tp >= MB_TIPOS) return false;
+      p = MbPunto{(uint8_t)e, (uint8_t)fn, (uint8_t)tp, 0, (uint16_t)r, esc};
+    }
+    mbPuntos[n - 1] = p; mbVal[n - 1] = NAN; mbErr[n - 1] = 1;
+    pref.putBytes("mbpts", mbPuntos, sizeof(mbPuntos));
+    haPublicar();
+    return true;
+  }
+  if (!strncmp(s, "MW ", 3) || !strncmp(s, "MC ", 3)) {        // MW esclavo registro valor / MC esclavo bobina 0|1
+    bool bobina = s[1] == 'C';
+    const char* q = s + 3;
+    int e = numero(q);
+    long r = numero(q), v = numero(q);
+    if (r < 0 || r > 65535 || v < 0 || v > (bobina ? 1 : 65535)) return false;
+    return mbPedirEscritura(e, bobina ? 5 : 6, r, bobina ? (v ? 0xFF00 : 0) : v);
   }
   if (!strncmp(s, "ET ", 3)) {                                 // ET S3 Cocina / ET S3 (borrar)
     const char* q = s + 3;
@@ -1842,12 +1981,13 @@ void revisarUDP() {
 void setup() {
   pref.begin("letrerolab", false);
   busModo = pref.getUChar("bus", 0); busId = pref.getUChar("busid", 0);
+  mbBaud = pref.getUInt("mbbaud", 0); mbParidad = pref.getUChar("mbpar", 0);
   if (busModo > 2 || (busModo == 2 && (busId < 1 || busId > BUS_NODOS))) busModo = 0;
   if (busModo == 1) busId = 0;
   // AP BUS: IO4/IO5 quedan como entradas hasta saber si hay base (en la base son CH1/CH2: el pull-down las apaga;
   // en el AP NODE el TXD del transceptor tiene pull-up: el bus queda en recesivo)
   for (uint8_t c = 0; c < 4; c++) {
-    if (busModo && c < 2) { pinMode(PWM_PIN[c], INPUT); continue; }
+    if ((busModo && c < 2) || (mbBaud && c >= 2)) { pinMode(PWM_PIN[c], INPUT); continue; }   // AP GATE: IO6/IO7 = RS-485
     ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); pwm(c, 0);
   }
   for (uint8_t k = 0; k < 2; k++) if (!busModo || k) { ledcAttachChannel(CC_PIN[k], CC_HZ, PWM_BITS, 4 + k); focoCC(k, 0); }
@@ -1877,7 +2017,13 @@ void setup() {
     for (uint8_t c = 0; c < 2; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); dutyActual[c] = 9999; pwm(c, 0); }
     ledcAttachChannel(CC_PIN[0], CC_HZ, PWM_BITS, 4); ccActual[0] = 9999; focoCC(0, 0);
   }
+  if (mbBaud && hayBase) {                                   // programador sobre una base: sin Modbus
+    Serial.println("Modbus: hay base, se desactiva (solo en la placa AP GATE)");
+    mbBaud = 0;
+    for (uint8_t c = 2; c < 4; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); dutyActual[c] = 9999; pwm(c, 0); }
+  }
   if (busModo) busIniciar();
+  if (mbBaud) mbIniciar();
   if (modoInd) for (uint8_t c = 0; c < 4; c++) { ledcChangeFrequency(PWM_PIN[c], IND_HZ, PWM_BITS); dutyActual[c] = 9999; pwm(c, 0); }
   if (modoPix) { pixLeer(); pixIniciar(); }
   hayOLED = i2cPresente(OLED);
@@ -1935,6 +2081,7 @@ void loop() {
   revisarUDP();
   revisarVivo();
   busActualizar(t);
+  mbActualizar(t);
   ioActualizar(t);
   aiActualizar(t);
   if (irListo) { irListo = false; teclaIR(irCodigo); }
@@ -2001,7 +2148,8 @@ void loop() {
   if (pedirReinicio) { if (sucio) guardarAhora(); delay(300); ESP.restart(); }
 
   bool activo = cfg.encendido && porHorario && porLuz;
-  if (modoInd) digitalWrite(PIN_AUX, activo ? HIGH : LOW);     // contactor 1: sigue al encendido de la luz
+  if (mbBaud) {}                                              // AP GATE: IO1 es el DE del RS-485
+  else if (modoInd) digitalWrite(PIN_AUX, activo ? HIGH : LOW);     // contactor 1: sigue al encendido de la luz
   else if (modoDmx) digitalWrite(PIN_AUX, (dmxCuadros >> 3) & 1);  // LED DMX: parpadea mientras se transmite
   else digitalWrite(PIN_AUX, cfg.auxModo ? auxVent : ((activo && cfg.aux) ? HIGH : LOW));
   uint16_t per = falla ? 80 : (modoAP ? 150 : (conectado ? (activo ? 1000 : 250) : 500));

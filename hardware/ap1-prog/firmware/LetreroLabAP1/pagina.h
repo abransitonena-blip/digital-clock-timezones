@@ -86,6 +86,21 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><select id="ain"></select><input type="number" step="0.01" id="aiu" style="width:90px" title="umbral (V o mA)">
    <select id="aia"></select><input type="number" min="0" max="100" id="aiv" style="width:70px" title="valor">
    <label><input type="checkbox" id="aim"> mientras</label><button class="b" id="aig">Guardar</button></div></div>
+ <div class="card" id="tmb" style="display:none"><h3>Modbus RTU (AP GATE)</h3>
+  <p class="muted" id="mbest"></p>
+  <div id="mblist"></div>
+  <p class="muted">Punto: esclavo, función (3 holding / 4 input), registro desde 0 (el 40001 del manual es el 0), tipo y escala.</p>
+  <div class="row"><select id="mbn"></select><input type="number" min="1" max="247" id="mbe" style="width:64px" title="esclavo">
+   <select id="mbf"><option value="3">3 holding</option><option value="4">4 input</option></select>
+   <input type="number" min="0" max="65535" id="mbr" style="width:80px" title="registro">
+   <select id="mbt"><option value="0">u16</option><option value="1">s16</option><option value="2">u32</option><option value="3">s32</option>
+   <option value="4">float</option><option value="5">float CDAB</option></select>
+   <input type="number" step="any" id="mbx" value="1" style="width:70px" title="escala"><button class="b" id="mbg">Guardar</button>
+   <button class="b" id="mbb">Borrar</button></div>
+  <div class="row"><label>Escribir</label><input type="number" min="1" max="247" id="mwe" style="width:64px" placeholder="esclavo">
+   <input type="number" min="0" max="65535" id="mwr" style="width:80px" placeholder="registro">
+   <input type="number" min="0" max="65535" id="mwv" style="width:80px" placeholder="valor"><button class="b" id="mwg">Registro</button>
+   <button class="b" id="mcg1">Bobina ON</button><button class="b" id="mcg0">Bobina OFF</button></div></div>
  <div class="card"><h3>Etiquetas por circuito</h3>
   <p class="muted">Ponle nombre a cada canal, salida o entrada (SALA, COCINA, BOMBA...). Sale en la app y en Home Assistant.</p>
   <div class="row"><select id="etx"></select><input id="ett" maxlength="16" placeholder="nombre" style="flex:1">
@@ -186,7 +201,7 @@ function pinta(){
  if(!cambiando){$("vel").value=E.s;$("bri").value=E.b;$("umb").value=E.u;$("ch").value=E.ch;$("w").value=E.c[3];
   $("rgb").value="#"+E.c.slice(0,3).map(v=>v.toString(16).padStart(2,"0")).join("")}
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
- $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();ai();etiquetas();
+ $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();ai();mb();etiquetas();
  if(E.vivo){if(document.activeElement.id!="vvu")$("vvu").value=E.vivo.u;$("vvon").checked=!!E.vivo.on;
   $("vvst").textContent=!E.vivo.on?"Apagado":E.vivo.rx?`Recibiendo (${E.vivo.p} paquetes) en ${E.ip||"esta IP"}`:`Esperando datos en ${E.ip||"esta IP"}, Art-Net 6454 / sACN 5568`}$("tdmx").style.display=E.dmx?"":"none";
  if(E.dmx&&E.pix&&document.activeElement.tagName!="INPUT"&&document.activeElement.tagName!="SELECT"){$("dmn").value=E.pix.n[0];$("dmd").value=E.pix.d;$("dmc").value=E.pix.ch;$("dmo").value=E.pix.o;$("dms").value=E.pix.s}
@@ -228,11 +243,21 @@ function ai(){const A=E.ai;if(!A)return;$("tai").style.display=A.m?"":"none";if(
   <button class="b" data-ai="${n+1}" data-m="${A.t[n]?0:1}">${A.t[n]?"4-20 mA":"0-10 V"}</button></div>`;
   o+=`<option value="${n+1}">A${n+1}${et("a",n+1)}</option>`}
  $("ailist").innerHTML=h;if(!document.querySelector("#tai :focus")){const c=$("ain").value;$("ain").innerHTML=o;if(c&&[...$("ain").options].some(x=>x.value==c))$("ain").value=c;umbral()}}
+const MBERR={1:"sin respuesta",2:"error de CRC",3:"respuesta equivocada",11:"función no válida",12:"registro no válido",13:"valor no válido",14:"falla del equipo"};
+function mb(){const M=E.mb;if(!M)return;$("tmb").style.display=M.b?"":"none";if(!M.b)return;
+ $("mbest").textContent=`${M.b} baudios · ${["8N1","8E1","8O1","8N2"][M.pa]} · respuestas bien: ${M.ok} · con falla: ${M.f}`;let h="",o="";
+ M.p.forEach((p,i)=>{const n=i+1;o+=`<option value="${n}">Punto ${n}${et("m",n)}</option>`;if(!p[0])return;
+  h+=`<div class="row"><label>M${n}${et("m",n)}</label><b style="min-width:90px">${p[6]?"--":(+p[5]).toFixed(2)}</b>
+  <span class="muted">esclavo ${p[0]} · f${p[1]} · reg ${p[2]}${p[6]?" · "+(MBERR[p[6]]||"error "+p[6]):""}</span></div>`});
+ $("mblist").innerHTML=h||'<span class="muted">Sin puntos: agrega uno abajo.</span>';
+ if(!document.querySelector("#tmb :focus")){const c=$("mbn").value;$("mbn").innerHTML=o;if(c)$("mbn").value=c;mbpunto()}}
+function mbpunto(){const p=(E.mb.p||[])[+$("mbn").value-1];if(!p||!p[0])return;$("mbe").value=p[0];$("mbf").value=p[1];$("mbr").value=p[2];$("mbt").value=p[3];$("mbx").value=p[4]}
 function umbral(){const n=+$("ain").value,u=(E.ai.u||[])[n-1];if(!u)return;$("aiu").value=u[0];$("aia").value=u[1]==255?"-":u[1];$("aiv").value=u[2];$("aim").checked=!!u[3]}
 function et(t,n){const v=(E.et||{})[t+n];return v?" · "+v.replace(/[<>&]/g,""):""}
 function etiquetas(){if(document.querySelector("#etx:focus,#ett:focus"))return;const I=E.io||{o:0,i:0},c=$("etx").value;let o="";
  for(let n=1;n<=4;n++)o+=`<option value="C${n}">Canal ${n}${et("c",n)}</option>`;
  const M=(E.ai||{}).m||0;for(let n=1;n<=8;n++)if(M>>((n-1)>>2)&1)o+=`<option value="A${n}">Analógica ${n}${et("a",n)}</option>`;
+ const B=E.mb||{b:0,p:[]};if(B.b)B.p.forEach((p,i)=>{if(p[0])o+=`<option value="M${i+1}">Modbus ${i+1}${et("m",i+1)}</option>`});
  for(let m=0;m<16;m++){if(I.o>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="S${n}">Salida ${n}${et("s",n)}</option>`}
   if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="E${n}">Entrada ${n}${et("e",n)}</option>`}}
  $("etx").innerHTML=o;if(c&&[...$("etx").options].some(x=>x.value==c))$("etx").value=c}
@@ -263,6 +288,12 @@ $("iosal").onclick=e=>{const n=e.target.dataset.sa;if(n)api(`SA ${n} 2`)};$("ion
 $("iog").onclick=()=>{const n=$("ion").value,a=$("ioa").value;if(n)api(a=="-"?`EA ${n} -`:`EA ${n} ${a} ${$("iov").value||0} ${$("iom").checked?1:0}`)};
 $("aia").innerHTML='<option value="-">Nada</option>'+ACC.map((a,j)=>`<option value="${j}">${a}</option>`).join("");
 $("ailist").onclick=e=>{const d=e.target.dataset;if(d.ai)api(`AI ${d.ai} ${d.m}`)};$("ain").onchange=umbral;
+$("mbn").onchange=mbpunto;
+$("mbg").onclick=()=>api(`MP ${$("mbn").value} ${$("mbe").value||1} ${$("mbf").value} ${$("mbr").value||0} ${$("mbt").value} ${$("mbx").value||1}`);
+$("mbb").onclick=()=>api(`MP ${$("mbn").value} -`);
+$("mwg").onclick=()=>api(`MW ${$("mwe").value||1} ${$("mwr").value||0} ${$("mwv").value||0}`);
+$("mcg1").onclick=()=>api(`MC ${$("mwe").value||1} ${$("mwr").value||0} 1`);
+$("mcg0").onclick=()=>api(`MC ${$("mwe").value||1} ${$("mwr").value||0} 0`);
 $("aig").onclick=()=>{const n=$("ain").value,a=$("aia").value;if(n)api(a=="-"?`AU ${n} -`:`AU ${n} ${$("aiu").value||0} ${a} ${$("aiv").value||0} ${$("aim").checked?1:0}`)};
 $("etg").onclick=()=>{api(`ET ${$("etx").value} ${$("ett").value}`);$("ett").value=""};
 $("vvg").onclick=async()=>{await api("UNI "+$("vvu").value);api("VIVO "+($("vvon").checked?1:0))};$("dmg").onclick=async()=>{await api(`PD ${$("dmd").value} ${$("dmc").value}`);await api("PX "+$("dmn").value);await api("PS "+$("dms").value);api("PO "+$("dmo").value)};$("k2").onclick=()=>api("O "+(E.cc[0]?0:100));$("foco").onclick=()=>{if(!E.ym)api("X "+(E.x?0:1))};

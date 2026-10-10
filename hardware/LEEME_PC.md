@@ -20,6 +20,7 @@ Este paquete (`LetreroLab_proyecto_completo.zip`) trae **todo** el ecosistema AP
 | `ap1-dist4/` | **AP SIGN DIST 4**: distribución DC de 4 ramas con fusible, LEDs y aviso aislado al CORE |
 | `ap1-in/`, `ap1-out/` | **AP ELECTRIC** AP INPUT (8 entradas aisladas) y **AP PRO DO8** (8 salidas de 24 V protegidas), por Qwiic. Mapa del ecosistema en `AP_ELECTRIC.md` |
 | `ap1-node/` | **AP NODE**: nodo remoto del AP BUS (24 V + CAN, hasta 250 m). Especificación en `AP_BUS.md` |
+| `ap1-gate/` | **AP GATE**: AP NODE + RS-485 / Modbus RTU (medidores de energía, variadores, PLC) |
 | `ap1-dmx/` | Módulo DMX512: controlador DMX con Wi-Fi para reflectores RGB/RGBW y equipos DMX. Guía en `ap1-dmx/LEEME.md` |
 | `ap1-plantilla/` | **Base para módulos nuevos**: entrada, fuente de 12 V, memoria, conector LL y área de prototipos. Guía en `ap1-plantilla/LEEME.md` |
 | `ap1-gabinete/` | Gabinete para impresión 3D (`gabinete/*.stl`) y soportes para riel DIN (`din/*.stl`) |

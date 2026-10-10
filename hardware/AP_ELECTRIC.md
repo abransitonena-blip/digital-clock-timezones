@@ -20,13 +20,13 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | Familia | Función | Qué existe hoy | Estado |
 |---|---|---|---|
 | **AP BASE** | Potencia y protecciones propias, sin Wi-Fi | `ap1-base`: 12-24 V, 4 canales de 8 A, 2 focos de corriente constante, AUX; corte por hardware ante sobrecorriente, sobrevoltaje y 85 °C | Diseñada (4 capas) |
-| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 1.8 |
+| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 1.9 |
 | **AP INPUT** | Pulsadores y sensores | **`ap1-in`:** 8 entradas de 12-24 V aisladas, con reglas por entrada. **`ap1-ai4`:** 4 entradas analógicas 0-10 V / 4-20 mA con umbrales | Diseñados |
 | **AP OUTPUT** | Actuadores, relevadores, contactores | **`ap1-out` = AP PRO DO8:** 8 salidas de 24 V DC **protegidas** (NCV8406A: 1.5 A por salida, corto y temperatura) para bobinas y válvulas | Diseñado (reemplaza a la versión de 7 salidas con ULN2003) |
 | **AP LIGHT** | Iluminación según el driver o foco | `ap1-pix` (pixeles), `ap1-dmx` (DMX512), `ap1-ind` (0-10 V aislado), corriente constante en la base | Diseñados |
 | **AP METER** | Medición y diagnóstico | Medidor INA238 en la base: V, A, W, kWh, diagnóstico por salida | Dentro de la base; módulo propio pendiente |
 | **AP LINK** | Ethernet, Wi-Fi, inalámbrico, bus de campo | Wi-Fi en el CORE; **AP NODE** (`ap1-node`) con **AP BUS 24 V + CAN** para nodos remotos ([AP_BUS.md](AP_BUS.md)) | AP NODE diseñado; Ethernet pendiente |
-| **AP GATE** | PLC, aplicaciones, otros ecosistemas | MQTT, **Home Assistant**, API HTTP, **Art-Net/sACN** | En el programa; Modbus/RS-485 pendiente |
+| **AP GATE** | PLC, aplicaciones, otros ecosistemas | MQTT, **Home Assistant**, API HTTP, **Art-Net/sACN**; placa **`ap1-gate`**: RS-485 / **Modbus RTU** (medidores de energía, variadores, PLC) + AP BUS | Diseñada; programa 1.9 |
 | **AP FIELD** | Gabinete para exteriores | `ap1-gabinete`: gabinete imprimible para interior y **soporte DIN** | Exterior pendiente (junta, prensaestopas, UV, condensación y pruebas IP) |
 
 ## Líneas de producto
@@ -34,7 +34,7 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | Línea | Para quién | Qué la forma hoy | Lo que falta |
 |---|---|---|---|
 | **AP CASA**: control y automatización del hogar | Casas, departamentos, negocios pequeños | CORE + **BASE 4** (`ap1-base`: 4 circuitos de LED de 12-24 V) + AP INPUT (apagadores y sensores) + DO8. **BASE 8** = BASE 4 + DO8, o dos BASE | Caja de escritorio o pared con **etiquetas por circuito** (ya en el programa) y tapas de colores |
-| **AP PRO**: control y E/S para proyectos exigentes | Talleres, bombeo, riego, naves | **DI8** = AP INPUT (`ap1-in`); **DO8** = AP PRO DO8 (`ap1-out`, 8 salidas protegidas); 0-10 V aislado = `ap1-ind` | **AI4 hecho** (`ap1-ai4`: 0-10 V / 4-20 mA con umbrales); falta RS-485/Modbus |
+| **AP PRO**: control y E/S para proyectos exigentes | Talleres, bombeo, riego, naves | **DI8** = AP INPUT (`ap1-in`); **DO8** = AP PRO DO8 (`ap1-out`, 8 salidas protegidas); 0-10 V aislado = `ap1-ind` | **AI4 hecho** (`ap1-ai4`: 0-10 V / 4-20 mA con umbrales); **Modbus RTU hecho** (`ap1-gate`) |
 | **AP FIT**: accesorios para instalar | Instaladores | Soporte DIN imprimible (`ap1-gabinete/din`), guías de cableado por módulo | Kit físico: conectores, punteras, clips DIN, prensaestopas, portafusibles |
 | **AP SIGN**: letras luminosas, cajas de luz, neón LED | Letreros | BASE (canales de 8 A, efectos), **PIX** (pixeles), **DMX**, **DIST 4** (nuevo: 4 ramas protegidas con diagnóstico) | "SIGN COLOR" como módulo dedicado (hoy: PIX o DMX con decodificador) |
 

@@ -15,6 +15,7 @@ Todo está en **`PEDIDO_JLCPCB.zip`** (carpeta `PEDIDO_JLCPCB/`). Hay una subcar
 | `10_AP_SIGN_DIST4` | AP SIGN DIST 4 | Distribución DC de 4 ramas con fusible y diagnóstico |
 | `11_AP_PRO_AI4` | AP PRO AI4 | 4 entradas analógicas 0-10 V / 4-20 mA |
 | `12_AP_NODE` | AP NODE | Nodo remoto del AP BUS (24 V + CAN, hasta 250 m) |
+| `13_AP_GATE` | AP GATE | AP NODE + RS-485 / Modbus RTU (medidores de energía, variadores, PLC) |
 
 La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el sistema modular.
 
@@ -25,6 +26,7 @@ La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el 
 | Sistema mínimo | 1 BASE + 1 PROGRAMADOR |
 | Prototipo AP ELECTRIC (luces, sensores, válvula) | 1 BASE + 1 PROGRAMADOR + 1 AP INPUT + 1 DO8 |
 | E/S en otro tablero (AP BUS) | 2 AP NODE (maestro y remoto) + DO8 y/o AP INPUT en cada uno |
+| Medir energía o mandar variadores (Modbus) | 1 AP GATE (puede ser también el maestro del AP BUS) |
 | Bombeo y nivel | + 1 AI4 |
 | Letreros | PIX o DMX + 1 PROGRAMADOR (+ DIST 4) |
 | Naves | IND + 1 PROGRAMADOR |
@@ -95,6 +97,7 @@ Cada carpeta trae:
 | DIST 4 | J1 (XT60), J2-J5 (VH 2), F1-F4 (portafusibles mini) | C98732, C160315, C3206956 |
 | AI4 | J7 (VH 2), J3/J4/J8/J9 (XH 3) | C160315, C144394 |
 | AP NODE | J1/J2 (XH 4), J4 (macho 1×4) | C144395, C5116483 |
+| AP GATE | J1/J2 (XH 4), J4 (XH 3) | C144395, C144394 |
 
 ## Costo aproximado del cargo de montaje (por pedido, no por placa)
 
@@ -111,6 +114,7 @@ Cada carpeta trae:
 | DIST 4 | ~15 USD | ~6 USD |
 | AI4 | ~15 USD | ~9 USD |
 | AP NODE | ~36 USD | ~30 USD |
+| AP GATE | ~36 USD | ~30 USD |
 
 - Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred no pagan ese cargo.
 - A eso se suman la placa, las piezas y el montaje por unidad.
@@ -121,8 +125,8 @@ Cada carpeta trae:
 
 ## Revisión hecha antes de generar los archivos
 
-- **ERC 0 y DRC 0** (incluidas advertencias), 0 sin conectar y 0 diferencias entre esquema y placa, en las 11 placas.
-- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 11 placas:
+- **ERC 0 y DRC 0** (incluidas advertencias), 0 sin conectar y 0 diferencias entre esquema y placa, en las 12 placas.
+- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 12 placas:
   - pista y separación mínimas de 0.127 mm;
   - agujeros de 0.3 mm o más;
   - anillos de vía de 0.1 mm o más;

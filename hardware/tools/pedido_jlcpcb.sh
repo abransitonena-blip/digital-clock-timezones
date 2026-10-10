@@ -10,7 +10,7 @@ for par in "ap1-base:AP1_Base:1_BASE" "ap1-prog:AP1_Programador:2_PROGRAMADOR" "
            "ap1-plantilla:AP1_Plantilla:6_PLANTILLA_modulos_nuevos" \
            "ap1-dmx:AP1_DMX:7_MODULO_DMX" \
            "ap1-in:AP_Input:8_AP_INPUT" "ap1-out:AP_DO8:9_AP_PRO_DO8" \
-           "ap1-dist4:AP_Dist4:10_AP_SIGN_DIST4" "ap1-ai4:AP_AI4:11_AP_PRO_AI4" "ap1-node:AP_Node:12_AP_NODE"; do
+           "ap1-dist4:AP_Dist4:10_AP_SIGN_DIST4" "ap1-ai4:AP_AI4:11_AP_PRO_AI4" "ap1-node:AP_Node:12_AP_NODE" "ap1-gate:AP_Gate:13_AP_GATE"; do
   IFS=: read -r dir proj nombre <<< "$par"
   src=$H/$dir/fabricacion/jlcpcb
   dst=$OUT/$nombre

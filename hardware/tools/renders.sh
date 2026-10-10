@@ -6,7 +6,7 @@
 set -e
 cd "$(dirname "$0")/.."
 for par in ap1-base:AP1_Base ap1-prog:AP1_Programador ap1-ind:AP1_Industrial ap1-pix:AP1_Pixel ap1-plantilla:AP1_Plantilla \
-           ap1-dmx:AP1_DMX ap1-in:AP_Input ap1-out:AP_DO8 ap1-dist4:AP_Dist4 ap1-ai4:AP_AI4 ap1-node:AP_Node; do
+           ap1-dmx:AP1_DMX ap1-in:AP_Input ap1-out:AP_DO8 ap1-dist4:AP_Dist4 ap1-ai4:AP_AI4 ap1-node:AP_Node ap1-gate:AP_Gate; do
   IFS=: read -r d p <<< "$par"
   docker exec -w /work/hardware/$d/kicad kc bash -c "
     kicad-cli pcb export glb --subst-models --include-silkscreen --include-soldermask -o ../fabricacion/3d/$p.glb $p.kicad_pcb >/dev/null 2>&1"

@@ -1,6 +1,8 @@
 #!/bin/bash
-# Prueba en la PC del protocolo AP BUS del programa (apbus.h). Requiere g++.
+# Pruebas en la PC del protocolo AP BUS (apbus.h) y del maestro Modbus RTU (modbus.h). Requiere g++.
 set -e
 cd "$(dirname "$0")/../ap1-prog/firmware/pruebas"
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_apbus prueba_apbus.cpp
 /tmp/prueba_apbus
+g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_modbus prueba_modbus.cpp
+/tmp/prueba_modbus

@@ -77,5 +77,5 @@ El protocolo está en `ap1-prog/firmware/LetreroLabAP1/apbus.h` y se prueba en l
 | En nave con motores | **Muy bueno** (diferencial, hecho para autos) | Bueno | Bueno | Malo |
 | Alimentación por el mismo cable | Sí (24 V) | Sí | Solo PoE (caro) | — |
 
-- RS-485 sigue disponible en el módulo DMX para equipos de terceros.
+- RS-485 se usa para los equipos de terceros: el módulo DMX y la **AP GATE** (Modbus RTU con medidores, variadores y PLC).
 - La radio queda para el módulo **LINK** (puente a Home Assistant por MQTT, ya incluido en el CORE por Wi-Fi).
