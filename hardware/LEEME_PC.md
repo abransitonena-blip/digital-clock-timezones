@@ -1,6 +1,6 @@
 # LetreroLab: proyecto completo para trabajar en la PC
 
-Este paquete (`LetreroLab_proyecto_completo.zip`) trae **todo** el ecosistema AP-1 y la placa única AP-0.2:
+Este paquete (`LetreroLab_proyecto_completo.zip`) trae **todo** el ecosistema AP-1 y la placa única AP-0.2. Guías técnicas: `AP_BUS.md` (bus de campo) y `ELECTRONICA_DE_POTENCIA.md` (protecciones):
 - los proyectos de KiCad que se pueden editar;
 - los generadores;
 - el programa del ESP32 (código y binarios);
@@ -18,7 +18,8 @@ Este paquete (`LetreroLab_proyecto_completo.zip`) trae **todo** el ecosistema AP
 | `ap1-pix/` | Módulo de pixeles WS2812/SK6812/WS2815 |
 | `ap1-ai4/` | **AP PRO AI4**: 4 entradas analógicas 0-10 V / 4-20 mA (ADS1115) |
 | `ap1-dist4/` | **AP SIGN DIST 4**: distribución DC de 4 ramas con fusible, LEDs y aviso aislado al CORE |
-| `ap1-in/`, `ap1-out/` | **AP ELECTRIC** AP INPUT (8 entradas aisladas) y AP OUTPUT (7 salidas de 24 V), por Qwiic. Mapa del ecosistema en `AP_ELECTRIC.md` |
+| `ap1-in/`, `ap1-out/` | **AP ELECTRIC** AP INPUT (8 entradas aisladas) y **AP PRO DO8** (8 salidas de 24 V protegidas), por Qwiic. Mapa del ecosistema en `AP_ELECTRIC.md` |
+| `ap1-node/` | **AP NODE**: nodo remoto del AP BUS (24 V + CAN, hasta 250 m). Especificación en `AP_BUS.md` |
 | `ap1-dmx/` | Módulo DMX512: controlador DMX con Wi-Fi para reflectores RGB/RGBW y equipos DMX. Guía en `ap1-dmx/LEEME.md` |
 | `ap1-plantilla/` | **Base para módulos nuevos**: entrada, fuente de 12 V, memoria, conector LL y área de prototipos. Guía en `ap1-plantilla/LEEME.md` |
 | `ap1-gabinete/` | Gabinete para impresión 3D (`gabinete/*.stl`) y soportes para riel DIN (`din/*.stl`) |
@@ -30,7 +31,7 @@ Este paquete (`LetreroLab_proyecto_completo.zip`) trae **todo** el ecosistema AP
 Dentro de cada placa:
 - `kicad/`: proyecto de KiCad (`.kicad_pro`, `.kicad_sch`, `.kicad_pcb`, reglas, modelos 3D en `3d/`);
 - `gen/make.py`: el generador (la "fuente" de la placa);
-- `fabricacion/`: Gerber, BOM, CPL, renders, STEP y esquemático en PDF.
+- `fabricacion/`: Gerber, BOM, CPL, esquemático en PDF y, en `3d/`, imágenes PNG, **STEP** (para CAD y gabinetes) y **GLB** (se abre con doble clic en el Visor 3D de Windows, en el navegador, en Blender o en el celular).
 
 ## 1. Abrir las placas en KiCad
 

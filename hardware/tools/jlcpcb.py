@@ -42,6 +42,9 @@ CONOCIDOS = {
     ("SRD-12VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C30431", "Extended"),
     ("74HCT125D", "SOIC-14_3.9x8.7mm_P1.27mm"): ("C5962", "Extended"),          # Nexperia 74HCT125D,653
     ("TCA9554PWR", "TSSOP-16_4.4x5mm_P0.65mm"): ("C477924", "Extended"),        # TI, expansor I2C 8 bits
+    ("NCV8406ASTT3G", "SOT-223-3_TabPin2"): ("C459816", "Extended"),         # onsemi, lado bajo protegido 65 V 7 A
+    ("78L05G-AB3-R", "SOT-89-3"): ("C71136", "Basic Component"),               # UTC, 5 V 100 mA (entrada hasta 30 V)
+    ("TJA1051T/3", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C38695", "Extended"),        # NXP, transceptor CAN con VIO 3.3 V
     ("ADS1115IDGSR", "TSSOP-10_3x3mm_P0.5mm"): ("C37593", "Extended"),          # TI, ADC 16 bits I2C (VSSOP-10)
 }
 

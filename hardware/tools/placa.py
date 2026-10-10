@@ -324,10 +324,17 @@ def write_project(S):
 def schematic(S):
     comps = []
     cols = 9 if S.PAPER == "A2" else 7
-    for i, (ref, val, sym, f, pins, func) in enumerate(S.C_):
+    i = 0
+    for ref, val, sym, f, pins, func in S.C_:
         pins = {k: (None if (ref, k) in S.DESCONECTAR else v) for k, v in pins.items()}
+        # símbolos de varias unidades (74HC125...): cada unidad va 12.7 mm a la derecha; ocupan más de una celda
+        n = len(comun.sch.units_of(comun.sch.lib_symbol(sym)))
+        celdas = 1 + (int((n - 1) * 12.7 / 43.18 + 0.999) if n > 1 else 0)
+        if i % cols + celdas > cols:
+            i += cols - i % cols                    # no cabe en el renglón: al siguiente
         x, y = 30.48 + (i % cols) * 43.18, 40.64 + (i // cols) * 38.1
         comps.append((ref, val, sym, f, pins, (round(x / 2.54) * 2.54, round(y / 2.54) * 2.54, 0), func))
+        i += celdas
     comun.make_schematic(S.KI, S.PROJECT, S.PROJECT, S.ROOT_UUID, S.NS, comps, S.NOTES, [], S.TITLE, S.SUBTITLES,
                          paper=S.PAPER, flags=S.FLAGS, company=S.COMPANY)
 

@@ -1,6 +1,6 @@
 # AP ELECTRIC · AP PRO AI4: 4 entradas analógicas (0-10 V o 4-20 mA)
 
-> Parte de la línea **AP PRO** del ecosistema [AP ELECTRIC](../AP_ELECTRIC.md). Se conecta al CORE por **Qwiic**, sola o en cadena con AP INPUT, AP OUTPUT y DIST 4.
+> Parte de la línea **AP PRO** del ecosistema [AP ELECTRIC](../AP_ELECTRIC.md). Se conecta al CORE por **Qwiic**, sola o en cadena con AP INPUT, DO8 y DIST 4.
 
 ![render](fabricacion/3d/render_perspectiva.png)
 
@@ -38,7 +38,7 @@
 ```
 AU n umbral acción valor [modo]        AU n -   (sin umbral)
 ```
-- Las acciones son las mismas que en entradas y horarios: 0/1 luz, 2 AUX, 3 escena, 4 brillo, 5/6/7 salida de AP OUTPUT, 8 alternar luz.
+- Las acciones son las mismas que en entradas y horarios: 0/1 luz, 2 AUX, 3 escena, 4 brillo, 5/6/7 salida del DO8, 8 alternar luz.
 - Al **subir** del umbral se hace la acción. Con **modo 1 ("mientras")**, al **bajar** se hace lo contrario. Hay 2 % de histéresis para que no oscile.
 - **Ejemplo, cisterna con transmisor 4-20 mA en AI1 y bomba en S1:** quieres la bomba encendida mientras el nivel esté **bajo**:
   - `AU 1 8 6 1 1` → por encima de 8 mA apaga S1; al bajar de 8 mA la enciende;

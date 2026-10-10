@@ -11,9 +11,10 @@ Todo está en **`PEDIDO_JLCPCB.zip`** (carpeta `PEDIDO_JLCPCB/`). Hay una subcar
 | `6_PLANTILLA_modulos_nuevos` | PLANTILLA | Base para probar y diseñar módulos nuevos |
 | `7_MODULO_DMX` | AP-1 DMX | Controlador DMX512 con Wi-Fi |
 | `8_AP_INPUT` | AP INPUT | 8 entradas de 12-24 V aisladas |
-| `9_AP_OUTPUT` | AP OUTPUT | 7 salidas de 24 V DC (bobinas, válvulas) |
+| `9_AP_PRO_DO8` | AP PRO DO8 | 8 salidas de 24 V DC **protegidas** (1.5 A cada una: bobinas, válvulas) |
 | `10_AP_SIGN_DIST4` | AP SIGN DIST 4 | Distribución DC de 4 ramas con fusible y diagnóstico |
 | `11_AP_PRO_AI4` | AP PRO AI4 | 4 entradas analógicas 0-10 V / 4-20 mA |
+| `12_AP_NODE` | AP NODE | Nodo remoto del AP BUS (24 V + CAN, hasta 250 m) |
 
 La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el sistema modular.
 
@@ -22,7 +23,8 @@ La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el 
 | Para | Pide |
 |---|---|
 | Sistema mínimo | 1 BASE + 1 PROGRAMADOR |
-| Prototipo AP ELECTRIC (luces, sensores, válvula) | 1 BASE + 1 PROGRAMADOR + 1 AP INPUT + 1 AP OUTPUT |
+| Prototipo AP ELECTRIC (luces, sensores, válvula) | 1 BASE + 1 PROGRAMADOR + 1 AP INPUT + 1 DO8 |
+| E/S en otro tablero (AP BUS) | 2 AP NODE (maestro y remoto) + DO8 y/o AP INPUT en cada uno |
 | Bombeo y nivel | + 1 AI4 |
 | Letreros | PIX o DMX + 1 PROGRAMADOR (+ DIST 4) |
 | Naves | IND + 1 PROGRAMADOR |
@@ -43,7 +45,7 @@ Cada carpeta trae:
 1. **Order now → Add gerber file**: sube `1_..._GERBER.zip`. Las medidas y las capas se leen solas.
 2. Opciones de la placa (lo que no está en la tabla se deja como venga):
 
-| Opción | BASE | PIX, DIST 4 | Todas las demás |
+| Opción | BASE | PIX, DIST 4, DO8 | Todas las demás |
 |---|---|---|---|
 | Layers | **4** | 2 | 2 |
 | PCB Thickness | 1.6 mm | 1.6 mm | 1.6 mm |
@@ -89,9 +91,10 @@ Cada carpeta trae:
 | PLANTILLA | J1 (VH 2), J7 (zócalo), J8 (macho 2×8) | C160315, C30734, C68234 |
 | DMX | J1 (VH 2), J2 (XH 3), J7 (zócalo) | C160315, C144394, C30734 |
 | AP INPUT | J4-J11 (XH 2), J3 (macho 1×4) | C158012, C5116483 |
-| AP OUTPUT | J4 (VH 2), J5-J11 (XH 2), J3 (macho 1×4) | C160315, C158012, C5116483 |
+| DO8 | J4 (VH 2), J5-J12 (XH 2), J3 (macho 1×4), F1 (portafusible mini) | C160315, C158012, C5116483, C3206956 |
 | DIST 4 | J1 (XT60), J2-J5 (VH 2), F1-F4 (portafusibles mini) | C98732, C160315, C3206956 |
 | AI4 | J7 (VH 2), J3/J4/J8/J9 (XH 3) | C160315, C144394 |
+| AP NODE | J1/J2 (XH 4), J4 (macho 1×4) | C144395, C5116483 |
 
 ## Costo aproximado del cargo de montaje (por pedido, no por placa)
 
@@ -104,9 +107,10 @@ Cada carpeta trae:
 | PLANTILLA | ~18 USD | ~9 USD |
 | DMX | ~18 USD | ~9 USD |
 | AP INPUT | ~12 USD | ~6 USD |
-| AP OUTPUT | ~18 USD | ~9 USD |
+| DO8 | ~24 USD | ~12 USD |
 | DIST 4 | ~15 USD | ~6 USD |
 | AI4 | ~15 USD | ~9 USD |
+| AP NODE | ~36 USD | ~30 USD |
 
 - Cada tipo de pieza Extended cuesta unos 3 USD por pedido. Las Basic y Preferred no pagan ese cargo.
 - A eso se suman la placa, las piezas y el montaje por unidad.
@@ -117,12 +121,12 @@ Cada carpeta trae:
 
 ## Revisión hecha antes de generar los archivos
 
-- **ERC 0 y DRC 0** (incluidas advertencias), 0 sin conectar y 0 diferencias entre esquema y placa, en las 10 placas.
-- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 10 placas:
+- **ERC 0 y DRC 0** (incluidas advertencias), 0 sin conectar y 0 diferencias entre esquema y placa, en las 11 placas.
+- **Reglas de fabricación de JLCPCB** revisadas con KiCad en las 11 placas:
   - pista y separación mínimas de 0.127 mm;
   - agujeros de 0.3 mm o más;
   - anillos de vía de 0.1 mm o más;
   - 0.5 mm entre agujeros de redes distintas;
   - 0.3 mm al borde;
   - textos de 0.8 mm o más.
-- **Códigos LCSC verificados** en lcsc.com / jlcpcb.com para los conectores AP CONNECT, el TCA9554PWR (C477924) y el ADS1115 (C37593).
+- **Códigos LCSC verificados** en lcsc.com / jlcpcb.com para los conectores AP CONNECT, el TCA9554PWR (C477924), el ADS1115 (C37593), el NCV8406ASTT3G (C459816) y el TJA1051T/3 (C38695).

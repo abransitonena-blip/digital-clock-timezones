@@ -1,0 +1,44 @@
+AP_Node: 33 tipos de pieza, 45 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):      12 tipos Extended  -> ~36 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):    10 tipos Extended  -> ~30 USD de cargo;
+   se sueldan a mano 3 piezas de patas: J1, J2, J4
+Piezas Basic/Preferred: ~0.43 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (18):
+  10uF                   C15850         C1
+  10uF 50V               C13585         C2,C6
+  100nF                  C14663         C3,C5,C8,C12,C13
+  1uF                    C15849         C4
+  22uF 25V               C12891         C7
+  10uF 25V               C13585         C9
+  22uF                   C45783         C10,C11
+  SS34                   C8678          D1
+  SS210                  C14996         D4
+  VERDE                  C72043         D5,D6
+  10k                    C25804         R1,R2,RB2
+  5.1k                   C23186         R3,R4
+  4.7k                   C23162         R5,R6
+  1k                     C21190         R9,R10
+  56k                    C23206         RB1
+  120                    C17909         RT
+  MODO / BOOT            C318884        SW1
+  RESET                  C318884        SW2
+Preferred (2):
+  SMBJ26A                C19077580      D2
+  B5819W                 C64885         D3
+Extended (13):
+  3A                     C355685        F1
+  AP BUS ENTRA           C144395        J1  [THT]
+  AP BUS SIGUE           C144395        J2  [THT]
+  QWIIC                  C160404        J3
+  EXT                    C5116483       J4  [THT]
+  USB-C                  C165948        J5
+  47uH                   C167888        L1
+  4.7uH                  C167874        L2
+  ESP32-C3-WROOM-02      C2934560       U1
+  LMR16006XDDC           C87080         U2
+  USBLC6-2SC6            C7519          U3
+  TJA1051T/3             C38695         U4
+  AP63203WU              C780769        U5

@@ -71,8 +71,9 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><label><input type="checkbox" id="vvon"> Activo</label><label style="min-width:auto">Universo</label>
    <input type="number" min="0" max="32767" id="vvu" style="width:90px"><button class="b" id="vvg">Guardar</button></div>
   <p class="muted" id="vvst"></p></div>
- <div class="card" id="tio" style="display:none"><h3>Entradas y salidas (AP INPUT / AP OUTPUT)</h3>
+ <div class="card" id="tio" style="display:none"><h3>Entradas y salidas (AP INPUT / AP PRO DO8)</h3>
   <p class="muted">Salidas de 24 V: toca para encender o apagar. Las cargas de red se mandan con un contactor.</p>
+  <p class="muted" id="iobus" style="display:none"></p>
   <div class="row" id="iosal"></div>
   <div class="row" id="ioent"></div>
   <p class="muted">Qué hace cada entrada al activarse ("mientras": al soltar hace lo contrario).</p>
@@ -211,10 +212,13 @@ function pinta(){
  $("mlim").textContent=`Límite ${E.lim} A`+(E.fp<100&&E.p&&!E.f?` · brillo limitado al ${E.fp}% (arranque o temperatura)`:"");
  if(!cambiando)$("lim").value=E.lim;$("limv").textContent=E.lim+" A";
 }
-function io(){const I=E.io;if(!I)return;$("tio").style.display=I.o||I.i?"":"none";let h="";
- for(let m=0;m<4;m++)if(I.o>>m&1)for(let b=0;b<7;b++){const n=m*7+b+1;h+=`<button class="b${I.s[m]>>b&1?" on":""}" data-sa="${n}">S${n}${et("s",n)}</button>`}
- $("iosal").innerHTML=h||'<span class="muted">Sin AP OUTPUT</span>';h="";
- for(let m=0;m<4;m++)if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1,a=I.e[m]>>b&1;h+=`<span class="pill" style="${a?"background:var(--a);color:#000":""}">E${n}${et("e",n)}</span>`}
+function io(){const I=E.io;if(!I)return;$("tio").style.display=I.o||I.i||(E.bus||{}).m?"":"none";let h="";
+ const B=E.bus||{m:0};$("iobus").style.display=B.m?"":"none";
+ if(B.m==1){const n=[1,2,3].filter(k=>B.n>>k&1);$("iobus").textContent="AP BUS maestro · nodos en línea: "+(n.length?n.map(k=>k+" (S"+(32*k+1)+"-S"+(32*k+32)+")").join(", "):"ninguno")}
+ else if(B.m==2)$("iobus").textContent="AP BUS nodo "+B.id+(B.fs?" · SIN MAESTRO: salidas apagadas":" · conectado al maestro");
+ for(let m=0;m<16;m++)if(I.o>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;h+=`<button class="b${I.s[m]>>b&1?" on":""}" data-sa="${n}">S${n}${et("s",n)}</button>`}
+ $("iosal").innerHTML=h||'<span class="muted">Sin AP PRO DO8</span>';h="";
+ for(let m=0;m<16;m++)if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1,a=I.e[m]>>b&1;h+=`<span class="pill" style="${a?"background:var(--a);color:#000":""}">E${n}${et("e",n)}</span>`}
  $("ioent").innerHTML=h||'<span class="muted">Sin AP INPUT</span>';
  if(!document.querySelector("#tio :focus")){const c=$("ion").value;$("ion").innerHTML=I.r.map(r=>`<option value="${r[0]}">Entrada ${r[0]}${et("e",r[0])}</option>`).join("");
   if(c&&I.r.some(r=>r[0]==c))$("ion").value=c;regla()}}
@@ -229,7 +233,7 @@ function et(t,n){const v=(E.et||{})[t+n];return v?" · "+v.replace(/[<>&]/g,""):
 function etiquetas(){if(document.querySelector("#etx:focus,#ett:focus"))return;const I=E.io||{o:0,i:0},c=$("etx").value;let o="";
  for(let n=1;n<=4;n++)o+=`<option value="C${n}">Canal ${n}${et("c",n)}</option>`;
  const M=(E.ai||{}).m||0;for(let n=1;n<=8;n++)if(M>>((n-1)>>2)&1)o+=`<option value="A${n}">Analógica ${n}${et("a",n)}</option>`;
- for(let m=0;m<4;m++){if(I.o>>m&1)for(let b=0;b<7;b++){const n=m*7+b+1;o+=`<option value="S${n}">Salida ${n}${et("s",n)}</option>`}
+ for(let m=0;m<16;m++){if(I.o>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="S${n}">Salida ${n}${et("s",n)}</option>`}
   if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="E${n}">Entrada ${n}${et("e",n)}</option>`}}
  $("etx").innerHTML=o;if(c&&[...$("etx").options].some(x=>x.value==c))$("etx").value=c}
 function regla(){const r=(E.io.r||[]).find(x=>x[0]==$("ion").value);if(!r)return;$("ioa").value=r[1]==255?"-":r[1];$("iov").value=r[2];$("iom").checked=!!r[3]}

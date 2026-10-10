@@ -20,12 +20,12 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | Familia | Función | Qué existe hoy | Estado |
 |---|---|---|---|
 | **AP BASE** | Potencia y protecciones propias, sin Wi-Fi | `ap1-base`: 12-24 V, 4 canales de 8 A, 2 focos de corriente constante, AUX; corte por hardware ante sobrecorriente, sobrevoltaje y 85 °C | Diseñada (4 capas) |
-| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 1.7 |
+| **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 1.8 |
 | **AP INPUT** | Pulsadores y sensores | **`ap1-in`:** 8 entradas de 12-24 V aisladas, con reglas por entrada. **`ap1-ai4`:** 4 entradas analógicas 0-10 V / 4-20 mA con umbrales | Diseñados |
-| **AP OUTPUT** | Actuadores, relevadores, contactores | **`ap1-out` (nuevo):** 7 salidas de 24 V DC (300 mA) para bobinas y válvulas | Diseñado |
+| **AP OUTPUT** | Actuadores, relevadores, contactores | **`ap1-out` = AP PRO DO8:** 8 salidas de 24 V DC **protegidas** (NCV8406A: 1.5 A por salida, corto y temperatura) para bobinas y válvulas | Diseñado (reemplaza a la versión de 7 salidas con ULN2003) |
 | **AP LIGHT** | Iluminación según el driver o foco | `ap1-pix` (pixeles), `ap1-dmx` (DMX512), `ap1-ind` (0-10 V aislado), corriente constante en la base | Diseñados |
 | **AP METER** | Medición y diagnóstico | Medidor INA238 en la base: V, A, W, kWh, diagnóstico por salida | Dentro de la base; módulo propio pendiente |
-| **AP LINK** | Ethernet, Wi-Fi, inalámbrico | Wi-Fi en el CORE | Ethernet pendiente |
+| **AP LINK** | Ethernet, Wi-Fi, inalámbrico, bus de campo | Wi-Fi en el CORE; **AP NODE** (`ap1-node`) con **AP BUS 24 V + CAN** para nodos remotos ([AP_BUS.md](AP_BUS.md)) | AP NODE diseñado; Ethernet pendiente |
 | **AP GATE** | PLC, aplicaciones, otros ecosistemas | MQTT, **Home Assistant**, API HTTP, **Art-Net/sACN** | En el programa; Modbus/RS-485 pendiente |
 | **AP FIELD** | Gabinete para exteriores | `ap1-gabinete`: gabinete imprimible para interior y **soporte DIN** | Exterior pendiente (junta, prensaestopas, UV, condensación y pruebas IP) |
 
@@ -33,8 +33,8 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 
 | Línea | Para quién | Qué la forma hoy | Lo que falta |
 |---|---|---|---|
-| **AP CASA**: control y automatización del hogar | Casas, departamentos, negocios pequeños | CORE + **BASE 4** (`ap1-base`: 4 circuitos de LED de 12-24 V) + AP INPUT (apagadores y sensores) + AP OUTPUT. **BASE 8** = BASE 4 + AP OUTPUT, o dos BASE | Caja de escritorio o pared con **etiquetas por circuito** (ya en el programa) y tapas de colores |
-| **AP PRO**: control y E/S para proyectos exigentes | Talleres, bombeo, riego, naves | **DI8** = AP INPUT (`ap1-in`); **DO8** = AP OUTPUT (`ap1-out`, hoy 7 salidas); 0-10 V aislado = `ap1-ind` | **AI4 hecho** (`ap1-ai4`: 0-10 V / 4-20 mA con umbrales); falta RS-485/Modbus |
+| **AP CASA**: control y automatización del hogar | Casas, departamentos, negocios pequeños | CORE + **BASE 4** (`ap1-base`: 4 circuitos de LED de 12-24 V) + AP INPUT (apagadores y sensores) + DO8. **BASE 8** = BASE 4 + DO8, o dos BASE | Caja de escritorio o pared con **etiquetas por circuito** (ya en el programa) y tapas de colores |
+| **AP PRO**: control y E/S para proyectos exigentes | Talleres, bombeo, riego, naves | **DI8** = AP INPUT (`ap1-in`); **DO8** = AP PRO DO8 (`ap1-out`, 8 salidas protegidas); 0-10 V aislado = `ap1-ind` | **AI4 hecho** (`ap1-ai4`: 0-10 V / 4-20 mA con umbrales); falta RS-485/Modbus |
 | **AP FIT**: accesorios para instalar | Instaladores | Soporte DIN imprimible (`ap1-gabinete/din`), guías de cableado por módulo | Kit físico: conectores, punteras, clips DIN, prensaestopas, portafusibles |
 | **AP SIGN**: letras luminosas, cajas de luz, neón LED | Letreros | BASE (canales de 8 A, efectos), **PIX** (pixeles), **DMX**, **DIST 4** (nuevo: 4 ramas protegidas con diagnóstico) | "SIGN COLOR" como módulo dedicado (hoy: PIX o DMX con decodificador) |
 
@@ -43,7 +43,7 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 Los circuitos de la propuesta (SALA, COCINA, ENTRADA, PATIO) **no pueden ser circuitos de 127 V dentro de la caja AP CASA**. Las placas siguen sin llevar tensión de red. Hay dos formas seguras:
 
 1. **Iluminación LED de 12/24 V** (tiras, empotrados, perfiles): BASE 4 las maneja directo, cada canal con su etiqueta.
-2. **Focos y contactos de 127 V:** AP OUTPUT manda **relevadores o contactores de riel DIN certificados** en el centro de carga, instalados por un electricista. La caja AP CASA solo lleva 24 V DC.
+2. **Focos y contactos de 127 V:** el DO8 manda **relevadores o contactores de riel DIN certificados** en el centro de carga, instalados por un electricista. La caja AP CASA solo lleva 24 V DC.
 
 ### Control ≠ Potencia (AP FIT)
 
@@ -66,17 +66,17 @@ Los circuitos de la propuesta (SALA, COCINA, ENTRADA, PATIO) **no pueden ser cir
 | Borneras extraíbles para servicio | **Hecho:** conectores con cable (AP CONNECT): se desconecta el cable y sale la placa |
 | Etiquetas por circuito | **Hecho en el programa 1.6:** `ET S3 Cocina` o desde la app; salen en Home Assistant |
 | Tapas mate reemplazables | Gabinete imprimible; tapas de color: pendiente |
-| Diagnóstico | Medición y prueba de salidas en la BASE; ramas y fusibles en la DIST 4; LED RUN en AP OUTPUT |
+| Diagnóstico | Medición y prueba de salidas en la BASE; ramas y fusibles en la DIST 4; protección propia por salida en el DO8 |
 
 ### "AP BUS"
 
-En el diagrama de la propuesta, el **AP BUS** une el CORE con los módulos. Hoy son dos cosas:
-- el conector LL 2×8 para el módulo de potencia;
-- el **bus Qwiic (I2C)** para AP INPUT, AP OUTPUT y DIST 4, en el mismo tablero.
+El **AP BUS** ya existe: **24 V DC + CAN** a 250 kbit/s en un cable de 4 hilos, hasta 250 m (especificación en [AP_BUS.md](AP_BUS.md)).
+- En el **mismo tablero** siguen el conector LL 2×8 (módulo de potencia) y el **Qwiic** (DO8, AP INPUT, AI4, DIST 4).
+- **En otro tablero o a más de 1 m:** un **AP NODE** (`ap1-node`) en cada punto, con sus módulos por Qwiic. El maestro ve sus entradas y salidas como propias (S33-S128, E33-E128).
+- Si un nodo pierde al maestro, **apaga sus salidas en 1 s** (falla segura).
+- Se eligió CAN y no RS-485 por el arbitraje y la verificación por hardware, y porque el ESP32-C3 ya trae el controlador.
 
-Para módulos a más de 1 m o en otro tablero, el AP BUS tendría que pasar a **RS-485**.
-
-## Primer prototipo recomendado: AP BASE DC + AP CORE + AP INPUT + AP OUTPUT
+## Primer prototipo recomendado: AP BASE DC + AP CORE + AP INPUT + AP PRO DO8
 
 ```
  Fuente DIN 24 V ──┬──► AP BASE (ap1-base) ── luces LED de 24 V (canales 1-4)
@@ -85,7 +85,7 @@ Para módulos a más de 1 m o en otro tablero, el AP BUS tendría que pasar a **
                    │        │ cable Qwiic (I2C, 3.3 V)
                    │     AP INPUT (ap1-in, 0x24) ◄── pulsador (I1), flotador (I2), sensor de presencia (I3)
                    │        │ cable Qwiic
-                   └──► AP OUTPUT (ap1-out, 0x20) ──► Q1: electroválvula 24 V DC
+                   └──► AP PRO DO8 (ap1-out, 0x20) ──► Q1: electroválvula 24 V DC
                                                      Q2: bobina de contactor ──► bomba 127/220 V (lado de red: contactor)
 ```
 
@@ -106,7 +106,8 @@ Todo funciona **sin internet**. Con Wi-Fi, además aparece en Home Assistant: lu
 | Enlace | Para qué | Detalle |
 |---|---|---|
 | **Conector LL 2×8** | CORE sobre un módulo de potencia (BASE, IND, PIX, DMX) | Uno por CORE; el módulo se identifica con su memoria |
-| **Qwiic (I2C)** | Módulos de E/S en cadena: AP INPUT, AP OUTPUT y DIST 4 | Hasta 4 en el rango de entradas (0x24-0x27: AP INPUT o DIST 4) y 4 de salidas (0x20-0x23). Cable total **corto**: 1 m como máximo, lejos de cables de potencia |
+| **Qwiic (I2C)** | Módulos de E/S en cadena: AP INPUT, DO8, AI4 y DIST 4 | Hasta 4 en el rango de entradas (0x24-0x27: AP INPUT o DIST 4) y 4 de salidas (0x20-0x23). Cable total **corto**: 1 m como máximo, lejos de cables de potencia |
+| **AP BUS (24 V + CAN)** | Nodos remotos AP NODE en otro tablero, hasta 250 m | 1 maestro + 3 nodos; falla segura en 1 s. Ver [AP_BUS.md](AP_BUS.md) |
 | **Wi-Fi** | Entre equipos y con apps | Grupos, MQTT, Home Assistant, Art-Net |
 
 ## Montaje en riel DIN
@@ -132,4 +133,4 @@ Todo funciona **sin internet**. Con Wi-Fi, además aparece en Home Assistant: lu
 
 ## Nota sobre el nombre
 
-Las placas nuevas (AP INPUT, AP OUTPUT y AP SIGN DIST 4) ya llevan **AP ELECTRIC** en la serigrafía. Las anteriores conservan el nombre LetreroLab y se pueden cambiar todas juntas cuando la marca quede definida.
+Las placas nuevas (AP INPUT, DO8, AI4, AP NODE y AP SIGN DIST 4) ya llevan **AP ELECTRIC** en la serigrafía. Las anteriores conservan el nombre LetreroLab y se pueden cambiar todas juntas cuando la marca quede definida.

@@ -1,6 +1,6 @@
 # AP ELECTRIC · AP INPUT: 8 entradas de 12-24 V DC aisladas
 
-> Parte del ecosistema [AP ELECTRIC](../AP_ELECTRIC.md). Se conecta al programador (AP CORE) por el cable **Qwiic**, solo o en cadena con AP OUTPUT.
+> Parte del ecosistema [AP ELECTRIC](../AP_ELECTRIC.md). Se conecta al programador (AP CORE) por el cable **Qwiic**, solo o en cadena con el AP PRO DO8, el AI4 y el DIST 4.
 
 ![render](fabricacion/3d/render_perspectiva.png)
 
@@ -55,7 +55,7 @@ EA n acción valor [modo]       EA n -   (sin regla)
 | 2 | Salida AUX de la base | 0 o 1 |
 | 3 | Escena | 0-3 |
 | 4 | Brillo | % |
-| 5 / 6 / 7 | Encender / apagar / alternar una **salida de AP OUTPUT** | número de salida (1-28) |
+| 5 / 6 / 7 | Encender / apagar / alternar una **salida del DO8** | número de salida (1-128; S33 en adelante = nodos del AP BUS) |
 | 8 | **Alternar la luz** (pulsador de encender y apagar) | — |
 
 - **Modo 0 (al activar):** la acción ocurre una vez, cuando la entrada se activa. Es lo normal en pulsadores.
@@ -69,7 +69,7 @@ Las entradas también aparecen en **Home Assistant** (un sensor por entrada, "En
 ## Direcciones
 
 - **Expansor I2C TCA9554, dirección 0x24-0x27:** JP1 cerrado suma 1 y JP2 suma 2.
-- Caben **4 módulos de entradas: E1-E32.** El módulo 0x24 tiene E1-E8, el 0x25 E9-E16, y así.
+- Caben **4 módulos de entradas: E1-E32.** El módulo 0x24 tiene E1-E8, el 0x25 E9-E16, y así. Con nodos [AP NODE](../ap1-node/LEEME.md), E33-E128.
 - Las salidas usan 0x20-0x23, así que el programa distingue solo entradas y salidas.
 - **Se puede conectar en marcha:** el programa busca módulos cada 5 s.
 

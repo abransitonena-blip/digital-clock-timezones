@@ -55,7 +55,7 @@ Si una rama no tiene carga y su fusible está abierto, el rojo y el verde encien
 - **Ponles nombre** con las etiquetas por circuito, por ejemplo `ET E1 Letra A` o `ET E5 Fuente letrero`. Así salen en la app y en Home Assistant.
 - **Alarmas:**
   - en Home Assistant, una automatización cuando "Letra A" pasa a apagado y "Fuente letrero" sigue encendido = **fusible abierto**;
-  - con reglas: `EA 1 6 3 1` apaga la salida S3 de un AP OUTPUT mientras la rama 1 tenga voltaje y **la enciende cuando la rama se queda sin voltaje**. Ahí va una **baliza de falla**.
+  - con reglas: `EA 1 6 3 1` apaga la salida S3 de un DO8 mientras la rama 1 tenga voltaje y **la enciende cuando la rama se queda sin voltaje**. Ahí va una **baliza de falla**.
 - **Aislamiento:** la fuente de los LED (+V y 0 V) queda **aislada** del bus de control:
   - optoacopladores LTV-217;
   - franja de 3.5 mm sin cobre.

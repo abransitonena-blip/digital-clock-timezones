@@ -32,10 +32,12 @@
                  PO n  orden de color 0 GRB, 1 RGB, 2 BRG; C r g b = color de los efectos; J = límite de corriente
      Módulo DMX: PD dir canales  dirección del primer equipo y canales (1, 3 o 4)   PX n  equipos
      VIVO 0|1  control en vivo por Art-Net / sACN (xLights, QLC+, Jinx!)   UNI n  universo inicial
-     AP OUTPUT / AP INPUT (Qwiic): SA n 0|1|2  salida n (1-28) apagar/encender/alternar
-                 EA n acc val [modo]  regla de la entrada n (1-32): acc como en los horarios; modo 1 = al soltar, lo contrario
+     AP PRO DO8 / AP INPUT (Qwiic): SA n 0|1|2  salida n (1-128) apagar/encender/alternar
+                 EA n acc val [modo]  regla de la entrada n (1-128): acc como en los horarios; modo 1 = al soltar, lo contrario
                  EA n -  sin regla.  Acciones: 0 apagar 1 encender 2 AUX 3 escena 4 brillo 5/6/7 salida val on/off/alternar 8 alternar luz
-     ET x texto  etiqueta de un circuito: x = C1-C4 (canales), S1-S28 (salidas), E1-E32 (entradas), A1-A8 (analógicas)
+     ET x texto  etiqueta de un circuito: x = C1-C4 (canales), S1-S128 (salidas), E1-E128 (entradas), A1-A8 (analógicas)
+     AP BUS (solo en la placa AP NODE): BUS 0  apagado   BUS 1  maestro   BUS 2 id  nodo remoto id = 1-3 (reinicia)
+                 Nodo id: sus DO8 son S(32 id + 1)..S(32 id + 32) y sus AP INPUT E(32 id + 1).. en el maestro
      AP PRO AI4: AI n 0|1  canal analógico n (1-8) en 0-10 V o 4-20 mA
                  AU n umbral acc val [modo]  al pasar del umbral hace la acción (modo 1: al bajar, lo contrario)  AU n -
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
@@ -55,9 +57,11 @@
 #include "mqtt_client.h"
 #include "esp_crt_bundle.h"
 #include "driver/ledc.h"
+#include "driver/twai.h"
+#include "apbus.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 1.7"
+#define VERSION "AP-1 fw 1.8"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -156,11 +160,12 @@ uint32_t tVivo = 0, vivoPaquetes = 0;
 bool vivo() { return vivoActivo && tVivo && millis() - tVivo < 2500; }
 void vivoIniciar();                         // (más abajo, junto a la red)
 
-// ---------------- AP OUTPUT / AP INPUT: módulos de salidas y entradas por I2C (Qwiic) ----------------
-// TCA9554 en 0x20-0x23 = AP OUTPUT (P0-P6 salidas de 24 V, P7 LED RUN); 0x24-0x27 = AP INPUT (8 entradas aisladas).
-// Salidas S1..S28 (0x20 = S1-S7, 0x21 = S8-S14...), entradas E1..E32 (0x24 = E1-E8...). Al arrancar todo apagado.
-const uint8_t IO_N = 4, ACC_NADA = 255;
-uint8_t ioOut = 0, ioIn = 0;                // módulos presentes (un bit por dirección)
+// ---------------- AP PRO DO8 / AP INPUT: módulos de salidas y entradas por I2C (Qwiic) ----------------
+// TCA9554 en 0x20-0x23 = AP PRO DO8 (P0-P7: 8 salidas de 24 V); 0x24-0x27 = AP INPUT (8 entradas aisladas).
+// Módulos 0-3 = locales; 4-15 = de los nodos remotos del AP BUS (nodo id: módulos 4 id .. 4 id + 3).
+// Salidas S1..S128 (0x20 = S1-S8, 0x21 = S9-S16...), entradas E1..E128 (0x24 = E1-E8...). Al arrancar todo apagado.
+const uint8_t IO_LOC = 4, IO_N = IO_LOC * (1 + BUS_NODOS), ACC_NADA = 255;
+uint16_t ioOut = 0, ioIn = 0;               // módulos presentes (un bit por módulo)
 uint8_t salEstado[IO_N] = {0}, entEstado[IO_N] = {0}, entCrudo[IO_N] = {0};
 struct Regla { uint8_t acc, val, modo; };   // qué hace cada entrada al activarse (modo 1: al soltar, lo contrario)
 Regla reglas[IO_N * 8];
@@ -173,11 +178,18 @@ uint8_t aiModo[AI_N * 4] = {0};             // 0 = 0-10 V, 1 = 4-20 mA
 float aiValor[AI_N * 4];                    // V o mA
 struct Umbral { float lim; uint8_t acc, val, modo; bool arriba; };
 Umbral umbrales[AI_N * 4];
-String etC[4], etS[IO_N * 7], etE[IO_N * 8], etA[AI_N * 4];
+// ---- AP BUS (24 V + CAN): solo en la placa AP NODE (IO4 = CAN TX, IO5 = CAN RX, IO10 = LED del bus) ----
+const uint8_t PIN_CAN_TX = 4, PIN_CAN_RX = 5, PIN_LED_BUS = 10;
+uint8_t busModo = 0, busId = 0;             // 0 apagado, 1 maestro, 2 nodo remoto (id 1..BUS_NODOS)
+bool busListo = false, busFallaSegura = false;
+uint32_t busUltimo[BUS_NODOS + 1] = {0};    // maestro: último estado de cada nodo; nodo: [0] = última orden
+uint32_t busRx = 0, busTx = 0;
+uint8_t busEnLinea();                       // (más abajo, junto al AP BUS)
+String etC[4], etS[IO_N * 8], etE[IO_N * 8], etA[AI_N * 4];
 String* etiqueta(char tipo, int n) {                        // tipo C/S/E/A, n desde 1
   if (tipo == 'A' && n >= 1 && n <= AI_N * 4) return &etA[n - 1];
   if (tipo == 'C' && n >= 1 && n <= 4) return &etC[n - 1];
-  if (tipo == 'S' && n >= 1 && n <= IO_N * 7) return &etS[n - 1];
+  if (tipo == 'S' && n >= 1 && n <= IO_N * 8) return &etS[n - 1];
   if (tipo == 'E' && n >= 1 && n <= IO_N * 8) return &etE[n - 1];
   return nullptr;
 }
@@ -199,8 +211,10 @@ void cargar() {
       String* e = etiqueta(tipo, n);
       if (e) { char k[8]; snprintf(k, sizeof(k), "et%c%d", tipo, n); *e = pref.getString(k, ""); }
     }
-  if (pref.getBytes("reglas", reglas, sizeof(reglas)) != sizeof(reglas))
-    for (auto& r : reglas) r = Regla{ACC_NADA, 0, 0};
+  size_t nr = pref.getBytesLength("reglas");                 // 1.7 guardaba 32 reglas: se conservan
+  if (nr == 0 || nr > sizeof(reglas) || nr % sizeof(Regla)) nr = 0;
+  for (auto& r : reglas) r = Regla{ACC_NADA, 0, 0};
+  if (nr) pref.getBytes("reglas", reglas, nr);
   vivoUni = pref.getUShort("uni", 1);
   char def[16];
   snprintf(def, sizeof(def), "letrero-%04x", (uint16_t)(ESP.getEfuseMac() >> 32));
@@ -255,7 +269,7 @@ void salida(uint8_t c, uint8_t nivel) {
 void todos(uint8_t v) { for (uint8_t c = 0; c < cfg.canales; c++) salida(c, v); }
 uint32_t ccActual[2] = {9999, 9999};
 void focoCC(uint8_t k, uint32_t duty) {   // 0..4096
-  if (duty == ccActual[k]) return;
+  if (duty == ccActual[k] || (busModo && k == 0)) return;   // AP NODE: IO10 es el LED del bus
   ccActual[k] = duty;
   ledcWrite(CC_PIN[k], duty);
 }
@@ -783,7 +797,9 @@ String estadoJSON() {
     primera = false;
     s += '['; s += n + 1; s += ','; s += reglas[n].acc; s += ','; s += reglas[n].val; s += ','; s += reglas[n].modo; s += ']';
   }
-  s += "]},\"ai\":{\"m\":"; s += aiMods; s += ",\"v\":[";
+  s += "]},\"bus\":{\"m\":"; s += busModo; s += ",\"id\":"; s += busId; s += ",\"ok\":"; s += busListo;
+  s += ",\"n\":"; s += busEnLinea(); s += ",\"fs\":"; s += busFallaSegura; s += ",\"rx\":"; s += busRx;
+  s += "},\"ai\":{\"m\":"; s += aiMods; s += ",\"v\":[";
   for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += isnan(aiValor[n]) ? String("null") : String(aiValor[n], 2); }
   s += "],\"t\":[";
   for (uint8_t n = 0; n < AI_N * 4; n++) { if (n) s += ','; s += aiModo[n]; }
@@ -868,11 +884,14 @@ void haPublicar() {
       esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1);
     }
   }
-  for (uint8_t m = 0; m < IO_N; m++) {                         // AP OUTPUT y AP INPUT presentes
-    for (uint8_t b = 0; b < 7; b++) {
-      uint8_t n = m * 7 + b + 1;
+  uint32_t antes = pref.getUInt("haio", 0x000F000F);         // módulos publicados la vez anterior (para borrar)
+  for (uint8_t m = 0; m < IO_N; m++) {                         // AP PRO DO8 y AP INPUT presentes
+    bool so = ioOut & (1 << m), si = ioIn & (1 << m);
+    if (!so && !si && !(antes & (0x10001UL << m))) continue;   // nunca publicado: nada que borrar
+    for (uint8_t b = 0; b < 8; b++) {
+      uint8_t n = m * 8 + b + 1;
       String obj = String("s") + n;
-      if (ioOut & (1 << m))
+      if (so)
         haUno(uid, "switch", obj.c_str(), String("\"name\":\"") + (etS[n - 1].length() ? etS[n - 1] : String("Salida ") + n) +
               "\",\"command_topic\":\"~/cmd\","
               "\"payload_on\":\"SA " + n + " 1\",\"payload_off\":\"SA " + n + " 0\",\"state_topic\":\"~/estado\","
@@ -882,13 +901,15 @@ void haPublicar() {
     for (uint8_t b = 0; b < 8; b++) {
       uint8_t n = m * 8 + b + 1;
       String obj = String("e") + n;
-      if (ioIn & (1 << m))
+      if (si)
         haUno(uid, "binary_sensor", obj.c_str(), String("\"name\":\"") + (etE[n - 1].length() ? etE[n - 1] : String("Entrada ") + n) +
               "\",\"state_topic\":\"~/estado\","
               "\"value_template\":\"{{ (value_json.io.e[" + m + "] // " + (1 << b) + ") % 2 }}\",\"payload_on\":\"1\",\"payload_off\":\"0\"");
       else { String t = String("homeassistant/binary_sensor/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
     }
   }
+  uint32_t ahora = ((uint32_t)ioOut << 16) | ioIn;
+  if (ahora != antes) pref.putUInt("haio", ahora);
   for (uint8_t n = 0; n < AI_N * 4; n++) {                     // AP PRO AI4
     String obj = String("a") + (n + 1);
     if (aiMods & (1 << (n / 4)))
@@ -1021,9 +1042,9 @@ void aplicarAccion(uint8_t acc, uint8_t val) {
     case 2: cfg.aux = val ? 1 : 0; break;
     case 3: cargarEscena(val); break;
     case 4: cfg.brillo = constrain(val, 0, 100); break;
-    case 5: case 6: case 7:                                   // salida val (1-28) encender / apagar / alternar
-      if (val >= 1 && val <= IO_N * 7) {
-        uint8_t m = (val - 1) / 7, b = (val - 1) % 7;
+    case 5: case 6: case 7:                                   // salida val (1-128) encender / apagar / alternar
+      if (val >= 1 && val <= IO_N * 8) {
+        uint8_t m = (val - 1) / 8, b = (val - 1) % 8;
         if (acc == 5) salEstado[m] |= 1 << b; else if (acc == 6) salEstado[m] &= ~(1 << b); else salEstado[m] ^= 1 << b;
         ioCambio = true;
       }
@@ -1043,12 +1064,12 @@ int tcaLeer(uint8_t dir, uint8_t reg) {
   return Wire.read();
 }
 void ioBuscar() {                                             // al arrancar y cada 5 s (se pueden conectar en marcha)
-  uint8_t o = 0, i = 0;
-  for (uint8_t m = 0; m < IO_N; m++) {
+  uint16_t o = ioOut & ~0x000F, i = ioIn & ~0x000F;           // los módulos remotos los pone el AP BUS
+  for (uint8_t m = 0; m < IO_LOC; m++) {
     if (i2cPresente(0x20 + m)) o |= 1 << m;
     if (i2cPresente(0x24 + m)) i |= 1 << m;
   }
-  for (uint8_t m = 0; m < IO_N; m++) {
+  for (uint8_t m = 0; m < IO_LOC; m++) {
     if ((i & (1 << m)) && !(ioIn & (1 << m))) {             // entrada nueva: polaridad invertida (1 = activa)
       tcaEscribir(0x24 + m, 2, 0xFF); tcaEscribir(0x24 + m, 3, 0xFF);
       int v = tcaLeer(0x24 + m, 0);
@@ -1058,11 +1079,12 @@ void ioBuscar() {                                             // al arrancar y c
   }
   if (o != ioOut || i != ioIn) {
     ioOut = o; ioIn = i; ioCambio = true;
-    Serial.printf("AP OUTPUT: %02X  AP INPUT: %02X\n", ioOut, ioIn);
+    Serial.printf("AP PRO DO8: %04X  AP INPUT: %04X\n", ioOut, ioIn);
     haPublicar();
   }
 }
-void ioEntrada(uint8_t n, bool activa) {                      // n = 0..31
+void ioEntrada(uint8_t n, bool activa) {                      // n = 0..127
+  if (busModo == 2) return;                                   // nodo remoto: las reglas las aplica el maestro
   const Regla& r = reglas[n];
   if (r.acc == ACC_NADA) return;
   if (activa) aplicarAccion(r.acc, r.val);
@@ -1078,7 +1100,7 @@ void ioActualizar(uint32_t t) {
   if (!ioOut && !ioIn) return;
   if (t - tLee >= 20) {                                       // entradas cada 20 ms; dos lecturas iguales = estable
     tLee = t;
-    for (uint8_t m = 0; m < IO_N; m++) {
+    for (uint8_t m = 0; m < IO_LOC; m++) {
       if (!(ioIn & (1 << m))) continue;
       int v = tcaLeer(0x24 + m, 0);
       if (v < 0) continue;
@@ -1091,16 +1113,14 @@ void ioActualizar(uint32_t t) {
       entCrudo[m] = v;
     }
   }
-  bool run = (t / 500) & 1;                                   // LED RUN parpadeando: el programa está al mando
-  static bool runAntes = false;
-  if (ioCambio || run != runAntes || t - tEscribe > 1000) {   // cada segundo se reescribe todo (por si se reconectó)
-    for (uint8_t m = 0; m < IO_N; m++) {
+  if (ioCambio || t - tEscribe > 1000) {                       // cada segundo se reescribe todo (por si se reconectó)
+    for (uint8_t m = 0; m < IO_LOC; m++) {
       if (!(ioOut & (1 << m))) continue;
-      tcaEscribir(0x20 + m, 1, (salEstado[m] & 0x7F) | (run ? 0 : 0x80));
+      tcaEscribir(0x20 + m, 1, salEstado[m]);
       tcaEscribir(0x20 + m, 3, 0x00);                         // todas salidas
     }
     if (ioCambio) mqPublicar();
-    ioCambio = false; runAntes = run;
+    ioCambio = false;
     if (t - tEscribe > 1000) tEscribe = t;
   }
 }
@@ -1161,8 +1181,122 @@ void aiActualizar(uint32_t t) {
     if (aiMods & (1 << (n / 4))) { actual = adsArrancar(n / 4, n % 4, aiModo[n]) ? n : -1; break; }
   }
 }
-void ioApagar() {
-  for (uint8_t m = 0; m < IO_N; m++) { salEstado[m] = 0; if (ioOut & (1 << m)) tcaEscribir(0x20 + m, 1, 0x80); }
+void ioApagar() {                                             // los nodos remotos reciben el 0 por el bus
+  for (uint8_t m = 0; m < IO_N; m++) { salEstado[m] = 0; if (m < IO_LOC && (ioOut & (1 << m))) tcaEscribir(0x20 + m, 1, 0); }
+}
+
+// ---------------- AP BUS: CAN a 250 kbit/s con el controlador TWAI del ESP32-C3 ----------------
+uint8_t busEnLinea() {                                        // maestro: nodos que respondieron en el último segundo
+  uint8_t r = 0;
+  for (uint8_t k = 1; k <= BUS_NODOS; k++) if (!busVencido(millis(), busUltimo[k], BUS_VENCE)) r |= 1 << k;
+  return r;
+}
+void busIniciar() {
+  twai_general_config_t g = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)PIN_CAN_TX, (gpio_num_t)PIN_CAN_RX, TWAI_MODE_NORMAL);
+  g.rx_queue_len = 16; g.tx_queue_len = 8;
+  twai_timing_config_t tm = TWAI_TIMING_CONFIG_250KBITS();
+  twai_filter_config_t fl = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+  busListo = twai_driver_install(&g, &tm, &fl) == ESP_OK && twai_start() == ESP_OK;
+  pinMode(PIN_LED_BUS, OUTPUT);
+  Serial.printf("AP BUS: %s, %s %u\n", busListo ? "listo" : "FALLA", busModo == 1 ? "maestro" : "nodo", busId);
+}
+void busMandar(uint16_t ident, const uint8_t* d, uint8_t n) {
+  twai_message_t m = {};
+  m.identifier = ident; m.data_length_code = n;
+  memcpy(m.data, d, n);
+  if (twai_transmit(&m, 0) == ESP_OK) busTx++;               // sin esperar: si la cola está llena se manda en la siguiente
+}
+void busRecibido(const twai_message_t& m) {
+  if (m.extd || m.rtr) return;
+  busRx++;
+  if (busModo == 1) {                                         // maestro: estado de un nodo
+    uint8_t k = busNodoDe(m.identifier, BUS_ID_ESTADO);
+    BusEstado e;
+    if (!k || !busDecodificarEstado(m.data, m.data_length_code, &e)) return;
+    busUltimo[k] = millis() | 1;
+    uint16_t o = ioOut, i = ioIn;
+    for (uint8_t j = 0; j < 4; j++) {
+      uint8_t g = 4 * k + j;
+      if (e.salidas & (1 << j)) { if (!(o & (1 << g))) salEstado[g] = 0; o |= 1 << g; } else o &= ~(1 << g);
+      if (e.entradas & (1 << j)) {
+        if (!(i & (1 << g))) entEstado[g] = e.ent[j];         // módulo nuevo: el estado inicial no dispara reglas
+        else if (e.ent[j] != entEstado[g]) {
+          uint8_t dif = e.ent[j] ^ entEstado[g];
+          entEstado[g] = e.ent[j];
+          for (uint8_t b = 0; b < 8; b++) if (dif & (1 << b)) ioEntrada(g * 8 + b, e.ent[j] & (1 << b));
+          ioCambio = true;
+        }
+        i |= 1 << g;
+      } else i &= ~(1 << g);
+    }
+    if (o != ioOut || i != ioIn) {
+      ioOut = o; ioIn = i; ioCambio = true;
+      Serial.printf("AP BUS nodo %u: AP PRO DO8 %X  AP INPUT %X\n", k, e.salidas, e.entradas);
+      haPublicar();
+    }
+  } else if (busModo == 2 && m.identifier == busIdOrden(busId)) {   // nodo: órdenes del maestro
+    BusOrden o;
+    if (!busDecodificarOrden(m.data, m.data_length_code, &o)) return;
+    busUltimo[0] = millis() | 1;
+    busFallaSegura = false;
+    for (uint8_t j = 0; j < 4; j++) if (salEstado[j] != o.sal[j]) { salEstado[j] = o.sal[j]; ioCambio = true; }
+  }
+}
+void busActualizar(uint32_t t) {
+  if (!busListo) return;
+  twai_message_t m;
+  while (twai_receive(&m, 0) == ESP_OK) busRecibido(m);
+  static uint32_t tMan = 0, tRevisa = 0;
+  static uint8_t enviado[IO_N];
+  static uint8_t entEnviada[IO_LOC];
+  if (busModo == 1) {
+    for (uint8_t k = 1; k <= BUS_NODOS; k++) {               // nodo que dejó de responder: sus módulos desaparecen
+      uint16_t mask = 0x0F << (4 * k);
+      if (busVencido(t, busUltimo[k], BUS_VENCE) && ((ioOut | ioIn) & mask)) {
+        ioOut &= ~mask; ioIn &= ~mask; ioCambio = true;
+        Serial.printf("AP BUS: nodo %u sin respuesta\n", k);
+        haPublicar();
+      }
+    }
+    bool cambio = memcmp(enviado + 4, salEstado + 4, IO_N - 4) != 0;
+    if (cambio || t - tMan >= BUS_PERIODO) {                  // órdenes a todos los nodos (también sirven de latido)
+      tMan = t;
+      memcpy(enviado, salEstado, IO_N);
+      for (uint8_t k = 1; k <= BUS_NODOS; k++) {
+        BusOrden o;
+        memcpy(o.sal, salEstado + 4 * k, 4);
+        uint8_t d[8], n = busCodificarOrden(o, d);
+        busMandar(busIdOrden(k), d, n);
+      }
+    }
+  } else if (busModo == 2) {
+    if (!busFallaSegura && busVencido(t, busUltimo[0], BUS_VENCE)) {   // sin maestro: todo apagado (falla segura)
+      busFallaSegura = true;
+      bool habia = false;
+      for (uint8_t j = 0; j < IO_LOC; j++) { habia |= salEstado[j]; salEstado[j] = 0; }
+      ioCambio = true;
+      if (habia) Serial.println("AP BUS: sin maestro, salidas apagadas");
+    }
+    bool cambio = memcmp(entEnviada, entEstado, IO_LOC) != 0;
+    if (cambio || t - tMan >= BUS_PERIODO) {
+      tMan = t;
+      memcpy(entEnviada, entEstado, IO_LOC);
+      BusEstado e{(uint8_t)(ioOut & 0x0F), (uint8_t)(ioIn & 0x0F), {entEstado[0], entEstado[1], entEstado[2], entEstado[3]},
+                  (uint8_t)(busFallaSegura ? 1 : 0)};
+      uint8_t d[8], n = busCodificarEstado(e, d);
+      busMandar(busIdEstado(busId), d, n);
+    }
+  }
+  if (t - tRevisa > 500) {                                    // demasiados errores: el controlador se recupera solo
+    tRevisa = t;
+    twai_status_info_t st;
+    if (twai_get_status_info(&st) == ESP_OK) {
+      if (st.state == TWAI_STATE_BUS_OFF) twai_initiate_recovery();
+      else if (st.state == TWAI_STATE_STOPPED) twai_start();
+    }
+  }
+  bool hay = busModo == 1 ? busEnLinea() != 0 : !busVencido(t, busUltimo[0], BUS_VENCE);
+  digitalWrite(PIN_LED_BUS, hay ? HIGH : ((t / 125) & 1));   // fijo = bus con tráfico; rápido = nadie responde
 }
 
 bool pedirReinicio = false;
@@ -1265,6 +1399,15 @@ bool ejecutar(const char* s, bool remoto) {
     pixGuardar();
     return true;
   }
+  if (!strncmp(s, "BUS ", 4)) {                                // BUS 0 | BUS 1 | BUS 2 id: AP BUS (placa AP NODE)
+    const char* q = s + 4;
+    int m = numero(q), id = m == 2 ? numero(q) : 0;
+    if (m < 0 || m > 2 || (m == 2 && (id < 1 || id > BUS_NODOS))) return false;
+    if (m && hayBase) { aviso = "AP BUS solo en la placa AP NODE"; return false; }   // IO4/IO5 son CH1/CH2 de la base
+    pref.putUChar("bus", m); pref.putUChar("busid", id);
+    pedirReinicio = true;
+    return true;
+  }
   if (!strncmp(s, "ET ", 3)) {                                 // ET S3 Cocina / ET S3 (borrar)
     const char* q = s + 3;
     while (*q == ' ') q++;
@@ -1314,7 +1457,7 @@ bool ejecutar(const char* s, bool remoto) {
   if (!strncmp(s, "SA ", 3)) {                                 // SA n 0|1|2: salida de AP OUTPUT
     const char* q = s + 3;
     int n = numero(q), v = numero(q);
-    if (n < 1 || n > IO_N * 7 || v < 0 || v > 2) return false;
+    if (n < 1 || n > IO_N * 8 || v < 0 || v > 2) return false;
     aplicarAccion(v == 2 ? 7 : (v ? 5 : 6), n);
     return true;
   }
@@ -1697,8 +1840,17 @@ void revisarUDP() {
 }
 
 void setup() {
-  for (uint8_t c = 0; c < 4; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); pwm(c, 0); }
-  for (uint8_t k = 0; k < 2; k++) { ledcAttachChannel(CC_PIN[k], CC_HZ, PWM_BITS, 4 + k); focoCC(k, 0); }
+  pref.begin("letrerolab", false);
+  busModo = pref.getUChar("bus", 0); busId = pref.getUChar("busid", 0);
+  if (busModo > 2 || (busModo == 2 && (busId < 1 || busId > BUS_NODOS))) busModo = 0;
+  if (busModo == 1) busId = 0;
+  // AP BUS: IO4/IO5 quedan como entradas hasta saber si hay base (en la base son CH1/CH2: el pull-down las apaga;
+  // en el AP NODE el TXD del transceptor tiene pull-up: el bus queda en recesivo)
+  for (uint8_t c = 0; c < 4; c++) {
+    if (busModo && c < 2) { pinMode(PWM_PIN[c], INPUT); continue; }
+    ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); pwm(c, 0);
+  }
+  for (uint8_t k = 0; k < 2; k++) if (!busModo || k) { ledcAttachChannel(CC_PIN[k], CC_HZ, PWM_BITS, 4 + k); focoCC(k, 0); }
   pinMode(PIN_AUX, OUTPUT); digitalWrite(PIN_AUX, LOW);
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_MODO, INPUT_PULLUP);
@@ -1707,7 +1859,6 @@ void setup() {
   pinMode(PIN_ALERTA, INPUT_PULLUP);
   Serial.begin(115200);
   colaMq = xQueueCreate(6, 128);
-  pref.begin("letrerolab", false);
   cargar();
   randomSeed(esp_random());
 
@@ -1720,6 +1871,13 @@ void setup() {
   iniciarSensores();
   ioBuscar();
   leerBase();
+  if (busModo && hayBase) {                                  // programador sobre una base: sin AP BUS
+    Serial.println("AP BUS: hay base, se desactiva (solo en la placa AP NODE)");
+    busModo = 0;
+    for (uint8_t c = 0; c < 2; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); dutyActual[c] = 9999; pwm(c, 0); }
+    ledcAttachChannel(CC_PIN[0], CC_HZ, PWM_BITS, 4); ccActual[0] = 9999; focoCC(0, 0);
+  }
+  if (busModo) busIniciar();
   if (modoInd) for (uint8_t c = 0; c < 4; c++) { ledcChangeFrequency(PWM_PIN[c], IND_HZ, PWM_BITS); dutyActual[c] = 9999; pwm(c, 0); }
   if (modoPix) { pixLeer(); pixIniciar(); }
   hayOLED = i2cPresente(OLED);
@@ -1776,6 +1934,7 @@ void loop() {
   leerBoton();
   revisarUDP();
   revisarVivo();
+  busActualizar(t);
   ioActualizar(t);
   aiActualizar(t);
   if (irListo) { irListo = false; teclaIR(irCodigo); }
