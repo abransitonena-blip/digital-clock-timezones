@@ -1,0 +1,2 @@
+(version 1)
+(rule "aislamiento_red" (condition "A.NetClass == 'Red' && B.NetClass != 'Red' && B.NetName != 'unconnected-*'") (constraint clearance (min 3.0mm)) (constraint creepage (min 5.0mm)))

@@ -20,6 +20,8 @@ Todo está en **`PEDIDO_JLCPCB.zip`** (carpeta `PEDIDO_JLCPCB/`). Hay una subcar
 | `15_AP_LIGHT_AO4` | AP LIGHT AO4 | 4 circuitos de alumbrado de red: 0-10 V + bobina de contactor |
 | `16_AP_UNO` | AP UNO (4 capas) | **Todo en uno**: potencia de la BASE + Wi-Fi + 4 salidas para contactores + 4 entradas + RS-485 (DMX o Modbus) + Qwiic |
 | `17_AP_FOCO` | Cabezal AP FOCO | 2 focos de corriente constante que se adaptan a cada foco (resistencia de ID), 25 mA - 1 A |
+| `18_AP_FOCO127` | AP FOCO 127 (**red**) | El AP FOCO con su propia fuente certificada Mean Well de 127/220 VCA, 2 × 500 mA. **Con la ranura de aislamiento** |
+| `19_AP_RED4` | AP RED 4 (**red**, 2 oz) | 4 relevadores de 10 A 250 VCA para focos, contactos y bombas de 127/220 V. **Con las ranuras** |
 
 La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el sistema modular.
 
@@ -27,6 +29,7 @@ La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el 
 
 | Para | Pide |
 |---|---|
+| **Cargas de 127/220 V directo** | AP UNO + AP RED 4 (y AP FOCO 127 para focos sin driver) |
 | **Lo más compacto** | **1 AP UNO** (y 1-2 AP FOCO para focos sin driver) |
 | Sistema mínimo | 1 BASE + 1 PROGRAMADOR |
 | Prototipo AP ELECTRIC (luces, sensores, válvula) | 1 BASE + 1 PROGRAMADOR + 1 AP INPUT + 1 DO8 |
@@ -147,3 +150,9 @@ Cada carpeta trae:
   - 0.3 mm al borde;
   - textos de 0.8 mm o más.
 - **Códigos LCSC verificados** en lcsc.com / jlcpcb.com para los conectores AP CONNECT, el TCA9554PWR (C477924), el ADS1115 (C37593), el NCV8406ASTT3G (C459816), el TJA1051T/3 (C38695) y el PCA9685PW (C2678753).
+
+## Placas de red (AP FOCO 127 y AP RED 4)
+
+- Las ranuras fresadas están en la capa de contorno (Edge.Cuts) del Gerber. JLCPCB las corta sin costo extra; revisa en la vista previa que aparezcan.
+- Pide la AP RED 4 con **2 oz** de cobre: sus pistas de red llevan 10 A.
+- Son para instalar **dentro de una caja cerrada** con un interruptor termomagnético. Las instala un electricista.

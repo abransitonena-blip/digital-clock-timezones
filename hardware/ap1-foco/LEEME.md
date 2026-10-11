@@ -55,7 +55,7 @@ Además:
 
 ## Alimentación: 127 V, 220 V o industrial (277 / 480 V)
 
-La red **nunca entra a esta placa** ni a ninguna del ecosistema: no hay tensión peligrosa en las patas de los LED ni en lo que se toca. La tensión de la instalación la convierte una **fuente certificada** de 24 V DC, elegida según el lugar:
+La red **no entra a esta placa**: no hay tensión peligrosa en las patas de los LED ni en lo que se toca. Si quieres conectar directo a 127/220 VCA sin fuente aparte, está el **[AP FOCO 127](../ap1-foco127/LEEME.md)** (fuente Mean Well certificada en la misma placa, 2 × 500 mA). Con este cabezal, la tensión de la instalación la convierte una **fuente certificada** de 24 V DC, elegida según el lugar:
 
 | Instalación | Fuente sugerida (24 V) | Notas |
 |---|---|---|

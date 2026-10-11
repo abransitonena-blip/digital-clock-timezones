@@ -1,5 +1,7 @@
 # AP ELECTRIC: «Una base. Muchas posibilidades.» · Instala. Identifica. Mantén. Amplía.
 
+![AP ELECTRIC](AP_ELECTRIC_producto_1600.jpg)
+
 Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está diseñado en este repositorio.
 
 > **Estado:** propuesta y primer prototipo. Todas las placas pasan las revisiones de diseño (ERC/DRC 0 y reglas de JLCPCB), pero **ninguna se ha fabricado ni probado todavía**. No hay prestaciones ni certificaciones comprobadas. La resistencia al agua (IP) no se declara hasta probar el conjunto completo.
@@ -13,13 +15,22 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
   - app y documentación en español;
   - funciona **sin internet**: tiene su propia red Wi-Fi de configuración, horarios con reloj propio (DS3231 opcional) y órdenes por la red local;
   - montaje en **riel DIN**.
-- **Seguridad, que no cambia:** la red de 127/220 V no entra a ninguna placa. Las cargas de red se mandan con contactores o relevadores de estado sólido de riel DIN certificados.
+- **Seguridad, con la red dentro de dos placas:**
+  - Casi todo el ecosistema es de 12-24 V.
+  - La red de 127/220 V entra solo a dos placas, y en zonas marcadas:
+    - **AP FOCO 127**: fuente encapsulada Mean Well certificada, con aislamiento reforzado de 6 mm y ranura;
+    - **AP RED 4**: relevadores de 10 A con ranuras junto a cada pata de red.
+  - En las dos, el DRC comprueba la distancia en el aire y por la superficie entre la red y la baja tensión.
+  - Van en caja cerrada, con un termomagnético, y las instala un electricista.
+  - Las cargas grandes (motores, alumbrado público) siguen yendo por contactores de riel DIN certificados.
 
 ## Familias: de la propuesta al hardware
 
 | Familia | Función | Qué existe hoy | Estado |
 |---|---|---|---|
 | **AP UNO** | **Todo en uno**: potencia + cerebro + salidas + entradas + RS-485 en una placa | **`ap1-uno`** (120 × 62 mm, 4 capas): la potencia de la BASE, ESP32-C3, 4 salidas para contactores, 4 entradas, RS-485 para **DMX512 o Modbus**, Qwiic para **cabezales** ([LEEME](ap1-uno/LEEME.md)) | Diseñada; programa 2.1 |
+| **AP RED** | Cargas de 127/220 VCA directo | **`ap1-red4`**: 4 relevadores de 10 A 250 VCA, mando I2C como el DO8 (salidas S9-S12). **`ap1-foco127`**: el AP FOCO con su propia fuente de red certificada ([LEEME](ap1-red4/LEEME.md), [LEEME](ap1-foco127/LEEME.md)) | Diseñadas; programa 2.2 |
+| **AP STUDIO** | La app para programar | **`ap-studio`**: app web estilo celular (inicio, luces, salidas, automatizaciones "cuando… entonces…", módulos y tienda AP), servida por el propio equipo en `/studio`; modo demostración | Programa 2.2 |
 | **AP BASE** | Potencia y protecciones propias, sin Wi-Fi | `ap1-base`: 12-24 V, 4 canales de 8 A, 2 focos de corriente constante, AUX; corte por hardware ante sobrecorriente, sobrevoltaje y 85 °C | Diseñada (4 capas) |
 | **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 2.0 |
 | **AP INPUT** | Pulsadores y sensores | **`ap1-in`:** 8 entradas de 12-24 V aisladas, con reglas por entrada. **`ap1-ai4`:** 4 entradas analógicas 0-10 V / 4-20 mA con umbrales | Diseñados |
@@ -40,6 +51,20 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | **AP SIGN**: letras luminosas, cajas de luz, neón LED | Letreros | BASE (canales de 8 A, efectos), **PIX** (pixeles), **DMX**, **DIST 4** (4 ramas protegidas con diagnóstico), **PWM4** (más canales de potencia), horario solar | "SIGN COLOR" como módulo dedicado (hoy: PIX o DMX con decodificador) |
 | **AP LIGHT**: alumbrado | Alumbrado público y de estacionamientos, naves, bodegas, fachadas, oficinas | **AO4** (luminarias de red con driver 0-10 V + contactor), **PWM4** (luminarias LED de 24 V), **horario solar** (ocaso/amanecer sin fotocelda), medidor de energía por Modbus (AP GATE) | DALI (pendiente: necesita fuente de bus DALI) |
 | **AP LINK / GATE**: comunicación | Varios tableros, equipos de terceros | **AP NODE** (AP BUS 24 V + CAN), **AP GATE** (+ RS-485 Modbus RTU), Wi-Fi, MQTT, Home Assistant | Ethernet |
+
+## AP Studio: la app para programar todo
+
+- **Dónde está:** el equipo la sirve en `http://<equipo>/studio`, en el celular, la tableta o la computadora. Se puede agregar a la pantalla de inicio como app.
+- **Qué tiene:**
+  - **Inicio:** consumo en vivo, luz principal, escenas;
+  - **Luces:** cada luminaria y cada foco, con su corriente;
+  - **Salidas:** relevadores, salidas y entradas;
+  - **Automatizar:** "cuando… entonces…" por entrada, hora u ocaso / amanecer;
+  - **Módulos:** lo conectado y la **Tienda AP** con lo que se puede agregar;
+  - **Ajustes.**
+- **Varios equipos:** encuentra los demás equipos de la red y cambia entre ellos.
+- **Sin equipo:** abre un **modo demostración** con un equipo simulado.
+- Usa la misma API del programa (`/api?c=<orden>`). La versión de la app que se publica para compartir corre en demostración.
 
 ## Cabezales: una salida, sus propios chips
 
@@ -64,6 +89,7 @@ Cada modelo es una lista de placas que se piden juntas y se programan igual.
 
 | Modelo | Placas | Para |
 |---|---|---|
+| **CASA RED** | **AP UNO + AP RED 4** | Focos, contactos y bomba de 127 V directo desde la app, con apagadores de pared como entradas y horarios |
 | **CASA UNO** | **AP UNO** (+ AP FOCO) | Una sola placa: 4 circuitos LED, 2 focos, 4 contactores (bomba, calentador, contactos), 4 apagadores o sensores |
 | **CASA 4 LED** | CORE + BASE | 4 circuitos de iluminación LED de 12-24 V con atenuación, escenas y horarios |
 | **CASA 8 RED** | CORE + DO8 + AP INPUT + 8 contactores modulares | Focos y contactos de 127 V por contactor; apagadores de 24 V en la pared |
@@ -97,6 +123,7 @@ Todos los letreros pueden encender al **ocaso** y apagar a una hora fija o al **
 | **LIGHT CALLE** | GATE + AO4 + contactores AC-5b + supresor de picos | Alumbrado público, privadas y estacionamientos: enciende al ocaso, baja al 50 % a media noche, apaga al amanecer; consumo medido por Modbus |
 | **LIGHT NAVE** | CORE + AO4 (hasta 4 = 16 circuitos) | Naves y bodegas con luminarias de red atenuables 0-10 V |
 | **LIGHT DC** | CORE + PWM4 (hasta 4 = 16 canales) | Luminarias, reflectores y tiras de 24 V DC, hasta 20 A por PWM4 |
+| **LIGHT FOCOS 127** | **AP UNO + AP FOCO 127** | Vitrinas y tiendas: los focos se conectan a la red del local sin fuentes aparte |
 | **LIGHT FOCOS** | **AP UNO + 1-2 AP FOCO** | Vitrinas, museos, acuarios, empotrados y COB sin driver: cada foco recibe su corriente exacta |
 | **LIGHT FACHADA** | CORE + PWM4 o DMX + horario solar | Iluminación arquitectónica con escenas y colores |
 

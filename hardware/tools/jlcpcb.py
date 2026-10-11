@@ -49,6 +49,12 @@ CONOCIDOS = {
     ("ADS1115IDGSR", "TSSOP-10_3x3mm_P0.5mm"): ("C37593", "Extended"),          # TI, ADC 16 bits I2C (VSSOP-10)
     ("PCA9685PW", "TSSOP-28_4.4x9.7mm_P0.65mm"): ("C2678753", "Extended"),      # NXP PCA9685PW,118: 16 PWM de 12 bits I2C
     ("LM324DT", "SOIC-14_3.9x8.7mm_P1.27mm"): ("C71035", "Basic Component"),     # ST, 4 amplificadores (0-10 V)
+    # red de 127/220 V (verificadas en lcsc.com / jlcpcb.com, octubre 2026)
+    ("IRM-20-24", "Converter_ACDC_MeanWell_IRM-20-xx_THT"): ("C194964", "Extended"),  # Mean Well 24 V 0.9 A, 85-264 VCA
+    ("T2A 250VCA", "Fuse_2410_6125Metric"): ("C2838939", "Extended"),   # prosemi 2410LC-2A, retardo, 50 A a 250 VCA
+    ("10D471K", "RV_Disc_D12mm_W5mm_P7.5mm"): ("C317795", "Extended"),   # COV 10D471K, 300 VCA, 67 J
+    ("KF128-5.08-2P", "TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal"): ("C474952", "Extended"),
+    ("SRD-24VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C15840", "Extended"),   # Songle, 10 A 250 VCA
 }
 
 # Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.

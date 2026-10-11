@@ -8,7 +8,8 @@
 - Se genera para las dos medidas del ecosistema:
     88 x 56 mm (BASE, IND, PIX, DMX, PLANTILLA): el riel queda horizontal y la placa ocupa 5 módulos DIN de ancho;
     72 x 56 mm (AP INPUT, AP OUTPUT): 4 módulos DIN;
-    120 x 62 mm (AP UNO): 7 módulos DIN;  60 x 56 mm (cabezal AP FOCO): 4 módulos DIN.
+    120 x 62 mm (AP UNO): 7 módulos DIN;  60 x 56 mm (cabezal AP FOCO): 4 módulos DIN;
+    120 x 56 mm (AP FOCO 127) y 84 x 73 mm (AP RED 4): placas de red, siempre dentro de una caja cerrada.
 - Imprimir en PETG o ASA, con la cara de atrás (ganchos) hacia arriba, 4 paredes y 40 % de relleno.
   PROTOTIPO: el ajuste del seguro se prueba con un tramo de riel antes de imprimir en serie.
 
@@ -29,6 +30,8 @@ PLACAS = {
     "72x56": (72.0, 56.0, [(3.5, 3.5), (68.5, 3.5), (68.5, 38.5)]),
     "120x62": (120.0, 62.0, [(3.5, 3.5), (84.5, 58.5), (116.5, 58.5)]),
     "60x56": (60.0, 56.0, [(3.5, 3.5), (56.5, 3.5), (56.5, 38.5)]),
+    "120x56": (120.0, 56.0, [(3.5, 3.5), (56.5, 3.5), (56.5, 38.5), (116.5, 52.5)]),
+    "84x73": (84.0, 73.0, [(3.5, 3.5), (3.5, 58.0), (80.5, 3.5), (80.5, 69.5)]),
 }
 TP = 3.0                 # charola
 POSTE, POSTE_D, INS = 5.5, 7.0, 4.0

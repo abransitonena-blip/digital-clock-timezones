@@ -45,7 +45,8 @@ El AP UNO no trata de hacerlo todo en la placa: los trabajos especiales van en *
 
 ## Cargas de 127 V, 220 V o industriales
 
-La red **no entra a la placa**. Para cargas de la instalación:
+La red **no entra al AP UNO**. Para cargas de la instalación:
+- **AP RED 4** por Qwiic: 4 relevadores de 10 A para focos, contactos y bombas de 127/220 V ([LEEME](../ap1-red4/LEEME.md)), o
 - **Bobinas de contactor de 24 V** en S1-S4 (contactor DIN certificado del calibre de la carga), o
 - **Relevadores de estado sólido** con entrada de 3-32 V DC, o
 - **Variadores y medidores** por Modbus en el RS-485, o

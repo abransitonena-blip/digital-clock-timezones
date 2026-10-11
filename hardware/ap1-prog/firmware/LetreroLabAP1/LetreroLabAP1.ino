@@ -76,8 +76,9 @@
 #include "modbus.h"
 #include "luz.h"
 #include "pagina.h"
+#include "studio.h"                         // app AP Studio (comprimida), en /studio
 
-#define VERSION "AP-1 fw 2.1"
+#define VERSION "AP-1 fw 2.2"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -217,8 +218,10 @@ float mbVal[MB_N];
 uint8_t mbErr[MB_N];                        // 0 bien, 1 sin respuesta, 2 CRC, 3 trama equivocada, 10 + excepción
 uint32_t mbBien = 0, mbMal = 0;
 // ---- AP LIGHT: PWM4 (L1-L16, atenuación con curva de brillo) y AO4 (L17-L32: 0-10 V lineal + contactor) ----
-// L33-L36: cabezales AP FOCO (PCA9685 0x60/0x61, 2 focos de corriente constante cada uno)
-const uint8_t LU_N = 36, LU_MODS = 10, LU_DIR[LU_MODS] = {0x41, 0x43, 0x51, 0x53, 0x44, 0x45, 0x46, 0x47, 0x60, 0x61};
+// L33-L36: cabezales AP FOCO (PCA9685 0x60/0x61, 1 A por foco) o AP FOCO 127 (0x64/0x65, fuente de red, 500 mA)
+const uint8_t LU_N = 36, LU_MODS = 10;
+uint8_t LU_DIR[LU_MODS] = {0x41, 0x43, 0x51, 0x53, 0x44, 0x45, 0x46, 0x47, 0x60, 0x61};
+uint16_t fcHw[2] = {1000, 1000};             // mA con CTRL al 100 %: 1000 (AP FOCO) o 500 (AP FOCO 127)
 inline uint8_t luModulo(uint8_t n) { return n < 16 ? n / 4 : (n < 32 ? 4 + (n - 16) / 4 : 8 + (n - 32) / 2); }
 const uint8_t ACC_MAX = 11;
 uint16_t luMods = 0;                        // bit m = módulo LU_DIR[m] presente
@@ -898,6 +901,7 @@ String estadoJSON() {
     s += '['; s += String(u.lim, 2); s += ','; s += u.acc; s += ','; s += u.val; s += ','; s += u.modo; s += ']';
   }
   s += "]},\"lu\":{\"m\":"; s += luMods; s += ",\"o\":"; s += String(luOn); s += ",\"s\":"; s += String(luSigue);
+  s += ",\"fh\":["; s += fcHw[0]; s += ','; s += fcHw[1]; s += ']';   // tope de cada cabezal (1000 o 500 mA)
   s += ",\"f\":[";                                            // AP FOCO: [mA medida, mA máxima, límite, estado]
   for (uint8_t f = 0; f < FC_N; f++) {
     if (f) s += ',';
@@ -1515,8 +1519,9 @@ uint16_t fcCiclo(uint8_t f, float nivel) {                    // nivel 0-100 % -
   uint16_t tope = fcTope(f);
   fcObj[f] = (uint32_t)GAMMA12[(uint16_t)(nivel * 2.55f + 0.5f)] * tope / PWM_MAX;   // lo pedido, aunque esté en falla
   if (fcEst[f] == FC_NO || fcEst[f] == FC_ID_CORTO || fcFalla[f] == FC_SOBRE || !tope) return 0;
-  uint32_t v = (uint32_t)(fcObj[f] * fcCorr[f] * PWM_MAX / 1000.0f + 0.5f);
-  uint32_t vmax = (uint32_t)tope * PWM_MAX * 21 / 20000;      // nunca más del 105 % del tope en promedio
+  uint16_t hw = fcHw[f / 2];
+  uint32_t v = (uint32_t)(fcObj[f] * fcCorr[f] * PWM_MAX / (float)hw + 0.5f);
+  uint32_t vmax = (uint32_t)tope * PWM_MAX * 21 / (20UL * hw); // nunca más del 105 % del tope en promedio
   return min<uint32_t>(v, min<uint32_t>(vmax, PWM_MAX));
 }
 void fcMedir(uint32_t t) {
@@ -1532,7 +1537,7 @@ void fcMedir(uint32_t t) {
     float ma = max(0.0f, (int16_t)sh * 5e-6f / 0.1f * 1000.0f), v = (int16_t)bus * 0.003125f;
     fcMa[f] = (uint16_t)(ma + 0.5f); fcVid[f] = v;
     uint16_t mx = focoMaxMa(v);                                        // el ID manda el tope
-    fcMax[f] = mx == FOCO_SIN_ID ? 350 : mx;
+    fcMax[f] = min<uint16_t>(mx == FOCO_SIN_ID ? 350 : mx, fcHw[f / 2]);   // y nunca más que la placa
     uint16_t obj = fcObj[f];
     bool estable = abs((int)obj - (int)objAntes[f]) <= obj / 50 + 2;   // sin rampa: se puede corregir y diagnosticar
     objAntes[f] = obj;
@@ -1562,7 +1567,15 @@ void luActualizar(uint32_t t) {
   if (t - tBusca > 5000 || !tBusca) {                         // módulos nuevos o desconectados
     tBusca = t | 1;
     uint16_t m = 0;
-    for (uint8_t k = 0; k < LU_MODS; k++) if (i2cPresente(LU_DIR[k])) m |= 1 << k;
+    for (uint8_t k = 0; k < LU_MODS; k++) {
+      if (k >= 8) {                                           // cabezal: AP FOCO (0x60) o AP FOCO 127 (0x64)
+        uint8_t h = k - 8, d = i2cPresente(0x60 + h) ? 0x60 + h : (i2cPresente(0x64 + h) ? 0x64 + h : 0);
+        if (!d) continue;
+        if (d != LU_DIR[k]) luMods &= ~(1 << k);              // cambió de tipo: se vuelve a iniciar
+        LU_DIR[k] = d; fcHw[h] = d >= 0x64 ? 500 : 1000;
+        m |= 1 << k;
+      } else if (i2cPresente(LU_DIR[k])) m |= 1 << k;
+    }
     for (uint8_t k = 0; k < LU_MODS; k++)
       if ((m & (1 << k)) && !(luMods & (1 << k))) {
         // PWM4: 508 Hz; AO4: 1526 Hz (menos rizo en el 0-10 V); AP FOCO: 1017 Hz (CTRL del AL8860)
@@ -2136,6 +2149,12 @@ void rutaInicio() {
   web.sendHeader("Cache-Control", "no-cache");
   web.send_P(200, "text/html; charset=utf-8", PAGINA);
 }
+void rutaStudio() {                                           // AP Studio: la app tipo celular, servida por el equipo
+  if (!autorizado()) return;
+  web.sendHeader("Content-Encoding", "gzip");
+  web.sendHeader("Cache-Control", "max-age=600");
+  web.send_P(200, "text/html; charset=utf-8", (const char*)STUDIO_GZ, STUDIO_LEN);
+}
 void rutaApi() {
   if (!autorizado()) return;
   web.sendHeader("Access-Control-Allow-Origin", "*");
@@ -2454,6 +2473,7 @@ void setup() {
 
   web.on("/", rutaInicio);
   web.on("/api", rutaApi);
+  web.on("/studio", rutaStudio);
   web.on("/vecinos", rutaVecinos);
   web.on("/redes", rutaRedes);
   web.on("/ota", HTTP_POST, rutaOtaFin, rutaOtaDatos);

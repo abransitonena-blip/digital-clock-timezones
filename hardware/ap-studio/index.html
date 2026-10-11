@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AP Studio">
+<title>AP Studio</title>
+<style>
+:root{
+  --bg:#f2f2f7;--card:#ffffff;--card2:#f7f7fa;--text:#1c1c1e;--sub:#6e6e73;--line:rgba(60,60,67,.14);
+  --accent:#0a84ff;--green:#30d158;--orange:#ff9f0a;--red:#ff453a;--purple:#bf5af2;--yellow:#ffd60a;
+  --bar:rgba(249,249,251,.78);--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--text:#f5f5f7;--sub:#98989f;--line:rgba(84,84,88,.5);
+  --bar:rgba(22,22,24,.78);--shadow:none}}
+:root[data-theme="dark"]{--bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--text:#f5f5f7;--sub:#98989f;--line:rgba(84,84,88,.5);
+  --bar:rgba(22,22,24,.78);--shadow:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+.app{max-width:760px;margin:0 auto;padding:0 16px calc(96px + env(safe-area-inset-bottom))}
+header.top{position:sticky;top:0;z-index:5;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top)) 16px 8px;
+  background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:.5px solid var(--line);display:flex;align-items:center;gap:10px}
+header.top .dev{flex:1;min-width:0}
+header.top .dev b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top .dev span{font-size:12px;color:var(--sub)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--sub)}
+.dot.on{background:var(--green)}.dot.demo{background:var(--orange)}
+.pill{border:0;background:var(--card2);border-radius:99px;padding:6px 12px;font-size:14px;cursor:pointer}
+h1{font-size:34px;letter-spacing:-.02em;margin:18px 2px 10px;font-weight:700}
+h2{font-size:20px;margin:26px 4px 10px;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--sub);font-size:14px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.tile{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;min-height:112px;display:flex;
+  flex-direction:column;justify-content:space-between;cursor:pointer;border:0;text-align:left;transition:transform .15s}
+.tile:active{transform:scale(.97)}
+.tile.on{background:linear-gradient(160deg,#fff 0%,#fff7d6 100%);color:#1c1c1e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tile.on{background:linear-gradient(160deg,#3a3a1e,#5c4b10);color:#fff}}
+.tile .ico{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--card2);font-size:18px}
+.tile.on .ico{background:var(--yellow)}
+.tile b{font-size:15px}.tile small{color:var(--sub);font-size:13px}
+.tile.on small{color:#6b5a1a}
+.hero{background:radial-gradient(120% 140% at 0% 0%,#0a84ff 0%,#5e5ce6 45%,#bf5af2 100%);color:#fff;border-radius:24px;
+  padding:20px;margin:12px 0;box-shadow:0 12px 32px rgba(94,92,230,.35)}
+.hero .hrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hero .big{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.hero .row{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
+.hero .row div{font-size:13px;opacity:.85}.hero .row b{display:block;font-size:20px;opacity:1}
+.row{display:flex;align-items:center;gap:12px}
+.list{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin:10px 0}
+.item{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:52px;border-bottom:.5px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .t{flex:1;min-width:0}.item .t b{font-weight:500;display:block}.item .t span{font-size:13px;color:var(--sub)}
+.badge{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:15px;flex:none}
+.sw{position:relative;width:51px;height:31px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:var(--card2);border-radius:99px;transition:.25s;cursor:pointer;border:.5px solid var(--line)}
+.sw i:before{content:"";position:absolute;width:27px;height:27px;left:2px;top:1.5px;border-radius:50%;background:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.15);transition:.25s}
+.sw input:checked+i{background:var(--green)}.sw input:checked+i:before{transform:translateX(20px)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--card2) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;margin-top:-10px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--card2)}
+input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.seg{display:flex;background:var(--card2);border-radius:10px;padding:2px;gap:2px;overflow-x:auto}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:7px 10px;font-size:14px;white-space:nowrap;cursor:pointer}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.btn{border:0;border-radius:12px;padding:12px 16px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer}
+.btn.sec{background:var(--card2);color:var(--accent)}.btn.del{background:transparent;color:var(--red);padding:8px}
+.inp{width:100%;border:0;background:var(--card2);border-radius:10px;padding:11px 12px;outline:none}
+select.inp{appearance:none;-webkit-appearance:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border-radius:99px;background:var(--card2);padding:6px 12px;font-size:13px}
+.chip.ok{background:rgba(48,209,88,.16);color:#1f8f3d}.chip.warn{background:rgba(255,159,10,.18);color:#a35f00}
+.chip.bad{background:rgba(255,69,58,.15);color:#c0281f}
+.colors{display:flex;gap:10px;flex-wrap:wrap}
+.colors button{width:36px;height:36px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.colors button.on{box-shadow:0 0 0 2px var(--accent)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bar);backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--line);
+  display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+nav.tabs button{flex:1;max-width:120px;border:0;background:none;color:var(--sub);font-size:10.5px;display:flex;flex-direction:column;
+  align-items:center;gap:2px;padding:4px 0;cursor:pointer}
+nav.tabs button svg{width:26px;height:26px}
+nav.tabs button.on{color:var(--accent)}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9;display:none;align-items:flex-end;justify-content:center}
+.sheet-bg.show{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:760px;border-radius:14px 14px 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow:auto;animation:up .28s cubic-bezier(.2,.8,.2,1)}
+.sheet .grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+@keyframes up{from{transform:translateY(40%);opacity:.4}to{transform:none;opacity:1}}
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-120%);z-index:20;
+  background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.18);border-radius:99px;padding:10px 18px;font-size:14px;transition:.3s}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.store .tile{min-height:150px}
+.store .tag{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:600}
+.empty{text-align:center;color:var(--sub);padding:26px 10px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:15px}.kv span{color:var(--sub)}
+.hidden{display:none!important}
+.rule{display:flex;gap:10px;align-items:center}
+.rule .when{font-weight:600}.rule .arrow{color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="dev"><b id="hNom">AP Studio</b><span><i class="dot" id="hDot"></i><span id="hEst">Conectando…</span></span></div>
+    <button class="pill" id="bDev">Equipos</button>
+  </header>
+
+  <!-- INICIO -->
+  <section id="v-inicio">
+    <h1>Inicio</h1>
+    <div class="hero">
+      <div class="hrow">
+        <div><div style="font-size:14px;opacity:.85" id="hHola">Hola</div><div class="big" id="hW">— W</div></div>
+        <label class="sw"><input type="checkbox" id="mainOn"><i></i></label>
+      </div>
+      <div class="row">
+        <div><b id="hV">—</b>Voltaje</div><div><b id="hA">—</b>Corriente</div><div><b id="hT">—</b>Temperatura</div><div><b id="hK">—</b>Hoy</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><b>Luz principal</b><span class="sub" id="mainPct">—</span></div>
+      <input type="range" min="0" max="100" id="mainB">
+      <div class="seg" id="modos" style="margin-top:8px"></div>
+      <div class="colors" id="colores" style="margin-top:14px"></div>
+    </div>
+    <h2>Escenas</h2>
+    <div class="grid" id="escenas"></div>
+    <h2>Lo que tienes conectado</h2>
+    <div class="chips" id="resumen"></div>
+  </section>
+
+  <!-- LUCES -->
+  <section id="v-luces" class="hidden">
+    <h1>Luces</h1>
+    <p class="sub" style="margin:0 4px">Cada luminaria de los módulos AP LIGHT y de los cabezales AP FOCO. Toca para encender o apagar, desliza para atenuar y mantén presionado para ver detalles.</p>
+    <div class="grid" id="luGrid" style="margin-top:12px"></div>
+    <div id="luVacio" class="empty hidden">Sin luminarias todavía.<br>Conecta un PWM4, un AO4 o un cabezal AP FOCO por Qwiic.</div>
+  </section>
+
+  <!-- ENERGIA / SALIDAS -->
+  <section id="v-equipo" class="hidden">
+    <h1>Salidas</h1>
+    <h2>Salidas</h2>
+    <div class="list" id="salidas"></div>
+    <h2>Entradas</h2>
+    <div class="list" id="entradas"></div>
+    <h2>Canales de la base</h2>
+    <div class="list" id="canales"></div>
+  </section>
+
+  <!-- AUTOMATIZAR -->
+  <section id="v-auto" class="hidden">
+    <h1>Automatizar</h1>
+    <button class="btn" id="nuevaRegla" style="width:100%">＋ Nueva automatización</button>
+    <h2>Cuando se activa una entrada</h2>
+    <div class="list" id="rEnt"></div>
+    <h2>A una hora</h2>
+    <div class="list" id="rHora"></div>
+    <h2>Con el sol</h2>
+    <div class="list" id="rSol"></div>
+  </section>
+
+  <!-- MODULOS -->
+  <section id="v-mod" class="hidden">
+    <h1>Módulos</h1>
+    <h2>En este equipo</h2>
+    <div class="list" id="modAqui"></div>
+    <h2>Tienda AP · amplía tu equipo</h2>
+    <p class="sub" style="margin:0 4px">Cada módulo oficial se conecta por Qwiic o RS-485 y aparece aquí solo, sin configurar nada.</p>
+    <div class="grid store" id="tienda" style="margin-top:12px"></div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section id="v-ajustes" class="hidden">
+    <h1>Ajustes</h1>
+    <div class="list">
+      <div class="item"><div class="t"><b>Nombre del equipo</b><span>Aparece en la red y en Home Assistant</span></div></div>
+      <div class="item"><input class="inp" id="aNom" placeholder="letrero-sala"><button class="btn sec" id="aNomG">Guardar</button></div>
+    </div>
+    <div class="list">
+      <div class="item"><div class="t"><b>Conectar a un equipo</b><span>Dirección IP o nombre .local (vacío = este equipo o demostración)</span></div></div>
+      <div class="item"><input class="inp" id="aHost" placeholder="192.168.1.50"><button class="btn sec" id="aHostG">Conectar</button></div>
+      <div class="item"><div class="t"><b>Modo demostración</b><span>Un equipo simulado con AP UNO, 2 cabezales AP FOCO, PWM4 y AP RED 4</span></div>
+        <label class="sw"><input type="checkbox" id="aDemo"><i></i></label></div>
+    </div>
+    <div class="list"><div class="item"><div class="kv" id="aInfo" style="width:100%"></div></div></div>
+    <div class="list">
+      <div class="item"><div class="t"><b>Apariencia</b></div>
+        <div class="seg" id="aTema"><button data-t="">Auto</button><button data-t="light">Claro</button><button data-t="dark">Oscuro</button></div></div>
+    </div>
+    <p class="sub" style="text-align:center">AP Studio · AP ELECTRIC</p>
+  </section>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-v="inicio" class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2.5 11h2.5v9h5v-6h4v6h5v-9h2.5z"/></svg>Inicio</button>
+  <button data-v="luces"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2zm-3 18h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg>Luces</button>
+  <button data-v="equipo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Salidas</button>
+  <button data-v="auto"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 10.4 3.5 2.1-.9 1.5L11 13V6h2z"/></svg>Automatizar</button>
+  <button data-v="mod"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg>Módulos</button>
+  <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.7 7.7 0 0 0-1.7-1L15 3.3h-4L10.6 6a7.7 7.7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.2 1.6 2 3.5 2.5-1a7.7 7.7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>Ajustes</button>
+</nav>
+
+<div class="sheet-bg" id="sheetBg"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const MODOS=["Fijo","Secuencia","Parpadeo","Respirar","Sec. suave","Alternado","Color","Arcoíris","Flash","Vela"];
+const ACC=["Apagar todo","Encender todo","Salida AUX","Escena","Brillo","Encender salida","Apagar salida","Alternar salida",
+  "Alternar luz","Encender luminaria","Apagar luminaria","Alternar luminaria"];
+const ACC_VAL=[0,0,1,1,1,2,2,2,0,3,3,3];            // 0 sin valor, 1 número, 2 salida, 3 luminaria
+const FEST=["sin cabezal","bien","sin foco","ID en corto","sobrecorriente","sin ID (350 mA)","fuente corta"];
+const COLORES=[[255,255,255],[255,180,90],[255,60,40],[255,150,0],[255,230,0],[60,220,90],[0,190,255],[40,90,255],[170,70,255],[255,60,170]];
+let E={}, host="", demo=false, ocupado=0, ultimo=0;
+const st=(k,v)=>{try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+const ld=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+
+/* ---------- conexión ---------- */
+function base(){return host?(/^https?:/.test(host)?host:"http://"+host):""}
+async function api(c){
+  if(demo){Sim.cmd(c);E=Sim.estado();pintar();return E}
+  ocupado++;
+  try{
+    const r=await fetch(base()+"/api"+(c?"?c="+encodeURIComponent(c):""),{cache:"no-store"});
+    if(!r.ok)throw 0; E=await r.json(); ultimo=Date.now(); pintar(); return E;
+  }catch(e){ if(!c&&!E.v)entrarDemo(true); else aviso("Sin respuesta del equipo"); }
+  finally{ocupado--}
+}
+function entrarDemo(auto){demo=true;E=Sim.estado();pintar();if(auto)aviso("Sin equipo en la red: modo demostración")}
+function aviso(t){const x=$("#toast");x.textContent=t;x.classList.add("show");clearTimeout(aviso.t);aviso.t=setTimeout(()=>x.classList.remove("show"),2200)}
+
+/* ---------- utilidades ---------- */
+const lmod=n=>n<16?n>>2:n<32?4+((n-16)>>2):8+((n-32)>>1);
+const bit=(v,n)=>Math.floor(v/2**n)%2;
+const et=(t,n)=>((E.et||{})[t+n]||"");
+function luNombre(n){const e=et("l",n+1);if(e)return e;if(n>=32)return "Foco "+(n-31);return (n<16?"Luminaria ":"Circuito ")+(n+1)}
+function luTipo(n){if(n>=32){const h=(E.lu.fh||[1000,1000])[(n-32)>>1];return h<1000?"AP FOCO 127":"AP FOCO"}return n<16?"PWM4":"AO4 0-10 V"}
+function sw(id,on,attrs=""){return `<label class="sw"><input type="checkbox" ${on?"checked":""} ${attrs}><i></i></label>`}
+function rng(el){el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%")}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function hm(m){return m<0?"--:--":String(m/60|0).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}
+function diasTxt(d){if(d==127)return "Todos los días";if(d==62)return "Lunes a viernes";if(d==65)return "Fin de semana";
+  return [..."DLMMJVS"].filter((x,i)=>d>>i&1).join(" ")}
+function accTxt(a,v){if(a==255)return "Nada";const t=ACC[a]||"?";const k=ACC_VAL[a];
+  return k==2?t+" S"+v:k==3?t+" "+luNombre(v-1):k==1?t+" "+v:t}
+
+/* ---------- pintar ---------- */
+function pintar(){
+  if(!E||!E.v)return;
+  $("#hNom").textContent=E.nom||"Equipo";
+  $("#hDot").className="dot "+(demo?"demo":"on");
+  $("#hEst").textContent=demo?"Demostración":(E.ip||"En línea")+(E.rssi?` · ${E.rssi} dBm`:"");
+  const h=new Date().getHours();$("#hHola").textContent=(h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches")+" · "+(E.p?"luz encendida":"luz apagada");
+  $("#hW").textContent=E.med?(+E.w).toFixed(1)+" W":"—";
+  $("#hV").textContent=E.med?(+E.vin).toFixed(1)+" V":"—";
+  $("#hA").textContent=E.med?(+E.i).toFixed(2)+" A":"—";
+  $("#hT").textContent=E.tc!=null?(+E.tc).toFixed(0)+" °C":"—";
+  $("#hK").textContent=E.med?(+E.hoy).toFixed(2)+" kWh":"—";
+  if(!activo("#mainOn"))$("#mainOn").checked=!!E.p;
+  if(!activo("#mainB")){$("#mainB").value=E.b;rng($("#mainB"))}
+  $("#mainPct").textContent=E.b+" %";
+  $("#modos").innerHTML=MODOS.map((m,i)=>`<button class="${i==E.m?"on":""}" data-m="${i}">${m}</button>`).join("");
+  $("#colores").innerHTML=COLORES.map((c,i)=>`<button style="background:rgb(${c})" data-c="${i}" class="${c[0]==E.c[0]&&c[1]==E.c[1]&&c[2]==E.c[2]?"on":""}"></button>`).join("");
+  pintarEscenas();pintarResumen();pintarLuces();pintarIO();pintarAuto();pintarModulos();pintarAjustes();
+}
+function activo(s){return document.activeElement===$(s)}
+
+const ESCENAS=[
+  {n:"Todo encendido",i:"☀️",c:["P 1","B 100"]},{n:"Noche",i:"🌙",c:["P 1","B 25","M 0","C 255 180 90 0"]},
+  {n:"Cine",i:"🎬",c:["P 1","B 10","M 0"]},{n:"Fiesta",i:"🎉",c:["P 1","B 100","M 7","V 6"]},
+  {n:"Ahorro",i:"🍃",c:["E 1"]},{n:"Todo apagado",i:"⏻",c:["P 0"]}];
+function pintarEscenas(){
+  $("#escenas").innerHTML=ESCENAS.map((e,i)=>`<button class="tile" data-esc="${i}"><span class="ico">${e.i}</span><b>${e.n}</b></button>`).join("");
+}
+function pintarResumen(){
+  const c=[];
+  if(E.uno)c.push(["AP UNO","ok"]);else if(E.base&&E.base.ok)c.push([E.base.mod||"AP BASE","ok"]);
+  const L=E.lu||{m:0};
+  if(L.m&0xF)c.push(["PWM4 ×"+pop(L.m&0xF),"ok"]);if(L.m&0xF0)c.push(["AO4 ×"+pop(L.m&0xF0),"ok"]);
+  for(let h=0;h<2;h++)if(L.m>>(8+h)&1)c.push([((L.fh||[])[h]<1000?"AP FOCO 127":"AP FOCO")+" "+(h+1),"ok"]);
+  const I=E.io||{o:0,i:0};if(I.o)c.push([pop(I.o)+" módulo(s) de salidas","ok"]);if(I.i)c.push([pop(I.i)+" módulo(s) de entradas","ok"]);
+  if(E.mb&&E.mb.b)c.push(["Modbus "+E.mb.b,"ok"]);if(E.udmx||E.dmx)c.push(["DMX512","ok"]);
+  if(E.f)c.push([E.fn||"Falla","bad"]);if(E.aviso)c.push([E.aviso,"warn"]);
+  $("#resumen").innerHTML=c.map(([t,k])=>`<span class="chip ${k}">${esc(t)}</span>`).join("")||'<span class="chip">Solo el cerebro</span>';
+}
+const pop=v=>{let n=0;while(v){n+=v&1;v>>=1}return n};
+
+function pintarLuces(){
+  const L=E.lu;if(!L){$("#luGrid").innerHTML="";$("#luVacio").classList.remove("hidden");return}
+  let h="";
+  for(let n=0;n<36;n++){
+    if(!(L.m>>lmod(n)&1))continue;
+    const on=bit(L.o,n),v=L.n[n];
+    let extra="";
+    if(n>=32){const f=(L.f||[])[n-32];if(f)extra=`${f[0]} mA · máx ${f[2]&&f[2]<f[1]?f[2]:f[1]} mA · ${FEST[f[3]]||""}`}
+    h+=`<div class="tile ${on?"on":""}" data-lu="${n+1}">
+      <div class="row" style="justify-content:space-between"><span class="ico">${n>=32?"🔦":"💡"}</span><small>${luTipo(n)}</small></div>
+      <div><b>${esc(luNombre(n))}</b><br><small>${on?v+" %":"Apagada"}${extra?"<br>"+extra:""}</small></div>
+      <input type="range" min="0" max="100" value="${v}" data-lur="${n+1}" style="--p:${v}%">
+    </div>`;
+  }
+  $("#luGrid").innerHTML=h;$("#luVacio").classList.toggle("hidden",!!h);
+}
+function pintarIO(){
+  const I=E.io||{o:0,i:0,s:[],e:[]};let h="";
+  for(let m=0;m<16;m++)if(I.o>>m&1){const nb=(E.uno&&m==0)?4:8;
+    for(let b=0;b<nb;b++){const n=m*8+b+1,on=(I.s[m]>>b)&1;
+      h+=`<div class="item"><span class="badge" style="background:${on?"var(--green)":"#8e8e93"}">S</span>
+        <div class="t"><b>${esc(et("s",n)||"Salida "+n)}</b><span>${m==0&&E.uno?"AP UNO":m==1?"AP RED 4 / DO8 (0x21)":"Módulo 0x"+(0x20+m).toString(16)}</span></div>
+        ${sw("",on,`data-sa="${n}"`)}</div>`}}
+  $("#salidas").innerHTML=h||'<div class="empty">Sin módulos de salidas. Agrega un AP RED 4 (127 V) o un DO8 (24 V).</div>';
+  h="";
+  for(let m=0;m<16;m++)if(I.i>>m&1){const nb=(E.uno&&m==0)?4:8;
+    for(let b=0;b<nb;b++){const n=m*8+b+1,on=(I.e[m]>>b)&1;
+      h+=`<div class="item"><span class="badge" style="background:${on?"var(--orange)":"#8e8e93"}">E</span>
+        <div class="t"><b>${esc(et("e",n)||"Entrada "+n)}</b><span>${on?"Activa":"En reposo"}</span></div></div>`}}
+  $("#entradas").innerHTML=h||'<div class="empty">Sin entradas.</div>';
+  h="";for(let c=1;c<=4;c++)h+=`<div class="item"><span class="badge" style="background:var(--accent)">${c}</span><div class="t"><b>${esc(et("c",c)||"Canal "+c)}</b><span>Sigue a la luz principal</span></div></div>`;
+  $("#canales").innerHTML=h;
+}
+function pintarAuto(){
+  const I=E.io||{};let h="";
+  (I.r||[]).forEach(r=>{h+=`<div class="item"><div class="t rule"><span class="when">${esc(et("e",r[0])||"Entrada "+r[0])}</span><span class="arrow">→</span><span>${esc(accTxt(r[1],r[2]))}${r[3]?" (mientras)":""}</span></div><button class="btn del" data-dea="${r[0]}">Quitar</button></div>`});
+  $("#rEnt").innerHTML=h||'<div class="empty">Ninguna todavía.</div>';
+  h="";(E.a||[]).forEach((p,i)=>{if(!p[0])return;h+=`<div class="item"><div class="t"><b>${hm(p[2]*60+p[3])} · ${esc(accTxt(p[4],p[5]))}</b><span>${diasTxt(p[1])}</span></div><button class="btn del" data-da="${i}">Quitar</button></div>`});
+  $("#rHora").innerHTML=h||'<div class="empty">Ninguna todavía.</div>';
+  h="";(E.sol||[]).forEach((o,i)=>{if(!o[0])return;h+=`<div class="item"><div class="t"><b>${o[1]?"Al amanecer":"Al ocaso"}${o[2]?` ${o[2]>0?"+":""}${o[2]} min`:""} · ${esc(accTxt(o[3],o[4]))}</b><span>${E.solh?`Hoy: ${hm(E.solh[o[1]?1:0])}`:""}</span></div><button class="btn del" data-ds="${i}">Quitar</button></div>`});
+  $("#rSol").innerHTML=h||`<div class="empty">${E.geo?"Ninguna todavía.":"Pon tu ubicación en Ajustes para usar el sol."}</div>`;
+}
+
+const TIENDA=[
+  {id:"uno",n:"AP UNO",t:"Cerebro + potencia",d:"Todo en una placa: 4 canales de 8 A, 2 focos, 4 salidas, 4 entradas, RS-485 DMX/Modbus y Wi-Fi."},
+  {id:"foco",n:"AP FOCO",t:"Cabezal",d:"2 focos de corriente constante que se adaptan a cada foco por su resistencia de ID (hasta 1 A)."},
+  {id:"foco127",n:"AP FOCO 127",t:"Cabezal · red",d:"El AP FOCO con su propia fuente de 127/220 VCA certificada. Se conecta directo a la red."},
+  {id:"red4",n:"AP RED 4",t:"Salidas · red",d:"4 relevadores de 10 A para focos, contactos y bombas de 127/220 V, controlados como salidas."},
+  {id:"pwm4",n:"AP LIGHT PWM4",t:"Alumbrado",d:"4 canales de 6 A atenuables de 12-24 V, aislados. Hasta 4 módulos: 16 luminarias."},
+  {id:"ao4",n:"AP LIGHT AO4",t:"Alumbrado",d:"4 circuitos 0-10 V con su contactor, para luminarias de red con driver atenuable."},
+  {id:"do8",n:"AP PRO DO8",t:"Industrial",d:"8 salidas de 24 V protegidas para bobinas de contactor y electroválvulas."},
+  {id:"in",n:"AP INPUT",t:"Entradas",d:"8 entradas aisladas de 12-24 V para pulsadores, flotadores y sensores."},
+  {id:"ai4",n:"AP PRO AI4",t:"Sensores",d:"4 entradas 0-10 V / 4-20 mA con umbrales: nivel, presión, temperatura."},
+  {id:"gate",n:"AP GATE",t:"Comunicación",d:"Modbus RTU con medidores, variadores y PLC; AP BUS hasta 250 m."},
+  {id:"node",n:"AP NODE",t:"Comunicación",d:"Lleva entradas y salidas a otro tablero con un solo cable."},
+  {id:"dist4",n:"AP SIGN DIST 4",t:"Letreros",d:"Distribución de 24 V en 4 ramas protegidas con diagnóstico."}];
+function tengo(id){const L=E.lu||{m:0},I=E.io||{o:0,i:0};return {uno:E.uno,pwm4:L.m&0xF,ao4:L.m&0xF0,
+  foco:[0,1].some(h=>L.m>>(8+h)&1&&(L.fh||[])[h]>=1000),foco127:[0,1].some(h=>L.m>>(8+h)&1&&(L.fh||[])[h]<1000),
+  red4:I.o&2,do8:I.o&~(E.uno?3:2),in:I.i&~(E.uno?1:0),ai4:E.ai&&E.ai.m,gate:E.mb&&E.mb.b,node:E.bus&&E.bus.m}[id]}
+function pintarModulos(){
+  const B=E.base||{};let h=`<div class="item"><span class="badge" style="background:#5e5ce6">⌘</span><div class="t"><b>${E.uno?"AP UNO":"AP CORE"}</b><span>${esc(E.v)}</span></div></div>`;
+  if(B.ok)h+=`<div class="item"><span class="badge" style="background:#ff9f0a">⚡</span><div class="t"><b>${B.mod=="LL-UNO"?"Potencia del AP UNO":esc(B.mod||"Base")}</b><span>Serie ${esc(B.sn||"")} · ${B.h||0} h de uso</span></div></div>`;
+  TIENDA.forEach(t=>{if(t.id!="uno"&&tengo(t.id))h+=`<div class="item"><span class="badge" style="background:var(--green)">✓</span><div class="t"><b>${t.n}</b><span>${t.t}</span></div></div>`});
+  $("#modAqui").innerHTML=h;
+  $("#tienda").innerHTML=TIENDA.map(t=>`<div class="tile" data-tienda="${t.id}"><div><div class="tag">${t.t}</div><b>${t.n}</b></div><small>${t.d}</small>
+    <span class="chip ${tengo(t.id)?"ok":""}" style="align-self:flex-start;margin-top:8px">${tengo(t.id)?"Conectado":"Agregar"}</span></div>`).join("");
+}
+function pintarAjustes(){
+  if(!activo("#aNom"))$("#aNom").value=E.nom||"";
+  if(!activo("#aHost"))$("#aHost").value=host;
+  $("#aDemo").checked=demo;
+  $("#aInfo").innerHTML=[["Programa",E.v],["Red Wi-Fi",E.red||"—"],["Dirección",E.ip||"—"],["Home Assistant",E.mq==2?"Conectado":E.mq==1?"Sin conexión":"Apagado"],
+    ["Zona horaria",E.tz||"—"],["Ubicación",E.geo?E.geo.join(", "):"Sin poner"]].map(([k,v])=>`<span>${k}</span><b>${esc(v)}</b>`).join("");
+  const t=ld("apTema")||"";$$("#aTema button").forEach(b=>b.classList.toggle("on",b.dataset.t==t));
+}
+
+/* ---------- hojas ---------- */
+function hoja(html){$("#sheet").innerHTML='<div class="grab"></div>'+html;$("#sheetBg").classList.add("show")}
+function cerrar(){$("#sheetBg").classList.remove("show")}
+$("#sheetBg").addEventListener("click",e=>{if(e.target.id=="sheetBg")cerrar()});
+function hojaLuz(n){
+  const L=E.lu,i=n-1,v=L.n[i],on=bit(L.o,i),sg=bit(L.s,i);
+  let foco="";if(i>=32){const f=(L.f||[])[i-32]||[0,0,0,0];
+    foco=`<div class="list"><div class="item"><div class="t"><b>${f[0]} mA ahora</b><span>Máximo ${f[1]} mA (${f[1]==350&&f[3]==5?"sin resistencia de ID":"según su resistencia de ID"}) · ${FEST[f[3]]}</span></div></div>
+      <div class="item"><div class="t"><b>Límite propio</b><span>0 = el que dice el foco</span></div><input class="inp" style="width:110px" type="number" min="0" max="1000" id="hFi" value="${f[2]}"></div></div>`}
+  hoja(`<h2 style="margin-top:4px">${esc(luNombre(i))}</h2><p class="sub">${luTipo(i)}</p>
+   <div class="card"><div class="row" style="justify-content:space-between"><b>Encendida</b>${sw("",on,'id="hOn"')}</div>
+   <input type="range" min="0" max="100" value="${v}" id="hB" style="--p:${v}%"><div class="row" style="justify-content:space-between"><span class="sub">Sigue a la luz principal y sus horarios</span>${sw("",sg,'id="hSg"')}</div></div>
+   ${foco}<div class="list"><div class="item"><input class="inp" id="hEt" placeholder="Nombre (Vitrina, Fachada…)" value="${esc(et("l",n))}"><button class="btn sec" id="hEtG">Guardar</button></div></div>`);
+  $("#hOn").onchange=e=>api(`LO ${n} ${e.target.checked?1:0}`);
+  $("#hB").oninput=e=>rng(e.target);$("#hB").onchange=e=>api(`LU ${n} ${e.target.value}`);
+  $("#hSg").onchange=e=>api(`LS ${n} ${e.target.checked?1:0}`);
+  $("#hEtG").onclick=()=>{api(`ET L${n} ${$("#hEt").value.trim()||"-"}`);cerrar()};
+  if($("#hFi"))$("#hFi").onchange=e=>api(`FI ${n-32} ${e.target.value||0}`);
+}
+function opcionesAcc(){return ACC.map((a,j)=>`<option value="${j}">${a}</option>`).join("")}
+function selValor(acc){
+  const k=ACC_VAL[acc];if(!k)return '<input type="hidden" id="rV" value="0">';
+  if(k==1)return `<input class="inp" id="rV" type="number" min="0" max="100" value="${acc==4?50:1}" placeholder="Valor">`;
+  if(k==2){const I=E.io||{o:0};let o="";for(let m=0;m<16;m++)if(I.o>>m&1)for(let b=0;b<((E.uno&&m==0)?4:8);b++){const n=m*8+b+1;o+=`<option value="${n}">${esc(et("s",n)||"Salida "+n)}</option>`}
+    return `<select class="inp" id="rV">${o||'<option value="1">Salida 1</option>'}</select>`}
+  const L=E.lu||{m:0};let o="";for(let n=0;n<36;n++)if(L.m>>lmod(n)&1)o+=`<option value="${n+1}">${esc(luNombre(n))}</option>`;
+  return `<select class="inp" id="rV">${o||'<option value="1">Luminaria 1</option>'}</select>`;
+}
+function hojaRegla(){
+  const I=E.io||{i:0};let ent="";for(let m=0;m<16;m++)if(I.i>>m&1)for(let b=0;b<((E.uno&&m==0)?4:8);b++){const n=m*8+b+1;ent+=`<option value="${n}">${esc(et("e",n)||"Entrada "+n)}</option>`}
+  hoja(`<h2 style="margin-top:4px">Nueva automatización</h2>
+   <div class="seg" id="rTipo"><button class="on" data-k="h">A una hora</button><button data-k="s">Con el sol</button><button data-k="e">Entrada</button></div>
+   <div class="card" id="rCuando"></div>
+   <div class="card"><b>Entonces</b><div style="height:8px"></div><select class="inp" id="rA">${opcionesAcc()}</select><div style="height:8px"></div><div id="rVal">${selValor(0)}</div></div>
+   <button class="btn" id="rG" style="width:100%">Guardar</button>`);
+  const cuando={h:`<b>Cuando</b><div style="height:8px"></div><input class="inp" type="time" id="rH" value="19:00"><div style="height:8px"></div>
+      <div class="seg" id="rD">${[..."DLMMJVS"].map((d,i)=>`<button class="on" data-d="${i}">${d}</button>`).join("")}</div>`,
+    s:`<b>Cuando</b><div style="height:8px"></div><div class="seg" id="rEv"><button class="on" data-e="0">Ocaso</button><button data-e="1">Amanecer</button></div>
+      <div style="height:8px"></div><input class="inp" type="number" id="rDf" value="0" min="-180" max="180" placeholder="minutos antes (−) o después (+)">`,
+    e:`<b>Cuando se active</b><div style="height:8px"></div><select class="inp" id="rE">${ent||'<option value="1">Entrada 1</option>'}</select>
+      <div class="row" style="justify-content:space-between;margin-top:10px"><span>Solo mientras esté activa</span>${sw("",0,'id="rM"')}</div>`};
+  let tipo="h";const pon=()=>{$("#rCuando").innerHTML=cuando[tipo];$$("#rD button").forEach(b=>b.onclick=()=>b.classList.toggle("on"));
+    $$("#rEv button").forEach(b=>b.onclick=()=>{$$("#rEv button").forEach(x=>x.classList.remove("on"));b.classList.add("on")})};pon();
+  $$("#rTipo button").forEach(b=>b.onclick=()=>{$$("#rTipo button").forEach(x=>x.classList.remove("on"));b.classList.add("on");tipo=b.dataset.k;pon()});
+  $("#rA").onchange=e=>{$("#rVal").innerHTML=selValor(+e.target.value)};
+  $("#rG").onclick=async()=>{
+    const a=+$("#rA").value,v=+($("#rV").value||0);
+    if(tipo=="h"){const[hh,mm]=$("#rH").value.split(":").map(Number);let d=0;$$("#rD button").forEach(b=>{if(b.classList.contains("on"))d|=1<<b.dataset.d});
+      const i=(E.a||[]).findIndex(p=>!p[0]);if(i<0)return aviso("Ya hay 8 horarios");await api(`A ${i} ${d||127} ${hh} ${mm} ${a} ${v}`)}
+    else if(tipo=="s"){const i=(E.sol||[]).findIndex(o=>!o[0]);if(i<0)return aviso("Ya hay 8 eventos de sol");
+      const ev=$("#rEv .on").dataset.e;await api(`SOL ${i} ${ev} ${+$("#rDf").value||0} ${a} ${v}`)}
+    else await api(`EA ${$("#rE").value} ${a} ${v} ${$("#rM").checked?1:0}`);
+    cerrar();aviso("Guardado");
+  };
+}
+function hojaTienda(id){const t=TIENDA.find(x=>x.id==id);
+  const como={foco127:"Conecta L y N de la red a su bornera (con un interruptor termomagnético) y el cable Qwiic al AP UNO. El cabezal aparece en Luces como Foco 1 y Foco 2.",
+    red4:"Las bobinas toman 24 V del J3 +V del AP UNO; el mando va por Qwiic. Cada carga de red pasa por su bornera COM / NA. Aparece en Salidas como S9-S12.",
+    foco:"Cable Qwiic al AP UNO y fuente de 12-24 V. Cada foco trae su resistencia de ID: el cabezal le da justo su corriente."}[id]||"Conéctalo por Qwiic (o RS-485) y aparece aquí solo, sin configurar nada.";
+  hoja(`<div class="tag" style="color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">${t.t}</div>
+   <h2 style="margin-top:4px">${t.n}</h2><p>${t.d}</p><div class="card"><b>Cómo se conecta</b><p class="sub" style="margin-bottom:0">${como}</p></div>
+   <button class="btn" style="width:100%" onclick="cerrar()">${tengo(id)?"Ya está conectado":"Entendido"}</button>`)}
+function hojaEquipos(){
+  hoja(`<h2 style="margin-top:4px">Equipos</h2><div class="list" id="eqL"><div class="empty">Buscando en la red…</div></div>
+   <button class="btn sec" style="width:100%" id="eqDemo">Usar la demostración</button>`);
+  $("#eqDemo").onclick=()=>{host="";st("apHost");entrarDemo();cerrar()};
+  if(demo){$("#eqL").innerHTML=Sim.vecinos.map(v=>`<div class="item"><span class="badge" style="background:#5e5ce6">⌘</span><div class="t"><b>${v.nom}</b><span>${v.g} · ${v.ip}</span></div></div>`).join("");return}
+  fetch(base()+"/vecinos").then(r=>r.json()).then(L=>{
+    $("#eqL").innerHTML=[{nom:E.nom,g:E.g,ip:E.ip,yo:1},...L].map(v=>`<div class="item" data-ip="${v.ip}"><span class="badge" style="background:${v.yo?"var(--green)":"#5e5ce6"}">⌘</span><div class="t"><b>${esc(v.nom)}</b><span>${esc(v.g||"")} · ${v.ip}</span></div>${v.yo?'<span class="sub">Este</span>':""}</div>`).join("");
+    $$("#eqL .item[data-ip]").forEach(x=>x.onclick=()=>{host=x.dataset.ip;st("apHost",host);demo=false;E={};api();cerrar()});
+  }).catch(()=>{$("#eqL").innerHTML='<div class="empty">No se pudo buscar.</div>'});
+}
+
+/* ---------- eventos ---------- */
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  $$("#tabs button").forEach(x=>x.classList.toggle("on",x==b));$$("section").forEach(s=>s.classList.toggle("hidden",s.id!="v-"+b.dataset.v));scrollTo(0,0)});
+$("#mainOn").onchange=e=>api("P "+(e.target.checked?1:0));
+$("#mainB").oninput=e=>{rng(e.target);$("#mainPct").textContent=e.target.value+" %"};$("#mainB").onchange=e=>api("B "+e.target.value);
+$("#modos").addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(b)api("M "+b.dataset.m)});
+$("#colores").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(b){const c=COLORES[b.dataset.c];api(`C ${c[0]} ${c[1]} ${c[2]} 0`)}});
+$("#escenas").addEventListener("click",async e=>{const b=e.target.closest("[data-esc]");if(!b)return;for(const c of ESCENAS[b.dataset.esc].c)await api(c);aviso(ESCENAS[b.dataset.esc].n)});
+let largo=false;
+$("#luGrid").addEventListener("click",e=>{if(e.target.matches("input"))return;const t=e.target.closest("[data-lu]");if(!t)return;
+  if(largo){largo=false;return}api(`LO ${t.dataset.lu} 2`)});
+$("#luGrid").addEventListener("contextmenu",e=>{const t=e.target.closest("[data-lu]");if(t){e.preventDefault();hojaLuz(+t.dataset.lu)}});
+let pres;$("#luGrid").addEventListener("pointerdown",e=>{const t=e.target.closest("[data-lu]");if(!t||e.target.matches("input"))return;pres=setTimeout(()=>{largo=true;hojaLuz(+t.dataset.lu)},550)});
+$("#luGrid").addEventListener("pointerup",()=>clearTimeout(pres));
+$("#luGrid").addEventListener("pointerleave",()=>clearTimeout(pres));
+$("#luGrid").addEventListener("input",e=>{if(e.target.dataset.lur)rng(e.target)});
+$("#luGrid").addEventListener("change",e=>{if(e.target.dataset.lur)api(`LU ${e.target.dataset.lur} ${e.target.value}`)});
+$("#salidas").addEventListener("change",e=>{if(e.target.dataset.sa)api(`SA ${e.target.dataset.sa} ${e.target.checked?1:0}`)});
+$("#v-auto").addEventListener("click",e=>{const t=e.target;
+  if(t.dataset.dea)api(`EA ${t.dataset.dea} -`);if(t.dataset.da)api(`A ${t.dataset.da} -`);if(t.dataset.ds)api(`SOL ${t.dataset.ds} -`)});
+$("#nuevaRegla").onclick=hojaRegla;
+$("#tienda").addEventListener("click",e=>{const t=e.target.closest("[data-tienda]");if(t)hojaTienda(t.dataset.tienda)});
+$("#bDev").onclick=hojaEquipos;
+$("#aNomG").onclick=()=>{const n=$("#aNom").value.trim();if(n)api("D "+n).then(()=>aviso("El equipo se reinicia con su nombre nuevo"))};
+$("#aHostG").onclick=()=>{host=$("#aHost").value.trim();host?st("apHost",host):st("apHost");demo=false;E={};api()};
+$("#aDemo").onchange=e=>{if(e.target.checked)entrarDemo();else{demo=false;E={};api()}};
+$("#aTema").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=b.dataset.t;
+  t?document.documentElement.setAttribute("data-theme",t):document.documentElement.removeAttribute("data-theme");st("apTema",t||undefined);pintarAjustes()});
+
+/* ---------- simulador (modo demostración) ---------- */
+const Sim=(()=>{
+  const s={v:"AP-1 fw 2.2 (demostración)",nom:"letrero-demo",g:"sala",p:1,m:0,n:"FIJO",s:5,b:80,ch:4,c:[255,180,90,0],x:0,e:0,
+    t:0,tz:"CST6",rtc:1,a:[[1,127,19,0,1,0],[1,127,23,30,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]],
+    ap:0,red:"Casa",ip:"192.168.1.50",rssi:-58,mq:2,med:1,vin:24.1,i:2.4,w:57.8,kwh:12.4,hoy:0.86,tc:41.5,f:0,fn:"",uno:1,udmx:0,dmx:0,
+    io:{o:3,i:1,s:[5,1],e:[2],r:[[1,8,0,0],[2,9,33,1]]},mb:{b:0},
+    lu:{m:0x301,o:2**0+2**1+2**32+2**34,s:2**32,r:1,fh:[1000,500],n:[70,40,100,0,...Array(28).fill(100),80,60,50,100],f:[[548,700,0,1],[0,350,0,2],[246,500,0,1],[0,0,0,0]]},
+    geo:[19.43,-99.13],noche:0,solh:[1127,402],sol:[[1,0,0,9,33,127],[1,1,15,10,33,127],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]],
+    ai:{m:0},et:{l1:"Fachada",l2:"Marquesina",l33:"Vitrina",l34:"Mostrador",l35:"Pasillo",s1:"Bomba",s2:"Calentador",s9:"Focos patio",s10:"Contactos cocina",e1:"Botón entrada",e2:"Sensor puerta"},
+    base:{ok:1,mod:"LL-UNO",sn:"7F3A-19C2",h:812},aviso:""};
+  const num=q=>q.trim().split(/\s+/).map(Number);
+  function cmd(c){const p=c.trim(),k=p.split(/\s+/)[0],r=p.slice(k.length).trim(),a=num(r),L=s.lu;
+    const setb=(o,n,v)=>v?(bit(o,n)?o:o+2**n):(bit(o,n)?o-2**n:o);
+    switch(k){case"P":s.p=a[0]?1:0;break;case"B":s.b=a[0];break;case"M":s.m=a[0];s.n=MODOS[a[0]];break;case"C":s.c=a.slice(0,4);break;
+      case"E":s.e=a[0];break;case"V":s.s=a[0];break;case"D":s.nom=r;break;
+      case"LU":L.n[a[0]-1]=a[1];L.o=setb(L.o,a[0]-1,a[1]>0);break;
+      case"LO":{const n=a[0]-1,v=a[1]==2?!bit(L.o,n):!!a[1];L.o=setb(L.o,n,v);if(v&&!L.n[n])L.n[n]=100;break}
+      case"LS":L.s=setb(L.s,a[0]-1,!!a[1]);break;
+      case"FI":L.f[a[0]-1][2]=a[1];break;
+      case"SA":{const m=(a[0]-1)>>3,b=(a[0]-1)&7;const v=a[1]==2?!((s.io.s[m]>>b)&1):!!a[1];s.io.s[m]=v?s.io.s[m]|1<<b:s.io.s[m]&~(1<<b);break}
+      case"EA":{const n=a[0];s.io.r=s.io.r.filter(x=>x[0]!=n);if(!r.includes("-"))s.io.r.push([n,a[1],a[2]||0,a[3]||0]);break}
+      case"A":if(r.includes("-"))s.a[a[0]]=[0,0,0,0,0,0];else s.a[a[0]]=[1,a[1],a[2],a[3],a[4],a[5]||0];break;
+      case"SOL":if(r.includes("-"))s.sol[a[0]]=[0,0,0,0,0,0];else s.sol[a[0]]=[1,a[1],a[2],a[3],a[4],127];break;
+      case"ET":{const[t,...nm]=r.split(" ");const key=t[0].toLowerCase()+t.slice(1);const v=nm.join(" ");if(v=="-")delete s.et[key];else s.et[key]=v;break}}
+    s.w=+(5+ (s.p?s.b*0.6:0)+ [0,1,32,34].reduce((x,n)=>x+(bit(L.o,n)?L.n[n]*0.12:0),0)).toFixed(1);s.i=+(s.w/s.vin).toFixed(2);
+  }
+  function estado(){const d=new Date();s.t=d.getHours()*60+d.getMinutes();return JSON.parse(JSON.stringify(s))}
+  return {cmd,estado,vecinos:[{nom:"letrero-demo",g:"sala",ip:"192.168.1.50"},{nom:"tablero-bomba",g:"patio",ip:"192.168.1.51"},{nom:"vitrina-tienda",g:"tienda",ip:"192.168.1.52"}]};
+})();
+
+/* ---------- arranque ---------- */
+(()=>{const t=ld("apTema");if(t)document.documentElement.setAttribute("data-theme",t)})();
+host=ld("apHost")||"";
+if(location.protocol=="https:"&&!host)entrarDemo(); else api();
+setInterval(()=>{if(!demo&&!ocupado&&document.visibilityState=="visible"&&!$("#sheetBg").classList.contains("show"))api()},2500);
+</script>
+</body>
+</html>

@@ -15,7 +15,8 @@ Atributos del spec (los opcionales tienen valor por omisión en _defaults):
   SIN_COBRE [polígonos sin cobre en ambas capas, p. ej. bajo una antena], RETORNO [polígonos de la capa inferior
   sin pistas: camino de regreso de la corriente fuerte], SILK [(texto, x, y, alto, "F"/"B")],
   FLAGS, NOTES, TITLE, SUBTITLES, COMPANY, PAPER, DRU (texto de reglas propias), RED_HV (clase que se aleja
-  5 mm al rutear), DESCONECTAR [(ref, pata)] (patas con red solo para el ruteador), RADIO_ESQUINA.
+  5 mm al rutear), DESCONECTAR [(ref, pata)] (patas con red solo para el ruteador), RADIO_ESQUINA,
+  RANURAS [(x0, y0, x1, y1)]: ranuras fresadas dentro de la placa (aislamiento entre la red y la baja tensión).
 """
 import os, sys, json, uuid
 
@@ -31,7 +32,7 @@ mm = pcbnew.FromMM
 def _defaults(S):
     for k, v in dict(HOLES=[], NETCLASS={}, POWER_ZONES=[], KEEPOUT_NETS=(), PRE=[], PREVIAS=[], VIAS=[],
                      SIN_COBRE=[], RETORNO=[], SILK=[], FLAGS=[], NOTES=[], SUBTITLES=[], COMPANY="", PAPER="A3", DRU="",
-                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], SIN_RELLENO=[], ZONAS_FINALES=[], SOLO_PLACA=[],
+                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], SIN_RELLENO=[], ZONAS_FINALES=[], SOLO_PLACA=[], RANURAS=[],
                      PLANOS=[("GND", "In1"), ("GND", "In2")]).items():
         if not hasattr(S, k):
             setattr(S, k, v)
@@ -57,6 +58,9 @@ def _contorno(S, b):
             s = pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_ARC)
             s.SetArcGeometry(P(*a), P(*m), P(*c))
             s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(mm(0.1)); b.Add(s)
+    for x0, y0, x1, y1 in S.RANURAS:         # ranura rectangular: 2 mm o más de ancho (la fresa de JLCPCB es de 1 mm o más)
+        s = pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_RECT)
+        s.SetStart(P(x0, y0)); s.SetEnd(P(x1, y1)); s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(mm(0.1)); b.Add(s)
 
 
 def build_board(S):
@@ -331,6 +335,7 @@ def schematic(S):
         # símbolos de varias unidades (74HC125...): cada unidad va 12.7 mm a la derecha; ocupan más de una celda
         n = len(comun.sch.units_of(comun.sch.lib_symbol(sym)))
         celdas = 1 + (int((n - 1) * 12.7 / 43.18 + 0.999) if n > 1 else 0)
+        celdas = getattr(S, "CELDAS", {}).get(ref, celdas)   # símbolos grandes (fuentes de red): más celdas
         if i % cols + celdas > cols:
             i += cols - i % cols                    # no cabe en el renglón: al siguiente
         x, y = 30.48 + (i % cols) * 43.18, 40.64 + (i // cols) * 38.1

@@ -166,7 +166,11 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
 - **AP UNO y cabezales (fw 2.1):**
   - Reconoce la placa **AP UNO** (expansor 0x20 con P5 = 0 y P6 = 1, memoria `LL-UNO`): S1-S4, E1-E4 y su RS-485 en IO1/IO3 con el DE en el expansor. `DMX 1` manda DMX512 sin detener los canales; `MB 9600 0` lo pasa a Modbus. Ver [ap1-uno/LEEME.md](ap1-uno/LEEME.md).
   - Reconoce los **cabezales AP FOCO** (PCA9685 0x60/0x61) como luminarias **L33-L36**: lee la resistencia de ID de cada foco, limita su corriente, la mide con el INA238 y la corrige; avisa foco abierto, sobrecorriente, ID en corto o fuente corta. `FI f mA` pone un límite menor. Ver [ap1-foco/LEEME.md](ap1-foco/LEEME.md).
-- **Estado:** compila sin advertencias (fw 2.1: 1.44 MB, 73 % de la flash); las pruebas en la PC (`tools/probar_apbus.sh`) pasan. La app se probó en navegador contra un simulador.
+- **AP Studio y placas de red (fw 2.2):**
+  - El equipo sirve la app **AP Studio** en `http://<equipo>/studio`: inicio con consumo en vivo, luces y focos, salidas, automatizaciones "cuando… entonces…", módulos y Tienda AP. Ver [ap-studio](ap-studio/index.html).
+  - Reconoce el **AP FOCO 127** (PCA9685 0x64/0x65) con tope de 500 mA por foco.
+  - El **AP RED 4** funciona como salidas S9-S12 (es el mismo expansor del DO8).
+- **Estado:** compila sin advertencias (fw 2.2: 1.45 MB, 73 % de la flash); las pruebas en la PC (`tools/probar_apbus.sh`) pasan. La app se probó en navegador contra un simulador.
 - **Compilar:** `bash hardware/tools/compilar_esp32.sh ap1`. Los binarios quedan en `ap1-prog/firmware/binarios/`.
 - **Grabar:** el archivo `_completo_0x0.bin` va por USB-C en la dirección 0x0; el `_actualizacion_OTA.bin` va por Wi-Fi.
 

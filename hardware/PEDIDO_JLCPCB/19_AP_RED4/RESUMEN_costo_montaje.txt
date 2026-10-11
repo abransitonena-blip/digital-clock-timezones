@@ -1,0 +1,24 @@
+AP_RED4: 14 tipos de pieza, 36 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       6 tipos Extended  -> ~18 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     3 tipos Extended  -> ~9 USD de cargo;
+   se sueldan a mano 9 piezas de patas: J3, J4,J5,J6,J7, K1,K2,K3,K4
+Piezas Basic/Preferred: ~0.47 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (7):
+  100nF                  C14663         C1
+  10uF 50V               C13585         C2
+  SS34                   C8678          D1
+  SS14                   C2480          D2,D3,D4,D5
+  VERDE                  C72043         LD1,LD2,LD3,LD4
+  AO3400A                C20917         Q1,Q2,Q3,Q4
+  10k                    C25804         RD1,RD2,RD3,RD4,RL1,RL2,RL3,RL4
+Extended (7):
+  3A                     C355685        F1
+  QWIIC ENTRADA          C160404        J1
+  QWIIC SALIDA           C160404        J2
+  24V                    C160315        J3  [THT]
+  KF128-5.08-2P          C474952        J4,J5,J6,J7  [THT]
+  SRD-24VDC-SL-C         C15840         K1,K2,K3,K4  [THT]
+  TCA9554PWR             C477924        U1
