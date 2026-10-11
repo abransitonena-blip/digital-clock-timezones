@@ -19,11 +19,12 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 
 | Familia | Función | Qué existe hoy | Estado |
 |---|---|---|---|
+| **AP UNO** | **Todo en uno**: potencia + cerebro + salidas + entradas + RS-485 en una placa | **`ap1-uno`** (120 × 62 mm, 4 capas): la potencia de la BASE, ESP32-C3, 4 salidas para contactores, 4 entradas, RS-485 para **DMX512 o Modbus**, Qwiic para **cabezales** ([LEEME](ap1-uno/LEEME.md)) | Diseñada; programa 2.1 |
 | **AP BASE** | Potencia y protecciones propias, sin Wi-Fi | `ap1-base`: 12-24 V, 4 canales de 8 A, 2 focos de corriente constante, AUX; corte por hardware ante sobrecorriente, sobrevoltaje y 85 °C | Diseñada (4 capas) |
 | **AP CORE** | Programación local: horarios, escenas, secuencias | `ap1-prog`: ESP32-C3, horarios, 10 modos, escenas, grupos, OTA, etiquetas por circuito; funciona sin internet | Diseñado; programa 2.0 |
 | **AP INPUT** | Pulsadores y sensores | **`ap1-in`:** 8 entradas de 12-24 V aisladas, con reglas por entrada. **`ap1-ai4`:** 4 entradas analógicas 0-10 V / 4-20 mA con umbrales | Diseñados |
 | **AP OUTPUT** | Actuadores, relevadores, contactores | **`ap1-out` = AP PRO DO8:** 8 salidas de 24 V DC **protegidas** (NCV8406A: 1.5 A por salida, corto y temperatura) para bobinas y válvulas | Diseñado (reemplaza a la versión de 7 salidas con ULN2003) |
-| **AP LIGHT** | Iluminación según el driver o foco | **`ap1-pwm4`** (4 × 6 A atenuables de 12-24 V, aislado), **`ap1-ao4`** (4 circuitos 0-10 V + contactor), `ap1-pix` (pixeles), `ap1-dmx` (DMX512), `ap1-ind` (0-10 V aislado), corriente constante en la base; **horario solar** en el programa 2.0 | Diseñados |
+| **AP LIGHT** | Iluminación según el driver o foco | **Cabezal `ap1-foco`** (2 focos de corriente constante que **se adaptan a cada foco** por su resistencia de ID, 25 mA - 1 A, con corriente medida), **`ap1-pwm4`** (4 × 6 A atenuables de 12-24 V, aislado), **`ap1-ao4`** (4 circuitos 0-10 V + contactor), `ap1-pix` (pixeles), `ap1-dmx` (DMX512), `ap1-ind` (0-10 V aislado), corriente constante en la base; **horario solar** en el programa 2.0 | Diseñados |
 | **AP METER** | Medición y diagnóstico | Medidor INA238 en la base: V, A, W, kWh, diagnóstico por salida | Dentro de la base; módulo propio pendiente |
 | **AP LINK** | Ethernet, Wi-Fi, inalámbrico, bus de campo | Wi-Fi en el CORE; **AP NODE** (`ap1-node`) con **AP BUS 24 V + CAN** para nodos remotos ([AP_BUS.md](AP_BUS.md)) | AP NODE diseñado; Ethernet pendiente |
 | **AP GATE** | PLC, aplicaciones, otros ecosistemas | MQTT, **Home Assistant**, API HTTP, **Art-Net/sACN**; placa **`ap1-gate`**: RS-485 / **Modbus RTU** (medidores de energía, variadores, PLC) + AP BUS | Diseñada; programa 2.0 |
@@ -40,6 +41,19 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
 | **AP LIGHT**: alumbrado | Alumbrado público y de estacionamientos, naves, bodegas, fachadas, oficinas | **AO4** (luminarias de red con driver 0-10 V + contactor), **PWM4** (luminarias LED de 24 V), **horario solar** (ocaso/amanecer sin fotocelda), medidor de energía por Modbus (AP GATE) | DALI (pendiente: necesita fuente de bus DALI) |
 | **AP LINK / GATE**: comunicación | Varios tableros, equipos de terceros | **AP NODE** (AP BUS 24 V + CAN), **AP GATE** (+ RS-485 Modbus RTU), Wi-Fi, MQTT, Home Assistant | Ethernet |
 
+## Cabezales: una salida, sus propios chips
+
+La idea de un balastro electrónico, pero de baja tensión y programable: el cerebro (AP UNO o CORE) manda **qué** quiere y cada **cabezal** sabe **cómo** dárselo a su carga, con su propio chip, sus mediciones y sus protecciones.
+
+| Cabezal | Su chip | Se adapta a |
+|---|---|---|
+| **AP FOCO** | AL8860 + INA238 + PCA9685 | La corriente de cada foco (resistencia de ID "LEDset"), con aviso de foco abierto, sobrecorriente o fuente corta |
+| **PWM4** | PCA9685 + optos + MOSFET | Tiras y luminarias de 12-24 V, aislado |
+| **AO4** | PCA9685 + amplificadores 0-10 V | Drivers de red atenuables 0-10 V (127-480 V del lado del driver certificado) |
+| **Equipos DMX** | Los del equipo (por RS-485) | Reflectores, cabezas móviles, atenuadores DMX certificados |
+
+Todos se conectan por Qwiic (o RS-485 los DMX), el programa los reconoce solos y aparecen en la app y en Home Assistant como luminarias L1-L36.
+
 ## Modelos: combinaciones listas por rama
 
 Cada modelo es una lista de placas que se piden juntas y se programan igual.
@@ -50,6 +64,7 @@ Cada modelo es una lista de placas que se piden juntas y se programan igual.
 
 | Modelo | Placas | Para |
 |---|---|---|
+| **CASA UNO** | **AP UNO** (+ AP FOCO) | Una sola placa: 4 circuitos LED, 2 focos, 4 contactores (bomba, calentador, contactos), 4 apagadores o sensores |
 | **CASA 4 LED** | CORE + BASE | 4 circuitos de iluminación LED de 12-24 V con atenuación, escenas y horarios |
 | **CASA 8 RED** | CORE + DO8 + AP INPUT + 8 contactores modulares | Focos y contactos de 127 V por contactor; apagadores de 24 V en la pared |
 | **CASA CLIMA** | CORE + DO8 + AI4 | Ventiladores, extractores y calentador por temperatura (transmisor 0-10 V) |
@@ -58,6 +73,7 @@ Cada modelo es una lista de placas que se piden juntas y se programan igual.
 
 | Modelo | Placas | Para |
 |---|---|---|
+| **PRO UNO** | **AP UNO** + AI4 | Tablero chico: 4 contactores, 4 entradas, medidor o variador por Modbus y nivel 4-20 mA |
 | **PRO BOMBEO** | GATE + AI4 + DO8 + AP INPUT | Cisterna y tinaco: nivel 4-20 mA → bomba por contactor; flotador y térmico como entradas; variador o medidor por Modbus |
 | **PRO NAVE** | GATE + AO4 + DO8 + AP INPUT | Alumbrado atenuable de la nave, extractores, sensores de presencia y medición de energía por Modbus |
 | **PRO ENERGÍA** | GATE + DO8 | Medidores Modbus; con umbrales (`MU`) se desconectan cargas cuando la demanda pasa del límite |
@@ -69,6 +85,7 @@ Cada modelo es una lista de placas que se piden juntas y se programan igual.
 |---|---|---|
 | **SIGN LETRAS** | CORE + BASE (o + PWM4) + DIST 4 | Letras corpóreas y cajas de luz por canales, con efectos y ramas protegidas |
 | **SIGN PIXEL** | CORE + PIX + DIST 4 | Letras en secuencia y animaciones con pixeles direccionables |
+| **SIGN UNO** | **AP UNO** + equipos DMX | Letrero por canales **y** reflectores DMX en la misma placa, con horario solar |
 | **SIGN SHOW** | CORE + DMX (o PIX) | Reflectores RGB/RGBW y control en vivo con Art-Net/sACN (xLights, QLC+) |
 
 Todos los letreros pueden encender al **ocaso** y apagar a una hora fija o al **amanecer** (horario solar, sin fotocelda).
@@ -80,6 +97,7 @@ Todos los letreros pueden encender al **ocaso** y apagar a una hora fija o al **
 | **LIGHT CALLE** | GATE + AO4 + contactores AC-5b + supresor de picos | Alumbrado público, privadas y estacionamientos: enciende al ocaso, baja al 50 % a media noche, apaga al amanecer; consumo medido por Modbus |
 | **LIGHT NAVE** | CORE + AO4 (hasta 4 = 16 circuitos) | Naves y bodegas con luminarias de red atenuables 0-10 V |
 | **LIGHT DC** | CORE + PWM4 (hasta 4 = 16 canales) | Luminarias, reflectores y tiras de 24 V DC, hasta 20 A por PWM4 |
+| **LIGHT FOCOS** | **AP UNO + 1-2 AP FOCO** | Vitrinas, museos, acuarios, empotrados y COB sin driver: cada foco recibe su corriente exacta |
 | **LIGHT FACHADA** | CORE + PWM4 o DMX + horario solar | Iluminación arquitectónica con escenas y colores |
 
 ### AP CASA y la red de la casa (seguridad)
@@ -150,13 +168,13 @@ Todo funciona **sin internet**. Con Wi-Fi, además aparece en Home Assistant: lu
 | Enlace | Para qué | Detalle |
 |---|---|---|
 | **Conector LL 2×8** | CORE sobre un módulo de potencia (BASE, IND, PIX, DMX) | Uno por CORE; el módulo se identifica con su memoria |
-| **Qwiic (I2C)** | Módulos de E/S en cadena: AP INPUT, DO8, AI4 y DIST 4 | Hasta 4 en el rango de entradas (0x24-0x27: AP INPUT o DIST 4) y 4 de salidas (0x20-0x23). Cable total **corto**: 1 m como máximo, lejos de cables de potencia |
+| **Qwiic (I2C)** | Módulos y cabezales en cadena: AP INPUT, DO8, AI4, DIST 4, PWM4, AO4, AP FOCO | Hasta 4 en el rango de entradas (0x24-0x27: AP INPUT o DIST 4) y 4 de salidas (0x20-0x23). Cable total **corto**: 1 m como máximo, lejos de cables de potencia |
 | **AP BUS (24 V + CAN)** | Nodos remotos AP NODE en otro tablero, hasta 250 m | 1 maestro + 3 nodos; falla segura en 1 s. Ver [AP_BUS.md](AP_BUS.md) |
 | **Wi-Fi** | Entre equipos y con apps | Grupos, MQTT, Home Assistant, Art-Net |
 
 ## Montaje en riel DIN
 
-- `ap1-gabinete/din/soporte_din_88x56.stl` y `soporte_din_72x56.stl`: charola con insertos M3, gancho arriba y seguro flexible abajo, para riel TS35.
+- `ap1-gabinete/din/soporte_din_88x56.stl`, `_72x56`, `_120x62` (AP UNO) y `_60x56` (AP FOCO): charola con insertos M3, gancho arriba y seguro flexible abajo, para riel TS35.
 - Las placas de 72 mm ocupan 4 módulos DIN de ancho.
 - **Prototipo:** imprime uno y pruébalo con un tramo de riel antes de imprimir en serie.
 

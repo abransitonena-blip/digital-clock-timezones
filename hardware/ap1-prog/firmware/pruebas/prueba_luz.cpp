@@ -43,6 +43,15 @@ int main() {
   REVISA(solLocal(47.4f, -360) == 18 * 60 + 47);
   REVISA(solLocal(760.6f, -360) == 6 * 60 + 41);
   REVISA(diaDelAnio(2024, 3, 1) == 61 && diaDelAnio(2026, 3, 1) == 60);
+  // AP FOCO: resistencia de ID -> corriente máxima (nodo de 10k a 3.3 V)
+  auto nodo = [](float rk) { return 3.3f * rk / (rk + 10.0f); };
+  REVISA(focoMaxMa(nodo(10.0f)) >= 495 && focoMaxMa(nodo(10.0f)) <= 500);      // 10k = 500 mA
+  REVISA(focoMaxMa(nodo(14.3f)) >= 345 && focoMaxMa(nodo(14.3f)) <= 350);      // 14.3k = 350 mA
+  REVISA(focoMaxMa(nodo(7.15f)) >= 695 && focoMaxMa(nodo(7.15f)) <= 700);      // 7.15k = 700 mA
+  REVISA(focoMaxMa(nodo(5.0f)) >= 995);                                         // 5k = 1 A
+  REVISA(focoMaxMa(nodo(2.0f)) == FOCO_HW_MA);                                  // pide más de 1 A: se queda en 1 A
+  REVISA(focoMaxMa(3.3f) == FOCO_SIN_ID && focoMaxMa(0.0f) == 0);              // sin resistencia / en corto
+  REVISA(focoMaxMa(nodo(100.0f)) >= 49 && focoMaxMa(nodo(100.0f)) <= 50);       // 100k = 50 mA (foco chico)
   printf(fallas ? "%d FALLAS\n" : "AP LIGHT: todo bien\n", fallas);
   return fallas != 0;
 }

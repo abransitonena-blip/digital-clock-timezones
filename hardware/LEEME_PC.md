@@ -22,6 +22,8 @@ Este paquete (`LetreroLab_proyecto_completo.zip`) trae **todo** el ecosistema AP
 | `ap1-node/` | **AP NODE**: nodo remoto del AP BUS (24 V + CAN, hasta 250 m). Especificación en `AP_BUS.md` |
 | `ap1-gate/` | **AP GATE**: AP NODE + RS-485 / Modbus RTU (medidores de energía, variadores, PLC) |
 | `ap1-pwm4/`, `ap1-ao4/` | **AP LIGHT**: PWM4 (4 × 6 A atenuables de 12-24 V, aislado, 4 capas) y AO4 (4 circuitos 0-10 V + contactor). La simulación del 0-10 V está en `ap1-ao4/sim/` |
+| `ap1-uno/` | **AP UNO**: todo en uno (potencia de la BASE + ESP32-C3 + 4 salidas + 4 entradas + RS-485 DMX/Modbus + Qwiic), 4 capas. Su generador toma la potencia del de la BASE |
+| `ap1-foco/` | **Cabezal AP FOCO**: 2 focos de corriente constante (AL8860) con corriente medida (INA238, sensado Kelvin) y resistencia de ID |
 | `ap1-dmx/` | Módulo DMX512: controlador DMX con Wi-Fi para reflectores RGB/RGBW y equipos DMX. Guía en `ap1-dmx/LEEME.md` |
 | `ap1-plantilla/` | **Base para módulos nuevos**: entrada, fuente de 12 V, memoria, conector LL y área de prototipos. Guía en `ap1-plantilla/LEEME.md` |
 | `ap1-gabinete/` | Gabinete para impresión 3D (`gabinete/*.stl`) y soportes para riel DIN (`din/*.stl`) |

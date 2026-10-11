@@ -18,6 +18,8 @@ Todo está en **`PEDIDO_JLCPCB.zip`** (carpeta `PEDIDO_JLCPCB/`). Hay una subcar
 | `13_AP_GATE` | AP GATE | AP NODE + RS-485 / Modbus RTU (medidores de energía, variadores, PLC) |
 | `14_AP_LIGHT_PWM4` | AP LIGHT PWM4 (4 capas) | 4 canales de 12-24 V DC de 6 A atenuables, aislados (luminarias LED de 24 V, reflectores) |
 | `15_AP_LIGHT_AO4` | AP LIGHT AO4 | 4 circuitos de alumbrado de red: 0-10 V + bobina de contactor |
+| `16_AP_UNO` | AP UNO (4 capas) | **Todo en uno**: potencia de la BASE + Wi-Fi + 4 salidas para contactores + 4 entradas + RS-485 (DMX o Modbus) + Qwiic |
+| `17_AP_FOCO` | Cabezal AP FOCO | 2 focos de corriente constante que se adaptan a cada foco (resistencia de ID), 25 mA - 1 A |
 
 La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el sistema modular.
 
@@ -25,6 +27,7 @@ La AP-0.2 (placa única con borneras) ya no está en el pedido: la reemplaza el 
 
 | Para | Pide |
 |---|---|
+| **Lo más compacto** | **1 AP UNO** (y 1-2 AP FOCO para focos sin driver) |
 | Sistema mínimo | 1 BASE + 1 PROGRAMADOR |
 | Prototipo AP ELECTRIC (luces, sensores, válvula) | 1 BASE + 1 PROGRAMADOR + 1 AP INPUT + 1 DO8 |
 | E/S en otro tablero (AP BUS) | 2 AP NODE (maestro y remoto) + DO8 y/o AP INPUT en cada uno |

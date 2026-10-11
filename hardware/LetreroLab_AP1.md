@@ -163,7 +163,10 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
   - el botón "Probar salidas";
   - los sensores de voltaje, corriente, potencia, energía, temperatura, señal y falla.
   `HA 0` lo retira de Home Assistant y `HA 1` lo vuelve a anunciar. Por MQTT se pueden mandar varias órdenes en un mensaje, una por renglón.
-- **Estado:** compila sin advertencias (1.35 MB, 68 % de la flash). La app se probó en navegador contra un simulador.
+- **AP UNO y cabezales (fw 2.1):**
+  - Reconoce la placa **AP UNO** (expansor 0x20 con P5 = 0 y P6 = 1, memoria `LL-UNO`): S1-S4, E1-E4 y su RS-485 en IO1/IO3 con el DE en el expansor. `DMX 1` manda DMX512 sin detener los canales; `MB 9600 0` lo pasa a Modbus. Ver [ap1-uno/LEEME.md](ap1-uno/LEEME.md).
+  - Reconoce los **cabezales AP FOCO** (PCA9685 0x60/0x61) como luminarias **L33-L36**: lee la resistencia de ID de cada foco, limita su corriente, la mide con el INA238 y la corrige; avisa foco abierto, sobrecorriente, ID en corto o fuente corta. `FI f mA` pone un límite menor. Ver [ap1-foco/LEEME.md](ap1-foco/LEEME.md).
+- **Estado:** compila sin advertencias (fw 2.1: 1.44 MB, 73 % de la flash); las pruebas en la PC (`tools/probar_apbus.sh`) pasan. La app se probó en navegador contra un simulador.
 - **Compilar:** `bash hardware/tools/compilar_esp32.sh ap1`. Los binarios quedan en `ap1-prog/firmware/binarios/`.
 - **Grabar:** el archivo `_completo_0x0.bin` va por USB-C en la dirección 0x0; el `_actualizacion_OTA.bin` va por Wi-Fi.
 

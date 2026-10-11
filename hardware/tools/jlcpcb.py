@@ -37,6 +37,7 @@ CONOCIDOS = {
     ("330uF 50V", "CP_Elec_10x10.5"): ("C2687701", "Extended"),           # RVT1H331M1010 (10 x 10.2 mm)
     ("3A", "Fuse_1206_3216Metric"): ("C355685", "Extended"),              # JK 12 100.3, rápido
     ("1mR 2512 2W", "R_2512_Kelvin_NetTie"): ("C2924520", "Extended"),    # HoJLR2512-2W-1mR-1%-75ppm
+    ("0R1", "R_1206_Kelvin_NetTie"): ("C25334", "Basic Component"),       # UNI-ROYAL 1206W4F100LT5E, 0.1 ohm 1 %
     ("TSOP38238", "Vishay_MINICAST-3Pin"): ("C141632", "Extended"),
     ("B1212S-1WR3", "Converter_DCDC_Murata_MEE1SxxxxSC_THT"): ("C49260979", "Extended"),
     ("SRD-12VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C30431", "Extended"),

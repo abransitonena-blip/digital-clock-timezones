@@ -55,6 +55,11 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
   <div class="row"><label>Letras</label><input type="number" min="0" max="64" id="pxs" style="width:80px">
    <select id="pxo"><option value="0">GRB (WS2812B)</option><option value="1">RGB</option><option value="2">BRG</option></select></div>
   <div class="row"><button class="b" id="pxg">Guardar en el módulo</button><span id="pxabl" class="muted"></span></div></div>
+ <div class="card" id="tuno" style="display:none"><h3>AP UNO: puerto RS-485</h3>
+  <p class="muted">Salidas S1-S4 (bobinas de 12-24 V) y entradas E1-E4 (contacto seco) en la misma placa. El RS-485 (A, B, 0 V)
+  manda DMX512 a reflectores y cabezales, o lee medidores y variadores por Modbus RTU. Uno a la vez; se reinicia al cambiar.</p>
+  <div class="row"><button class="b" id="udx">DMX512</button><button class="b" id="umb">Modbus 9600</button>
+   <button class="b" id="uli">Libre</button><span class="muted" id="uest"></span></div></div>
  <div class="card" id="tdmx" style="display:none"><h3>Módulo DMX512</h3>
   <p class="muted">Cada equipo DMX (reflector RGB, barra, atenuador) es un "pixel": los efectos usan el color de arriba.
   Pon en cada equipo su dirección: el primero en la dirección inicial y los siguientes de tantos en tantos canales.</p>
@@ -106,7 +111,8 @@ border-radius:8px;padding:9px;font:inherit;min-width:0}input[type=range]{flex:1;
    <select id="mua"></select><input type="number" min="0" max="255" id="muv" style="width:70px" title="valor">
    <label><input type="checkbox" id="mum"> mientras</label><button class="b" id="mug">Guardar</button></div></div>
  <div class="card" id="tlu" style="display:none"><h3>Luminarias (AP LIGHT)</h3>
-  <p class="muted">PWM4: L1-L16 (12-24 V atenuable). AO4: L17-L32 (0-10 V + contactor). "Sigue" = obedece a la luz principal.</p>
+  <p class="muted">PWM4: L1-L16 (12-24 V atenuable). AO4: L17-L32 (0-10 V + contactor). AP FOCO: L33-L36 (corriente constante:
+  el foco dice su corriente con su resistencia de ID). "Sigue" = obedece a la luz principal.</p>
   <div id="lulist"></div>
   <div class="row"><label>Rampa</label><input type="number" min="0" max="60" step="0.5" id="lur" style="width:80px"><span class="muted">segundos</span>
    <button class="b" id="lurg">Guardar</button></div></div>
@@ -219,9 +225,10 @@ function pinta(){
  $("briv").textContent=E.b+"%";$("lv").textContent=E.lux==null?"sin sensor de luz":"luz "+E.lux+" lux";
  $("tind").style.display=E.ind?"":"none";$("tpix").style.display=E.px&&!E.dmx?"":"none";io();ai();mb();lu();solar();etiquetas();
  if(E.vivo){if(document.activeElement.id!="vvu")$("vvu").value=E.vivo.u;$("vvon").checked=!!E.vivo.on;
-  $("vvst").textContent=!E.vivo.on?"Apagado":E.vivo.rx?`Recibiendo (${E.vivo.p} paquetes) en ${E.ip||"esta IP"}`:`Esperando datos en ${E.ip||"esta IP"}, Art-Net 6454 / sACN 5568`}$("tdmx").style.display=E.dmx?"":"none";
- if(E.dmx&&E.pix&&document.activeElement.tagName!="INPUT"&&document.activeElement.tagName!="SELECT"){$("dmn").value=E.pix.n[0];$("dmd").value=E.pix.d;$("dmc").value=E.pix.ch;$("dmo").value=E.pix.o;$("dms").value=E.pix.s}
- if(E.dmx&&E.pix)$("dmf").textContent=` ${E.pix.fr} cuadros enviados`;
+  $("vvst").textContent=!E.vivo.on?"Apagado":E.vivo.rx?`Recibiendo (${E.vivo.p} paquetes) en ${E.ip||"esta IP"}`:`Esperando datos en ${E.ip||"esta IP"}, Art-Net 6454 / sACN 5568`}$("tdmx").style.display=E.dmx||E.udmx?"":"none";$("tuno").style.display=E.uno?"":"none";
+ if(E.uno){$("udx").className="b"+(E.udmx?" on":"");$("umb").className="b"+(E.mb&&E.mb.b?" on":"");$("uli").className="b"+(!E.udmx&&!(E.mb&&E.mb.b)?" on":"")}
+ if((E.dmx||E.udmx)&&E.pix&&document.activeElement.tagName!="INPUT"&&document.activeElement.tagName!="SELECT"){$("dmn").value=E.pix.n[0];$("dmd").value=E.pix.d;$("dmc").value=E.pix.ch;$("dmo").value=E.pix.o;$("dms").value=E.pix.s}
+ if((E.dmx||E.udmx)&&E.pix)$("dmf").textContent=` ${E.pix.fr} cuadros enviados`;
  if(E.px&&E.pix&&document.activeElement.tagName!="INPUT"){for(let k=0;k<4;k++)$("px"+(k+1)).value=E.pix.n[k];$("pxs").value=E.pix.s;$("pxo").value=E.pix.o}
  if(E.px&&E.pix)$("pxabl").textContent=E.pix.abl<100?` Brillo limitado al ${E.pix.abl}% por corriente`:"";$("tcc").style.display=$("taux").style.display=E.ind?"none":"";
  $("k2").textContent=E.cc[0]?"Contactor 2 encendido":"Contactor 2 apagado";$("k2").className="b"+(E.cc[0]?" on":"");
@@ -271,11 +278,15 @@ function mbumbral(){const u=(E.mb.u||[])[+$("mun").value-1];if(!u)return;$("muu"
 function mbpunto(){const p=(E.mb.p||[])[+$("mbn").value-1];if(!p||!p[0])return;$("mbe").value=p[0];$("mbf").value=p[1];$("mbr").value=p[2];$("mbt").value=p[3];$("mbx").value=p[4]}
 function lu(){const L=E.lu;if(!L)return;$("tlu").style.display=L.m?"":"none";if(!L.m)return;
  if(document.querySelector("#tlu :focus")&&document.activeElement.type=="range")return;let h="";
- for(let n=0;n<32;n++){const m=n<16?n>>2:4+((n-16)>>2);if(!(L.m>>m&1))continue;const on=L.o>>>n&1,sg=L.s>>>n&1;
+ for(let n=0;n<36;n++){if(!(L.m>>lmod(n)&1))continue;const on=Math.floor(L.o/2**n)%2,sg=Math.floor(L.s/2**n)%2;
   h+=`<div class="row"><label>L${n+1}${et("l",n+1)}</label><input type="range" min="0" max="100" value="${L.n[n]}" data-lu="${n+1}" style="flex:1">
   <span class="muted" style="min-width:42px">${L.n[n]}%</span><button class="b${on?" on":""}" data-lo="${n+1}">${on?"Encendida":"Apagada"}</button>
-  <label><input type="checkbox" data-ls="${n+1}" ${sg?"checked":""}> sigue</label></div>`}
+  <label><input type="checkbox" data-ls="${n+1}" ${sg?"checked":""}> sigue</label></div>${n>=32?foco(L,n-32):""}`}
  $("lulist").innerHTML=h;if(!document.querySelector("#lur:focus"))$("lur").value=L.r}
+function lmod(n){return n<16?n>>2:n<32?4+((n-16)>>2):8+((n-32)>>1)}
+const FEST=["sin cabezal","bien","sin foco o cable abierto","ID en corto: apagado","sobrecorriente: apagado","sin resistencia de ID (350 mA)","la fuente no alcanza la tensión del foco"];
+function foco(L,f){const x=(L.f||[])[f];if(!x)return"";return `<div class="row muted" style="margin-top:-6px">Foco ${f+1}: ${x[0]} mA de ${x[2]&&x[2]<x[1]?x[2]:x[1]} mA máx. · ${FEST[x[3]]||""}
+  <input type="number" min="0" max="1000" value="${x[2]}" data-fi="${f+1}" style="width:70px" title="límite en mA (0 = el del foco)"> mA límite</div>`}
 function hm2(m){return m<0?"--:--":String(m/60|0).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}
 function solar(){if(document.querySelector("#tsol :focus,#soles :focus,#glat:focus,#glon:focus"))return;const G=E.geo;
  if(G){$("glat").value=G[0];$("glon").value=G[1];$("solt").textContent=`Hoy: amanecer ${hm2(E.solh[1])} · ocaso ${hm2(E.solh[0])}`}
@@ -292,7 +303,7 @@ function etiquetas(){if(document.querySelector("#etx:focus,#ett:focus"))return;c
  for(let n=1;n<=4;n++)o+=`<option value="C${n}">Canal ${n}${et("c",n)}</option>`;
  const M=(E.ai||{}).m||0;for(let n=1;n<=8;n++)if(M>>((n-1)>>2)&1)o+=`<option value="A${n}">Analógica ${n}${et("a",n)}</option>`;
  const B=E.mb||{b:0,p:[]};if(B.b)B.p.forEach((p,i)=>{if(p[0])o+=`<option value="M${i+1}">Modbus ${i+1}${et("m",i+1)}</option>`});
- const LM=(E.lu||{}).m||0;for(let n=0;n<32;n++){const m=n<16?n>>2:4+((n-16)>>2);if(LM>>m&1)o+=`<option value="L${n+1}">Luminaria ${n+1}${et("l",n+1)}</option>`}
+ const LM=(E.lu||{}).m||0;for(let n=0;n<36;n++){if(LM>>lmod(n)&1)o+=`<option value="L${n+1}">Luminaria ${n+1}${et("l",n+1)}</option>`}
  for(let m=0;m<16;m++){if(I.o>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="S${n}">Salida ${n}${et("s",n)}</option>`}
   if(I.i>>m&1)for(let b=0;b<8;b++){const n=m*8+b+1;o+=`<option value="E${n}">Entrada ${n}${et("e",n)}</option>`}}
  $("etx").innerHTML=o;if(c&&[...$("etx").options].some(x=>x.value==c))$("etx").value=c}
@@ -326,7 +337,8 @@ $("ailist").onclick=e=>{const d=e.target.dataset;if(d.ai)api(`AI ${d.ai} ${d.m}`
 $("mbn").onchange=mbpunto;$("mun").onchange=mbumbral;
 $("mua").innerHTML='<option value="-">Nada</option>'+ACC.map((a,j)=>`<option value="${j}">${a}</option>`).join("");
 $("mug").onclick=()=>{const n=$("mun").value,a=$("mua").value;api(a=="-"?`MU ${n} -`:`MU ${n} ${$("muu").value||0} ${a} ${$("muv").value||0} ${$("mum").checked?1:0}`)};
-$("lulist").addEventListener("change",e=>{const t=e.target;if(t.dataset.lu)api(`LU ${t.dataset.lu} ${t.value}`);if(t.dataset.ls)api(`LS ${t.dataset.ls} ${t.checked?1:0}`)});
+$("udx").onclick=()=>api("DMX 1");$("umb").onclick=()=>api("MB 9600 0");$("uli").onclick=()=>api("MB 0");
+$("lulist").addEventListener("change",e=>{const t=e.target;if(t.dataset.fi)api(`FI ${t.dataset.fi} ${t.value||0}`);if(t.dataset.lu)api(`LU ${t.dataset.lu} ${t.value}`);if(t.dataset.ls)api(`LS ${t.dataset.ls} ${t.checked?1:0}`)});
 $("lulist").addEventListener("click",e=>{const t=e.target.closest("[data-lo]");if(t)api(`LO ${t.dataset.lo} 2`)});
 $("lurg").onclick=()=>api("LR "+($("lur").value||0));
 $("gok").onclick=()=>api(`GEO ${$("glat").value} ${$("glon").value}`);

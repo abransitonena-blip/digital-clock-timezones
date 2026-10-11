@@ -77,11 +77,12 @@
 #include "luz.h"
 #include "pagina.h"
 
-#define VERSION "AP-1 fw 2.0"
+#define VERSION "AP-1 fw 2.1"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
-const uint8_t CC_PIN[2] = {10, 0};         // CTRL de los AL8860 (corriente constante); pull-down de 2.2k en la base
+uint8_t CC_PIN[2] = {10, 0};               // CTRL de los AL8860 (corriente constante); pull-down de 2.2k en la base
+                                           // (en el AP UNO al revés: foco 1 = IO0, foco 2 = IO10)
 const uint8_t PIN_AUX = 1;                 // AO3400 de la base: relevador, contactor o ventilador externo
 const uint8_t PIN_MODO = 9;                // botón BOOT/MODO (a GND) y J4-4
 const uint8_t PIN_IR = 3;                  // receptor IR TSOP382 y J4-3
@@ -143,6 +144,9 @@ bool hayBase = false, hayOLED = false, hayLux = false, auxVent = false;
 bool modoInd = false;                       // módulo AP-1 IND (0-10 V + contactores) en lugar de la base
 bool modoPix = false;                       // módulo AP-1 PIX (pixeles direccionables) en lugar de la base
 bool modoDmx = false;                       // módulo AP-1 DMX (DMX512): cada equipo DMX es un "pixel" (modoPix también)
+bool modoUno = false;                       // placa AP UNO: potencia + cerebro + 4 salidas + 4 entradas + RS-485
+bool unoDmx = false;                        // AP UNO: el RS-485 manda DMX512 (los 4 canales y los focos siguen)
+bool unoDE = false;                         // AP UNO: DE del SP3485 (P7 del expansor 0x20)
 char baseModelo[17] = "", baseSerie[33] = "";
 uint32_t baseHoras = 0;
 uint16_t baseNormal[6] = {0};              // consumo normal aprendido por salida (mA, a 100 %)
@@ -202,7 +206,8 @@ uint32_t busUltimo[BUS_NODOS + 1] = {0};    // maestro: último estado de cada n
 uint32_t busRx = 0, busTx = 0;
 uint8_t busEnLinea();                       // (más abajo, junto al AP BUS)
 // ---- AP GATE: maestro Modbus RTU por RS-485 (IO6 = TX, IO7 = RX, IO1 = DE y /RE) ----
-const uint8_t PIN_RS_TX = 6, PIN_RS_RX = 7, PIN_RS_DE = 1, MB_N = 8;
+uint8_t PIN_RS_TX = 6, PIN_RS_RX = 7, PIN_RS_DE = 1;     // AP GATE; en el AP UNO: IO1/IO3 y DE en el expansor (255)
+const uint8_t MB_N = 8;
 uint32_t mbBaud = 0;                        // 0 = apagado
 uint8_t mbParidad = 0;
 struct MbPunto { uint8_t esclavo, funcion, tipo, libre; uint16_t reg; float escala; };   // esclavo 0 = sin usar
@@ -212,11 +217,19 @@ float mbVal[MB_N];
 uint8_t mbErr[MB_N];                        // 0 bien, 1 sin respuesta, 2 CRC, 3 trama equivocada, 10 + excepción
 uint32_t mbBien = 0, mbMal = 0;
 // ---- AP LIGHT: PWM4 (L1-L16, atenuación con curva de brillo) y AO4 (L17-L32: 0-10 V lineal + contactor) ----
-const uint8_t LU_N = 32, LU_DIR[8] = {0x41, 0x43, 0x51, 0x53, 0x44, 0x45, 0x46, 0x47};
+// L33-L36: cabezales AP FOCO (PCA9685 0x60/0x61, 2 focos de corriente constante cada uno)
+const uint8_t LU_N = 36, LU_MODS = 10, LU_DIR[LU_MODS] = {0x41, 0x43, 0x51, 0x53, 0x44, 0x45, 0x46, 0x47, 0x60, 0x61};
+inline uint8_t luModulo(uint8_t n) { return n < 16 ? n / 4 : (n < 32 ? 4 + (n - 16) / 4 : 8 + (n - 32) / 2); }
 const uint8_t ACC_MAX = 11;
-uint8_t luMods = 0;                         // bit m = módulo LU_DIR[m] presente
+uint16_t luMods = 0;                        // bit m = módulo LU_DIR[m] presente
 uint8_t luNivel[LU_N];                      // 0-100: el último nivel pedido
-uint32_t luOn = 0, luSigue = 0;             // encendida / sigue a la luz principal (un bit por luminaria)
+uint64_t luOn = 0, luSigue = 0;             // encendida / sigue a la luz principal (un bit por luminaria)
+// ---- AP FOCO: corriente medida (INA238 0x4C + f) y máxima según la resistencia de ID del foco ----
+const uint8_t FC_N = 4, FC_INA = 0x4C;
+enum { FC_NO = 0, FC_BIEN, FC_ABIERTO, FC_ID_CORTO, FC_SOBRE, FC_SIN_ID, FC_CORTA };
+uint16_t fcMax[FC_N], fcLim[FC_N], fcMa[FC_N], fcObj[FC_N];   // mA: por ID, del usuario, medida y pedida
+uint8_t fcEst[FC_N], fcFalla[FC_N];               // estado que se muestra / falla de la salida
+float fcCorr[FC_N] = {1, 1, 1, 1}, fcVid[FC_N];
 float luAct[LU_N];                          // nivel actual (con rampa)
 float luRampaS = 1.0f;
 bool luSucio = false;
@@ -228,11 +241,11 @@ struct Sol { uint8_t activo, evento, dias, acc, val, libre; int16_t desfase; };
 Sol soles[8];
 int16_t solHoy[2] = {-1, -1};               // minuto local de hoy: [0] ocaso, [1] amanecer
 void solCalcular();                         // (más abajo, junto a los horarios)
-String etC[4], etS[IO_N * 8], etE[IO_N * 8], etA[AI_N * 4], etM[8], etL[32];
+String etC[4], etS[IO_N * 8], etE[IO_N * 8], etA[AI_N * 4], etM[8], etL[LU_N];
 String* etiqueta(char tipo, int n) {                        // tipo C/S/E/A, n desde 1
   if (tipo == 'A' && n >= 1 && n <= AI_N * 4) return &etA[n - 1];
   if (tipo == 'M' && n >= 1 && n <= 8) return &etM[n - 1];
-  if (tipo == 'L' && n >= 1 && n <= 32) return &etL[n - 1];
+  if (tipo == 'L' && n >= 1 && n <= LU_N) return &etL[n - 1];
   if (tipo == 'C' && n >= 1 && n <= 4) return &etC[n - 1];
   if (tipo == 'S' && n >= 1 && n <= IO_N * 8) return &etS[n - 1];
   if (tipo == 'E' && n >= 1 && n <= IO_N * 8) return &etE[n - 1];
@@ -265,8 +278,12 @@ void cargar() {
   for (uint8_t i = 0; i < MB_N; i++) { mbVal[i] = NAN; mbErr[i] = 1; }
   if (pref.getBytes("mbumb", mbUmb, sizeof(mbUmb)) != sizeof(mbUmb)) for (auto& u : mbUmb) u = Umbral{0, ACC_NADA, 0, 0, false};
   for (auto& u : mbUmb) u.arriba = false;
-  if (pref.getBytes("luniv", luNivel, sizeof(luNivel)) != sizeof(luNivel)) memset(luNivel, 100, sizeof(luNivel));
-  luOn = pref.getUInt("luon", 0); luSigue = pref.getUInt("lusig", 0); luRampaS = pref.getFloat("lurampa", 1.0f);
+  if (pref.getBytes("luniv2", luNivel, sizeof(luNivel)) != sizeof(luNivel)) {   // 2.0 guardaba 32 luminarias
+    memset(luNivel, 100, sizeof(luNivel));
+    pref.getBytes("luniv", luNivel, 32);
+  }
+  luOn = pref.getULong64("luon2", pref.getUInt("luon", 0)); luSigue = pref.getULong64("lusig2", pref.getUInt("lusig", 0));
+  if (pref.getBytes("fclim", fcLim, sizeof(fcLim)) != sizeof(fcLim)) memset(fcLim, 0, sizeof(fcLim)); luRampaS = pref.getFloat("lurampa", 1.0f);
   for (auto& a : luAct) a = 0;
   geoLat = pref.getFloat("geolat", NAN); geoLon = pref.getFloat("geolon", NAN); nocheSol = pref.getBool("noche", false);
   if (pref.getBytes("soles", soles, sizeof(soles)) != sizeof(soles)) for (auto& o : soles) o = Sol{0, 0, 127, 0, 0, 0, 0};
@@ -480,6 +497,12 @@ void eepEscribir(uint8_t dir, const void* buf, uint8_t n) {   // páginas de 8 b
   }
 }
 bool dmxDetectar();                          // módulo DMX (más abajo)
+int tcaLeer(uint8_t dir, uint8_t reg);
+void rsDE(bool tx);
+bool unoDetectar() {                         // AP UNO: el expansor 0x20 lee P5 = 0 (R35 a 0 V) y P6 = 1 (R36 a 3.3 V)
+  int v = tcaLeer(0x20, 0);                  // en un DO8 las 8 patas van a los NCV8406 con pull-down: P6 se lee 0
+  return v >= 0 && (v & 0x60) == 0x40;
+}
 void leerBase() {
   uint8_t cab[3];
   hayBase = eepLeer(0, cab, 3);
@@ -488,13 +511,14 @@ void leerBase() {
     uint8_t vacio[37] = {'L', 'L', 1};
     // BASE: medidor + temperatura; PIX: solo medidor; IND: ninguno de los dos
     // sin medidor: DMX si el transceptor regresa el eco, si no IND
-    strcpy((char*)vacio + 3, hayINA ? (hayTMP ? "AP-1 universal" : "LL-PIX") : (dmxDetectar() ? "LL-DMX" : "LL-IND"));
+    strcpy((char*)vacio + 3, hayINA ? (hayTMP ? (modoUno ? "LL-UNO" : "AP-1 universal") : "LL-PIX") : (dmxDetectar() ? "LL-DMX" : "LL-IND"));
     eepEscribir(0, vacio, sizeof(vacio));
   }
   eepLeer(3, baseModelo, 16); baseModelo[16] = 0;
   modoInd = !strncmp(baseModelo, "LL-IND", 6);
   modoDmx = !strncmp(baseModelo, "LL-DMX", 6);
   modoPix = modoDmx || !strncmp(baseModelo, "LL-PIX", 6);
+  if (!strncmp(baseModelo, "LL-UNO", 6)) modoUno = true;
   eepLeer(20, baseNormal, 12);
   eepLeer(32, &baseHoras, 4);
   eepLeer(36, &baseReposo, 2);
@@ -563,7 +587,7 @@ void pixLeer() {
   }
   pixSeg = b[8] == 0xFF ? 0 : b[8];
   pixOrden = b[9] > 2 ? (modoDmx ? 1 : 0) : b[9];               // DMX: RGB por omisión; tiras: GRB
-  if (modoDmx) {
+  if (modoDmx || unoDmx) {
     uint8_t d[3];
     if (!eepLeer(EEP_DMX, d, 3)) return;
     uint16_t dir = d[0] | (d[1] << 8);
@@ -579,10 +603,16 @@ void pixGuardar() {
   for (uint8_t k = 0; k < 4; k++) { b[2 * k] = pixN[k] & 0xFF; b[2 * k + 1] = pixN[k] >> 8; }
   b[8] = pixSeg; b[9] = pixOrden;
   eepEscribir(EEP_PIX, b, 10);
-  if (modoDmx) { uint8_t d[3] = {(uint8_t)(dmxDir & 0xFF), (uint8_t)(dmxDir >> 8), dmxCh}; eepEscribir(EEP_DMX, d, 3); }
+  if (modoDmx || unoDmx) { uint8_t d[3] = {(uint8_t)(dmxDir & 0xFF), (uint8_t)(dmxDir >> 8), dmxCh}; eepEscribir(EEP_DMX, d, 3); }
 }
 uint16_t pixTotal() { return pixN[0] + pixN[1] + pixN[2] + pixN[3]; }
 void pixIniciar() {
+  if (unoDmx) {                                               // AP UNO: los 4 canales siguen; el RS-485 solo transmite
+    rsDE(true);
+    Serial1.setTxBufferSize(1024);
+    Serial1.begin(250000, SERIAL_8N2, PIN_RS_RX, PIN_RS_TX);
+    return;
+  }
   if (modoDmx) {
     for (uint8_t c = 0; c < 4; c++) { ledcDetach(PWM_PIN[c]); pinMode(PWM_PIN[c], OUTPUT); digitalWrite(PWM_PIN[c], LOW); }
     digitalWrite(PWM_PIN[2], HIGH);                           // DE: el módulo solo transmite
@@ -646,7 +676,7 @@ void dmxEnviar(uint32_t t) {
   dmxCuadros++;
 }
 void pixEnviar(uint32_t t) {
-  if (modoDmx) { dmxEnviar(t); return; }
+  if (modoDmx || unoDmx) { dmxEnviar(t); return; }
   if (!pixBuf) return;
   uint16_t T = 1500 - cfg.vel * 140, tot = pixTotal(), g = 0;
   uint8_t usadas = (pixN[0] > 0) + (pixN[1] > 0) + (pixN[2] > 0) + (pixN[3] > 0);
@@ -836,7 +866,7 @@ String estadoJSON() {
   s += ",\"cc\":["; s += cfg.cc[0]; s += ','; s += cfg.cc[1]; s += "],\"ym\":"; s += cfg.auxModo;
   s += ",\"av\":"; s += auxVent;
   s += ",\"lux\":"; s += isnan(lux) ? "null" : String(lux, 0);
-  s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix; s += ",\"dmx\":"; s += modoDmx;
+  s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix; s += ",\"dmx\":"; s += modoDmx; s += ",\"uno\":"; s += modoUno; s += ",\"udmx\":"; s += unoDmx;
   s += ",\"vivo\":{\"on\":"; s += vivoActivo; s += ",\"u\":"; s += vivoUni; s += ",\"rx\":"; s += vivo();
   s += ",\"p\":"; s += vivoPaquetes; s += '}';
   s += ",\"io\":{\"o\":"; s += ioOut; s += ",\"i\":"; s += ioIn; s += ",\"s\":[";
@@ -867,7 +897,12 @@ String estadoJSON() {
     const Umbral& u = mbUmb[i];
     s += '['; s += String(u.lim, 2); s += ','; s += u.acc; s += ','; s += u.val; s += ','; s += u.modo; s += ']';
   }
-  s += "]},\"lu\":{\"m\":"; s += luMods; s += ",\"o\":"; s += luOn; s += ",\"s\":"; s += luSigue;
+  s += "]},\"lu\":{\"m\":"; s += luMods; s += ",\"o\":"; s += String(luOn); s += ",\"s\":"; s += String(luSigue);
+  s += ",\"f\":[";                                            // AP FOCO: [mA medida, mA máxima, límite, estado]
+  for (uint8_t f = 0; f < FC_N; f++) {
+    if (f) s += ',';
+    s += '['; s += fcMa[f]; s += ','; s += fcMax[f]; s += ','; s += fcLim[f]; s += ','; s += fcEst[f]; s += ']';
+  }
   s += ",\"r\":"; s += String(luRampaS, 1); s += ",\"n\":[";
   for (uint8_t n = 0; n < LU_N; n++) { if (n) s += ','; s += luNivel[n]; }
   s += "]},\"geo\":"; s += isnan(geoLat) ? String("null") : "[" + String(geoLat, 4) + "," + String(geoLon, 4) + "]";
@@ -899,10 +934,10 @@ String estadoJSON() {
       s += '"'; s += (char)tolower(tipo); s += n; s += "\":\""; s += *e; s += '"';
     }
   s += '}';
-  if (modoPix) {
+  if (modoPix || unoDmx) {
     s += ",\"pix\":{\"n\":["; for (uint8_t k = 0; k < 4; k++) { if (k) s += ','; s += pixN[k]; }
     s += "],\"s\":"; s += pixSeg; s += ",\"o\":"; s += pixOrden; s += ",\"abl\":"; s += ablFactor / 10;
-    if (modoDmx) { s += ",\"d\":"; s += dmxDir; s += ",\"ch\":"; s += dmxCh; s += ",\"fr\":"; s += dmxCuadros; }
+    if (modoDmx || unoDmx) { s += ",\"d\":"; s += dmxDir; s += ",\"ch\":"; s += dmxCh; s += ",\"fr\":"; s += dmxCuadros; }
     s += '}';
   }
   s += ",\"base\":{\"ok\":"; s += hayBase; s += ",\"mod\":\""; s += baseModelo; s += "\",\"sn\":\""; s += baseSerie;
@@ -989,12 +1024,12 @@ void haPublicar() {
   }
   uint32_t ahora = ((uint32_t)ioOut << 16) | ioIn;
   if (ahora != antes) pref.putUInt("haio", ahora);
-  uint8_t luAntes = pref.getUChar("halu", 0);                 // AP LIGHT: una luz atenuable por luminaria
+  uint16_t luAntes = pref.getUShort("halu2", pref.getUChar("halu", 0));                // AP LIGHT: una luz atenuable por luminaria
   for (uint8_t n = 0; n < LU_N; n++) {
-    uint8_t m = n < 16 ? n / 4 : 4 + (n - 16) / 4;
+    uint8_t m = luModulo(n);
     String obj = String("l") + (n + 1);
     if (luMods & (1 << m)) {
-      String k = String(n + 1), bit = String(1UL << n);
+      String k = String(n + 1), bit = String(1ULL << n);
       haUno(uid, "light", obj.c_str(), String("\"name\":\"") + (etL[n].length() ? etL[n] : String("Luminaria ") + k) +
             "\",\"schema\":\"template\",\"command_topic\":\"~/cmd\",\"state_topic\":\"~/estado\","
             "\"command_on_template\":\"{% if brightness is defined %}LU " + k + " {{ [((brightness / 2.55) | round | int), 1] | max }}"
@@ -1003,7 +1038,7 @@ void haPublicar() {
             "\"brightness_template\":\"{{ (value_json.lu.n[" + n + "] * 2.55) | round | int }}\"");
     } else if (luAntes & (1 << m)) { String t = String("homeassistant/light/") + uid + "/" + obj + "/config"; esp_mqtt_client_publish(mq, t.c_str(), "", 0, 1, 1); }
   }
-  if (luAntes != luMods) pref.putUChar("halu", luMods);
+  if (luAntes != luMods) pref.putUShort("halu2", luMods);
   for (uint8_t n = 0; n < MB_N; n++) {                          // AP GATE: puntos Modbus
     String obj = String("m") + (n + 1);
     if (mbBaud && mbPuntos[n].esclavo)
@@ -1151,9 +1186,9 @@ void aplicarAccion(uint8_t acc, uint8_t val) {
       }
       return;
     case 8: cfg.encendido = !cfg.encendido; break;            // alternar la luz (pulsador)
-    case 9: case 10: case 11:                                 // luminaria val (1-32) encender / apagar / alternar
+    case 9: case 10: case 11:                                 // luminaria val (1-36) encender / apagar / alternar
       if (val >= 1 && val <= LU_N) {
-        uint32_t b = 1UL << (val - 1);
+        uint64_t b = 1ULL << (val - 1);
         bool on = acc == 9 ? true : acc == 10 ? false : !(luOn & b);
         if (on) { luOn |= b; if (!luNivel[val - 1]) luNivel[val - 1] = 100; } else luOn &= ~b;
         luSucio = true; tLuSucio = millis(); ioCambio = true;
@@ -1226,6 +1261,11 @@ void ioActualizar(uint32_t t) {
   if (ioCambio || t - tEscribe > 1000) {                       // cada segundo se reescribe todo (por si se reconectó)
     for (uint8_t m = 0; m < IO_LOC; m++) {
       if (!(ioOut & (1 << m))) continue;
+      if (modoUno && m == 0) {                                // AP UNO: S1-S4 + DE; P5/P6 = identificación (entradas)
+        tcaEscribir(0x20, 1, (salEstado[0] & 0x0F) | (unoDE ? 0x80 : 0));
+        tcaEscribir(0x20, 3, 0x60);
+        continue;
+      }
       tcaEscribir(0x20 + m, 1, salEstado[m]);
       tcaEscribir(0x20 + m, 3, 0x00);                         // todas salidas
     }
@@ -1308,7 +1348,10 @@ void aiActualizar(uint32_t t) {
   }
 }
 void ioApagar() {                                             // los nodos remotos reciben el 0 por el bus
-  for (uint8_t m = 0; m < IO_N; m++) { salEstado[m] = 0; if (m < IO_LOC && (ioOut & (1 << m))) tcaEscribir(0x20 + m, 1, 0); }
+  for (uint8_t m = 0; m < IO_N; m++) {
+    salEstado[m] = 0;
+    if (m < IO_LOC && (ioOut & (1 << m))) tcaEscribir(0x20 + m, 1, (modoUno && !m && unoDE) ? 0x80 : 0);
+  }
 }
 
 // ---------------- AP BUS: CAN a 250 kbit/s con el controlador TWAI del ESP32-C3 ----------------
@@ -1442,46 +1485,112 @@ bool pcaPoner(uint8_t dir, uint8_t canal, uint16_t v) {
   return Wire.endTransmission() == 0;
 }
 bool luEncendida(uint8_t n) {                                 // con "sigue": la luz principal manda
-  if (luSigue & (1UL << n)) return cfg.encendido && porHorario && porLuz && falla == SIN_FALLA;
-  return luOn & (1UL << n);
+  if (luSigue & (1ULL << n)) return cfg.encendido && porHorario && porLuz && falla == SIN_FALLA;
+  return luOn & (1ULL << n);
 }
 uint8_t luObjetivo(uint8_t n) {
   if (!luEncendida(n)) return 0;
-  if (luSigue & (1UL << n)) return cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
+  if (luSigue & (1ULL << n)) return cfg.eco ? min<uint8_t>(cfg.brillo, 60) : cfg.brillo;
   return luNivel[n];
+}
+// ---- AP FOCO: el CTRL del AL8860 con PWM de 1 kHz da una corriente media proporcional (100 % = 1 A con RSC de 0.1 ohm).
+// Cada foco trae una resistencia de ID entre la pata 3 y 0 V, con la regla de los drivers "LEDset": I [mA] = 5000 / R [kohm]
+// (5k = 1 A, 10k = 500 mA, 14.3k = 350 mA). La placa tiene 10k a 3.3 V: el INA238 lee el divisor por su entrada VBUS.
+// Sin resistencia (3.3 V) se usa 350 mA, lo que aguanta cualquier foco de potencia; en corto (0 V) el foco no enciende.
+// Con la corriente medida en la resistencia RSC el ciclo se corrige (+-20 %) para que la corriente real sea la pedida.
+void fcIniciar(uint8_t cab) {
+  for (uint8_t c = 0; c < 2; c++) {
+    uint8_t f = cab * 2 + c, dir = FC_INA + f;
+    fcEst[f] = FC_NO; fcFalla[f] = 0; fcCorr[f] = 1; fcMa[f] = 0;
+    if (leer16(dir, 0x3E) != 0x5449) continue;                // "TI"
+    escribir16(dir, 0x00, 0x0000);                            // ADCRANGE = 0: +-163.84 mV (1.6 A con 0.1 ohm)
+    escribir16(dir, 0x01, 0xBB43);                            // continuo shunt + bus, 1052 us, promedio de 64 (abarca el PWM)
+    fcEst[f] = FC_SIN_ID;
+  }
+}
+uint16_t fcTope(uint8_t f) {                                  // mA máximos: los del ID, o menos si el usuario lo pidió
+  return fcLim[f] && fcLim[f] < fcMax[f] ? fcLim[f] : fcMax[f];
+}
+uint16_t fcCiclo(uint8_t f, float nivel) {                    // nivel 0-100 % -> ciclo del PCA9685 (0-4096)
+  uint16_t tope = fcTope(f);
+  fcObj[f] = (uint32_t)GAMMA12[(uint16_t)(nivel * 2.55f + 0.5f)] * tope / PWM_MAX;   // lo pedido, aunque esté en falla
+  if (fcEst[f] == FC_NO || fcEst[f] == FC_ID_CORTO || fcFalla[f] == FC_SOBRE || !tope) return 0;
+  uint32_t v = (uint32_t)(fcObj[f] * fcCorr[f] * PWM_MAX / 1000.0f + 0.5f);
+  uint32_t vmax = (uint32_t)tope * PWM_MAX * 21 / 20000;      // nunca más del 105 % del tope en promedio
+  return min<uint32_t>(v, min<uint32_t>(vmax, PWM_MAX));
+}
+void fcMedir(uint32_t t) {
+  static uint32_t tMide = 0;
+  static uint8_t lento[FC_N], abierto[FC_N];
+  static uint16_t objAntes[FC_N];
+  if (!(luMods & 0x300) || t - tMide < 200) return;
+  tMide = t;
+  for (uint8_t f = 0; f < FC_N; f++) {
+    if (!(luMods & (0x100 << (f / 2))) || fcEst[f] == FC_NO) { fcMa[f] = 0; continue; }
+    int32_t sh = leer16(FC_INA + f, 0x04), bus = leer16(FC_INA + f, 0x05);
+    if (sh < 0 || bus < 0) continue;
+    float ma = max(0.0f, (int16_t)sh * 5e-6f / 0.1f * 1000.0f), v = (int16_t)bus * 0.003125f;
+    fcMa[f] = (uint16_t)(ma + 0.5f); fcVid[f] = v;
+    uint16_t mx = focoMaxMa(v);                                        // el ID manda el tope
+    fcMax[f] = mx == FOCO_SIN_ID ? 350 : mx;
+    uint16_t obj = fcObj[f];
+    bool estable = abs((int)obj - (int)objAntes[f]) <= obj / 50 + 2;   // sin rampa: se puede corregir y diagnosticar
+    objAntes[f] = obj;
+    // falla de la salida: se queda hasta que se corrige (abierto, corta) o hasta que el usuario lo apaga (sobrecorriente)
+    if (fcFalla[f] == FC_SOBRE) { if (!obj) fcFalla[f] = 0; }
+    else if (ma > fcTope(f) * 1.25f + 30) {                            // más de lo permitido: se apaga y se avisa
+      fcFalla[f] = FC_SOBRE; aviso = String("Foco ") + (f + 1) + ": sobrecorriente, apagado";
+    } else if (obj >= 30 && estable && mx) {
+      if (ma < obj * 0.03f) { if (++abierto[f] >= 5) fcFalla[f] = FC_ABIERTO; }   // 1 s sin corriente: sin foco o cable abierto
+      else {
+        abierto[f] = 0;
+        if (fcFalla[f] == FC_ABIERTO) fcFalla[f] = 0;
+        float e = (obj - ma) / obj;                                    // corrección lenta del ciclo
+        fcCorr[f] = constrain(fcCorr[f] + 0.25f * e, 0.8f, 1.2f);
+        if (e > 0.15f && fcCorr[f] >= 1.2f) { if (++lento[f] >= 10) fcFalla[f] = FC_CORTA; }   // no alcanza: tensión corta
+        else { lento[f] = 0; if (fcFalla[f] == FC_CORTA && e < 0.05f) fcFalla[f] = 0; }
+      }
+    } else if (!obj) { abierto[f] = lento[f] = 0; if (fcFalla[f] != FC_SOBRE) fcFalla[f] = 0; }
+    uint8_t est = !mx ? (uint8_t)FC_ID_CORTO : fcFalla[f] ? fcFalla[f] : mx == FOCO_SIN_ID ? (uint8_t)FC_SIN_ID : (uint8_t)FC_BIEN;
+    if (est != fcEst[f]) { fcEst[f] = est; ioCambio = true; }
+  }
 }
 void luActualizar(uint32_t t) {
   static uint32_t tBusca = 0, tPaso = 0, tTodo = 0;
-  static uint16_t escrito[8][8];                              // último valor de cada canal (para mandar solo cambios)
+  static uint16_t escrito[LU_MODS][8];                        // último valor de cada canal (para mandar solo cambios)
   static bool bobina[16];
   if (t - tBusca > 5000 || !tBusca) {                         // módulos nuevos o desconectados
     tBusca = t | 1;
-    uint8_t m = 0;
-    for (uint8_t k = 0; k < 8; k++) if (i2cPresente(LU_DIR[k])) m |= 1 << k;
-    for (uint8_t k = 0; k < 8; k++)
+    uint16_t m = 0;
+    for (uint8_t k = 0; k < LU_MODS; k++) if (i2cPresente(LU_DIR[k])) m |= 1 << k;
+    for (uint8_t k = 0; k < LU_MODS; k++)
       if ((m & (1 << k)) && !(luMods & (1 << k))) {
-        pcaIniciar(LU_DIR[k], k < 4 ? 500 : 1526);            // PWM4: 508 Hz; AO4: 1526 Hz (menos rizo en el 0-10 V)
+        // PWM4: 508 Hz; AO4: 1526 Hz (menos rizo en el 0-10 V); AP FOCO: 1017 Hz (CTRL del AL8860)
+        pcaIniciar(LU_DIR[k], k < 4 ? 500 : (k < 8 ? 1526 : 1000));
+        if (k >= 8) fcIniciar(k - 8);
         for (uint8_t c = 0; c < 8; c++) { escrito[k][c] = 0xFFFF; }
       }
-    if (m != luMods) { luMods = m; ioCambio = true; Serial.printf("AP LIGHT: %02X\n", luMods); haPublicar(); }
+    if (m != luMods) { luMods = m; ioCambio = true; Serial.printf("AP LIGHT: %03X\n", luMods); haPublicar(); }
   }
+  fcMedir(t);
   if (luSucio && t - tLuSucio > 3000) {                       // guardar sin gastar la flash con cada movimiento
     luSucio = false;
-    pref.putBytes("luniv", luNivel, sizeof(luNivel)); pref.putUInt("luon", luOn); pref.putUInt("lusig", luSigue);
+    pref.putBytes("luniv2", luNivel, sizeof(luNivel)); pref.putULong64("luon2", luOn); pref.putULong64("lusig2", luSigue);
   }
   if (!luMods || t - tPaso < 20) return;
   float dt = (t - tPaso) / 1000.0f;
   tPaso = t;
   bool todo = t - tTodo > 2000;                               // cada 2 s se reescribe todo (por si un módulo se reinició)
   if (todo) tTodo = t;
-  for (uint8_t k = 0; k < 8; k++) {
+  for (uint8_t k = 0; k < LU_MODS; k++) {
     if (!(luMods & (1 << k))) continue;
-    for (uint8_t c = 0; c < 4; c++) {
-      uint8_t n = k < 4 ? k * 4 + c : 16 + (k - 4) * 4 + c;
+    for (uint8_t c = 0; c < (k < 8 ? 4 : 2); c++) {
+      uint8_t n = k < 4 ? k * 4 + c : (k < 8 ? 16 + (k - 4) * 4 + c : 32 + (k - 8) * 2 + c);
       uint8_t obj = luObjetivo(n);
       luAct[n] = dt > 1 ? obj : luzRampa(luAct[n], obj, dt, luRampaS);
       uint16_t v = k < 4 ? GAMMA12[(uint16_t)(luAct[n] * 2.55f + 0.5f)]          // PWM4: curva de brillo del ojo
-                         : (uint16_t)(luAct[n] * 40.96f + 0.5f);                 // AO4: 0-10 V lineal (el driver aplica su curva)
+                 : k < 8 ? (uint16_t)(luAct[n] * 40.96f + 0.5f)                  // AO4: 0-10 V lineal (el driver aplica su curva)
+                 : fcCiclo(n - 32, luAct[n]);                                    // AP FOCO: corriente con la curva del ojo
       if (v != escrito[k][c] || todo) { if (pcaPoner(LU_DIR[k], c, v)) escrito[k][c] = v; }
       if (k >= 4) {                                           // contactor: cierra al encender, abre al terminar la rampa
         bool b = obj > 0 || luAct[n] > 0.5f;
@@ -1496,9 +1605,15 @@ void luActualizar(uint32_t t) {
 struct MbEscritura { uint8_t esclavo, funcion; uint16_t reg, valor; };
 MbEscritura mbCola[4];
 uint8_t mbEnCola = 0;
+void rsDE(bool tx) {                                          // transmitir (1) o recibir (0)
+  if (PIN_RS_DE != 255) { digitalWrite(PIN_RS_DE, tx); return; }
+  unoDE = tx;                                                 // AP UNO: P7 del expansor 0x20 (las salidas S1-S4 no cambian)
+  tcaEscribir(0x20, 1, (salEstado[0] & 0x0F) | (tx ? 0x80 : 0));
+}
 void mbIniciar() {
   const uint32_t CFG[4] = {SERIAL_8N1, SERIAL_8E1, SERIAL_8O1, SERIAL_8N2};
-  pinMode(PIN_RS_DE, OUTPUT); digitalWrite(PIN_RS_DE, LOW);   // recibir
+  if (PIN_RS_DE != 255) pinMode(PIN_RS_DE, OUTPUT);
+  rsDE(false);                                                // recibir
   Serial1.begin(mbBaud, CFG[mbParidad & 3], PIN_RS_RX, PIN_RS_TX);
   Serial.printf("Modbus RTU: %lu baudios, paridad %u\n", (unsigned long)mbBaud, mbParidad);
 }
@@ -1551,10 +1666,10 @@ void mbActualizar(uint32_t t) {
     actual = siguiente++;
   }
   while (Serial1.available()) Serial1.read();                 // basura de la línea
-  digitalWrite(PIN_RS_DE, HIGH);
+  rsDE(true);
   Serial1.write(pedido, n);
   Serial1.flush();                                            // 8 bytes: 8.3 ms a 9600 baudios
-  digitalWrite(PIN_RS_DE, LOW);
+  rsDE(false);                                                // AP UNO: 0.3 ms por I2C, antes de que conteste el esclavo
   nr = 0; esperando = true; tEnvio = millis();
 }
 
@@ -1644,17 +1759,17 @@ bool ordenDeGrupo(const char* o) {                       // por grupo solo viaja
 bool ejecutar(const char* s, bool remoto) {
   if (!strncmp(s, "DIAG", 4)) { iniciarDiag(false); return true; }
   if (!strncmp(s, "PX", 2) || !strncmp(s, "PS", 2) || !strncmp(s, "PO", 2) || !strncmp(s, "PD", 2)) {   // pixeles y DMX
-    if (!modoPix) return false;
+    if (!modoPix && !unoDmx) return false;
     const char* q = s + 2;
     if (s[1] == 'X') for (uint8_t k = 0; k < 4; k++) { while (*q == ' ') q++; if (*q) pixN[k] = constrain(numero(q), 0, PIX_MAX); }
-    else if (s[1] == 'S') pixSeg = constrain(numero(q), 0, modoDmx ? 255 : 64);
+    else if (s[1] == 'S') pixSeg = constrain(numero(q), 0, (modoDmx || unoDmx) ? 255 : 64);
     else if (s[1] == 'O') pixOrden = constrain(numero(q), 0, 2);
-    else if (modoDmx) {                                       // PD dirección canales  (p. ej. PD 1 3)
+    else if (modoDmx || unoDmx) {                             // PD dirección canales  (p. ej. PD 1 3)
       dmxDir = constrain(numero(q), 1, 512);
       while (*q == ' ') q++;
       if (*q) { int c = numero(q); dmxCh = (c == 1 || c == 4) ? c : 3; }
     } else return false;
-    if (modoDmx) { pixN[1] = pixN[2] = pixN[3] = 0; dmxAjustar(); }
+    if (modoDmx || unoDmx) { pixN[1] = pixN[2] = pixN[3] = 0; dmxAjustar(); }
     pixGuardar();
     return true;
   }
@@ -1674,8 +1789,19 @@ bool ejecutar(const char* s, bool remoto) {
     int pa = *q ? numero(q) : 0;
     if (b && (b < 1200 || b > 115200)) return false;
     if (pa < 0 || pa > 3) return false;
-    if (b && hayBase) { aviso = "Modbus solo en la placa AP GATE"; return false; }   // IO6/IO7 son CH3/CH4 de la base
+    if (b && hayBase && !modoUno) { aviso = "Modbus solo en las placas AP GATE y AP UNO"; return false; }   // IO6/IO7 = CH3/CH4
     pref.putUInt("mbbaud", b); pref.putUChar("mbpar", pa);
+    pref.putUChar("unodmx", 0);                               // AP UNO: un solo puerto RS-485 (MB 0 = libre)
+    pedirReinicio = true;
+    return true;
+  }
+  if (!strncmp(s, "DMX ", 4)) {                                // DMX 1 | DMX 0: el RS-485 del AP UNO manda DMX512
+    const char* q = s + 4;
+    int v = numero(q);
+    if (v < 0 || v > 1) return false;
+    if (!modoUno) { aviso = "DMX por RS-485: placa AP UNO (o módulo AP-1 DMX)"; return false; }
+    pref.putUChar("unodmx", v);
+    if (v) pref.putUInt("mbbaud", 0);
     pedirReinicio = true;
     return true;
   }
@@ -1725,7 +1851,7 @@ bool ejecutar(const char* s, bool remoto) {
     const char* q = s + 3;
     int n = numero(q), v = numero(q);
     if (n < 1 || n > LU_N || v < 0) return false;
-    uint32_t b = 1UL << (n - 1);
+    uint64_t b = 1ULL << (n - 1);
     if (s[1] == 'U') {                                        // LU n nivel
       if (v > 100) return false;
       luNivel[n - 1] = v;
@@ -1737,6 +1863,14 @@ bool ejecutar(const char* s, bool remoto) {
       if (v) luSigue |= b; else luSigue &= ~b;
     }
     luSucio = true; tLuSucio = millis();
+    return true;
+  }
+  if (!strncmp(s, "FI ", 3)) {                                 // FI f mA: límite de corriente del foco f (1-4); 0 = el del ID
+    const char* q = s + 3;
+    int f = numero(q), ma = numero(q);
+    if (f < 1 || f > FC_N || ma < 0 || ma > 1000) return false;
+    fcLim[f - 1] = ma;
+    pref.putBytes("fclim", fcLim, sizeof(fcLim));
     return true;
   }
   if (!strncmp(s, "LR ", 3)) {                                 // LR segundos: rampa de las luminarias
@@ -2256,17 +2390,24 @@ void setup() {
   mbBaud = pref.getUInt("mbbaud", 0); mbParidad = pref.getUChar("mbpar", 0);
   if (busModo > 2 || (busModo == 2 && (busId < 1 || busId > BUS_NODOS))) busModo = 0;
   if (busModo == 1) busId = 0;
+  Wire.begin(PIN_SDA, PIN_SCL, 100000);
+  modoUno = unoDetectar();
+  if (modoUno) {                                             // AP UNO: RS-485 en IO1 (TX) e IO3 (RX), sin AUX ni IR
+    PIN_RS_TX = 1; PIN_RS_RX = 3; PIN_RS_DE = 255;
+    CC_PIN[0] = 0; CC_PIN[1] = 10;
+    busModo = 0;                                             // sin CAN
+    unoDmx = pref.getUChar("unodmx", 0) && !mbBaud;
+  }
   // AP BUS: IO4/IO5 quedan como entradas hasta saber si hay base (en la base son CH1/CH2: el pull-down las apaga;
   // en el AP NODE el TXD del transceptor tiene pull-up: el bus queda en recesivo)
   for (uint8_t c = 0; c < 4; c++) {
-    if ((busModo && c < 2) || (mbBaud && c >= 2)) { pinMode(PWM_PIN[c], INPUT); continue; }   // AP GATE: IO6/IO7 = RS-485
+    if ((busModo && c < 2) || (mbBaud && c >= 2 && !modoUno)) { pinMode(PWM_PIN[c], INPUT); continue; }   // AP GATE: IO6/IO7 = RS-485
     ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); pwm(c, 0);
   }
   for (uint8_t k = 0; k < 2; k++) if (!busModo || k) { ledcAttachChannel(CC_PIN[k], CC_HZ, PWM_BITS, 4 + k); focoCC(k, 0); }
-  pinMode(PIN_AUX, OUTPUT); digitalWrite(PIN_AUX, LOW);
+  if (!modoUno) { pinMode(PIN_AUX, OUTPUT); digitalWrite(PIN_AUX, LOW); pinMode(PIN_IR, INPUT_PULLUP); }
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_MODO, INPUT_PULLUP);
-  pinMode(PIN_IR, INPUT_PULLUP);
   for (uint16_t i = 0; i < 256; i++) GAMMA12[i] = (uint16_t)(powf(i / 255.0f, 2.2f) * PWM_MAX + 0.5f);   // 255 = 100 %
   pinMode(PIN_ALERTA, INPUT_PULLUP);
   Serial.begin(115200);
@@ -2276,7 +2417,6 @@ void setup() {
 
   setenv("TZ", tz.c_str(), 1);
   tzset();
-  Wire.begin(PIN_SDA, PIN_SCL, 100000);
   Wire.beginTransmission(0x68);
   hayRTC = (Wire.endTransmission() == 0);
   if (hayRTC) rtcLeer();
@@ -2289,7 +2429,7 @@ void setup() {
     for (uint8_t c = 0; c < 2; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); dutyActual[c] = 9999; pwm(c, 0); }
     ledcAttachChannel(CC_PIN[0], CC_HZ, PWM_BITS, 4); ccActual[0] = 9999; focoCC(0, 0);
   }
-  if (mbBaud && hayBase) {                                   // programador sobre una base: sin Modbus
+  if (mbBaud && hayBase && !modoUno) {                       // programador sobre una base: sin Modbus
     Serial.println("Modbus: hay base, se desactiva (solo en la placa AP GATE)");
     mbBaud = 0;
     for (uint8_t c = 2; c < 4; c++) { ledcAttachChannel(PWM_PIN[c], PWM_HZ, PWM_BITS, c); dutyActual[c] = 9999; pwm(c, 0); }
@@ -2297,7 +2437,8 @@ void setup() {
   if (busModo) busIniciar();
   if (mbBaud) mbIniciar();
   if (modoInd) for (uint8_t c = 0; c < 4; c++) { ledcChangeFrequency(PWM_PIN[c], IND_HZ, PWM_BITS); dutyActual[c] = 9999; pwm(c, 0); }
-  if (modoPix) { pixLeer(); pixIniciar(); }
+  if (modoPix || unoDmx) { pixLeer(); pixIniciar(); }
+  if (modoUno) Serial.printf("AP UNO: S1-S4, E1-E4, RS-485 %s\n", unoDmx ? "DMX512" : (mbBaud ? "Modbus" : "libre"));
   hayOLED = i2cPresente(OLED);
   if (hayOLED) oledIniciar();
   hayLux = i2cPresente(0x23);
@@ -2307,7 +2448,7 @@ void setup() {
   attachInterrupt(PIN_ALERTA, alertaISR, FALLING);
   Serial.printf("Medidor INA238: %s  Temperatura TMP1075: %s\n", hayINA ? "si" : "no", hayTMP ? "si" : "no");
 
-  attachInterrupt(PIN_IR, irISR, FALLING);
+  if (!modoUno) attachInterrupt(PIN_IR, irISR, FALLING);
   iniciarWifi();
   configTzTime(tz.c_str(), "pool.ntp.org", "time.google.com");
 
@@ -2422,7 +2563,7 @@ void loop() {
   if (pedirReinicio) { if (sucio) guardarAhora(); delay(300); ESP.restart(); }
 
   bool activo = cfg.encendido && porHorario && porLuz;
-  if (mbBaud) {}                                              // AP GATE: IO1 es el DE del RS-485
+  if (mbBaud || modoUno) {}                                   // AP GATE: IO1 es el DE del RS-485; AP UNO: el TX
   else if (modoInd) digitalWrite(PIN_AUX, activo ? HIGH : LOW);     // contactor 1: sigue al encendido de la luz
   else if (modoDmx) digitalWrite(PIN_AUX, (dmxCuadros >> 3) & 1);  // LED DMX: parpadea mientras se transmite
   else digitalWrite(PIN_AUX, cfg.auxModo ? auxVent : ((activo && cfg.aux) ? HIGH : LOW));
@@ -2445,5 +2586,5 @@ void loop() {
     apagarTodo();
   }
   if (modoInd) { focoCC(0, cfg.cc[0] ? PWM_MAX : 0); focoCC(1, 0); }   // contactor 2: manual (O), no atenúa
-  if (modoPix && t - tPix >= (factor ? 33u : 500u)) { tPix = t; pixEnviar(t); }   // 30 cuadros/s; apagado: negro cada 0.5 s
+  if ((modoPix || unoDmx) && t - tPix >= (factor ? 33u : 500u)) { tPix = t; pixEnviar(t); }   // 30 cuadros/s; apagado: negro cada 0.5 s
 }

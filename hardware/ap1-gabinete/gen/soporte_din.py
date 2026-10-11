@@ -7,12 +7,13 @@
   Para quitarlo, empuja la viga hacia abajo con un desarmador plano por la parte de abajo y gira el módulo.
 - Se genera para las dos medidas del ecosistema:
     88 x 56 mm (BASE, IND, PIX, DMX, PLANTILLA): el riel queda horizontal y la placa ocupa 5 módulos DIN de ancho;
-    72 x 56 mm (AP INPUT, AP OUTPUT): 4 módulos DIN.
+    72 x 56 mm (AP INPUT, AP OUTPUT): 4 módulos DIN;
+    120 x 62 mm (AP UNO): 7 módulos DIN;  60 x 56 mm (cabezal AP FOCO): 4 módulos DIN.
 - Imprimir en PETG o ASA, con la cara de atrás (ganchos) hacia arriba, 4 paredes y 40 % de relleno.
   PROTOTIPO: el ajuste del seguro se prueba con un tramo de riel antes de imprimir en serie.
 
 Se ejecuta en el anfitrión:  pip install manifold3d trimesh matplotlib ; python3 ap1-gabinete/gen/soporte_din.py
-Salida en ap1-gabinete/din/: soporte_din_88x56.stl, soporte_din_72x56.stl, vista_soporte_din.png
+Salida en ap1-gabinete/din/: soporte_din_<medida>.stl (una por medida de placa) y vista_soporte_din.png
 """
 import os
 import numpy as np
@@ -26,6 +27,8 @@ SEG = 48
 PLACAS = {
     "88x56": (88.0, 56.0, [(3.5, 3.5), (84.5, 39.5), (84.5, 52.5)]),
     "72x56": (72.0, 56.0, [(3.5, 3.5), (68.5, 3.5), (68.5, 38.5)]),
+    "120x62": (120.0, 62.0, [(3.5, 3.5), (84.5, 58.5), (116.5, 58.5)]),
+    "60x56": (60.0, 56.0, [(3.5, 3.5), (56.5, 3.5), (56.5, 38.5)]),
 }
 TP = 3.0                 # charola
 POSTE, POSTE_D, INS = 5.5, 7.0, 4.0
@@ -117,7 +120,9 @@ def vista(piezas):
     spec = importlib.util.spec_from_file_location("caja", os.path.join(HERE, "caja.py"))
     caja = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(caja)
-    fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+    n = len(piezas)
+    fig, ax = plt.subplots((n + 1) // 2, 2, figsize=(12, 5 * ((n + 1) // 2)))
+    ax = np.atleast_1d(ax).ravel()
     for k, (nombre, s, r) in enumerate(piezas):
         def tm(m):
             me = m.to_mesh()

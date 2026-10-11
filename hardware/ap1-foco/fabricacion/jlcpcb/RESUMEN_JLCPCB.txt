@@ -1,0 +1,31 @@
+AP_FOCO: 20 tipos de pieza, 33 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       8 tipos Extended  -> ~24 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     6 tipos Extended  -> ~18 USD de cargo;
+   se sueldan a mano 3 piezas de patas: J3, J4, J5
+Piezas Basic/Preferred: ~0.30 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (9):
+  100nF                  C14663         C1,C13,C14,CID1,CID2
+  10uF                   C15850         C2
+  10uF 50V               C13585         C3
+  4.7uF 50V              C29823         C11,C12
+  SS34                   C8678          D1,D3,D4
+  10k                    C25804         RA1
+  2.2k                   C4190          RC1,RC2
+  10k 1%                 C25804         RID1,RID2
+  0R1                    C25334         RSC1,RSC2
+Preferred (1):
+  SMBJ26A                C19077580      D2
+Extended (10):
+  3A                     C355685        F1
+  QWIIC ENTRADA          C160404        J1
+  QWIIC SALIDA           C160404        J2
+  12-24V                 C160315        J3  [THT]
+  FOCO 1                 C144395        J4  [THT]
+  FOCO 2                 C144395        J5  [THT]
+  47uH                   C168087        L1,L2
+  PCA9685PW              C2678753       U1
+  INA238                 C2868250       U2,U3
+  AL8860MP               C500782        U4,U5

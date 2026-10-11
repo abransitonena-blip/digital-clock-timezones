@@ -58,3 +58,15 @@ inline int16_t solLocal(float minutosUtc, int16_t difMin) {
   int v = (int)(minutosUtc + 0.5f) + difMin;
   return (int16_t)(((v % 1440) + 1440) % 1440);
 }
+
+// ---- AP FOCO: corriente máxima del foco según su resistencia de ID (regla "LEDset": I [mA] = 5000 / R [kohm]) ----
+// v = tensión del nodo ID (10k a 3.3 V en el cabezal, la resistencia del foco a 0 V).
+// Regresa 0 si el ID está en corto, FOCO_SIN_ID si no hay resistencia, y nunca más que el máximo de la placa (1 A).
+const uint16_t FOCO_SIN_ID = 0xFFFF, FOCO_HW_MA = 1000;
+inline uint16_t focoMaxMa(float v) {
+  if (v > 3.15f) return FOCO_SIN_ID;
+  if (v < 0.15f) return 0;
+  float rk = 10.0f * v / (3.3f - v);
+  float ma = 5000.0f / rk;
+  return ma > FOCO_HW_MA ? FOCO_HW_MA : (uint16_t)ma;
+}
