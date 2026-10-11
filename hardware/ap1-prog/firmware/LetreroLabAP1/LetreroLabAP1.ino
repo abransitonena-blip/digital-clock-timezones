@@ -54,6 +54,9 @@
                9/10/11 luminaria val encender/apagar/alternar
      AP PRO AI4: AI n 0|1  canal analógico n (1-8) en 0-10 V o 4-20 mA
                  AU n umbral acc val [modo]  al pasar del umbral hace la acción (modo 1: al bajar, lo contrario)  AU n -
+     AP LÓGICA (PLC, ver logica.h y AP_LOGICA.md): el programa (lista de instrucciones IEC 61131-3) se sube por POST /plc
+                 y se lee por GET /plc; ciclo de 10 ms.  PLC RUN | PLC STOP | PLC BORRAR | PLC MAX (reinicia el tiempo máximo)
+                 /log = bitácora de eventos (arranques, fallas, RUN/STOP, programas). Vigilante de 15 s.
      HA 0|1  aparecer en Home Assistant por MQTT (descubrimiento automático; 1 por omisión)
      ?  estado JSON     I  información     !  reiniciar
 */
@@ -77,8 +80,12 @@
 #include "luz.h"
 #include "pagina.h"
 #include "studio.h"                         // app AP Studio (comprimida), en /studio
+#include "logica.h"                         // AP LÓGICA: programa de tipo PLC
+#include "esp_task_wdt.h"
+void registrar(const char* fmt, ...);        // bitácora (AP LÓGICA, más abajo)
+String plcJSON();
 
-#define VERSION "AP-1 fw 2.2"
+#define VERSION "AP-1 fw 2.3"
 
 // ---------------- pines del programador AP-1 ----------------
 const uint8_t PWM_PIN[4] = {4, 5, 6, 7};   // CH1..CH4 de la base (drivers UCC27524 -> MOSFET); pull-down de 10k
@@ -787,7 +794,7 @@ void dispararFalla(uint8_t f) {
       if (millis() - tPrimerDisparo > 300000UL) { tPrimerDisparo = millis(); disparos = 0; }
       disparos++;
     }
-    Serial.printf("FALLA: %s (%.1f V, %.1f A, %.1f C)\n", FALLA[f], vin, amp, tTarjeta);
+    registrar("FALLA: %s (%.1f V, %.1f A, %.0f C)", FALLA[f], vin, amp, tTarjeta);
   }
   falla = f;
   tFalla = millis();
@@ -869,6 +876,7 @@ String estadoJSON() {
   s += ",\"cc\":["; s += cfg.cc[0]; s += ','; s += cfg.cc[1]; s += "],\"ym\":"; s += cfg.auxModo;
   s += ",\"av\":"; s += auxVent;
   s += ",\"lux\":"; s += isnan(lux) ? "null" : String(lux, 0);
+  s += ",\"plc\":"; s += plcJSON();
   s += ",\"ind\":"; s += modoInd; s += ",\"px\":"; s += modoPix; s += ",\"dmx\":"; s += modoDmx; s += ",\"uno\":"; s += modoUno; s += ",\"udmx\":"; s += unoDmx;
   s += ",\"vivo\":{\"on\":"; s += vivoActivo; s += ",\"u\":"; s += vivoUni; s += ",\"rx\":"; s += vivo();
   s += ",\"p\":"; s += vivoPaquetes; s += '}';
@@ -1764,6 +1772,145 @@ void vigilarConsumo() {
   if (fabsf(dif) > 0.25f) { buenos = 0; if (++malos >= 5) aviso = String("consumo ") + (dif > 0 ? "+" : "") + String((int)(dif * 100)) + "% vs lo normal: haga DIAG"; }
   else if (++buenos >= 5) { malos = 0; aviso = ""; }
 }
+// ---------------- AP LÓGICA: programa de tipo PLC (logica.h) ----------------
+// Ciclo de 10 ms: lee la imagen de entradas, ejecuta el programa y escribe las salidas (solo las que cambian).
+// "PLC RUN" / "PLC STOP" (se recuerda al reiniciar); el programa se sube por POST /plc y se lee por GET /plc.
+// Las salidas que el programa usa le pertenecen: al pasar a STOP se apagan. M65-M128 y los contadores son retentivos.
+bool esDeNoche(int16_t m);
+logica::Programa plc;
+bool plcRun = false, plcRetSucio = false;
+String plcTexto;
+uint32_t plcUs = 0, plcUsMax = 0, tPlc = 0, tPlcRet = 0;
+bool plcNoche = false;
+struct Evento { uint32_t t; char txt[44]; };          // bitácora: los últimos 32 eventos (hora de la red o s desde el arranque)
+Evento bitacora[32];
+uint8_t bitN = 0, bitSig = 0;
+void registrar(const char* fmt, ...) {
+  Evento& e = bitacora[bitSig];
+  time_t a = time(nullptr);
+  e.t = a > 1600000000 ? (uint32_t)a : millis() / 1000;
+  va_list ap; va_start(ap, fmt); vsnprintf(e.txt, sizeof(e.txt), fmt, ap); va_end(ap);
+  bitSig = (bitSig + 1) % 32; if (bitN < 32) bitN++;
+  Serial.printf("[bitacora] %s\n", e.txt);
+}
+struct EntornoEquipo : logica::Entorno {
+  bool leerBit(char a, int i) override {
+    if (a == 'I' || a == 'Q') {
+      if (i < 1 || i > IO_N * 8) return false;
+      const uint8_t* v = a == 'I' ? entEstado : salEstado;
+      return v[(i - 1) / 8] & (1 << ((i - 1) % 8));
+    }
+    if (a == 'L') return i >= 1 && i <= LU_N && luEncendida(i - 1);
+    if (a == 'P') return cfg.encendido;
+    if (a == 'S') {
+      if (i == 2) return (millis() / 500) & 1;
+      if (i == 3) return true;
+      if (i == 4) return plcNoche;
+      if (i == 5) return falla != SIN_FALLA;
+    }
+    return false;
+  }
+  float valor(char a, int i) override {
+    if (a == 'A') return i >= 1 && i <= AI_N * 4 ? aiValor[i - 1] : NAN;
+    if (a == 'R') return i >= 1 && i <= MB_N ? mbVal[i - 1] : NAN;
+    return NAN;
+  }
+  void escribir(char a, int i, bool v) override {
+    if (a == 'Q' && i >= 1 && i <= IO_N * 8) {
+      uint8_t m = (i - 1) / 8, b = 1 << ((i - 1) % 8);
+      if (((salEstado[m] & b) != 0) != v) { if (v) salEstado[m] |= b; else salEstado[m] &= ~b; ioCambio = true; }
+    } else if (a == 'L' && i >= 1 && i <= LU_N) {
+      uint64_t b = 1ULL << (i - 1);
+      if ((luSigue & b) || ((luOn & b) != 0) != v) {     // el programa manda sobre "sigue a la luz principal"
+        luSigue &= ~b;
+        if (v) { luOn |= b; if (!luNivel[i - 1]) luNivel[i - 1] = 100; } else luOn &= ~b;
+        luSucio = true; tLuSucio = millis(); ioCambio = true;
+      }
+    } else if (a == 'P' && cfg.encendido != (uint8_t)v) { cfg.encendido = v; marcar(); }
+  }
+} entornoEquipo;
+void plcGuardarRetentivas() {
+  uint8_t b[(logica::N_M - logica::M_RETENTIVA + 1 + 7) / 8] = {0};
+  for (int k = logica::M_RETENTIVA; k <= logica::N_M; k++) if (plc.m[k]) b[(k - logica::M_RETENTIVA) / 8] |= 1 << ((k - logica::M_RETENTIVA) % 8);
+  int32_t cv[logica::N_C + 1];
+  for (int k = 0; k <= logica::N_C; k++) cv[k] = plc.c[k].cv;
+  pref.putBytes("plcm", b, sizeof(b)); pref.putBytes("plcc", cv, sizeof(cv));
+  plcRetSucio = false;
+}
+void plcCargarRetentivas() {
+  uint8_t b[(logica::N_M - logica::M_RETENTIVA + 1 + 7) / 8];
+  if (pref.getBytes("plcm", b, sizeof(b)) == sizeof(b))
+    for (int k = logica::M_RETENTIVA; k <= logica::N_M; k++) plc.m[k] = b[(k - logica::M_RETENTIVA) / 8] & (1 << ((k - logica::M_RETENTIVA) % 8));
+  int32_t cv[logica::N_C + 1];
+  if (pref.getBytes("plcc", cv, sizeof(cv)) == sizeof(cv)) for (int k = 0; k <= logica::N_C; k++) plc.c[k].cv = cv[k];
+}
+void plcApagarSalidas() {                                       // STOP: lo que el programa escribía queda apagado
+  for (int i = 0; i < plc.n; i++) {
+    const logica::Ins& in = plc.ins[i];
+    if ((in.op == logica::OUT || in.op == logica::SET) && (in.area == 'Q' || in.area == 'L')) entornoEquipo.escribir(in.area, in.idx, false);
+  }
+}
+bool plcCargar(const String& txt, bool guardar) {               // compila; si está bien lo deja como programa activo
+  logica::Programa* nuevo = new logica::Programa();
+  bool ok = nuevo->compilar(txt.c_str());
+  if (ok) {
+    if (plcRun) plcApagarSalidas();
+    memcpy(nuevo->m, plc.m, sizeof(plc.m));                     // marcas y contadores siguen (retentivos)
+    for (int k = 0; k <= logica::N_C; k++) nuevo->c[k].cv = plc.c[k].cv;
+    plc = *nuevo;
+    plcTexto = txt;
+    if (guardar) { pref.putString("plc", txt); registrar("PLC: programa nuevo (%d instrucciones)", plc.n); }
+  } else {
+    strlcpy(plc.error, nuevo->error, sizeof(plc.error));
+    registrar("PLC: %s", nuevo->error);
+  }
+  delete nuevo;
+  return ok;
+}
+void plcIniciar() {
+  plcTexto = pref.getString("plc", "");
+  if (plcTexto.length() && !plcCargar(plcTexto, false)) plcTexto = "";
+  plcCargarRetentivas();
+  plcRun = pref.getBool("plcrun", false) && plc.n > 0;
+}
+void plcActualizar(uint32_t t) {
+  if (t - tPlc < 10) return;
+  uint32_t dt = min<uint32_t>(t - tPlc, 100);
+  tPlc = t;
+  if (!plcRun || !plc.n) return;
+  uint32_t u = micros();
+  plc.ciclo(entornoEquipo, dt);
+  plcUs = micros() - u; if (plcUs > plcUsMax) plcUsMax = plcUs;
+  if (plc.retentivaCambio) { plc.retentivaCambio = false; plcRetSucio = true; }
+  if (plcRetSucio && t - tPlcRet > 60000) { tPlcRet = t; plcGuardarRetentivas(); }   // cuida la flash: 1 vez por minuto
+}
+void plcModo(bool run) {
+  if (run == plcRun) return;
+  if (!run) { plcApagarSalidas(); if (plcRetSucio) plcGuardarRetentivas(); }
+  else plc.primerCiclo = true;
+  plcRun = run; pref.putBool("plcrun", run);
+  registrar(run ? "PLC: RUN" : "PLC: STOP");
+}
+String plcJSON() {
+  String s = "{\"run\":"; s += plcRun; s += ",\"n\":"; s += plc.n; s += ",\"err\":\""; s += plc.error;
+  s += "\",\"us\":"; s += plcUs; s += ",\"usm\":"; s += plcUsMax; s += ",\"ciclos\":"; s += plc.ciclos; s += ",\"m\":\"";
+  char h[3];
+  for (int k = 1; k <= logica::N_M; k += 8) {                   // M1-M128 en hexadecimal, 8 marcas por byte
+    uint8_t b = 0; for (int j = 0; j < 8; j++) if (plc.m[k + j]) b |= 1 << j;
+    snprintf(h, 3, "%02x", b); s += h;
+  }
+  s += "\",\"fl\":\"";
+  for (int k = 0; k < (plc.n + 7) / 8; k++) { snprintf(h, 3, "%02x", plc.flujo[k]); s += h; }
+  s += "\",\"t\":[";
+  for (int k = 1; k <= logica::N_T; k++) { if (k > 1) s += ','; s += plc.t[k].et; }
+  s += "],\"tq\":"; { uint32_t q = 0; for (int k = 1; k <= logica::N_T; k++) if (plc.t[k].q) q |= 1 << (k - 1); s += q; }
+  s += ",\"c\":[";
+  for (int k = 1; k <= logica::N_C; k++) { if (k > 1) s += ','; s += plc.c[k].cv; }
+  s += "],\"cq\":"; { uint32_t q = 0; for (int k = 1; k <= logica::N_C; k++) if (plc.c[k].q) q |= 1 << (k - 1); s += q; }
+  s += '}';
+  return s;
+}
+
 bool ordenDeGrupo(const char* o) {                       // por grupo solo viajan órdenes de luces
   return o[0] && o[0] != '@' && !strchr("WQKDZ!JFUY", o[0]) && strncmp(o, "MODELO", 6) && strncmp(o, "APRENDER", 8);
 }
@@ -1771,6 +1918,15 @@ bool ordenDeGrupo(const char* o) {                       // por grupo solo viaja
 // devuelve true si cambió algo (se publica el estado)
 bool ejecutar(const char* s, bool remoto) {
   if (!strncmp(s, "DIAG", 4)) { iniciarDiag(false); return true; }
+  if (!strncmp(s, "PLC ", 4)) {                               // PLC RUN | PLC STOP | PLC BORRAR | PLC MAX (reinicia el máximo)
+    const char* a = s + 4;
+    if (!strcmp(a, "RUN") || !strcmp(a, "1")) { if (!plc.n) return false; plcModo(true); }
+    else if (!strcmp(a, "STOP") || !strcmp(a, "0")) plcModo(false);
+    else if (!strcmp(a, "BORRAR")) { plcModo(false); plc.n = 0; plcTexto = ""; pref.remove("plc"); registrar("PLC: programa borrado"); }
+    else if (!strcmp(a, "MAX")) plcUsMax = 0;
+    else return false;
+    return true;
+  }
   if (!strncmp(s, "PX", 2) || !strncmp(s, "PS", 2) || !strncmp(s, "PO", 2) || !strncmp(s, "PD", 2)) {   // pixeles y DMX
     if (!modoPix && !unoDmx) return false;
     const char* q = s + 2;
@@ -2165,6 +2321,32 @@ void rutaApi() {
   }
   web.send(200, "application/json", estadoJSON());
 }
+void rutaPlc() {                                              // GET: el programa; POST (texto): compilar, guardar y responder
+  if (!autorizado()) return;
+  web.sendHeader("Access-Control-Allow-Origin", "*");
+  if (web.method() == HTTP_POST) {
+    String t = web.arg("plain");
+    if (t.length() > 3800) { web.send(413, "application/json", "{\"ok\":0,\"err\":\"programa demasiado largo\"}"); return; }
+    bool ok = plcCargar(t, true);
+    String r = "{\"ok\":"; r += ok; r += ",\"n\":"; r += plc.n; r += ",\"err\":\""; r += ok ? "" : plc.error; r += "\"}";
+    web.send(200, "application/json", r);
+    return;
+  }
+  web.send(200, "text/plain; charset=utf-8", plcTexto);
+}
+void rutaLog() {                                              // bitácora de eventos, del más nuevo al más viejo
+  if (!autorizado()) return;
+  String s = "[";
+  for (uint8_t k = 0; k < bitN; k++) {
+    const Evento& e = bitacora[(bitSig + 32 - 1 - k) % 32];
+    if (k) s += ',';
+    String x = e.txt; x.replace("\"", "'");
+    s += "[" + String(e.t) + ",\"" + x + "\"]";
+  }
+  s += ']';
+  web.sendHeader("Access-Control-Allow-Origin", "*");
+  web.send(200, "application/json", s);
+}
 void rutaVecinos() {
   if (!autorizado()) return;
   String s = "[";
@@ -2475,6 +2657,8 @@ void setup() {
   web.on("/api", rutaApi);
   web.on("/studio", rutaStudio);
   web.on("/vecinos", rutaVecinos);
+  web.on("/plc", rutaPlc);
+  web.on("/log", rutaLog);
   web.on("/redes", rutaRedes);
   web.on("/ota", HTTP_POST, rutaOtaFin, rutaOtaDatos);
   web.onNotFound([]() { if (modoAP) rutaOtra(); else web.send(404, "text/plain", "no existe"); });
@@ -2484,6 +2668,11 @@ void setup() {
   ArduinoOTA.setHostname(nombre.c_str());
   if (clave.length()) ArduinoOTA.setPassword(clave.c_str());
   ArduinoOTA.onStart([]() { apagarTodo(); ioApagar(); });
+  plcIniciar();
+  registrar("Arranque %s (%s)%s", VERSION, esp_reset_reason() == ESP_RST_TASK_WDT ? "vigilante" : "normal", plcRun ? ", PLC en RUN" : "");
+  esp_task_wdt_config_t wdt = {15000, 0, true};              // vigilante: 15 s sin pasar por loop() = reinicio
+  if (esp_task_wdt_reconfigure(&wdt) != ESP_OK) esp_task_wdt_init(&wdt);
+  esp_task_wdt_add(nullptr);
   Serial.println(VERSION);
 }
 
@@ -2518,6 +2707,8 @@ void loop() {
   luActualizar(t);
   ioActualizar(t);
   aiActualizar(t);
+  plcActualizar(t);
+  esp_task_wdt_reset();
   if (irListo) { irListo = false; teclaIR(irCodigo); }
   char buf[128];
   while (xQueueReceive(colaMq, buf, 0) == pdTRUE) {     // varias órdenes por mensaje, una por renglón
@@ -2547,6 +2738,7 @@ void loop() {
       else if (lux > cfg.umbral * 1.5f + 2) porLuz = false;
     } else if (nocheSol && !isnan(geoLat)) porLuz = esDeNoche(minutosAhora(nullptr));   // "fotocelda" por horario solar
     else porLuz = true;
+    plcNoche = !isnan(geoLat) ? esDeNoche(minutosAhora(nullptr)) : (cfg.ldr && hayLux && porLuz);   // S4 del PLC
     if (!isnan(tTarjeta)) { if (tTarjeta > 45) auxVent = true; else if (tTarjeta < 38) auxVent = false; }
     vigilarConsumo();
     static uint32_t segundos = 0;                       // horas de uso de la base (garantía)

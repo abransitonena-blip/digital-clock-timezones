@@ -111,6 +111,33 @@ nav.tabs button.on{color:var(--accent)}
 .hidden{display:none!important}
 .rule{display:flex;gap:10px;align-items:center}
 .rule .when{font-weight:600}.rule .arrow{color:var(--sub)}
+.rg{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);margin:10px 0;padding:10px 0 8px}
+.rgh{display:flex;align-items:center;gap:8px;padding:0 12px 6px}
+.rgh b{font-size:13px;color:var(--sub);min-width:20px}
+.rgh .c{flex:1;min-width:0;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{border:0;background:var(--card2);border-radius:8px;min-width:30px;height:28px;cursor:pointer;font-size:13px;flex:none}
+.ib.del{color:var(--red)}
+.esc{display:flex;align-items:flex-start;overflow-x:auto;margin:0 10px;border-left:3px solid var(--hl);border-right:3px solid var(--hl);--hl:#8e8e93}
+.blq{display:flex;flex-direction:column;position:relative;flex:none}
+.blq.par:before,.blq.par:after{content:"";position:absolute;top:27px;bottom:27px;width:2px;background:var(--hl)}
+.blq.par:before{left:0}.blq.par:after{right:0}
+.blq.par>.rama{padding:0 6px}
+.rama{display:flex;height:56px;background:linear-gradient(var(--hl),var(--hl)) 0 27px/100% 2px no-repeat}
+.hilo{flex:1;min-width:14px;height:56px;background:linear-gradient(var(--hl),var(--hl)) 0 27px/100% 2px no-repeat}
+.ctb{border:0;padding:0;margin:0;background:var(--card);cursor:pointer;display:block;height:56px;flex:none}
+svg.el{display:block}
+svg.el .w{stroke:var(--hl);stroke-width:2;fill:none}
+svg.el.on .w{stroke:var(--green);stroke-width:3}
+svg.el.on rect.w{fill:rgba(48,209,88,.14)}
+svg.el text{font-size:11px;text-anchor:middle;fill:var(--text)}
+svg.el .op{font-weight:700}svg.el .nm,svg.el .inf{font-size:9px;fill:var(--sub)}
+svg.el .k{font-size:10px;font-weight:700;fill:var(--accent)}
+.rgb{display:flex;gap:8px;padding:8px 12px 0;flex-wrap:wrap}
+textarea.code{font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;min-height:320px;resize:vertical;white-space:pre}
+.pbar{display:flex;gap:10px;margin:14px 0}.pbar .btn{flex:1}
+.plcEst{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.plcEst.run{color:var(--green)}.plcEst.stop{color:var(--sub)}
+.chip.sel{cursor:pointer}.chip.on2{background:var(--orange);color:#fff}
 </style>
 </head>
 <body>
@@ -185,6 +212,30 @@ nav.tabs button.on{color:var(--accent)}
     <div class="grid store" id="tienda" style="margin-top:12px"></div>
   </section>
 
+  <!-- LOGICA (PLC) -->
+  <section id="v-logica" class="hidden">
+    <h1>Lógica</h1>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><div class="plcEst stop" id="pEst">STOP</div><span class="sub" id="pInfo">—</span></div>
+        <label class="sw"><input type="checkbox" id="pRun"><i></i></label>
+      </div>
+      <div class="chips" id="pChips" style="margin-top:10px"></div>
+    </div>
+    <div class="seg" id="pVista"><button data-v="esc" class="on">Escalera</button><button data-v="txt">Texto</button><button data-v="var">Variables</button><button data-v="log">Bitácora</button></div>
+    <div class="card hidden" id="pDemo"><b>Simular entradas</b><p class="sub" style="margin:4px 0 8px">Toca una entrada para activarla o soltarla.</p><div class="chips" id="pDemoE"></div></div>
+    <div id="pEsc"></div>
+    <div class="rgb" id="pEscB" style="padding:0"><button class="btn sec" id="pNuevo">＋ Renglón</button><button class="btn sec" id="pPlant">Plantillas</button></div>
+    <div id="pTxt" class="hidden"><div class="card"><textarea class="inp code" id="pTa" spellcheck="false"></textarea>
+      <div class="row" style="margin-top:10px"><button class="btn sec" id="pVer">Verificar</button><span class="sub" id="pVerR"></span></div></div></div>
+    <div id="pVar" class="hidden"></div>
+    <div id="pLog" class="hidden"><div class="list" id="pLogL"></div></div>
+    <div class="pbar"><button class="btn sec" id="pBajar">Bajar del equipo</button><button class="btn" id="pSubir">Subir al equipo</button></div>
+    <p class="sub" style="margin:0 4px">Como un PLC: cada 10 ms el equipo lee las entradas, recorre los renglones de arriba abajo y escribe las salidas.
+      <b>I</b> entradas · <b>Q</b> salidas · <b>M</b> marcas (M65-M128 se recuerdan) · <b>T</b> temporizadores · <b>C</b> contadores ·
+      <b>L</b> luminarias · <b>P</b> luz principal · <b>A</b> analógicas · <b>R</b> Modbus · <b>S1</b> primer ciclo, <b>S2</b> pulso de 1 s, <b>S3</b> siempre, <b>S4</b> de noche, <b>S5</b> falla.</p>
+  </section>
+
   <!-- AJUSTES -->
   <section id="v-ajustes" class="hidden">
     <h1>Ajustes</h1>
@@ -211,7 +262,8 @@ nav.tabs button.on{color:var(--accent)}
   <button data-v="inicio" class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2.5 11h2.5v9h5v-6h4v6h5v-9h2.5z"/></svg>Inicio</button>
   <button data-v="luces"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2zm-3 18h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg>Luces</button>
   <button data-v="equipo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Salidas</button>
-  <button data-v="auto"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 10.4 3.5 2.1-.9 1.5L11 13V6h2z"/></svg>Automatizar</button>
+  <button data-v="auto"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 10.4 3.5 2.1-.9 1.5L11 13V6h2z"/></svg>Reglas</button>
+  <button data-v="logica"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18M21 3v18M3 8h4M7 5v6M11 5v6M11 8h3M17 8a2 2 0 1 0 0 .01M17 8h4M3 16h4M7 13v6M11 13v6M11 16h10"/></svg>Lógica</button>
   <button data-v="mod"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg>Módulos</button>
   <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.7 7.7 0 0 0-1.7-1L15 3.3h-4L10.6 6a7.7 7.7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.2 1.6 2 3.5 2.5-1a7.7 7.7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>Ajustes</button>
 </nav>
@@ -278,7 +330,7 @@ function pintar(){
   $("#mainPct").textContent=E.b+" %";
   $("#modos").innerHTML=MODOS.map((m,i)=>`<button class="${i==E.m?"on":""}" data-m="${i}">${m}</button>`).join("");
   $("#colores").innerHTML=COLORES.map((c,i)=>`<button style="background:rgb(${c})" data-c="${i}" class="${c[0]==E.c[0]&&c[1]==E.c[1]&&c[2]==E.c[2]?"on":""}"></button>`).join("");
-  pintarEscenas();pintarResumen();pintarLuces();pintarIO();pintarAuto();pintarModulos();pintarAjustes();
+  pintarEscenas();pintarResumen();pintarLuces();pintarIO();pintarAuto();pintarModulos();pintarAjustes();pintarLogica();
 }
 function activo(s){return document.activeElement===$(s)}
 
@@ -453,7 +505,7 @@ function hojaEquipos(){
 
 /* ---------- eventos ---------- */
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
-  $$("#tabs button").forEach(x=>x.classList.toggle("on",x==b));$$("section").forEach(s=>s.classList.toggle("hidden",s.id!="v-"+b.dataset.v));scrollTo(0,0)});
+  $$("#tabs button").forEach(x=>x.classList.toggle("on",x==b));$$("section").forEach(s=>s.classList.toggle("hidden",s.id!="v-"+b.dataset.v));scrollTo(0,0);if(b.dataset.v=="logica")abrirLogica()});
 $("#mainOn").onchange=e=>api("P "+(e.target.checked?1:0));
 $("#mainB").oninput=e=>{rng(e.target);$("#mainPct").textContent=e.target.value+" %"};$("#mainB").onchange=e=>api("B "+e.target.value);
 $("#modos").addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(b)api("M "+b.dataset.m)});
@@ -480,9 +532,353 @@ $("#aDemo").onchange=e=>{if(e.target.checked)entrarDemo();else{demo=false;E={};a
 $("#aTema").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=b.dataset.t;
   t?document.documentElement.setAttribute("data-theme",t):document.documentElement.removeAttribute("data-theme");st("apTema",t||undefined);pintarAjustes()});
 
+/* ---------- AP LÓGICA: el mismo motor de logica.h, en JS (verificar y demostración) ---------- */
+const AREAS="IQMTCLPARS",FUNC=["TON","TOF","TP","CTU","CTD"],BOB=["OUT","SET","RST",...FUNC];
+const tNuevo=()=>({et:0,q:false,in:false,pt:0,tipo:""}),cNuevo=()=>({cv:0,pv:0,q:false,in:false,tipo:""});
+class Plc{
+  constructor(){this.ins=[];this.n=0;this.error="";this.m=Array(129).fill(false);this.t=[...Array(17)].map(tNuevo);
+    this.c=[...Array(17)].map(cNuevo);this.prev=[];this.fl=[];this.first=true;this.ciclos=0}
+  static oper(s){
+    if(!s||!AREAS.includes(s[0]))return null;const a=s[0];
+    if(a=="P")return s=="P"?{a,i:0}:null;
+    if(!/^\d/.test(s.slice(1)))return null;const v=parseInt(s.slice(1));
+    if(v<1||v>999||(a=="M"&&v>128)||((a=="T"||a=="C")&&v>16))return null;return {a,i:v}}
+  compilar(txt){
+    const out=[];let pila=0,enR=false,tras=false,r=0;
+    const falla=m=>{this.error=`renglon ${r}: ${m}`;this.n=0;this.ins=[];return false};
+    for(const raw of txt.split("\n")){r++;
+      const l=raw.split("//")[0].split(";")[0].trim();if(!l)continue;
+      const tk=l.split(/\s+/);let op=tk[0].toUpperCase();const od=(tk[1]||"").toUpperCase(),cmp=tk[2]||"",num=tk[3]||"";
+      if(out.length>=256)return falla("programa demasiado largo");
+      const x={op:"",a:"",i:0,cmp:"",fl:"",neg:false,v:0};
+      if(op.length>=3&&/[PF]$/.test(op)&&/^(LD|AND|OR)/.test(op)&&op!="ORB"&&op!="ANB"){x.fl=op.slice(-1);op=op.slice(0,-1)}
+      if(["LDN","ANDN","ORN"].includes(op)){x.neg=true;op=op.slice(0,-1)}
+      if(["LD","AND","OR"].includes(op)){
+        x.op=op;const o=Plc.oper(od);if(!o)return falla("operando no válido");Object.assign(x,o);
+        if(cmp){if(![">","<",">=","<=","=","==","<>","!="].includes(cmp)||!num)return falla("comparación no válida");
+          if(!"ARCT".includes(x.a))return falla("solo A, R, C y T se comparan");
+          x.cmp=cmp=="=="?"=":cmp=="!="?"<>":cmp;x.v=parseFloat(num)||0}
+        else if("AR".includes(x.a))return falla("A y R necesitan una comparación");
+        if(op=="LD"){if(tras||!enR){pila=0;tras=false}else pila++;enR=true}
+        else if(!enR||tras)return falla("falta LD al inicio del renglón");
+      }else if(op=="ANB"||op=="ORB"){x.op=op;if(pila<=0||tras)return falla("ANB/ORB sin bloque abierto");pila--}
+      else if(op=="NOT"){x.op=op;if(!enR||tras)return falla("falta LD al inicio del renglón")}
+      else if(["OUT","SET","RST","ST","S","R"].includes(op)){
+        x.op=op=="OUT"||op=="ST"?"OUT":op[0]=="S"?"SET":"RST";
+        if(!enR)return falla("bobina sin contactos");if(pila)return falla("bloque sin cerrar (falta ANB u ORB)");
+        const o=Plc.oper(od);if(!o)return falla("operando no válido");Object.assign(x,o);
+        if(!(x.op=="RST"?"QMLPTC":"QMLP").includes(x.a))return falla("no se puede escribir ahí");
+      }else if(FUNC.includes(op)){
+        x.op=op;const tm=op[0]=="T";
+        if(!enR)return falla("función sin contactos");if(pila)return falla("bloque sin cerrar (falta ANB u ORB)");
+        const o=Plc.oper(od);if(!o||o.a!=(tm?"T":"C"))return falla(tm?"usa un T":"usa un C");Object.assign(x,o);
+        if(!cmp)return falla(tm?"falta el tiempo en ms":"falta el preset");x.v=parseFloat(cmp)||0;if(x.v<0)return falla("valor negativo");
+      }else return falla("instrucción desconocida");
+      out.push(x);if(BOB.includes(x.op))tras=true;
+    }
+    if(pila)return falla("bloque sin cerrar al final");
+    this.ins=out;this.n=out.length;this.error="";this.prev=[];return true;
+  }
+  ciclo(e,dt){
+    let st=[],acc=false,nuevo=true;const mk=(i,v)=>{this.fl[i]=v};
+    this.ins.forEach((x,i)=>{
+      switch(x.op){
+        case"LD":case"AND":case"OR":{let v=this.leer(e,x);
+          if(x.fl){const p=!!this.prev[i];this.prev[i]=v;v=x.fl=="P"?v&&!p:!v&&p}
+          if(x.neg)v=!v;mk(i,v);
+          if(x.op=="LD"){if(nuevo){st=[];nuevo=false}else st.push(acc);acc=v}
+          else acc=x.op=="AND"?acc&&v:acc||v;break}
+        case"ANB":if(st.length)acc=st.pop()&&acc;mk(i,acc);break;
+        case"ORB":if(st.length)acc=st.pop()||acc;mk(i,acc);break;
+        case"NOT":acc=!acc;mk(i,acc);break;
+        case"OUT":mk(i,acc);this.esc(e,x.a,x.i,acc);nuevo=true;break;
+        case"SET":mk(i,acc);if(acc)this.esc(e,x.a,x.i,true);nuevo=true;break;
+        case"RST":mk(i,acc);
+          if(acc){if(x.a=="T")this.t[x.i]=tNuevo();else if(x.a=="C"){const c=this.c[x.i];c.cv=c.tipo=="CTD"?c.pv:0;c.q=false}else this.esc(e,x.a,x.i,false)}
+          nuevo=true;break;
+        case"TON":case"TOF":case"TP":mk(i,acc);this.tempo(x,acc,dt);nuevo=true;break;
+        default:mk(i,acc);this.contar(x,acc);nuevo=true}
+    });
+    this.first=false;this.ciclos++;
+  }
+  leer(e,x){
+    if(x.cmp){const v=x.a=="C"?this.c[x.i].cv:x.a=="T"?this.t[x.i].et:e.valor(x.a,x.i);if(v==null||isNaN(v))return false;
+      return {">":v>x.v,"<":v<x.v,">=":v>=x.v,"<=":v<=x.v,"=":v==x.v,"<>":v!=x.v}[x.cmp]}
+    if(x.a=="M")return this.m[x.i];if(x.a=="T")return this.t[x.i].q;if(x.a=="C")return this.c[x.i].q;
+    if(x.a=="S"&&x.i==1)return this.first;return e.leerBit(x.a,x.i)}
+  esc(e,a,i,v){if(a=="M")this.m[i]=v;else e.esc(a,i,v)}
+  tempo(x,en,dt){const t=this.t[x.i],pt=x.v;t.pt=pt;t.tipo=x.op;
+    if(x.op=="TON"){if(en){if(t.et<pt)t.et=Math.min(pt,t.et+dt)}else t.et=0;t.q=en&&t.et>=pt}
+    else if(x.op=="TOF"){if(en){t.et=0;t.q=true}else if(t.q){t.et=Math.min(pt,t.et+dt);if(t.et>=pt)t.q=false}}
+    else{if(en&&!t.in&&!t.q){t.q=true;t.et=0}if(t.q){t.et=Math.min(pt,t.et+dt);if(t.et>=pt)t.q=false}if(!t.q&&!en)t.et=0}
+    t.in=en}
+  contar(x,en){const c=this.c[x.i];c.pv=x.v;if(c.tipo!=x.op){c.tipo=x.op;if(x.op=="CTD"&&c.cv==0)c.cv=c.pv}
+    if(en&&!c.in)c.cv+=x.op=="CTU"?1:-1;c.in=en;c.q=x.op=="CTU"?c.cv>=c.pv:c.cv<=0}
+  json(run,us){const hx=a=>a.map(b=>b.toString(16).padStart(2,"0")).join("");const by=(f,n)=>[...Array(Math.ceil(n/8))].map((_,k)=>{let b=0;for(let j=0;j<8;j++)if(f(k*8+j))b|=1<<j;return b});
+    let tq=0,cq=0;for(let k=1;k<=16;k++){if(this.t[k].q)tq|=1<<(k-1);if(this.c[k].q)cq|=1<<(k-1)}
+    return {run:run?1:0,n:this.n,err:this.error,us,usm:us+9,ciclos:this.ciclos,m:hx(by(k=>this.m[k+1],128)),fl:hx(by(k=>this.fl[k],this.n)),
+      t:this.t.slice(1).map(t=>t.et),tq,c:this.c.slice(1).map(c=>c.cv),cq}}
+}
+const insIgual=(a,b)=>JSON.stringify(a)==JSON.stringify(b);
+
+/* ---------- AP LÓGICA: escalera <-> lista de instrucciones ---------- */
+// renglón = {c: comentario, s: [bloque...] en serie, o: [salida...]}; bloque = [rama...] en paralelo; rama = [contacto...] en serie
+// contacto = {k: NA|NC|P|F|CMP, a, i, cmp, v}; salida = {k: OUT|SET|RST|TON|TOF|TP|CTU|CTD, a, i, v}
+const LG={r:[],dev:null,vista:"esc",mapa:{},abierta:false,devIns:null,genIns:null};
+const opTxt=o=>o.a=="P"?"P":o.a+o.i;
+function genIL(rs){
+  const L=[],mapa={};let n=0;const em=(s,k)=>{L.push(s);if(k)mapa[k]=n;n++};
+  const ct=(pre,c,k)=>em(c.k=="CMP"?`${pre} ${opTxt(c)} ${c.cmp} ${c.v}`:`${pre}${c.k=="NC"?"N":c.k=="P"?"P":c.k=="F"?"F":""} ${opTxt(c)}`,k);
+  rs.forEach((r,ri)=>{
+    if(!r.o.length)return;
+    if(r.c)L.push("// "+r.c.replace(/\s+/g," "));
+    if(!r.s.length)em("LD S3");
+    r.s.forEach((b,bi)=>{
+      const k=(ra,ci)=>`${ri}.${bi}.${ra}.${ci}`;
+      if(b.length==1){b[0].forEach((c,ci)=>ct(bi==0&&ci==0?"LD":"AND",c,k(0,ci)));return}
+      b.forEach((ra,rai)=>{
+        if(rai>0&&ra.length==1)ct("OR",ra[0],k(rai,0));
+        else{ra.forEach((c,ci)=>ct(ci==0?"LD":"AND",c,k(rai,ci)));if(rai>0)em("ORB")}});
+      if(bi>0)em("ANB")});
+    r.o.forEach((o,oi)=>em(FUNC.includes(o.k)?`${o.k} ${opTxt(o)} ${o.v}`:`${o.k} ${opTxt(o)}`,`${ri}.o${oi}`));
+  });
+  return {txt:L.join("\n"),mapa,n};
+}
+function deIL(txt){
+  const p=new Plc();if(!p.compilar(txt))return {err:p.error};
+  const coms=[];let pend="";
+  for(const raw of txt.split("\n")){const t=raw.trim(),cm=t.match(/^(\/\/|;)\s?(.*)$/);if(cm){pend=cm[2].trim();continue}
+    if(t.split("//")[0].split(";")[0].trim()){coms.push(pend);pend=""}}
+  const rs=[];let cur=null,acc=null,st=[],tras=true;
+  const hoja=x=>({c:{k:x.cmp?"CMP":x.fl?x.fl:x.neg?"NC":"NA",a:x.a,i:x.i,cmp:x.cmp||">",v:x.cmp?x.v:0}});
+  for(const [k,x] of p.ins.entries()){
+    if(["LD","AND","OR"].includes(x.op)){const h=hoja(x);
+      if(x.op=="LD"){if(tras){cur={c:coms[k]||"",o:[],t:null};rs.push(cur);st=[];acc=h;tras=false}else{st.push(acc);acc=h}}
+      else acc={op:x.op=="AND"?"&":"|",a:[acc,h]}}
+    else if(x.op=="ANB"||x.op=="ORB")acc={op:x.op=="ANB"?"&":"|",a:[st.pop(),acc]};
+    else if(x.op=="NOT")return {err:"NOT no se dibuja en la escalera: edítalo en Texto"};
+    else{if(!tras)cur.t=acc;cur.o.push({k:x.op,a:x.a,i:x.i,v:x.v});tras=true}
+  }
+  const y=n=>n.op=="&"?[...y(n.a[0]),...y(n.a[1])]:[n],o=n=>n.op=="|"?[...o(n.a[0]),...o(n.a[1])]:[n];
+  try{
+    for(const r of rs){r.s=y(r.t).map(f=>f.op=="|"?o(f).map(b=>y(b).map(h=>{if(!h.c)throw 0;return h.c})):[[f.c]]);delete r.t;
+      if(r.s.length==1&&r.s[0].length==1&&r.s[0][0].length==1){const c=r.s[0][0][0];if(c.k=="NA"&&c.a=="S"&&c.i==3)r.s=[]}}
+  }catch(e){return {err:"Hay bloques anidados que la escalera no dibuja: edítalo en Texto"}}
+  return {rs};
+}
+function insDe(txt){const p=new Plc();return p.compilar(txt)?p.ins:null}
+
+/* ---------- AP LÓGICA: dibujo ---------- */
+const ET_DE={I:"e",Q:"s",L:"l",A:"a"};
+function nomDe(o){const k=ET_DE[o.a];if(o.a=="L"&&o.i>0)return luNombre(o.i-1);return k?et(k,o.i):o.a=="P"?"Luz principal":o.a=="S"?["","1er ciclo","1 Hz","siempre","noche","falla"][o.i]||"":""}
+const corta=(s,n)=>s.length>n?s.slice(0,n-1)+"…":s;
+function svgCt(c,k){
+  const nm=`<text x="36" y="52" class="nm">${esc(corta(nomDe(c),12))}</text>`;
+  if(c.k=="CMP")return `<svg class="el" data-k="${k}" width="72" height="56" viewBox="0 0 72 56"><text x="36" y="11" class="op">${esc(opTxt(c))}</text>
+    <path d="M0 28H8M64 28H72" class="w"/><rect x="8" y="18" width="56" height="20" rx="5" class="w"/><text x="36" y="32">${esc(c.cmp+" "+c.v)}</text>${nm}</svg>`;
+  const mid=c.k=="NC"?'<path d="M27 38L45 18" class="w"/>':c.k=="P"?'<text x="36" y="32" class="k">P</text>':c.k=="F"?'<text x="36" y="32" class="k">N</text>':"";
+  return `<svg class="el" data-k="${k}" width="72" height="56" viewBox="0 0 72 56"><text x="36" y="11" class="op">${esc(opTxt(c))}</text>
+    <path d="M0 28H29M43 28H72M29 17V39M43 17V39" class="w"/>${mid}${nm}</svg>`;
+}
+function svgOut(o,k){
+  if(FUNC.includes(o.k)){const pv=o.k[0]=="T"?segTxt(o.v):o.v;
+    return `<svg class="el" data-k="${k}" width="96" height="56" viewBox="0 0 96 56"><path d="M0 28H10" class="w"/><rect x="10" y="3" width="80" height="50" rx="7" class="w"/>
+    <text x="50" y="16" class="k">${o.k}</text><text x="50" y="30" class="op">${esc(opTxt(o))}</text><text x="50" y="45" class="inf" data-inf="${k}">${pv}</text></svg>`}
+  const l=o.k=="SET"?"S":o.k=="RST"?"R":"";
+  return `<svg class="el" data-k="${k}" width="72" height="56" viewBox="0 0 72 56"><text x="36" y="11" class="op">${esc(opTxt(o))}</text>
+    <path d="M0 28H27M45 28H72M31 17Q24 28 31 39M41 17Q48 28 41 39" class="w"/><text x="36" y="32" class="k">${l}</text>
+    <text x="36" y="52" class="nm">${esc(corta(nomDe(o),12))}</text></svg>`;
+}
+const segTxt=ms=>ms>=60000&&ms%60000==0?ms/60000+" min":ms>=1000?+(ms/1000).toFixed(2)+" s":ms+" ms";
+function pintarEscalera(){
+  const g=genIL(LG.r);LG.mapa=g.mapa;LG.genIns=insDe(g.txt);
+  let h="";
+  LG.r.forEach((r,ri)=>{
+    h+=`<div class="rg"><div class="rgh"><b>${ri+1}</b><span class="c" data-rc="${ri}">${esc(r.c)||"Sin comentario · toca para escribir"}</span>
+      <button class="ib" data-rup="${ri}">↑</button><button class="ib" data-rdn="${ri}">↓</button><button class="ib del" data-rdel="${ri}">✕</button></div><div class="esc">`;
+    if(!r.s.length)h+=`<div class="rama"><button class="ctb" data-addc="${ri}"><svg class="el" width="72" height="56" viewBox="0 0 72 56"><path d="M0 28H72" class="w"/><text x="36" y="18" class="nm">siempre</text></svg></button></div>`;
+    r.s.forEach((b,bi)=>{
+      h+=`<div class="blq ${b.length>1?"par":""}">`+b.map((ra,rai)=>`<div class="rama">`+ra.map((c,ci)=>{const k=`${ri}.${bi}.${rai}.${ci}`;
+        return `<button class="ctb" data-k="${k}">${svgCt(c,k)}</button>`}).join("")+`<i class="hilo"></i></div>`).join("")+`</div>`});
+    h+=`<i class="hilo"></i><div class="blq ${r.o.length>1?"par":""}">`;
+    h+=r.o.length?r.o.map((o,oi)=>{const k=`${ri}.o${oi}`;return `<div class="rama"><button class="ctb" data-k="${k}">${svgOut(o,k)}</button></div>`}).join("")
+      :`<div class="rama"><button class="ctb" data-addo="${ri}"><svg class="el" width="72" height="56" viewBox="0 0 72 56"><path d="M0 28H26M46 28H72" class="w"/><circle cx="36" cy="28" r="10" class="w" stroke-dasharray="3 3"/><text x="36" y="52" class="nm">falta salida</text></svg></button></div>`;
+    h+=`</div></div><div class="rgb"><button class="pill" data-addc="${ri}">＋ Contacto</button><button class="pill" data-addo="${ri}">＋ Salida</button></div></div>`;
+  });
+  $("#pEsc").innerHTML=h||'<div class="empty">Sin programa. Agrega un renglón o empieza con una plantilla.</div>';
+  try{st("apPlc",JSON.stringify(LG.r))}catch(e){}
+  monitorear();
+}
+function monitorOk(){const P=E.plc;return !!(P&&P.run&&LG.devIns&&LG.genIns&&insIgual(LG.devIns,LG.genIns))}
+function monitorear(){
+  const P=E.plc,ok=monitorOk();
+  const fl=i=>{if(!P||!P.fl)return false;const b=parseInt(P.fl.substr((i>>3)*2,2),16);return !!(b>>(i&7)&1)};
+  $$("#pEsc svg.el[data-k]").forEach(s=>{const i=LG.mapa[s.dataset.k];s.classList.toggle("on",ok&&i!=null&&fl(i))});
+  $$("#pEsc [data-inf]").forEach(t=>{const o=salidaDe(t.dataset.inf);if(!o)return;
+    const pv=o.k[0]=="T"?segTxt(o.v):o.v;
+    if(!ok||!P){t.textContent=pv;return}
+    t.textContent=o.k[0]=="T"?`${segTxt(P.t[o.i-1]||0)} / ${pv}`:`${P.c[o.i-1]} / ${pv}`});
+}
+function salidaDe(k){const m=k.match(/^(\d+)\.o(\d+)$/);return m?(LG.r[m[1]]||{o:[]}).o[m[2]]:null}
+function pintarLogica(){
+  const P=E.plc;if(!P)return;
+  $("#pEst").textContent=P.run?"RUN":"STOP";$("#pEst").className="plcEst "+(P.run?"run":"stop");
+  if(!activo("#pRun"))$("#pRun").checked=!!P.run;
+  $("#pInfo").textContent=P.n?`${P.n} instrucciones · ciclo ${P.us} µs (máx ${P.usm} µs) · cada 10 ms`:"Sin programa en el equipo";
+  const c=[];
+  if(LG.devIns&&LG.genIns)c.push(insIgual(LG.devIns,LG.genIns)?["En el equipo","ok"]:["Cambios sin subir","warn"]);
+  if(P.err)c.push([P.err,"bad"]);if(monitorOk())c.push(["En línea: verde = cerrado / con corriente","ok"]);
+  $("#pChips").innerHTML=c.map(([t,k])=>`<span class="chip ${k}">${esc(t)}</span>`).join("");
+  $("#pDemo").classList.toggle("hidden",!demo);
+  if(demo){const I=E.io||{e:[]};$("#pDemoE").innerHTML=[1,2,3,4].map(n=>{const on=(I.e[0]>>(n-1))&1;
+    return `<span class="chip sel ${on?"on2":""}" data-de="${n}">I${n} ${esc(et("e",n))}</span>`}).join("")}
+  if(LG.vista=="esc")monitorear();
+  if(LG.vista=="var")pintarVariables();
+}
+function pintarVariables(){
+  const P=E.plc||{m:"",t:[],c:[],tq:0,cq:0},I=E.io||{o:0,i:0,s:[],e:[]};
+  const usados=a=>[...new Set((LG.devIns||[]).filter(x=>x.a==a).map(x=>x.i))].sort((x,y)=>x-y);
+  const pre=(a,i)=>{const x=(LG.devIns||[]).find(x=>x.a==a&&x.i==i&&FUNC.includes(x.op));return x?x.v:0};
+  const chips=(l)=>l.map(([t,on])=>`<span class="chip ${on?"ok":""}">${esc(t)}</span>`).join("")||'<span class="sub">—</span>';
+  const ent=[],sal=[];for(let m=0;m<16;m++){const nb=(E.uno&&m==0)?4:8;
+    if(I.i>>m&1)for(let b=0;b<nb;b++){const n=m*8+b+1;ent.push(["I"+n+(et("e",n)?" "+et("e",n):""),(I.e[m]>>b)&1])}
+    if(I.o>>m&1)for(let b=0;b<nb;b++){const n=m*8+b+1;sal.push(["Q"+n+(et("s",n)?" "+et("s",n):""),(I.s[m]>>b)&1])}}
+  const mm=[];for(let k=1;k<=128;k++){const b=parseInt((P.m||"").substr(((k-1)>>3)*2,2),16)||0;if(b>>((k-1)&7)&1)mm.push(["M"+k,1])}
+  const tt=usados("T").map(i=>`<div class="item"><span class="badge" style="background:${P.tq>>(i-1)&1?"var(--green)":"#8e8e93"}">T</span><div class="t"><b>T${i}</b><span>${segTxt(P.t[i-1]||0)} de ${segTxt(pre("T",i))}</span></div></div>`).join("");
+  const cc=usados("C").map(i=>`<div class="item"><span class="badge" style="background:${P.cq>>(i-1)&1?"var(--green)":"#8e8e93"}">C</span><div class="t"><b>C${i}</b><span>${P.c[i-1]} de ${pre("C",i)} (se recuerda al apagar)</span></div></div>`).join("");
+  $("#pVar").innerHTML=`<h2>Entradas</h2><div class="chips">${chips(ent)}</div><h2>Salidas</h2><div class="chips">${chips(sal)}</div>
+    <h2>Marcas activas</h2><div class="chips">${chips(mm)}</div>
+    <h2>Temporizadores</h2><div class="list">${tt||'<div class="empty">El programa no usa temporizadores.</div>'}</div>
+    <h2>Contadores</h2><div class="list">${cc||'<div class="empty">El programa no usa contadores.</div>'}</div>`;
+}
+async function pintarBitacora(){
+  let L=[];try{L=demo?Sim.log.slice().reverse():await (await fetch(base()+"/log",{cache:"no-store"})).json()}catch(e){}
+  $("#pLogL").innerHTML=L.map(([t,x])=>`<div class="item"><span class="badge" style="background:${/FALLA/.test(x)?"var(--red)":/PLC/.test(x)?"var(--accent)":"#8e8e93"}">${/FALLA/.test(x)?"!":/PLC/.test(x)?"P":"i"}</span>
+    <div class="t"><b>${esc(x)}</b><span>${t>1.6e9?new Date(t*1000).toLocaleString():"a los "+t+" s del arranque"}</span></div></div>`).join("")||'<div class="empty">Sin eventos.</div>';
+}
+
+/* ---------- AP LÓGICA: equipo ---------- */
+async function plcBajar(){
+  try{const t=demo?Sim.plcTxt:await (await fetch(base()+"/plc",{cache:"no-store"})).text();LG.dev=t;LG.devIns=insDe(t)||[];return t}
+  catch(e){aviso("No se pudo leer el programa");return null}
+}
+async function plcSubir(txt){
+  const p=new Plc();if(!p.compilar(txt)){aviso(p.error);return false}
+  let r;
+  try{r=demo?Sim.plcCargar(txt):await (await fetch(base()+"/plc",{method:"POST",headers:{"Content-Type":"text/plain"},body:txt})).json()}
+  catch(e){aviso("Sin respuesta del equipo");return false}
+  if(!r.ok){aviso(r.err||"El equipo no aceptó el programa");return false}
+  LG.dev=txt;LG.devIns=p.ins;await api();
+  aviso(E.plc&&E.plc.run?"Programa en el equipo, en RUN":"Programa en el equipo · pon RUN para ejecutarlo");return true;
+}
+async function abrirLogica(){
+  if(LG.abierta)return;LG.abierta=true;
+  const t=await plcBajar();
+  let rs=null;try{rs=JSON.parse(ld("apPlc")||"null")}catch(e){}
+  if(t&&t.trim()){const d=deIL(t);if(d.rs)LG.r=d.rs;else{LG.r=rs||[];cambiarVista("txt");$("#pTa").value=t;aviso(d.err)}}
+  else LG.r=rs||[];
+  pintarEscalera();pintarLogica();
+}
+function cambiarVista(v){
+  if(v==LG.vista)return;
+  if(LG.vista=="txt"&&v!="txt"){const d=deIL($("#pTa").value);if(d.err){aviso(d.err);return}LG.r=d.rs;pintarEscalera()}
+  if(v=="txt")$("#pTa").value=genIL(LG.r).txt;
+  LG.vista=v;
+  $$("#pVista button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));
+  $("#pEsc").classList.toggle("hidden",v!="esc");$("#pEscB").classList.toggle("hidden",v!="esc");
+  $("#pTxt").classList.toggle("hidden",v!="txt");$("#pVar").classList.toggle("hidden",v!="var");$("#pLog").classList.toggle("hidden",v!="log");
+  if(v=="var")pintarVariables();if(v=="log")pintarBitacora();
+}
+
+/* ---------- AP LÓGICA: edición ---------- */
+const CT_K=[["NA","─| |─ Abierto"],["NC","─|/|─ Cerrado"],["P","↑ Al subir"],["F","↓ Al bajar"],["CMP","Comparar"]];
+const OUT_K=[["OUT","( ) Bobina"],["SET","(S) Enclavar"],["RST","(R) Soltar"],["TON","Retardo al conectar"],["TOF","Retardo al desconectar"],["TP","Pulso"],["CTU","Contar arriba"],["CTD","Contar abajo"]];
+const AR_N={I:"I · Entrada",Q:"Q · Salida",M:"M · Marca",T:"T · Temporizador",C:"C · Contador",L:"L · Luminaria",P:"P · Luz principal",S:"S · Sistema",A:"A · Analógica",R:"R · Modbus"};
+function areasPara(k){return k=="CMP"?"ARCT":k=="OUT"||k=="SET"?"QMLP":k=="RST"?"QMLPTC":k[0]=="T"&&FUNC.includes(k)?"T":k[0]=="C"&&FUNC.includes(k)?"C":"IQMTCLPS"}
+function hojaEl(k){
+  const sal=/\.o\d+$/.test(k),ri=+k.split(".")[0];let o,b,ra,ci,oi;
+  if(sal){oi=+k.split(".o")[1];o=LG.r[ri].o[oi]}else{[,b,ra,ci]=k.split(".").map(Number);o=LG.r[ri].s[b][ra][ci]}
+  const K=sal?OUT_K:CT_K;let kind=o.k;
+  const formArea=()=>{const as=areasPara(kind);const a=as.includes(o.a)?o.a:as[0];
+    let h=`<div class="row" style="margin-top:10px"><select class="inp" id="eA">${[...as].map(x=>`<option value="${x}" ${x==a?"selected":""}>${AR_N[x]}</option>`).join("")}</select>
+      <input class="inp" id="eI" type="number" min="1" max="128" value="${o.i||1}" style="width:96px"></div>`;
+    if(kind=="CMP")h+=`<div class="row" style="margin-top:10px"><select class="inp" id="eC" style="width:96px">${[">","<",">=","<=","=","<>"].map(x=>`<option ${x==o.cmp?"selected":""}>${x}</option>`).join("")}</select>
+      <input class="inp" id="eV" type="number" step="any" value="${o.v||0}" placeholder="valor"></div><p class="sub">A = V o mA de un AI4 · R = punto Modbus · C = cuenta · T = ms</p>`;
+    if(FUNC.includes(kind))h+=`<div class="row" style="margin-top:10px"><span style="flex:none">${kind[0]=="T"?"Tiempo (s)":"Preset"}</span>
+      <input class="inp" id="eV" type="number" step="any" min="0" value="${kind[0]=="T"?(o.v||1000)/1000:(o.v||10)}"></div>`;
+    if(a=="S")h+='<p class="sub">S1 primer ciclo · S2 pulso de 1 s · S3 siempre · S4 de noche · S5 hay falla</p>';
+    $("#eF").innerHTML=h;$("#eA").onchange=e=>{o.a=e.target.value;o.i=+$("#eI").value||1;formArea()};
+    $("#eI").classList.toggle("hidden",a=="P")};
+  hoja(`<h2 style="margin-top:4px">${sal?"Salida":"Contacto"} · renglón ${ri+1}</h2>
+    <div class="seg" id="eK">${K.map(([x,t])=>`<button data-k="${x}" class="${x==kind?"on":""}">${t}</button>`).join("")}</div>
+    <div id="eF"></div>
+    <div style="height:12px"></div><button class="btn" id="eG" style="width:100%">Listo</button>
+    <div class="rgb" style="padding:10px 0 0">${sal?'<button class="pill" id="eOtra">＋ Otra salida en paralelo</button>':'<button class="pill" id="eSer">＋ En serie</button><button class="pill" id="ePar">＋ En paralelo</button>'}
+    <button class="pill" id="eDel" style="color:var(--red)">Quitar</button></div>`);
+  formArea();
+  $$("#eK button").forEach(x=>x.onclick=()=>{$$("#eK button").forEach(y=>y.classList.remove("on"));x.classList.add("on");guardar();kind=x.dataset.k;formArea()});
+  const guardar=()=>{o.k=kind;o.a=$("#eA").value;o.i=o.a=="P"?0:Math.max(1,Math.min(o.a=="T"||o.a=="C"?16:128,+$("#eI").value||1));
+    if(kind=="CMP"){o.cmp=$("#eC").value;o.v=+$("#eV").value||0}
+    else if(FUNC.includes(kind))o.v=kind[0]=="T"?Math.round((+$("#eV").value||0)*1000):Math.round(+$("#eV").value||0);
+    else if(!sal)o.v=0};
+  const nuevo=()=>({k:"NA",a:"I",i:1,cmp:">",v:0});
+  $("#eG").onclick=()=>{guardar();o.k=kind;cerrar();pintarEscalera()};
+  $("#eDel").onclick=()=>{const r=LG.r[ri];
+    if(sal)r.o.splice(oi,1);
+    else{const B=r.s[b];B[ra].splice(ci,1);if(!B[ra].length)B.splice(ra,1);if(!B.length)r.s.splice(b,1);
+      else if(B.length==1&&B[0].length>1)r.s.splice(b,1,...B[0].map(c=>[[c]]))}
+    cerrar();pintarEscalera()};
+  if(sal)$("#eOtra").onclick=()=>{guardar();LG.r[ri].o.splice(oi+1,0,{k:"OUT",a:"Q",i:1,v:0});cerrar();pintarEscalera()};
+  else{
+    $("#eSer").onclick=()=>{guardar();const r=LG.r[ri],B=r.s[b];if(B.length==1)r.s.splice(b+1,0,[[nuevo()]]);else B[ra].splice(ci+1,0,nuevo());cerrar();pintarEscalera()};
+    $("#ePar").onclick=()=>{guardar();LG.r[ri].s[b].push([nuevo()]);cerrar();pintarEscalera()};
+  }
+}
+const PLANTILLAS=[
+  {n:"Arranque y paro con autorretención",d:"Botón de marcha en I1, paro en I2, motor o bomba en Q1.",il:"// Arranque y paro: I1 marcha, I2 paro\nLD I1\nOR Q1\nANDN I2\nOUT Q1"},
+  {n:"Retardo a la conexión",d:"Q2 enciende 5 s después de activarse I1.",il:"// Retardo a la conexión\nLD I1\nTON T1 5000\nLD T1\nOUT Q2"},
+  {n:"Luz de escalera (minutero)",d:"Un toque en I3 enciende la luminaria L1 por 2 minutos.",il:"// Minutero de escalera\nLDP I3\nTP T2 120000\nLD T2\nOUT L1"},
+  {n:"Contador de piezas",d:"Cuenta pulsos en I1; al llegar a 10 enciende Q3; I2 lo pone a cero.",il:"// Contador de piezas\nLDP I1\nCTU C1 10\nLD C1\nOUT Q3\nLD I2\nRST C1"},
+  {n:"Bomba por nivel (4-20 mA)",d:"Arranca con el nivel A1 abajo de 6 mA y para arriba de 18 mA.",il:"// Bomba por nivel\nLD A1 < 6\nSET Q1\nLD A1 > 18\nRST Q1"},
+  {n:"Alternancia de dos bombas",d:"Cada vez que I1 pide agua arranca la otra bomba (Q1 / Q2): se desgastan parejo.",il:"// Al soltar I1 cambia de bomba (M70 se recuerda)\nLDF I1\nOUT M2\nLD M2\nAND M70\nOUT M3\nLD M2\nANDN M70\nSET M70\nLD M3\nRST M70\n// Bomba 1 o bomba 2 mientras I1 pide\nLD I1\nANDN M70\nOUT Q1\nLD I1\nAND M70\nOUT Q2"},
+  {n:"Destello de alarma",d:"Si hay falla en el equipo, Q4 destella a 1 Hz.",il:"// Destello de alarma\nLD S5\nAND S2\nOUT Q4"},
+  {n:"Fachada solo de noche",d:"La luminaria L2 enciende de noche (horario solar) si la luz principal está encendida.",il:"// Fachada de noche\nLD S4\nAND P\nOUT L2"}];
+function hojaPlantillas(){
+  hoja(`<h2 style="margin-top:4px">Plantillas</h2><p class="sub">Se agregan al final de tu programa; luego cambia las entradas y salidas a las tuyas.</p>
+    <div class="list">${PLANTILLAS.map((p,i)=>`<div class="item" data-pl="${i}" style="cursor:pointer"><div class="t"><b>${p.n}</b><span>${p.d}</span></div><span class="sub">＋</span></div>`).join("")}</div>`);
+  $$("#sheet [data-pl]").forEach(x=>x.onclick=()=>{const d=deIL(PLANTILLAS[x.dataset.pl].il);if(d.rs){LG.r.push(...d.rs);pintarEscalera()}cerrar();aviso("Plantilla agregada")});
+}
+function hojaComentario(ri){
+  hoja(`<h2 style="margin-top:4px">Comentario del renglón ${ri+1}</h2><input class="inp" id="cT" value="${esc(LG.r[ri].c)}" placeholder="Qué hace este renglón"><div style="height:10px"></div><button class="btn" id="cG" style="width:100%">Listo</button>`);
+  $("#cT").focus();$("#cG").onclick=()=>{LG.r[ri].c=$("#cT").value.trim();cerrar();pintarEscalera()};
+}
+$("#pVista").addEventListener("click",e=>{const b=e.target.closest("button");if(b)cambiarVista(b.dataset.v)});
+$("#pEsc").addEventListener("click",e=>{const t=e.target.closest("[data-k],[data-addc],[data-addo],[data-rc],[data-rup],[data-rdn],[data-rdel]");if(!t)return;const d=t.dataset;
+  if(d.k)return hojaEl(d.k);
+  if(d.addc){LG.r[d.addc].s.push([[{k:"NA",a:"I",i:1,cmp:">",v:0}]]);pintarEscalera();return hojaEl(`${d.addc}.${LG.r[d.addc].s.length-1}.0.0`)}
+  if(d.addo){LG.r[d.addo].o.push({k:"OUT",a:"Q",i:1,v:0});pintarEscalera();return hojaEl(`${d.addo}.o${LG.r[d.addo].o.length-1}`)}
+  if(d.rc)return hojaComentario(+d.rc);
+  const i=+(d.rup||d.rdn||d.rdel);
+  if(d.rup&&i>0)LG.r.splice(i-1,0,...LG.r.splice(i,1));
+  if(d.rdn&&i<LG.r.length-1)LG.r.splice(i+1,0,...LG.r.splice(i,1));
+  if(d.rdel&&confirm("¿Quitar el renglón "+(i+1)+"?"))LG.r.splice(i,1);
+  pintarEscalera()});
+$("#pNuevo").onclick=()=>{LG.r.push({c:"",s:[[[{k:"NA",a:"I",i:1,cmp:">",v:0}]]],o:[{k:"OUT",a:"Q",i:1,v:0}]});pintarEscalera()};
+$("#pPlant").onclick=hojaPlantillas;
+$("#pVer").onclick=()=>{const p=new Plc();$("#pVerR").textContent=p.compilar($("#pTa").value)?`Bien: ${p.n} instrucciones`:p.error};
+$("#pSubir").onclick=async()=>{
+  const txt=LG.vista=="txt"?$("#pTa").value:genIL(LG.r).txt;
+  if(await plcSubir(txt)&&LG.vista=="txt"){const d=deIL(txt);if(d.rs)LG.r=d.rs}
+  pintarEscalera();pintarLogica()};
+$("#pBajar").onclick=async()=>{const t=await plcBajar();if(t==null)return;const d=deIL(t);
+  if(d.rs){LG.r=d.rs;if(LG.vista=="txt")$("#pTa").value=t;pintarEscalera();aviso("Programa leído del equipo")}else{cambiarVista("txt");$("#pTa").value=t;aviso(d.err)}};
+$("#pRun").onchange=async e=>{if(e.target.checked&&!(E.plc&&E.plc.n)){e.target.checked=false;return aviso("Primero sube un programa")}
+  await api("PLC "+(e.target.checked?"RUN":"STOP"));pintarLogica()};
+$("#pDemoE").addEventListener("click",e=>{const t=e.target.closest("[data-de]");if(t){Sim.entrada(+t.dataset.de);E=Sim.estado();pintar()}});
+
 /* ---------- simulador (modo demostración) ---------- */
 const Sim=(()=>{
-  const s={v:"AP-1 fw 2.2 (demostración)",nom:"letrero-demo",g:"sala",p:1,m:0,n:"FIJO",s:5,b:80,ch:4,c:[255,180,90,0],x:0,e:0,
+  const s={v:"AP-1 fw 2.3 (demostración)",nom:"letrero-demo",g:"sala",p:1,m:0,n:"FIJO",s:5,b:80,ch:4,c:[255,180,90,0],x:0,e:0,
     t:0,tz:"CST6",rtc:1,a:[[1,127,19,0,1,0],[1,127,23,30,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]],
     ap:0,red:"Casa",ip:"192.168.1.50",rssi:-58,mq:2,med:1,vin:24.1,i:2.4,w:57.8,kwh:12.4,hoy:0.86,tc:41.5,f:0,fn:"",uno:1,udmx:0,dmx:0,
     io:{o:3,i:1,s:[5,1],e:[2],r:[[1,8,0,0],[2,9,33,1]]},mb:{b:0},
@@ -490,6 +886,23 @@ const Sim=(()=>{
     geo:[19.43,-99.13],noche:0,solh:[1127,402],sol:[[1,0,0,9,33,127],[1,1,15,10,33,127],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]],
     ai:{m:0},et:{l1:"Fachada",l2:"Marquesina",l33:"Vitrina",l34:"Mostrador",l35:"Pasillo",s1:"Bomba",s2:"Calentador",s9:"Focos patio",s10:"Contactos cocina",e1:"Botón entrada",e2:"Sensor puerta"},
     base:{ok:1,mod:"LL-UNO",sn:"7F3A-19C2",h:812},aviso:""};
+  const P=new Plc();let plcTxt="// Bomba: I1 marcha, I2 paro\nLD I1\nOR Q1\nANDN I2\nOUT Q1\n// Focos del patio 5 s después de la bomba\nLD Q1\nTON T1 5000\nLD T1\nOUT Q9\n// Cuenta los arranques de la bomba\nLDP Q1\nCTU C1 100\n// Vitrina de noche o con el sensor de puerta\nLD S4\nOR I2\nAND P\nOUT L33",plcRun=true;
+  P.compilar(plcTxt);s.io.e=[0];
+  const log=[[Math.floor(Date.now()/1000)-3600,"Arranque AP-1 fw 2.3 (normal), PLC en RUN"],[Math.floor(Date.now()/1000)-1800,"PLC: programa nuevo (14 instrucciones)"]];
+  const setb2=(o,n,v)=>v?(bit(o,n)?o:o+2**n):(bit(o,n)?o-2**n:o);
+  const env={leerBit:(a,i)=>{const h=new Date().getHours();
+      if(a=="I")return !!(((s.io.e[(i-1)>>3]||0)>>((i-1)&7))&1);if(a=="Q")return !!(((s.io.s[(i-1)>>3]||0)>>((i-1)&7))&1);
+      if(a=="L")return !!bit(s.lu.o,i-1);if(a=="P")return !!s.p;
+      if(a=="S")return i==2?Date.now()%1000<500:i==3?true:i==4?(h>=19||h<7):i==5?!!s.f:false;return false},
+    valor:(a,i)=>a=="A"&&i==1?+(12+8*Math.sin(Date.now()/20000)).toFixed(2):NaN,
+    esc:(a,i,v)=>{if(a=="Q"){const m=(i-1)>>3,b=1<<((i-1)&7);s.io.s[m]=v?(s.io.s[m]||0)|b:(s.io.s[m]||0)&~b}
+      else if(a=="L"){s.lu.s=setb2(s.lu.s,i-1,false);s.lu.o=setb2(s.lu.o,i-1,v);if(v&&!s.lu.n[i-1])s.lu.n[i-1]=100}else if(a=="P")s.p=v?1:0}};
+  const apagar=()=>P.ins.forEach(x=>{if((x.op=="OUT"||x.op=="SET")&&(x.a=="Q"||x.a=="L"))env.esc(x.a,x.i,false)});
+  setInterval(()=>{if(demo&&plcRun&&P.n){P.ciclo(env,50)}},50);
+  setInterval(()=>{if(demo&&!$("#v-logica").classList.contains("hidden")&&!$("#sheetBg").classList.contains("show")){E=estado();pintarLogica();pintarIO()}},300);
+  function plcCargar(t){const q=new Plc();if(!q.compilar(t))return {ok:0,err:q.error};if(plcRun)apagar();
+    q.m=P.m;q.c.forEach((c,k)=>c.cv=P.c[k].cv);Object.assign(P,q);plcTxt=t;log.push([Math.floor(Date.now()/1000),`PLC: programa nuevo (${P.n} instrucciones)`]);return {ok:1,n:P.n,err:""}}
+  function entrada(n){const m=(n-1)>>3,b=1<<((n-1)&7);s.io.e[m]=(s.io.e[m]||0)^b}
   const num=q=>q.trim().split(/\s+/).map(Number);
   function cmd(c){const p=c.trim(),k=p.split(/\s+/)[0],r=p.slice(k.length).trim(),a=num(r),L=s.lu;
     const setb=(o,n,v)=>v?(bit(o,n)?o:o+2**n):(bit(o,n)?o-2**n:o);
@@ -503,18 +916,21 @@ const Sim=(()=>{
       case"EA":{const n=a[0];s.io.r=s.io.r.filter(x=>x[0]!=n);if(!r.includes("-"))s.io.r.push([n,a[1],a[2]||0,a[3]||0]);break}
       case"A":if(r.includes("-"))s.a[a[0]]=[0,0,0,0,0,0];else s.a[a[0]]=[1,a[1],a[2],a[3],a[4],a[5]||0];break;
       case"SOL":if(r.includes("-"))s.sol[a[0]]=[0,0,0,0,0,0];else s.sol[a[0]]=[1,a[1],a[2],a[3],a[4],127];break;
+      case"PLC":if(r=="RUN"&&P.n){if(!plcRun){P.first=true;log.push([Math.floor(Date.now()/1000),"PLC: RUN"])}plcRun=true}
+        else if(r=="STOP"){if(plcRun){apagar();log.push([Math.floor(Date.now()/1000),"PLC: STOP"])}plcRun=false}break;
       case"ET":{const[t,...nm]=r.split(" ");const key=t[0].toLowerCase()+t.slice(1);const v=nm.join(" ");if(v=="-")delete s.et[key];else s.et[key]=v;break}}
     s.w=+(5+ (s.p?s.b*0.6:0)+ [0,1,32,34].reduce((x,n)=>x+(bit(L.o,n)?L.n[n]*0.12:0),0)).toFixed(1);s.i=+(s.w/s.vin).toFixed(2);
   }
-  function estado(){const d=new Date();s.t=d.getHours()*60+d.getMinutes();return JSON.parse(JSON.stringify(s))}
-  return {cmd,estado,vecinos:[{nom:"letrero-demo",g:"sala",ip:"192.168.1.50"},{nom:"tablero-bomba",g:"patio",ip:"192.168.1.51"},{nom:"vitrina-tienda",g:"tienda",ip:"192.168.1.52"}]};
+  function estado(){const d=new Date();s.t=d.getHours()*60+d.getMinutes();s.plc=P.json(plcRun,18);return JSON.parse(JSON.stringify(s))}
+  return {cmd,estado,plcCargar,entrada,log,get plcTxt(){return plcTxt},vecinos:[{nom:"letrero-demo",g:"sala",ip:"192.168.1.50"},{nom:"tablero-bomba",g:"patio",ip:"192.168.1.51"},{nom:"vitrina-tienda",g:"tienda",ip:"192.168.1.52"}]};
 })();
 
 /* ---------- arranque ---------- */
 (()=>{const t=ld("apTema");if(t)document.documentElement.setAttribute("data-theme",t)})();
 host=ld("apHost")||"";
 if(location.protocol=="https:"&&!host)entrarDemo(); else api();
-setInterval(()=>{if(!demo&&!ocupado&&document.visibilityState=="visible"&&!$("#sheetBg").classList.contains("show"))api()},2500);
+setInterval(()=>{if(demo||ocupado||document.visibilityState!="visible"||$("#sheetBg").classList.contains("show"))return;
+  const enLogica=!$("#v-logica").classList.contains("hidden");if(enLogica||Date.now()-ultimo>2400)api()},700);   // en Lógica: monitoreo en línea
 </script>
 </body>
 </html>
