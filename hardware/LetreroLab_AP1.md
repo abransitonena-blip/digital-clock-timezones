@@ -170,7 +170,16 @@ Es el mismo programa de la AP-0.2 (app web, horarios, toda la casa, MQTT, OTA, p
   - El equipo sirve la app **AP Studio** en `http://<equipo>/studio`: inicio con consumo en vivo, luces y focos, salidas, automatizaciones "cuando… entonces…", módulos y Tienda AP. Ver [ap-studio](ap-studio/index.html).
   - Reconoce el **AP FOCO 127** (PCA9685 0x64/0x65) con tope de 500 mA por foco.
   - El **AP RED 4** funciona como salidas S9-S12 (es el mismo expansor del DO8).
-- **Estado:** compila sin advertencias (fw 2.2: 1.45 MB, 73 % de la flash); las pruebas en la PC (`tools/probar_apbus.sh`) pasan. La app se probó en navegador contra un simulador.
+- **AP LÓGICA, programa tipo PLC (fw 2.3):**
+  - Escalera o lista de instrucciones (IEC 61131-3), ciclo de 10 ms, RUN / STOP.
+  - Contactos, flancos y comparaciones analógicas; SET / RST, TON / TOF / TP, CTU / CTD.
+  - Marcas y contadores retentivos.
+  - El programa se sube por `POST /plc`; `/log` da la bitácora; vigilante de 15 s.
+  - AP Studio trae la pestaña **Lógica** con monitoreo en línea. Ver [AP_LOGICA.md](AP_LOGICA.md).
+- **Estado:**
+  - Compila sin advertencias (fw 2.3: 1.48 MB, 75 % de la flash).
+  - Las pruebas en la PC (`tools/probar_apbus.sh`, también las del PLC en C++ y en JS) pasan.
+  - La app se probó en el navegador contra un simulador.
 - **Compilar:** `bash hardware/tools/compilar_esp32.sh ap1`. Los binarios quedan en `ap1-prog/firmware/binarios/`.
 - **Grabar:** el archivo `_completo_0x0.bin` va por USB-C en la dirección 0x0; el `_actualizacion_OTA.bin` va por Wi-Fi.
 

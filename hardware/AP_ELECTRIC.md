@@ -1,6 +1,8 @@
 # AP ELECTRIC: «Una base. Muchas posibilidades.» · Instala. Identifica. Mantén. Amplía.
 
-![AP ELECTRIC](AP_ELECTRIC_producto_1600.jpg)
+![AP ELECTRIC: el producto terminado](AP_ELECTRIC_producto_final_1600.jpg)
+
+> El producto terminado: carcasa DIN con el logo AP, enchufes de tornillo, LED y panel frontal ([ap1-gabinete/producto](ap1-gabinete/producto/LEEME.md)). Las placas de cada equipo están en [AP_ELECTRIC_producto_1600.jpg](AP_ELECTRIC_producto_1600.jpg).
 
 Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está diseñado en este repositorio.
 
@@ -59,7 +61,8 @@ Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está
   - **Inicio:** consumo en vivo, luz principal, escenas;
   - **Luces:** cada luminaria y cada foco, con su corriente;
   - **Salidas:** relevadores, salidas y entradas;
-  - **Automatizar:** "cuando… entonces…" por entrada, hora u ocaso / amanecer;
+  - **Reglas:** "cuando… entonces…" por entrada, hora u ocaso / amanecer;
+  - **Lógica:** programación **tipo PLC** en escalera o lista de instrucciones, con plantillas, RUN / STOP, monitoreo en línea, variables y bitácora ([AP_LOGICA.md](AP_LOGICA.md));
   - **Módulos:** lo conectado y la **Tienda AP** con lo que se puede agregar;
   - **Ajustes.**
 - **Varios equipos:** encuentra los demás equipos de la red y cambia entre ellos.
@@ -205,6 +208,11 @@ Todo funciona **sin internet**. Con Wi-Fi, además aparece en Home Assistant: lu
 - Las placas de 72 mm ocupan 4 módulos DIN de ancho.
 - **Prototipo:** imprime uno y pruébalo con un tramo de riel antes de imprimir en serie.
 
+## El producto terminado: carcasa DIN con logo AP
+
+- Carcasa de tablero generada a partir de cada placa: hombros con **enchufes de tornillo**, frente con el **logo AP**, LED, botones y etiqueta, traba de riel naranja. Detalles, STL y renders en [ap1-gabinete/producto](ap1-gabinete/producto/LEEME.md).
+- Enchufes **naranjas** para baja tensión y **grises** para la red, con el triángulo de advertencia en los productos de 127/220 V.
+
 ## Carcasas personalizables (propuesta)
 
 - Mismo soporte y misma tapa en **grafito, blanco, verde, azul y naranja**, con placa de identificación intercambiable.
@@ -215,7 +223,7 @@ Todo funciona **sin internet**. Con Wi-Fi, además aparece en Home Assistant: lu
 1. **Fabricar y probar** el primer prototipo, con las pruebas de cada guía.
 2. **Ciclo de prueba en tablero:** ruido de contactores, temperatura y horas encendido.
 3. **Salidas con protección contra cortos:** cambiar el ULN2003 por MOSFET de 40-60 V con limitación, en cuanto se confirme una pieza con hoja de datos.
-4. **Comportamiento ante fallas definido:** qué hacen las salidas si el CORE se reinicia (hoy se quedan como estaban; se puede agregar un vigilante por hardware).
+4. **Comportamiento ante fallas:** desde la versión 2.3 hay un vigilante por programa (15 s) y el PLC apaga sus salidas en STOP. Falta un vigilante **por hardware** que apague las salidas si el CORE deja de responder.
 5. **Bus para distancias mayores:** RS-485 (AP LINK) en lugar de I2C cuando los módulos estén en otro tablero.
 6. **AP FIELD para exteriores:** diseño de caja con junta, pruebas de agua y polvo, y manejo de condensación, antes de declarar una clasificación IP.
 7. **Certificación:** lo que aplique en México para equipos de control de baja tensión, con un laboratorio.
