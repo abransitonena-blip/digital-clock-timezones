@@ -54,6 +54,7 @@ CONOCIDOS = {
     ("T2A 250VCA", "Fuse_2410_6125Metric"): ("C2838939", "Extended"),   # prosemi 2410LC-2A, retardo, 50 A a 250 VCA
     ("10D471K", "RV_Disc_D12mm_W5mm_P7.5mm"): ("C317795", "Extended"),   # COV 10D471K, 300 VCA, 67 J
     ("KF128-5.08-2P", "TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal"): ("C474952", "Extended"),
+    ("KF128-5.08-3P", "TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal"): ("C474953", "Extended"),
     ("SRD-24VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C15840", "Extended"),   # Songle, 10 A 250 VCA
     # AP Electric 7R Tour / AP Home (verificadas en lcsc.com / jlcpcb.com por búsqueda, octubre 2026; ver ARQUITECTURA.md)
     ("G2RL-1A-E DC24", "Relay_SPST_Omron_G2RL-1A-E"): ("C231362", "Extended"),         # Omron, 16 A 250 VCA, bobina 24 V

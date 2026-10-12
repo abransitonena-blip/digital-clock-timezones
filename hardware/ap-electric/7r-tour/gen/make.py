@@ -16,10 +16,11 @@ Bloques:
   paralelo al LED del opto; diodo en antiparalelo contra polaridad invertida; común de entradas propio (COMI).
 - 7 botones de canal (TCA9554 0x23), MODO y RESET; LED RUN, FALLA y COM.
 - RS-485 aislado CA-IS3092W (5 kVrms, fuente aislada integrada; SEL a GNDB = 3.3 V del lado del bus), SM712,
-  terminación de 120 ohm y polarización por puente. Bornera A, B, GNDB.
+  terminación de 120 ohm y polarización por puente. Bornera A, B, GNDB. Todo el lado del bus va trazado a mano
+  dentro de la zona GNDB; al rutear, una zona prohibida de 1.6 mm deja la lógica fuera (regla del DRC: 1.5 mm).
 - 24 V: fusible 3 A, diodo serie, supresor SMBJ33A; LMR16006 (60 V) a 5 V; AP63203 a 3.3 V. USB-C para programar
   (sin 24 V las bobinas no tienen alimentación).
-- Aislamiento: la red (contactos y fuente) solo arriba de y = 32 mm; sin relleno de cobre allí; regla del DRC de 6.0 mm en
+- Aislamiento: la red (contactos y fuente) solo arriba de y = 32 mm; sin relleno de cobre allí; regla del DRC de 6.4 mm en
   el aire y 6.4 mm por la superficie entre la red y lo demás; 2.0 mm en el aire y 2.4 mm por la superficie entre redes de red distintas
   (2.48 mm entre las dos patas de una bornera de 5.08 mm: el contacto abierto).
 

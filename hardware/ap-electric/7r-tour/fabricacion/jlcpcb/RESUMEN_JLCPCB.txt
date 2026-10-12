@@ -1,0 +1,66 @@
+AP_7R_TOUR: 55 tipos de pieza, 178 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):      17 tipos Extended  -> ~51 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):    11 tipos Extended  -> ~33 USD de cargo;
+   se sueldan a mano 23 piezas de patas: J1,J2,J3,J4,J5,J6,J7,J8,J9, J11,J12,J13,J14, K1,K2,K3,K4,K5,K6,K7, PS1, RV1, SW1
+Piezas Basic/Preferred: ~0.99 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (34):
+  10uF 50V               C13585         C1,C2,C3,C11
+  100nF                  C14663         C10,C13,C18,C20,C21,C22,C23,C25,C27
+  22uF 25V               C12891         C12
+  10uF 25V               C13585         C14
+  22uF                   C45783         C15,C16
+  10uF                   C15850         C17,C24,C26
+  1uF                    C15849         C19
+  SS34                   C8678          D1,D3
+  SS210                  C14996         D6
+  VERDE                  C72043         D8,LD1,LD2,LD3,LD4,LD5,LD6,LD7,LI1,LI2,LI3,LI4,LI5,LI6,LI7,LI8
+  ROJO                   C2286          D9
+  1N4148W                C81598         DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8
+  LTV-217-B              C115450        OK1,OK2,OK3,OK4,OK5,OK6,OK7,OK8
+  10k                    C25804         R1,R2,R5,R11,R12,RB2,RL1,RL2,RL3,RL4,RL5,RL6,RL7,RP1,RP2,RP3,RP4,RP5,RP6,RP7,RP8
+  4.7k                   C23162         R3,R4
+  1k                     C21190         R6,R7,R8
+  5.1k                   C23186         R9,R10
+  120                    C17909         R13
+  680                    C23228         R14,R15
+  2.2k                   C17520         RA1,RA2,RA3,RA4,RA5,RA6,RA7,RA8,RB3,RB4,RB5,RB6,RB7,RB8,RB9,RB10
+  56k                    C23206         RB1
+  2.2k                   C4190          RS1,RS2,RS3,RS4,RS5,RS6,RS7,RS8
+  100k                   C25803         RSA1,RSA2,RSA3,RSA4,RSA5,RSA6,RSA7
+  15k                    C22809         RSB1,RSB2,RSB3,RSB4,RSB5,RSB6,RSB7
+  CANAL 1                C318884        SB1
+  CANAL 2                C318884        SB2
+  CANAL 3                C318884        SB3
+  CANAL 4                C318884        SB4
+  CANAL 5                C318884        SB5
+  CANAL 6                C318884        SB6
+  CANAL 7                C318884        SB7
+  MODO                   C318884        SW8
+  RESET                  C318884        SW9
+  ULN2003ADR             C7512          U1
+Preferred (4):
+  SMBJ33A                C19077586      D2
+  B5819W                 C64885         D7
+  AMARILLO               C89811         D10
+  SM712                  C7420375       D11
+Extended (17):
+  3A                     C355685        F1
+  T2A 250VCA             C2838939       F2
+  KF128-5.08-2P          C474952        J1,J2,J3,J4,J5,J6,J7,J8,J9  [THT]
+  KF128-5.08-3P          C474953        J11,J12,J13,J14  [THT]
+  USB-C                  C165948        J15
+  G2RL-1A-E DC24         C231362        K1,K2,K3,K4,K5,K6,K7  [THT]
+  47uH                   C167888        L1
+  4.7uH                  C167874        L2
+  IRM-20-24              C194964        PS1  [THT]
+  10D471K                C317795        RV1  [THT]
+  DSWB08LHGET            C99413         SW1  [THT]
+  TCA9554PWR             C477924        U2,U3,U4,U5
+  CA-IS3092W             C2890051       U6
+  LMR16006XDDC           C87080         U7
+  AP63203WU              C780769        U8
+  ESP32-C3-WROOM-02      C2934560       U9
+  USBLC6-2SC6            C7519          U10

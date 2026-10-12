@@ -8,7 +8,7 @@ Lo que se comprueba por software **no sustituye** a los ensayos eléctricos: un 
 |---|---|---|
 | Esquema 7R Tour y AP Home | ERC de KiCad 9 | 0 errores |
 | Placa AP Home | DRC con reglas propias: red-baja tensión ≥ 6.4 mm en el aire y por la superficie; ≥ 2.0 / 2.4 mm entre redes de red | 0 violaciones, 0 sin conectar, paridad 0, reglas de JLCPCB 0 |
-| Placa 7R Tour | Igual; además el bus RS-485 aislado ≥ 1.5 mm de la lógica | Ver el LEEME del 7R Tour (estado de cierre) |
+| Placa 7R Tour | Igual; además el bus RS-485 aislado ≥ 1.5 mm de la lógica (aislamiento funcional, no de seguridad) | 0 violaciones, 0 sin conectar, paridad 0, reglas de JLCPCB 0 |
 | BOM | Todas las piezas con código LCSC (relés, fuentes, aisladores verificados por búsqueda en lcsc.com / jlcpcb.com) | Ver `fabricacion/jlcpcb` |
 | Programa | Compila para ESP32-C3 (arduino-cli 3.1.1) | 1.06 MB, 53 % |
 | Lógica | `tools/probar_apbus.sh` | Arranque seguro, antirrebote, pulsador / interruptor / conmutador, minutero, Modbus (lectura, escritura, excepciones, difusión, CRC), vigilancia de comunicación, PLC, retroalimentación de bobinas, mantenimiento, límite de escrituras |
