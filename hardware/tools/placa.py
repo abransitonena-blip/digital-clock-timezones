@@ -32,7 +32,7 @@ mm = pcbnew.FromMM
 def _defaults(S):
     for k, v in dict(HOLES=[], NETCLASS={}, POWER_ZONES=[], KEEPOUT_NETS=(), PRE=[], PREVIAS=[], VIAS=[],
                      SIN_COBRE=[], RETORNO=[], SILK=[], FLAGS=[], NOTES=[], SUBTITLES=[], COMPANY="", PAPER="A3", DRU="",
-                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], SIN_RELLENO=[], ZONAS_FINALES=[], SOLO_PLACA=[], RANURAS=[],
+                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], RUTEO_PROHIBIDO=[], SIN_RELLENO=[], ZONAS_FINALES=[], SOLO_PLACA=[], RANURAS=[],
                      PLANOS=[("GND", "In1"), ("GND", "In2")]).items():
         if not hasattr(S, k):
             setattr(S, k, v)
@@ -271,6 +271,8 @@ def add_power(S, b):
         ps.Deflate(mm(0.8), pcbnew.CORNER_STRATEGY_CHAMFER_ALL_CORNERS, mm(0.01))
         o = ps.Outline(0)
         _regla(b, [(o.CPoint(i).x, o.CPoint(i).y) for i in range(o.PointCount())], "ruteo_" + net, [lay])
+    for i, pts in enumerate(S.RUTEO_PROHIBIDO):   # solo para rutear: nadie entra (p. ej. alrededor de un bus aislado trazado a mano)
+        _regla(b, [(mm(100 + x), mm(100 + y)) for x, y in pts], "ruteo_prohibido_%d" % i, _cobre(S))
     _sin_cobre(S, b)
 
 
