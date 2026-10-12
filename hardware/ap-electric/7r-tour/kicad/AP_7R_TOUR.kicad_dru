@@ -1,0 +1,4 @@
+(version 1)
+(rule "aislamiento_red" (condition "A.NetClass == 'Red' && B.NetClass != 'Red' && B.NetName != 'unconnected-*'") (constraint clearance (min 6.4mm)) (constraint creepage (min 6.4mm)))
+(rule "entre_canales" (condition "A.NetClass == 'Red' && B.NetClass == 'Red' && A.NetName != B.NetName") (constraint clearance (min 2.0mm)) (constraint creepage (min 2.4mm)))
+(rule "bus_aislado" (condition "A.NetClass == 'Bus' && B.NetClass != 'Bus' && B.NetName != 'unconnected-*'") (constraint clearance (min 1.5mm)))
