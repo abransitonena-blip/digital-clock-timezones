@@ -36,6 +36,7 @@ Las placas de LED de corriente constante son otra familia, **AP LED**, y no alim
 | `identidad/` | Isotipo, logotipos AP Electric y AP Electric Industrial, marca 7R Tour y etiquetas de producto: SVG vectorial, PNG y PDF. Sin sellos de certificación |
 | `carcasas/` + `../ap1-gabinete/producto/` | Generadores de carcasa (DIN del 7R Tour; Home Plug y Home Switch) y STL de prototipo |
 | `renders/` | Imágenes del producto |
+| `web/` | Sitio de la familia (Home, Industrial, Luz, Studio) con lista de interés y panel interno de proveedores y nombres. Publicado como página privada en claude.ai; los proveedores y nombres viven en su base de datos |
 
 ## Compilar y probar
 

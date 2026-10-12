@@ -1,0 +1,714 @@
+<title>AP Electric</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: catálogo por líneas sobre un "riel" horizontal; panel de proveedores como tablero de trabajo al final */
+:root {
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --sunken: #e8eaee;
+  --fg: #1d1f24;
+  --muted: #5b606b;
+  --line: #d3d6dc;
+  --accent: #e85d04;
+  --accent-ink: #ffffff;
+  --accent-soft: #fde6d6;
+  --ok: #1f7a4a; --ok-soft: #dcf1e5;
+  --warn: #8a5a00; --warn-soft: #fbefd2;
+  --bad: #a3271c; --bad-soft: #f8dcd8;
+  --info: #2d5b9a; --info-soft: #dde7f5;
+  --font-display: "Saira Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16181c; --surface: #1f2228; --sunken: #2a2e35; --fg: #eceef1; --muted: #a2a8b3; --line: #353a42;
+    --accent: #ff7a1f; --accent-ink: #1a1206; --accent-soft: #3a2414;
+    --ok: #6fd39c; --ok-soft: #173326; --warn: #f0c060; --warn-soft: #3a2d10; --bad: #f08a7e; --bad-soft: #3d1c18; --info: #8db6ee; --info-soft: #1b2a40;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16181c; --surface: #1f2228; --sunken: #2a2e35; --fg: #eceef1; --muted: #a2a8b3; --line: #353a42;
+  --accent: #ff7a1f; --accent-ink: #1a1206; --accent-soft: #3a2414;
+  --ok: #6fd39c; --ok-soft: #173326; --warn: #f0c060; --warn-soft: #3a2d10; --bad: #f08a7e; --bad-soft: #3d1c18; --info: #8db6ee; --info-soft: #1b2a40;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+a { color: var(--accent); }
+img { max-width: 100%; display: block; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; text-wrap: balance; margin: 0; letter-spacing: 0.01em; }
+h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); }
+h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
+h3 { font-size: 1.5rem; }
+p { margin: 0; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-inline: 20px; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* barra superior */
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); }
+.brand svg { width: 34px; height: 34px; flex: none; }
+.brand b { font-family: var(--font-display); font-size: 1.45rem; letter-spacing: 0.06em; }
+nav.secciones { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+nav.secciones a { text-decoration: none; color: var(--fg); padding: 6px 10px; border-radius: 6px; font-weight: 500; font-size: 0.92rem; }
+nav.secciones a:hover { background: var(--sunken); }
+nav.secciones a.panel { background: var(--fg); color: var(--bg); }
+
+.aviso { background: var(--warn-soft); color: var(--warn); border-bottom: 1px solid var(--line); font-size: 0.88rem; }
+.aviso .wrap { padding-block: 8px; }
+
+/* portada */
+.portada { padding-block: 48px 24px; }
+.portada .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: center; }
+.portada .texto { display: grid; gap: 18px; min-width: 0; }
+.portada .lead { font-size: 1.15rem; color: var(--muted); max-width: 34em; }
+.portada figure { margin: 0; border-radius: var(--radius); overflow: hidden; background: #f4f4f6; }
+.botones { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 9px 16px; border-radius: 8px; font: 500 0.95rem var(--font-body); cursor: pointer; text-decoration: none; }
+.btn:hover { border-color: var(--fg); }
+.btn.primario { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.chico { padding: 5px 10px; font-size: 0.85rem; }
+.btn.peligro { color: var(--bad); }
+.hechos { display: flex; gap: 22px; flex-wrap: wrap; padding-top: 6px; }
+.hechos div { display: grid; }
+.hechos b { font-family: var(--font-display); font-size: 1.9rem; line-height: 1; }
+.hechos span { font-size: 0.82rem; color: var(--muted); }
+
+/* riel de líneas */
+.riel { border-block: 1px solid var(--line); background: var(--surface); }
+.riel .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+.riel a { display: grid; gap: 4px; padding: 18px 16px; text-decoration: none; color: var(--fg); border-left: 1px solid var(--line); min-width: 0; }
+.riel a:last-child { border-right: 1px solid var(--line); }
+.riel a:hover { background: var(--sunken); }
+.riel .nombre { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; }
+.riel .nombre i { font-style: normal; color: var(--accent); }
+.riel small { color: var(--muted); }
+
+section.linea { padding-block: 56px 24px; scroll-margin-top: 70px; }
+.cabeza { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 28px; align-items: end; margin-bottom: 28px; }
+.cabeza p { color: var(--muted); }
+.productos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.producto { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.producto figure { margin: 0; background: #f2f3f5; aspect-ratio: 16 / 10; overflow: hidden; }
+.producto figure img { width: 100%; height: 100%; object-fit: contain; }
+.producto .cuerpo { padding: 18px; display: grid; gap: 12px; align-content: start; }
+.producto .fila { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.estado { font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.04em; white-space: nowrap; }
+.estado.proto { background: var(--warn-soft); color: var(--warn); }
+.estado.dis { background: var(--info-soft); color: var(--info); }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 7px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); }
+table.spec { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+table.spec td { padding: 6px 0; border-top: 1px solid var(--line); vertical-align: top; }
+table.spec td:first-child { color: var(--muted); width: 42%; padding-right: 10px; }
+.origen { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-left: 4px; }
+.pd { font-family: var(--font-mono); font-size: 0.75rem; background: var(--sunken); padding: 1px 6px; border-radius: 4px; }
+.nota { font-size: 0.85rem; color: var(--muted); }
+.lista-mod { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin-top: 20px; overflow: hidden; }
+.lista-mod div { padding: 14px 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; gap: 4px; min-width: 0; }
+.lista-mod b { font-family: var(--font-display); font-size: 1.15rem; }
+.lista-mod span { font-size: 0.86rem; color: var(--muted); }
+.ancho { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; }
+.caja { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+pre.registros { margin: 0; font-family: var(--font-mono); font-size: 0.8rem; background: var(--sunken); padding: 12px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+.cuidado { border-left: 3px solid var(--bad); background: var(--bad-soft); color: var(--fg); padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 0.92rem; }
+
+/* elegir */
+.matriz { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.matriz table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.9rem; }
+.matriz th, .matriz td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.matriz th { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+.matriz tr:last-child td { border-bottom: 0; }
+
+/* formulario */
+form.interes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+form.interes .todo { grid-column: 1 / -1; }
+fieldset.productos-int { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+fieldset.productos-int legend { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; padding: 0; }
+.chk { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; color: var(--fg); font-size: 0.92rem; cursor: pointer; }
+.chk input { width: auto; }
+.chk b { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+label { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+input, select, textarea { font: 0.95rem var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%; min-width: 0; }
+textarea { min-height: 80px; resize: vertical; }
+.msg { font-size: 0.9rem; }
+.msg.ok { color: var(--ok); } .msg.mal { color: var(--bad); }
+
+/* panel */
+section.panel-prov { background: var(--surface); border-top: 1px solid var(--line); padding-block: 56px 64px; scroll-margin-top: 70px; }
+.resumen { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-block: 20px; }
+.resumen button { text-align: left; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 10px 12px; cursor: pointer; color: var(--fg); display: grid; gap: 2px; font: inherit; }
+.resumen button[aria-pressed="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.resumen b { font-family: var(--font-display); font-size: 1.7rem; line-height: 1; }
+.resumen span { font-size: 0.78rem; color: var(--muted); }
+.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
+.filtros label { flex: 1 1 180px; }
+.tabla { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+.tabla table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 0.88rem; }
+.tabla th, .tabla td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tabla th { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--bg); position: sticky; top: 0; }
+.tabla td b { display: block; }
+.tabla tr:last-child td { border-bottom: 0; }
+.pill { font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 99px; white-space: nowrap; display: inline-block; }
+.pill[data-e="Aprobado"], .pill[data-e="Verificado"], .pill[data-e="Registrada"] { background: var(--ok-soft); color: var(--ok); }
+.pill[data-e="Cotizando"], .pill[data-e="Búsqueda hecha"], .pill[data-e="Solicitada"] { background: var(--info-soft); color: var(--info); }
+.pill[data-e="Por contactar"], .pill[data-e="Por verificar"], .pill[data-e="Sin buscar en IMPI"] { background: var(--warn-soft); color: var(--warn); }
+.pill[data-e="Descartado"] { background: var(--bad-soft); color: var(--bad); }
+.vacio { padding: 28px; text-align: center; color: var(--muted); }
+.editor { border: 1px solid var(--fg); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; display: grid; gap: 12px; background: var(--bg); }
+.editor .campos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.editor .campos .doble { grid-column: span 2; }
+.editor .campos .todo { grid-column: 1 / -1; }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.modo { font-size: 0.85rem; color: var(--muted); }
+
+section.marca { padding-block: 56px 64px; scroll-margin-top: 70px; }
+.arbol { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 20px; }
+.arbol ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.arbol li { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.arbol li.raiz { background: var(--fg); color: var(--bg); border-color: var(--fg); font-family: var(--font-display); font-size: 1.2rem; }
+.arbol li.sub { margin-left: 18px; }
+footer { border-top: 1px solid var(--line); padding-block: 28px; color: var(--muted); font-size: 0.85rem; }
+footer .wrap { display: grid; gap: 8px; }
+
+@media (max-width: 860px) {
+  .portada .wrap, .cabeza, .ancho, .arbol { grid-template-columns: 1fr; }
+  .riel .wrap { grid-template-columns: repeat(2, 1fr); }
+  .resumen { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .editor .campos { grid-template-columns: 1fr; }
+  .editor .campos .doble { grid-column: auto; }
+  form.interes { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .riel .wrap { grid-template-columns: 1fr; }
+  .riel a { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  nav.secciones { margin-left: 0; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio" aria-label="AP Electric, inicio">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="26.4" fill="#FF6B0A"/><path fill="#FFFFFF" d="M42.53 68.06 L23.18 68.06 L20.12 76.80 L7.67 76.80 L25.45 28.80 L40.21 28.80 L57.99 76.80 L45.55 76.80 L42.53 68.06 Z M26.26 59.15 L39.41 59.15 L32.85 40.05 L26.26 59.15 Z M69.19 28.80 L89.73 28.80 Q98.89 28.80 103.79 32.87 Q108.70 36.93 108.70 44.45 Q108.70 52.02 103.79 56.08 Q98.89 60.14 89.73 60.14 L81.57 60.14 L81.57 76.80 L69.19 76.80 L69.19 28.80 Z M81.57 37.77 L81.57 51.17 L88.41 51.17 Q92.01 51.17 93.97 49.42 Q95.94 47.67 95.94 44.45 Q95.94 41.24 93.97 39.51 Q92.01 37.77 88.41 37.77 L81.57 37.77 Z"/><rect x="20.4" y="88.8" width="79.2" height="6.6" rx="2.4" fill="#FFFFFF"/><rect x="20.4" y="88.8" width="7.2" height="12" fill="#FFFFFF"/><rect x="92.4" y="88.8" width="7.2" height="12" fill="#FFFFFF"/></svg>
+      <b>AP ELECTRIC</b>
+    </a>
+    <nav class="secciones" aria-label="Secciones">
+      <a href="#home">Home</a>
+      <a href="#industrial">Industrial</a>
+      <a href="#luz">Luz</a>
+      <a href="#software">Software</a>
+      <a href="#elegir">¿Cuál necesito?</a>
+      <a href="#proveedores" class="panel">Proveedores</a>
+      <a href="#marca">Marca</a>
+    </nav>
+  </div>
+</header>
+<div class="aviso" role="note"><div class="wrap"><b>Prototipo de diseño (rev A).</b> Ningún producto está a la venta: no se han fabricado, medido ni certificado. Los valores marcados <span class="pd">PD</span> están por determinar.</div></div>
+
+<main id="inicio">
+  <section class="portada">
+    <div class="wrap">
+      <div class="texto">
+        <span class="eyebrow">Control eléctrico · hecho para México</span>
+        <h1>Prende, apaga y automatiza sin depender de internet.</h1>
+        <p class="lead">Dos placas dan cuatro productos con un solo programa: para la lámpara de la sala, para el apagador de la escalera y para el tablero de la nave. Todos se enlazan entre sí por la red local o por Modbus, sin cuenta ni nube.</p>
+        <div class="botones">
+          <a class="btn primario" href="#elegir">Encuentra tu producto</a>
+          <a class="btn" href="#interes">Avísame de los prototipos</a>
+        </div>
+        <div class="hechos" aria-label="Cifras de la familia">
+          <div><b class="mono">2</b><span>placas</span></div>
+          <div><b class="mono">4</b><span>productos</span></div>
+          <div><b class="mono">1</b><span>programa: AP Control</span></div>
+          <div><b class="mono">0</b><span>cuentas o nube obligatorias</span></div>
+        </div>
+      </div>
+      <figure><img src="img/familia.jpg" alt="Render de la familia: 7R Tour en riel DIN, Home Plug y Home Switch" width="1200" height="1175"></figure>
+    </div>
+  </section>
+
+  <div class="riel">
+    <div class="wrap">
+      <a href="#home"><span class="eyebrow">127 V CA</span><span class="nombre">AP Electric <i>Home</i></span><small>Lámparas y apagadores de la casa</small></a>
+      <a href="#industrial"><span class="eyebrow">24 V CC · Modbus</span><span class="nombre">AP Electric <i>Industrial</i></span><small>Tableros, contactores, PLC</small></a>
+      <a href="#luz"><span class="eyebrow">12-24 V · corriente constante</span><span class="nombre">AP Electric <i>Luz</i></span><small>LED, letreros y alumbrado</small></a>
+      <a href="#software"><span class="eyebrow">Local · sin nube</span><span class="nombre">AP <i>Studio</i></span><small>Programa, app y lógica tipo PLC</small></a>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <section class="linea" id="home">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Línea 1</span><h2>AP Electric Home</h2></div>
+        <p>Para focos y lámparas convencionales de 127 V. Botón físico, LED de estado y arranque apagado. Funcionan desde el primer encendido sin teléfono ni Wi-Fi; la red solo se abre para configurar.</p>
+      </div>
+      <div class="productos">
+        <article class="producto">
+          <figure><img src="img/home_plug.jpg" alt="Home Plug: caja blanca con receptáculo y botón" loading="lazy"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>Home Plug</h3><span class="estado proto">PROTOTIPO</span></div>
+            <p>Se enchufa en el contacto y la lámpara se conecta a él. Clavija y receptáculo encerrados: nadie toca cables de red.</p>
+            <div class="tags"><span class="tag">127 V CA 60 Hz</span><span class="tag">enchufar y usar</span><span class="tag">sin regulación</span></div>
+            <table class="spec">
+              <tr><td>Carga</td><td>Lámparas incandescentes y focos LED no regulables · máximo <span class="pd">PD</span> (meta 6 A)<span class="origen">[R]</span></td></tr>
+              <tr><td>Relé</td><td>Omron G2RL-1A-E-HA, 16 A 250 V CA resistivo<span class="origen">[E]</span></td></tr>
+              <tr><td>Fuente</td><td>Mean Well IRM-03-5, certificada por su fabricante<span class="origen">[E]</span></td></tr>
+              <tr><td>Aislamiento en placa</td><td>≥ 6.4 mm red-baja tensión<span class="origen">[C]</span></td></tr>
+              <tr><td>Botón</td><td>Corto: encender o apagar · 3 s: configurar · 10 s: fábrica</td></tr>
+            </table>
+            <p class="nota">Si el apagador propio de la lámpara está abierto, el Home Plug no puede encenderla.</p>
+          </div>
+        </article>
+        <article class="producto">
+          <figure><img src="img/home_switch.jpg" alt="Home Switch: caja blanca con bornes L, N, LS y SW" loading="lazy"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>Home Switch</h3><span class="estado proto">PROTOTIPO</span></div>
+            <p>Controla un circuito de alumbrado y conserva tu apagador de pared, incluso el de escalera. Instalación fija por una persona competente, con el circuito desenergizado.</p>
+            <div class="tags"><span class="tag">L · N · LS · SW</span><span class="tag">requiere neutro</span><span class="tag">escalera 3 vías</span></div>
+            <table class="spec">
+              <tr><td>Modos del apagador</td><td>Interruptor · pulsador · escalera (los viajeros no tocan el microcontrolador)</td></tr>
+              <tr><td>Detección del apagador</td><td>≤ 25 ms + antirrebote de 30 ms<span class="origen">[C]</span></td></tr>
+              <tr><td>Tamaño de placa</td><td class="mono">55 × 80 mm · no cabe en la chalupa</td></tr>
+              <tr><td>Sin neutro</td><td>No soportado (sería otro modelo)</td></tr>
+              <tr><td>Certificación</td><td>Ninguna; por estudiar IEC 60669-2-1 y NOM-003-SCFI</td></tr>
+            </table>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- INDUSTRIAL -->
+  <section class="linea" id="industrial">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Línea 2</span><h2>AP Electric Industrial</h2></div>
+        <p>Para el tablero: relés, entradas de 24 V, Modbus RTU aislado y lógica tipo PLC en escalera. No es un relé de seguridad ni sustituye un paro de emergencia.</p>
+      </div>
+      <div class="productos">
+        <article class="producto">
+          <figure><img src="img/7r_tour.jpg" alt="7R Tour: gabinete DIN con 7 canales y bornes" loading="lazy"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>7R Tour 24DC</h3><span class="estado proto">PROTOTIPO</span></div>
+            <p>Siete salidas por relé, cada una con su propio común, ocho entradas de 24 V y bus RS-485 aislado. Se alimenta con 24 V CC de una fuente certificada.</p>
+            <div class="tags"><span class="tag">7 relés</span><span class="tag">8 entradas 24 V</span><span class="tag">Modbus RTU</span><span class="tag">riel DIN</span></div>
+            <table class="spec">
+              <tr><td>Relés</td><td>Omron G2RL-1A-E DC24, 16 A 250 V CA resistivo<span class="origen">[E]</span></td></tr>
+              <tr><td>Límite por canal</td><td><span class="pd">PD</span> · meta 10 A resistivos<span class="origen">[R]</span></td></tr>
+              <tr><td>Bus</td><td>CA-IS3092W, aislado 5 kVrms<span class="origen">[E]</span></td></tr>
+              <tr><td>Mando manual</td><td>DIP de 8: fuerza cada relé aunque el procesador esté detenido</td></tr>
+              <tr><td>Consumo</td><td>≈ 3.6 W a 24 V con 7 relés<span class="origen">[C]</span></td></tr>
+            </table>
+          </div>
+        </article>
+        <article class="producto">
+          <figure><img src="img/placa_7r.jpg" alt="Placa del 7R Tour vista desde arriba" loading="lazy"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>7R Tour CA</h3><span class="estado proto">PROTOTIPO</span></div>
+            <p>El mismo equipo con la fuente de red montada en la placa: se conecta directo a 127/220 V CA. Mismo programa, misma placa, otro armado.</p>
+            <div class="tags"><span class="tag">85-264 V CA</span><span class="tag">IRM-20-24</span><span class="tag">fusible T2A</span></div>
+            <table class="spec">
+              <tr><td>Fuente</td><td>Mean Well IRM-20-24, certificada por su fabricante<span class="origen">[E]</span></td></tr>
+              <tr><td>Aislamiento en placa</td><td>6.4 mm red-baja tensión · 2.0/2.4 mm entre canales<span class="origen">[C]</span></td></tr>
+              <tr><td>Cargas grandes</td><td>Motores y bombas solo con contactor externo (AC-3)</td></tr>
+              <tr><td>Revisión de diseño</td><td>DRC 0 · ERC 0 · reglas de fabricación 0</td></tr>
+            </table>
+          </div>
+        </article>
+      </div>
+      <div class="ancho">
+        <div class="caja">
+          <span class="eyebrow">Modbus RTU · mapa de registros</span>
+          <pre class="registros">bobinas     0-6     salidas 1-7
+discretas   0-7     entradas 1-8
+discretas  16-22    bobina con tensión (incluye DIP)
+discretas  33       comunicación perdida · 34 hay falla
+entrada     2-6     fallas · salidas · entradas · bobinas · forzado
+retención   0       vigilancia en s (0 = sin)
+retención   1       salidas (máscara)
+retención 200       0xA55A guardar · 0x5AA5 fábrica
+pérdida de comunicación → apaga lo que manda Modbus</pre>
+        </div>
+        <div class="caja">
+          <span class="eyebrow">Sistema DIN que se suma</span>
+          <p>Módulos diseñados en el mismo ecosistema, también en etapa de diseño:</p>
+          <div class="lista-mod" style="margin-top:0">
+            <div><b>AP UNO</b><span>Todo en uno: potencia, cerebro, salidas y RS-485</span></div>
+            <div><b>AP PRO DO8</b><span>8 salidas de 24 V protegidas</span></div>
+            <div><b>AP PRO DI8 · AI4</b><span>8 entradas aisladas · 4 analógicas 0-10 V / 4-20 mA</span></div>
+            <div><b>AP GATE · NODE</b><span>Modbus RTU, CAN, Home Assistant, MQTT</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LUZ -->
+  <section class="linea" id="luz">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Línea 3</span><h2>AP Electric Luz</h2></div>
+        <p>Corriente constante para cadenas de LED, letreros y alumbrado. Es otra familia eléctrica: trabaja con LED de 12-24 V o con drivers, no con focos de 127 V.</p>
+      </div>
+      <div class="cuidado">Las placas de esta línea <b>no alimentan focos convencionales de 127 V</b>. Para focos y lámparas de casa usa la línea Home.</div>
+      <div class="productos" style="margin-top:20px">
+        <article class="producto">
+          <figure><img src="img/linea_din.jpg" alt="Módulos DIN AP RED 4, AP UNO y AP FOCO 127 en riel" loading="lazy"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>Serie DIN de luz</h3><span class="estado dis">DISEÑO</span></div>
+            <div class="lista-mod" style="margin-top:0">
+              <div><b>AP FOCO</b><span>2 focos de corriente constante que se ajustan a cada foco, 25 mA - 1 A</span></div>
+              <div><b>AP FOCO 127</b><span>El FOCO con fuente Mean Well certificada en la placa</span></div>
+              <div><b>AP LIGHT PWM4</b><span>4 canales atenuables de 8 A a 24 V</span></div>
+              <div><b>AP LIGHT AO4</b><span>4 circuitos 0-10 V + contactor para luminarias con driver</span></div>
+            </div>
+          </div>
+        </article>
+        <article class="producto">
+          <figure><img src="img/foco127.jpg" alt="Placa AP FOCO 127" loading="lazy"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>Letreros y alumbrado</h3><span class="estado dis">DISEÑO</span></div>
+            <p>Letras luminosas, cajas de luz, neón LED, fachadas, naves y estacionamientos: horarios, horario solar, escenas y diagnóstico por rama.</p>
+            <div class="tags"><span class="tag">DIST 4</span><span class="tag">DMX</span><span class="tag">horario solar</span><span class="tag">0-10 V</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOFTWARE -->
+  <section class="linea" id="software">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Línea 4</span><h2>AP Studio y AP Control</h2></div>
+        <p>Un solo programa corre en todos los equipos. La app la sirve el propio equipo en tu red: celular, tableta o computadora. Sin cuenta, sin nube.</p>
+      </div>
+      <div class="lista-mod">
+        <div><b>AP Control 1.0</b><span>Arranque seguro, antirrebote, minuteros, vigilante de 8 s, fallas visibles, escrituras de memoria limitadas</span></div>
+        <div><b>AP Lógica</b><span>Escalera o lista de instrucciones: contactos, TON / TOF / TP, CTU / CTD, flancos, comparaciones analógicas</span></div>
+        <div><b>Vínculos locales</b><span>Un botón de un equipo manda a la salida de otro por la red local</span></div>
+        <div><b>Integraciones</b><span>Modbus RTU esclavo, API HTTP; MQTT y Home Assistant en AP GATE</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ELEGIR -->
+  <section class="linea" id="elegir">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Guía rápida</span><h2>¿Cuál necesito?</h2></div>
+        <p>Elige por la carga y por cómo se instala. Si tu carga no aparece, la respuesta casi siempre es un contactor externo mandado por el 7R Tour.</p>
+      </div>
+      <div class="matriz">
+        <table>
+          <thead><tr><th>Quiero controlar</th><th>Producto</th><th>Instalación</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Una lámpara de mesa o de pie de 127 V</td><td><b>Home Plug</b></td><td>Se enchufa</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
+            <tr><td>El foco del techo, conservando el apagador (sencillo o escalera)</td><td><b>Home Switch</b></td><td>Fija, con neutro, persona competente</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
+            <tr><td>Varios circuitos de alumbrado o bobinas de contactor desde un tablero</td><td><b>7R Tour 24DC / CA</b></td><td>Riel DIN, gabinete cerrado</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
+            <tr><td>Motores, bombas, compresores</td><td><b>7R Tour + contactor</b></td><td>Contactor elegido por categoría AC-3</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
+            <tr><td>Tiras LED, letreros, focos de corriente constante</td><td><b>Línea Luz</b></td><td>Riel DIN, 12-24 V</td><td><span class="estado dis">DISEÑO</span></td></tr>
+            <tr><td>Lámparas regulables con atenuador</td><td colspan="3">No soportado todavía: la regulación de brillo sería un modelo aparte</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERÉS -->
+  <section class="linea" id="interes">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Lista de interés</span><h2>Avísame cuando haya prototipos</h2></div>
+        <p>Marca los productos que te interesan. Cuando haya prototipos para probar, el equipo te avisa. No hay precios ni fechas comprometidas todavía.</p>
+      </div>
+      <form class="interes caja" id="formInteres" novalidate>
+        <fieldset class="todo productos-int" id="iProductos"><legend>Me interesa</legend></fieldset>
+        <label class="todo" for="iNota">Nota (opcional, la ve quien abre esta página)<input id="iNota" maxlength="200" placeholder="Ej.: 20 piezas para una bodega en Monterrey"></label>
+        <div class="todo acciones"><button class="btn primario" type="submit">Guardar mi interés</button><button class="btn" id="iQuitar" type="button" hidden>Quitar mi interés</button><span class="msg" id="iMsg" role="status"></span></div>
+        <p class="todo nota">Se guarda con tu cuenta de Claude: no pedimos correo ni teléfono. El equipo de AP Electric ve tu nombre para avisarte.</p>
+        <div class="todo" id="iEquipo" hidden><span class="eyebrow">Interesados (solo lo ve el equipo)</span><div class="tabla" style="margin-top:8px"><table style="min-width:520px"><thead><tr><th>Persona</th><th>Productos</th><th>Nota</th></tr></thead><tbody id="iLista"></tbody></table></div></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- PANEL DE PROVEEDORES -->
+<section class="panel-prov" id="proveedores">
+  <div class="wrap">
+    <div class="cabeza" style="margin-bottom:0">
+      <div><span class="eyebrow">Panel interno</span><h2>Proveedores</h2></div>
+      <p>Quién suministra cada parte, del componente a la certificación. Cada fila dice qué falta para usarlo. «Verificado» solo significa que se confirmó el dato citado (por ejemplo, el código de la pieza), no que el proveedor esté aprobado.</p>
+    </div>
+    <div class="resumen" id="resumen" aria-label="Proveedores por estado"></div>
+    <div class="filtros">
+      <label for="fBuscar">Buscar<input id="fBuscar" type="search" placeholder="Nombre, pieza, ciudad…"></label>
+      <label for="fCategoria">Categoría<select id="fCategoria"><option value="">Todas</option></select></label>
+      <label for="fLinea">Línea<select id="fLinea"><option value="">Todas</option><option>Todas las líneas</option><option>Home</option><option>Industrial</option><option>Luz</option></select></label>
+      <div class="acciones"><button class="btn" id="btnNuevo" type="button" hidden>Agregar proveedor</button><span class="modo" id="modo">Cargando…</span></div>
+    </div>
+    <div class="editor" id="editor" hidden>
+      <div class="fila" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b id="edTitulo">Nuevo proveedor</b></div>
+      <div class="campos">
+        <label class="doble" for="eNombre">Nombre<input id="eNombre" maxlength="100"></label>
+        <label for="eEstado">Estado<select id="eEstado"></select></label>
+        <label for="eCategoria">Categoría<select id="eCategoria"></select></label>
+        <label for="eLinea">Línea<select id="eLinea"><option>Todas las líneas</option><option>Home</option><option>Industrial</option><option>Luz</option></select></label>
+        <label for="eUbicacion">Ubicación<input id="eUbicacion" maxlength="80"></label>
+        <label class="todo" for="eSuministra">Qué suministra<input id="eSuministra" maxlength="240"></label>
+        <label class="doble" for="eSitio">Sitio web<input id="eSitio" maxlength="300" placeholder="https://"></label>
+        <label for="eFuente">Fuente del dato<input id="eFuente" maxlength="300" placeholder="https://"></label>
+        <label class="todo" for="eSiguiente">Siguiente paso<input id="eSiguiente" maxlength="240"></label>
+      </div>
+      <div class="acciones">
+        <button class="btn primario" id="edGuardar" type="button">Guardar</button>
+        <button class="btn" id="edCancelar" type="button">Cancelar</button>
+        <button class="btn peligro" id="edBorrar" type="button" hidden>Borrar</button>
+        <span class="msg" id="edMsg" role="status"></span>
+      </div>
+    </div>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Proveedor</th><th>Categoría</th><th>Qué suministra</th><th>Línea</th><th>Estado</th><th>Siguiente paso</th><th></th></tr></thead>
+        <tbody id="filas"><tr><td colspan="7" class="vacio">Cargando la lista de proveedores. Si no aparece, abre la página dentro de Claude con tu sesión iniciada.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- MARCA -->
+<section class="marca" id="marca">
+  <div class="wrap">
+    <div class="cabeza">
+      <div><span class="eyebrow">Marca y nombres</span><h2>Una marca, cuatro líneas</h2></div>
+      <p>La estructura propuesta y los nombres en estudio. Ningún nombre está registrado: cada uno necesita su búsqueda en MARCia del IMPI y la solicitud por clase de Niza antes de imprimirse en un producto.</p>
+    </div>
+    <div class="arbol">
+      <ul aria-label="Estructura de marca">
+        <li class="raiz"><span>AP Electric</span></li>
+        <li class="sub"><span>AP Electric Home</span><span class="nota">Home Plug · Home Switch</span></li>
+        <li class="sub"><span>AP Electric Industrial</span><span class="nota">7R Tour · serie DIN</span></li>
+        <li class="sub"><span>AP Electric Luz</span><span class="nota">FOCO · PWM4 · AO4 · letreros</span></li>
+        <li class="sub"><span>AP Studio</span><span class="nota">AP Control · AP Lógica</span></li>
+      </ul>
+      <div class="tabla">
+        <table style="min-width:620px">
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Estado</th><th>Nota</th></tr></thead>
+          <tbody id="nombres"><tr><td colspan="4" class="vacio">Cargando los nombres en estudio.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>AP Electric · prototipo de diseño rev A · hardware, programa y documentación en desarrollo.</span>
+    <span>Sin sellos CE, UL, NOM ni IFT/CRT: no se han hecho los ensayos ni los trámites. «7R» = siete relés, nombre pendiente de confirmar.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var CATEGORIAS = ["Componentes", "PCB y ensamble", "Manufactura en México", "Gabinetes y plásticos", "Certificación y pruebas", "Radio y homologación", "Marca y legal"];
+  var ESTADOS = ["Por verificar", "Por contactar", "Cotizando", "Verificado", "Aprobado", "Descartado"];
+  var $ = function (id) { return document.getElementById(id); };
+  var proveedores = [], nombres = [], filtroEstado = "", puedeEditar = false, db = null, editando = null;
+
+  CATEGORIAS.forEach(function (c) { $("fCategoria").add(new Option(c, c)); $("eCategoria").add(new Option(c, c)); });
+  ESTADOS.forEach(function (e) { $("eEstado").add(new Option(e, e)); });
+
+  function txt(tag, text, cls) { var el = document.createElement(tag); if (text != null) el.textContent = text; if (cls) el.className = cls; return el; }
+  function enlace(url, texto) {
+    if (!/^https?:\/\//i.test(url || "")) return null;
+    var a = txt("a", texto); a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer"; return a;
+  }
+  function pill(e) { var s = txt("span", e, "pill"); s.setAttribute("data-e", e); return s; }
+
+  function pintarResumen() {
+    var cont = $("resumen"); cont.textContent = "";
+    ESTADOS.forEach(function (e) {
+      var n = proveedores.filter(function (p) { return p.estado === e; }).length;
+      var b = txt("button"); b.type = "button"; b.setAttribute("aria-pressed", String(filtroEstado === e));
+      b.appendChild(txt("b", String(n), "mono")); b.appendChild(txt("span", e));
+      b.addEventListener("click", function () { filtroEstado = filtroEstado === e ? "" : e; pintar(); });
+      cont.appendChild(b);
+    });
+  }
+
+  function pintar() {
+    pintarResumen();
+    var q = $("fBuscar").value.trim().toLowerCase(), cat = $("fCategoria").value, lin = $("fLinea").value;
+    var lista = proveedores.filter(function (p) {
+      if (filtroEstado && p.estado !== filtroEstado) return false;
+      if (cat && p.categoria !== cat) return false;
+      if (lin && p.linea !== lin && p.linea !== "Todas las líneas") return false;
+      if (q && [p.nombre, p.suministra, p.ubicacion, p.siguiente].join(" ").toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).sort(function (a, b) { return CATEGORIAS.indexOf(a.categoria) - CATEGORIAS.indexOf(b.categoria) || String(a.nombre).localeCompare(String(b.nombre)); });
+    var tb = $("filas"); tb.textContent = "";
+    if (!lista.length) {
+      var tr = txt("tr"), td = txt("td", proveedores.length ? "Ningún proveedor coincide con el filtro." : (db ? "Todavía no hay proveedores. Usa «Agregar proveedor» para crear el primero." : "La lista vive en la base de datos de la página: ábrela dentro de Claude con tu sesión iniciada."), "vacio");
+      td.colSpan = 7; tr.appendChild(td); tb.appendChild(tr); return;
+    }
+    lista.forEach(function (p) {
+      var tr = txt("tr");
+      var c1 = txt("td"); c1.appendChild(txt("b", p.nombre));
+      var meta = txt("span", p.ubicacion || "", "nota"); c1.appendChild(meta);
+      var s = enlace(p.sitio, "sitio"); if (s) { c1.appendChild(document.createElement("br")); c1.appendChild(s); }
+      tr.appendChild(c1);
+      tr.appendChild(txt("td", p.categoria));
+      var c3 = txt("td", p.suministra || "");
+      var f = enlace(p.fuente, "fuente"); if (f) { c3.appendChild(document.createTextNode(" · ")); c3.appendChild(f); }
+      tr.appendChild(c3);
+      tr.appendChild(txt("td", p.linea));
+      var c5 = txt("td"); c5.appendChild(pill(p.estado)); tr.appendChild(c5);
+      tr.appendChild(txt("td", p.siguiente || ""));
+      var c7 = txt("td");
+      if (puedeEditar) { var b = txt("button", "Editar", "btn chico"); b.type = "button"; b.addEventListener("click", function () { abrir(p); }); c7.appendChild(b); }
+      tr.appendChild(c7);
+      tb.appendChild(tr);
+    });
+  }
+
+  function pintarNombres() {
+    var tb = $("nombres"); tb.textContent = "";
+    if (!nombres.length) { var tr = txt("tr"), td = txt("td", db ? "Todavía no hay nombres en estudio." : "Los nombres viven en la base de datos de la página: ábrela dentro de Claude.", "vacio"); td.colSpan = 4; tr.appendChild(td); tb.appendChild(tr); return; }
+    nombres.slice().sort(function (a, b) { return (a.orden || 99) - (b.orden || 99); }).forEach(function (n) {
+      var tr = txt("tr"), c1 = txt("td"); c1.appendChild(txt("b", n.nombre)); tr.appendChild(c1);
+      tr.appendChild(txt("td", n.tipo || ""));
+      var c3 = txt("td"); c3.appendChild(pill(n.estado || "")); tr.appendChild(c3);
+      tr.appendChild(txt("td", n.nota || ""));
+      tb.appendChild(tr);
+    });
+  }
+
+  ["fBuscar", "fCategoria", "fLinea"].forEach(function (id) { $(id).addEventListener("input", pintar); });
+
+  var CAMPOS = { nombre: "eNombre", estado: "eEstado", categoria: "eCategoria", linea: "eLinea", ubicacion: "eUbicacion", suministra: "eSuministra", sitio: "eSitio", fuente: "eFuente", siguiente: "eSiguiente" };
+  function abrir(p) {
+    editando = p || null;
+    $("edTitulo").textContent = p ? "Editar: " + p.nombre : "Nuevo proveedor";
+    Object.keys(CAMPOS).forEach(function (k) { $(CAMPOS[k]).value = p ? (p[k] || "") : ""; });
+    if (!p) { $("eEstado").value = "Por contactar"; $("eCategoria").value = CATEGORIAS[0]; $("eLinea").value = "Todas las líneas"; }
+    $("edBorrar").hidden = !p; $("edBorrar").textContent = "Borrar"; $("edBorrar").dataset.confirmar = "";
+    $("edMsg").textContent = ""; $("editor").hidden = false; $("eNombre").focus();
+  }
+  $("btnNuevo").addEventListener("click", function () { abrir(null); });
+  $("edCancelar").addEventListener("click", function () { $("editor").hidden = true; });
+  $("edGuardar").addEventListener("click", function () {
+    var d = {}; Object.keys(CAMPOS).forEach(function (k) { d[k] = $(CAMPOS[k]).value.trim(); });
+    if (!d.nombre) { $("edMsg").className = "msg mal"; $("edMsg").textContent = "Escribe el nombre del proveedor."; return; }
+    d.actualizado = new Date().toISOString();
+    var ref = editando ? db.collection("proveedores").doc(editando.id) : db.collection("proveedores").doc();
+    $("edMsg").className = "msg"; $("edMsg").textContent = "Guardando…";
+    (editando ? ref.update(d) : ref.set(d)).then(function () { $("editor").hidden = true; }).catch(function (e) {
+      $("edMsg").className = "msg mal"; $("edMsg").textContent = "No se guardó (" + (e && e.code || "error") + "). Solo quien puede editar la página guarda cambios.";
+    });
+  });
+  $("edBorrar").addEventListener("click", function () {
+    var b = $("edBorrar");
+    if (!b.dataset.confirmar) { b.dataset.confirmar = "1"; b.textContent = "Confirmar borrado"; return; }
+    db.collection("proveedores").doc(editando.id).delete().then(function () { $("editor").hidden = true; }).catch(function (e) {
+      $("edMsg").className = "msg mal"; $("edMsg").textContent = "No se borró (" + (e && e.code || "error") + ").";
+    });
+  });
+
+  var PRODUCTOS = ["Home Plug", "Home Switch", "7R Tour 24DC", "7R Tour CA", "Línea Luz", "Soy proveedor"];
+  var interes = [], miId = null, usuario = null, esDueno = false;
+  PRODUCTOS.forEach(function (n, i) {
+    var l = txt("label", null, "chk"); l.htmlFor = "iP" + i;
+    var c = document.createElement("input"); c.type = "checkbox"; c.id = "iP" + i; c.value = n;
+    l.appendChild(c); l.appendChild(document.createTextNode(n)); var k = txt("b", ""); k.id = "iC" + i; l.appendChild(k);
+    $("iProductos").appendChild(l);
+  });
+  function pintarInteres() {
+    PRODUCTOS.forEach(function (n, i) {
+      var c = interes.filter(function (x) { return (x.productos || []).indexOf(n) >= 0; }).length;
+      $("iC" + i).textContent = c ? String(c) : "";
+    });
+    var mio = interes.filter(function (x) { return x.id === miId; })[0];
+    $("iQuitar").hidden = !mio;
+    if (!esDueno || !usuario) return;
+    $("iEquipo").hidden = false;
+    var tb = $("iLista"); tb.textContent = "";
+    if (!interes.length) { var tr = txt("tr"), td = txt("td", "Nadie ha marcado interés todavía.", "vacio"); td.colSpan = 3; tr.appendChild(td); tb.appendChild(tr); return; }
+    usuario.profiles(interes.map(function (x) { return x.id; })).then(function (ps) {
+      tb.textContent = "";
+      interes.forEach(function (x) {
+        var tr = txt("tr"), pr = ps && ps[x.id];
+        tr.appendChild(txt("td", (pr && pr.name) || "Alguien"));
+        tr.appendChild(txt("td", (x.productos || []).join(", ")));
+        tr.appendChild(txt("td", x.nota || ""));
+        tb.appendChild(tr);
+      });
+    }).catch(function () {});
+  }
+  function cargarMio() {
+    var mio = interes.filter(function (x) { return x.id === miId; })[0];
+    if (!mio) return;
+    PRODUCTOS.forEach(function (n, i) { $("iP" + i).checked = (mio.productos || []).indexOf(n) >= 0; });
+    $("iNota").value = mio.nota || "";
+  }
+  $("formInteres").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var m = $("iMsg");
+    var sel = PRODUCTOS.filter(function (n, i) { return $("iP" + i).checked; });
+    if (!sel.length) { m.className = "msg mal"; m.textContent = "Marca al menos un producto."; return; }
+    if (!db || !miId) { m.className = "msg mal"; m.textContent = "Para guardar tu interés abre esta página dentro de Claude con tu sesión iniciada."; return; }
+    m.className = "msg"; m.textContent = "Guardando…";
+    db.collection("interes").doc(miId).set({ productos: sel, nota: $("iNota").value.trim(), fecha: new Date().toISOString() })
+      .then(function () { m.className = "msg ok"; m.textContent = "Guardado. Te avisaremos cuando haya prototipos."; })
+      .catch(function (e) { m.className = "msg mal"; m.textContent = "No se guardó (" + (e && e.code || "error") + ")."; });
+  });
+  $("iQuitar").addEventListener("click", function () {
+    if (!db || !miId) return;
+    db.collection("interes").doc(miId).delete().then(function () {
+      PRODUCTOS.forEach(function (n, i) { $("iP" + i).checked = false; }); $("iNota").value = "";
+      $("iMsg").className = "msg ok"; $("iMsg").textContent = "Quitamos tu interés.";
+    }).catch(function () {});
+  });
+
+  pintar(); pintarNombres(); pintarInteres();
+
+  if (!window.claude || !window.claude.use) { $("modo").textContent = "Vista sin base de datos"; return; }
+  window.claude.use("user").then(function (u) {
+    usuario = u;
+    puedeEditar = !!(u && u.canEdit && u.canEdit());
+    esDueno = puedeEditar;
+    if (u && u.id) { Promise.resolve(u.id()).then(function (id) { miId = id; cargarMio(); pintarInteres(); }).catch(function () {}); }
+    $("btnNuevo").hidden = !puedeEditar;
+    $("modo").textContent = puedeEditar ? "Puedes editar" : "Solo lectura";
+    pintar();
+  }).catch(function () {});
+  window.claude.use("db").then(function (d) {
+    if (!d) { $("modo").textContent = "Vista sin base de datos"; return; }
+    db = d;
+    db.collection("proveedores").onSnapshot(function (s) {
+      proveedores = s.docs.map(function (x) { var o = x.data() || {}; o.id = x.id; return o; }); pintar();
+    }, function (e) { $("modo").textContent = "No se pudo leer la lista (" + e.code + ")"; });
+    db.collection("interes").onSnapshot(function (s) {
+      var primera = !interes.length;
+      interes = s.docs.map(function (x) { var o = x.data() || {}; o.id = x.id; return o; });
+      if (primera) cargarMio();
+      pintarInteres();
+    }, function () {});
+    db.collection("nombres").onSnapshot(function (s) {
+      nombres = s.docs.map(function (x) { var o = x.data() || {}; o.id = x.id; return o; }); pintarNombres();
+    }, function () {});
+    pintar(); pintarNombres();
+  });
+})();
+</script>
