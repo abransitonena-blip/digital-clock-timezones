@@ -55,6 +55,15 @@ CONOCIDOS = {
     ("10D471K", "RV_Disc_D12mm_W5mm_P7.5mm"): ("C317795", "Extended"),   # COV 10D471K, 300 VCA, 67 J
     ("KF128-5.08-2P", "TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal"): ("C474952", "Extended"),
     ("SRD-24VDC-SL-C", "Relay_SPDT_SANYOU_SRD_Series_Form_C"): ("C15840", "Extended"),   # Songle, 10 A 250 VCA
+    # AP Electric 7R Tour / AP Home (verificadas en lcsc.com / jlcpcb.com por búsqueda, octubre 2026; ver ARQUITECTURA.md)
+    ("G2RL-1A-E DC24", "Relay_SPST_Omron_G2RL-1A-E"): ("C231362", "Extended"),         # Omron, 16 A 250 VCA, bobina 24 V
+    ("G2RL-1A-E-HA DC5", "Relay_SPST_Omron_G2RL-1A-E"): ("C1139035", "Extended"),      # Omron, 16 A, bobina 5 V
+    ("IRM-03-5", "Converter_ACDC_MeanWell_IRM-03-xx_THT"): ("C6969425", "Extended"),   # Mean Well 5 V 600 mA
+    ("LTV-814S", "SMDIP-4_W9.53mm"): ("C108051", "Extended"),                          # LTV-814S-TA1-A, entrada CA
+    ("CA-IS3092W", "SOIC-16W_7.5x10.3mm_P1.27mm"): ("C2890051", "Extended"),          # Chipanalog, RS-485 aislado con fuente
+    ("DSWB08LHGET", "SW_DIP_SPSTx08_Slide_9.78x22.5mm_W7.62mm_P2.54mm"): ("C99413", "Extended"),
+    ("ULN2003ADR", "SOIC-16_3.9x9.9mm_P1.27mm"): ("C7512", "Basic Component"),
+    ("SMBJ33A", "D_SMB"): ("C19077586", "Preferred Component"),
 }
 
 # Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.

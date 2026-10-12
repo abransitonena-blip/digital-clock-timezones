@@ -6,6 +6,11 @@
 
 Este documento conecta la propuesta de marca **AP ELECTRIC** con lo que ya está diseñado en este repositorio.
 
+> **Nueva familia residencial e industrial (rev A, concepto): [ap-electric/](ap-electric/LEEME.md).**
+> - Dos placas, cuatro SKU: **Home Plug**, **Home Switch**, **7R Tour 24DC** y **7R Tour CA**.
+> - Pensada para focos y luminarias convencionales de 127 V y para tableros industriales.
+> - Las placas de corriente constante de este documento (AP FOCO, FOCO 127, PWM4, UNO, letreros) forman la familia **AP LED**: son para cadenas de LED y **no** alimentan focos convencionales de 127 V.
+
 > **Estado:** propuesta y primer prototipo. Todas las placas pasan las revisiones de diseño (ERC/DRC 0 y reglas de JLCPCB), pero **ninguna se ha fabricado ni probado todavía**. No hay prestaciones ni certificaciones comprobadas. La resistencia al agua (IP) no se declara hasta probar el conjunto completo.
 
 ## La idea

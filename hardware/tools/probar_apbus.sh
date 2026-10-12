@@ -12,3 +12,7 @@ g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_luz prueba_luz.cpp
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_logica prueba_logica.cpp
 /tmp/prueba_logica
 node ../../../ap-studio/pruebas/prueba_logica.cjs      # el mismo motor en AP Studio (JS)
+cd ../../../ap-electric/firmware/pruebas
+g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_control prueba_control.cpp
+/tmp/prueba_control
+cmp ../APControl/logica.h ../../../ap1-prog/firmware/LetreroLabAP1/logica.h && echo "logica.h: la copia de AP Control es la misma"

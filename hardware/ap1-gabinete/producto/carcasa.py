@@ -144,7 +144,8 @@ def construir(cfg, placa):
     lu, lv = u0 + m + 4.5, n0 + m + 4.0
     add("naranja", losa(redondo(lu, lv, lu + lg, lv + lg, lg * 0.22), zf, 0.6))
     add("blanco", texto("AP", lg * 0.48, lu + lg / 2, lv + lg * 0.74, zf + 0.6, 0.35, "centro"))
-    add("blanco", texto("ELECTRIC", lg * 0.13, lu + lg / 2, lv + lg + 3.0, zf, 0.35, "centro"))
+    add("blanco", texto(cfg.get("submarca", "ELECTRIC"), lg * 0.13, lu + lg / 2, lv + lg + 3.0, zf, 0.35, "centro",
+                        ancho_max=lg + 6))
     # nombre y descripción
     tu = lu + lg + 5
     add("blanco", texto(cfg["nombre"], min(6.0, hn * 0.17), tu, lv + lg * 0.5, zf, 0.4))
@@ -157,6 +158,14 @@ def construir(cfg, placa):
         add("frente", cilindro(x, yl, zf - 0.4, 0.6, 2.4) - cilindro(x, yl, zf - 1, 3, 1.55))
         add("gris", texto(txt, 1.5, x, yl + 5.0, zf, 0.3, "centro", ancho_max=7))
         x -= 7.5
+    if cfg.get("canales"):                       # fila de botones de canal, cada uno con su LED y su número
+        nk = cfg["canales"]; a0, a1 = tu + (24 if cfg.get("red") else 0), u1 - m - 34
+        paso = (a1 - a0) / nk; yr = n1 - m - 6.5
+        for k in range(nk):
+            cx = a0 + paso * (k + 0.5)
+            add("verde", cilindro(cx, yr - 6.2, zf - 0.4, 1.3, 1.2))
+            add("gris", cilindro(cx, yr, zf - 0.4, 1.6, 2.9) + cilindro(cx, yr, zf - 0.4, 1.9, 2.5))
+            add("blanco", texto(str(k + 1), 1.8, cx, yr + 0.9, zf + 1.5, 0.2, "centro"))
     yb = n1 - m - 8.0
     x = u1 - m - 6.5
     for txt in reversed(cfg.get("botones", [])):
@@ -234,6 +243,12 @@ def escribir_wrl(partes, T, ruta):
             f.write(" geometry IndexedFaceSet { creaseAngle 0.6 coord Coordinate { point [ %s ] }\n coordIndex [ %s ] } }\n" % (pts, idx))
 
 PRODUCTOS = {
+    "7r": dict(nombre="7R TOUR", sub="7 salidas por relé · 8 entradas 24 V · Modbus RTU aislado", rot=0, red="RED",
+               submarca="INDUSTRIAL", leds=[("RUN", "verde"), ("FALLA", "rojo"), ("COM", "amarillo")], canales=7,
+               etiqueta=False,
+               tipos=dict({"J%d" % k: "red" for k in range(1, 9)}, J9="bajo", J11="bajo", J12="bajo", J13="bajo", J14="bajo", J15="link"),
+               txt=dict({"J%d" % k: "C%d NA%d" % (k, k) for k in range(1, 8)}, J8="N  L (CA)", J9="+24V 0V", J11="I1  I2  I3",
+                        J12="I4  I5  I6", J13="I7  I8  COM", J14="A  B  0V", J15="USB")),
     "uno": dict(nombre="AP UNO", sub="PLC · IoT · 4 canales 20 A · DMX / Modbus", rot=0,
                 leds=[("PWR", "verde"), ("RUN", "verde"), ("RED", "azul"), ("FALLA", "rojo")], botones=["MODO", "RESET"], usb=True,
                 txt={"J12": "S1  S2", "J13": "S3  S4", "J14": "E1  E2", "J15": "E3  E4", "J5": "FOCO 1", "J8": "FOCO 2", "J3": "+V",
@@ -271,7 +286,8 @@ def preparar(nombre, placa):
             u0, u1 = (u0 + u1) / 2 - 4.5, (u0 + u1) / 2 + 4.5
             v0, v1 = (v0 + v1) / 2 - 2.6, (v0 + v1) / 2 + 2.6
         n = len(f["pth"]) or 4
-        con.append(dict(ref=f["ref"], u0=u0, v0=v0, u1=u1, v1=v1, n=n, tipo="link" if link else "red" if red else "bajo",
+        tipo = cfg.get("tipos", {}).get(f["ref"]) or ("link" if link else "red" if red else "bajo")
+        con.append(dict(ref=f["ref"], u0=u0, v0=v0, u1=u1, v1=v1, n=n, tipo=tipo,
                         lado="arriba" if (v0 + v1) / 2 < Hv / 2 else "abajo", txt=cfg["txt"][f["ref"]]))
     cfg.update(Wu=Wu, Hv=Hv, conectores=con)
     return cfg, T
