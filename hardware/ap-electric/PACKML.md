@@ -70,13 +70,14 @@ Direcciones del protocolo, base 0. Sin unidad PackML los registros no existen (e
 
 | Tipo | Dirección | Contenido |
 |---|---|---|
-| Entradas discretas | 48 · 49 · 50 | Microparo · proceso habilitado (EXECUTE) · comandos remotos que reanudan permitidos |
+| Entradas discretas | 48 · 49 · 50 · 51 | Microparo · proceso habilitado (EXECUTE) · comandos remotos que reanudan permitidos · hora ajustada |
 | Registros de entrada | 100 | Versión del mapa (1) |
 | | 101 · 102 · 103 · 104 | StateCurrent · UnitModeCurrent · StopReason · último comando aceptado |
 | | 105-106 · 107-108 | ProdProcessedCount · ProdDefectiveCount (32 bits: bajo, alto) |
 | | 110-143 | Segundos acumulados en cada estado 1-17 (estado n en 110 + 2(n − 1), 32 bits) |
 | | 150 · 151 · 152 · 153 | Disponibilidad · desempeño · calidad · OEE (milésimas) |
 | | 154 · 155-156 | Microparo · segundos en microparo |
+| | 160-161 · 162 | Hora en segundos desde 1970 (bajo, alto; 0 = sin ajustar) · hora ajustada (0/1) |
 | Registros de retención | 300 | CntrlCmd: escribir 1-9. Excepción 04 si el estado, el modo o el origen no lo permiten; 03 si el valor no existe |
 | | 301 | UnitMode (1-3), solo en STOPPED o ABORTED |
 | | 302 | StopReason (0-999) |
@@ -84,6 +85,7 @@ Direcciones del protocolo, base 0. Sin unidad PackML los registros no existen (e
 | | 304 | Ciclo nominal en ms (0 = sin ciclo) |
 | | 305 | Solo lectura: comandos remotos que reanudan |
 | | 306 · 307 · 308 · 309 | Entrada de pieza buena · de pieza mala · de andon · de reanudar (0-8; 0 = ninguna; no se puede repetir una entrada: excepción 03) |
+| | 320-321 | Ajustar la hora (segundos desde 1970): primero la palabra baja y al escribir la alta se ajusta. Excepción 03 si es anterior a 2024 o posterior a 2099 |
 
 ## Entradas de la máquina (origen automático de piezas)
 
@@ -100,6 +102,12 @@ Una entrada que ya estaba activa al arrancar no cuenta ni pide nada. Con una tor
 
 **Memoria:** la función de cada entrada, el ciclo nominal y el modo se guardan con la orden de guardar (`GUARDAR` o el registro 200 = 0xA55A) y se cargan solo si la firma y el CRC son correctos. Los contadores de piezas se guardan con límite de escrituras (1 min sin cambios y como máximo cada 10 min). Los tiempos por estado no se guardan: empiezan en cero al encender. «Valores de fábrica» borra todo.
 
+## Hora y conteo rápido (7R Tour rev B)
+
+- **Hora:** cada transición de la bitácora lleva la hora (0 = sin ajustar). La hora viene del reloj PCF8563 con batería externa, de un maestro Modbus (registros 320-321), de la consola (`PK HORA`) o de la red (SNTP si hay Wi-Fi en modo estación). El reloj conserva la hora con la batería puesta; si la perdió, el equipo lo avisa en `TEST` y funciona igual.
+- **Conteo rápido:** las entradas 1 y 2 llegan también a IO0 e IO20. Se cuentan por interrupción (se ignoran pulsos de menos de 2 ms: como máximo ~500 por segundo) y se acumulan en 32 bits. Un salto de más de 1000 pulsos en un paso se ignora para no inventar piezas.
+- **Hasta que haya placa física** esto solo se probó en la PC (`prueba_packml.cpp`); la interrupción y el reloj real no se han probado en un equipo.
+
 ## Órdenes locales
 
 Por la consola USB (con permiso para reanudar) o por `/api?c=` (sin él):
@@ -111,6 +119,8 @@ Por la consola USB (con permiso para reanudar) o por `/api?c=` (sin él):
 | `PK BUENA` · `PK MALA` | Cuenta una pieza |
 | `PK MODO n` · `PK MOTIVO n` · `PK CICLO ms` | Modo, causa de paro y ciclo nominal |
 | `PK ENT ciclo mala andon reanuda` | Qué entrada (1-8) hace cada cosa; 0 = ninguna. Ver «Entradas de la máquina» |
+| `PK HORA segundos` | Ajusta la hora (segundos desde 1970); en el 7R Tour rev B también la escribe en el reloj de tiempo real |
+| `TEST` · `TEST RELES SI` | Autoprueba de puesta en marcha (solo por la consola USB). `TEST RELES` **acciona los relés**: desconectar las cargas. Ver [PUESTA_EN_MARCHA.md](PUESTA_EN_MARCHA.md) |
 | `PK REMOTO 0/1` | **Solo por la consola USB.** Permite o no que Modbus y la web reanuden |
 
 Los bits **S11-S27** del PLC valen 1 cuando la unidad está en el estado S − 10 (por ejemplo, `LD S16` = EXECUTE). `/api` devuelve el bloque `pk` con estado, modo, causa, piezas, disponibilidad, desempeño, calidad y OEE.
@@ -118,7 +128,7 @@ Los bits **S11-S27** del PLC valen 1 cuando la unidad está en el estado S − 1
 ## Lo que falta
 
 1. Confirmar con el texto de ISA-TR88.00.02-2022 los estados, comandos, modos y estados habilitados por modo.
-2. Hora real de cada evento y bitácora en memoria flash (los tiempos por estado se reinician al encender).
-3. Entrada de conteo rápido: hoy la cuenta pasa por el ciclo de 5 ms y el antirrebote, así que no sirve para más de unas decenas de piezas por segundo.
+2. Bitácora en memoria permanente (los tiempos por estado y la bitácora se reinician al encender).
+3. Probar la interrupción de conteo rápido y el reloj en una placa rev B real.
 4. El tablero OEE completo en AP Studio (la página del equipo ya muestra estado, piezas y OEE).
 5. Probarlo con una máquina real y validar la definición de OEE con un cliente.

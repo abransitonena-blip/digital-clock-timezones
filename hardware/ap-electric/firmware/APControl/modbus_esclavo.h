@@ -22,12 +22,15 @@
 //                          110-143 segundos acumulados en cada estado 1-17 (32 bits: bajo, alto; estado n en 110 + 2 (n-1))
 //                          150 disponibilidad · 151 desempeño · 152 calidad · 153 OEE (milésimas; 65535 = no calculable)
 //                          154 microparo (0/1) · 155-156 segundos en microparo (bajo, alto)
+//                          160-161 hora en segundos desde 1970 (bajo, alto; 0 = sin ajustar) · 162 hora ajustada (0/1)
 //     Registros (4x)       300 CntrlCmd (escribir 1 Reset · 2 Start · 3 Stop · 4 Hold · 5 Unhold · 6 Suspend · 7 Unsuspend ·
 //                          8 Abort · 9 Clear; excepción 04 si el estado, el modo o el origen no lo permiten)
 //                          301 UnitMode (1 producción · 2 mantenimiento · 3 manual; solo en STOPPED o ABORTED)
 //                          302 StopReason (categoría x 100 + causa) · 303 contar pieza (1 buena · 2 defectuosa)
 //                          304 ciclo nominal en ms (0 = sin ciclo)
 //                          305 comandos remotos que reanudan (0 no · 1 sí): SOLO LECTURA por Modbus, se cambia en el equipo
+//                          320-321 ajustar la hora (segundos desde 1970): primero la palabra baja y al escribir la alta se ajusta; excepción 03 si
+//                          es anterior a 2024 o posterior a 2099. Entrada discreta 51 = hora ajustada
 //                          306 entrada de pieza buena · 307 de pieza mala · 308 de andon (pide HOLD) · 309 de reanudar (0-8; 0 = ninguna;
 //                          una entrada no puede tener dos funciones; excepción 03). Se guardan con la orden 200 = 0xA55A
 // Los cambios de configuración se validan y valen al momento, pero solo se guardan con la orden 0xA55A
@@ -52,6 +55,9 @@ struct Esclavo {
   uint16_t version, placa;
   uint32_t* segundos;
   UnidadPackML* um = nullptr;                    // opcional: sin ella los registros PackTags no existen
+  bool horaNueva = false;                        // un maestro ajustó la hora: hay que escribirla en el reloj de tiempo real
+  uint16_t horaBaja = 0;
+  uint32_t ultimoAhora = 0;                      // reloj de la última trama (para la hora que se informa)
   bool pedirGuardar = false, pedirFabrica = false, cambioComunicacion = false;
   uint32_t tramasBien = 0, tramasMal = 0;
   Esclavo(Controlador& c, uint16_t v, uint16_t p, uint32_t* s) : ctl(c), version(v), placa(p), segundos(s) {}
@@ -61,7 +67,7 @@ struct Esclavo {
     if (n < 4 || crc16(q, n - 2) != (uint16_t)(q[n - 2] | q[n - 1] << 8)) { tramasMal++; return 0; }
     uint8_t dir = q[0];
     if (dir != 0 && dir != ctl.cfg.mbDireccion) return 0;
-    tramasBien++;
+    tramasBien++; ultimoAhora = ahora;
     uint8_t fn = q[1];
     uint16_t a = n >= 6 ? (q[2] << 8 | q[3]) : 0, c = n >= 6 ? (q[4] << 8 | q[5]) : 0;
     size_t m = 0;
@@ -129,6 +135,7 @@ struct Esclavo {
     if (a == 34) return ctl.fallas != 0;
     if (um && a == 48) return um->microparo;
     if (um && a == 49) return um->procesoHabilitado();
+    if (um && a == 51) return um->horaFijada;
     if (um && a == 50) return um->cfg.remotoReanuda;
     return -1;
   }
@@ -151,6 +158,7 @@ struct Esclavo {
       case 104: return u.ultimoCmd; case 105: return u.procesadas & 0xFFFF; case 106: return u.procesadas >> 16;
       case 107: return u.defectuosas & 0xFFFF; case 108: return u.defectuosas >> 16;
       case 150: return u.disponibilidad(); case 151: return u.desempeno(); case 152: return u.calidad(); case 153: return u.oee();
+      case 160: return u.epochAhora(ultimoAhora) & 0xFFFF; case 161: return u.epochAhora(ultimoAhora) >> 16; case 162: return u.horaFijada;
       case 154: return u.microparo; case 155: return (uint32_t)(u.microMs / 1000) & 0xFFFF; case 156: return (uint32_t)(u.microMs / 1000) >> 16;
     }
     if (a >= 110 && a < 110 + 2 * (PK_COMPLETE)) {
@@ -185,6 +193,7 @@ struct Esclavo {
     if (um && a == 307) return um->mon.entMala;
     if (um && a == 308) return um->mon.entAndon;
     if (um && a == 309) return um->mon.entReanuda;
+    if (um && (a == 320 || a == 321)) return 0;
     return -1;
   }
   uint8_t escribirBobina(uint16_t a, bool v, uint32_t ahora) {
@@ -201,6 +210,12 @@ struct Esclavo {
       case 303: if (v != 1 && v != 2) return 3; return um->contar(v == 1, ahora) ? 0 : 4;
       case 304: um->cfg.cicloNominalMs = v; return 0;
       case 305: return 2;                       // solo lectura: un maestro no puede darse permiso para reanudar
+      case 320: horaBaja = v; return 0;           // hora: primero la palabra baja (320) y al escribir la alta (321) se ajusta
+      case 321: {
+        uint32_t t = (uint32_t)v << 16 | horaBaja;
+        if (!um->fijarHora(t, ahora)) return 3;
+        horaNueva = true; return 0;
+      }
       case 306: case 307: case 308: case 309: {    // función de cada entrada (0 = ninguna); no puede repetirse
         ConfigMonitor n = um->mon;
         (a == 306 ? n.entCiclo : a == 307 ? n.entMala : a == 308 ? n.entAndon : n.entReanuda) = v > 255 ? 255 : v;
@@ -213,7 +228,7 @@ struct Esclavo {
     Config c = ctl.cfg;
     int n = c.nCanales, ne = c.nEntradas;
     ctl.modbusEscribio(ahora);
-    if (um && a >= 300 && a <= 309) return escribirPK(a, v, ahora);
+    if (um && a >= 300 && a <= 321) return escribirPK(a, v, ahora);
     if (a == 1) {
       if (v >> n) return 3;
       for (int k = 0; k < n; k++) if (ctl.ordenar(k + 1, (v >> k) & 1, OR_MODBUS, ahora) != OK) return 4;

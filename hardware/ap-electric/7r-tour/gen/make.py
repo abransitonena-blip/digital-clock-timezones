@@ -1,4 +1,4 @@
-"""AP Electric Industrial · 7R Tour (rev A, CONCEPTO): 7 salidas por relé, 8 entradas de 24 V, Modbus RTU aislado.
+"""AP Electric Industrial · 7R Tour (rev B, CONCEPTO): 7 salidas por relé, 8 entradas de 24 V, Modbus RTU aislado.
 
 Una placa para dos SKU:
 - 7R Tour 24DC: se alimenta con 24 V CC de una fuente certificada externa (J9). No se montan J8, F2, RV1, PS1, D3, C3.
@@ -100,9 +100,9 @@ C_ = [
     # --- cerebro ---
     ("U9", "ESP32-C3-WROOM-02", "RF_Module:ESP32-C3-WROOM-02", "LetreroLab:ESP32-C3-WROOM-02_JLC",
      {"1": "3V3", "2": "EN", "3": "INT", "4": "LRUN", "5": "LFAL", "6": "LCOM", "7": "SCL", "8": "BOOT",
-      "9": "GND", "10": "RS_DE", "11": None, "12": None, "13": "USB_DN", "14": "USB_DP", "15": "RS_RX",
-      "16": "SDA", "17": "RS_TX", "18": None, "19": "GND"},
-     "Wi-Fi opcional; IO2/IO8 = I2C, IO1/IO3/IO10 = RS-485, IO4 = interrupción de entradas y botones"),
+      "9": "GND", "10": "RS_DE", "11": "E2", "12": None, "13": "USB_DN", "14": "USB_DP", "15": "RS_RX",
+      "16": "SDA", "17": "RS_TX", "18": "E1", "19": "GND"},
+     "Wi-Fi opcional; IO2/IO8 = I2C, IO1/IO3/IO10 = RS-485, IO4 = interrupción de entradas y botones; IO0 e IO20 = conteo rápido de las entradas 1 y 2"),
     ("C17", "10uF", C, C08, {"1": "3V3", "2": "GND"}, "Desacoplo del módulo"),
     ("C18", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo del módulo"),
     ("R1", "10k", R, R06, {"1": "3V3", "2": "EN"}, "Pull-up EN"),
@@ -128,6 +128,17 @@ C_ = [
     ("R10", "5.1k", R, R06, {"1": "CC2U", "2": "GND"}, "CC2"),
     ("U10", "USBLC6-2SC6", "Power_Protection:USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
      {"1": "USB_DN", "2": "GND", "3": "USB_DP", "4": "USB_DP", "5": "VBUS", "6": "USB_DN"}, "ESD del USB"),
+    # --- rev B: reloj de tiempo real con batería externa (hora de cada evento sin red) ---
+    ("U11", "PCF8563T/5,518", "Timer_RTC:PCF8563T", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+     {"1": "OSCI", "2": "OSCO", "3": None, "4": "GND", "5": "SDA", "6": "SCL", "7": None, "8": "VRTC"},
+     "Reloj de tiempo real I2C 0x51; INT y CLKO sin usar"),
+    ("Y1", "32.768kHz 12.5pF", "Device:Crystal", "Crystal:Crystal_SMD_3215-2Pin_3.2x1.5mm", {"1": "OSCI", "2": "OSCO"},
+     "Cristal del reloj (la hoja del PCF8563 admite 7-12.5 pF; sin capacitores externos)"),
+    ("D12", "BAT54C", "Diode:BAT54C", "Package_TO_SOT_SMD:SOT-23", {"1": "3V3", "2": "VBAT", "3": "VRTC"},
+     "OR de 3.3 V y batería para el reloj (fuga baja)"),
+    ("C28", "100nF", C, C06, {"1": "VRTC", "2": "GND"}, "Desacoplo del reloj"),
+    ("J16", "BAT", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+     {"1": "VBAT", "2": "GND"}, "Batería de respaldo externa 3 V (CR1220/CR2032 con cable): 1 = +, 2 = -. Sin batería el reloj pierde la hora al apagar"),
     # --- salidas ---
     tca("U2", ("GND", "GND", "GND"), ["DO1", "DO2", "DO3", "DO4", "DO5", "DO6", "DO7", "ID"],
         "0x20: P0-P6 = bobinas 1-7; P7 = identificación (0 = 7R Tour)"),
@@ -201,6 +212,15 @@ for k in range(1, 9):
         ("RP%d" % k, "10k", R, R06, {"1": "3V3", "2": "E%d" % k}, "Pull-up de la entrada %d" % k),
     ]
 
+# --- puntos de prueba para la puesta en marcha (no entran al BOM ni al CPL) ---
+TP = "TestPoint:TestPoint_Pad_D1.5mm"
+TPS = [("TP1", "V24", 105.5, 70.0, "24V"), ("TP2", "V5", 121.0, 72.5, "5V"), ("TP3", "3V3", 140.0, 56.0, "3V3"),
+       ("TP4", "GND", 101.5, 68.5, "GND"), ("TP5", "GND", 136.5, 58.0, "GND"), ("TP6", "SDA", 70.0, 63.0, "SDA"),
+       ("TP7", "SCL", 58.5, 72.0, "SCL"), ("TP8", "RS_TX", 87.5, 55.0, "TX"), ("TP9", "RS_RX", 87.5, 51.0, "RX"),
+       ("TP10", "RS_DE", 91.5, 55.0, "DE"), ("TP11", "EN", 136.5, 65.0, "EN")]
+for ref, red, x, y, txt in TPS:
+    C_.append((ref, "TP " + txt, "Connector:TestPoint", TP, {"1": red}, "Punto de prueba %s" % txt))
+
 W, H = 176.0, 90.0
 RADIO_ESQUINA = 2.0
 HOLES = [(3.5, 38.0), (128.0, 38.0), (61.5, 86.5), (145.2, 86.4)]
@@ -255,6 +275,12 @@ for k, xi in enumerate(XI, start=1):
         "LI%d" % k: (xi, 69.3, 90), "RS%d" % k: (xi + 2.7, 69.3, 90),
         "RB%d" % (k + 2): (xi, 73.0, 90), "DI%d" % k: (xi + 2.7, 73.25, 90), "RA%d" % k: (xi + 0.6, 76.7, 0),
     })
+
+# rev B: reloj con batería (zona libre a la derecha de K7) y puntos de prueba
+POS.update({"U11": (139.0, 49.5, 0), "Y1": (135.2, 44.5, 0), "D12": (132.0, 54.5, 0), "C28": (140.8, 44.8, 0),
+            "J16": (131.5, 47.5, 0)})
+for _ref, _red, _x, _y, _t in TPS:
+    POS[_ref] = (_x, _y, 0)
 
 RED_NETS = ["C%d" % k for k in range(1, 8)] + ["N%d" % k for k in range(1, 8)] + ["L", "N", "LF"]
 NETCLASS = {
@@ -333,15 +359,17 @@ SILK = [("CANAL %d" % k, xc, 30.0, 1.0, "F") for k, xc in enumerate(XC, 1)] + \
     ("I1   I2   I3   I4   I5   I6   I7   I8   COM", 27.0, 89.3, 0.8, "F"),
     ("+24V   0V", 95.5, 89.3, 0.8, "F"), ("A    B    0V aisl.", 79.0, 89.3, 0.8, "F"),
     ("DIP 1-7: forzar rele   8: Wi-Fi apagado", 98.5, 55.8, 0.8, "F"),
-    ("AP ELECTRIC INDUSTRIAL  7R TOUR  rev A", 60.0, 36.5, 1.4, "F"),
-    ("AP Electric Industrial 7R Tour rev A - CONCEPTO, sin certificar. Desconectar la red antes de abrir.", 88.0, 88.5, 0.9, "B"),
+    ("BAT + / -", 128.5, 52.6, 0.7, "F"),
+    ("AP ELECTRIC INDUSTRIAL  7R TOUR  rev B", 60.0, 36.5, 1.4, "F"),
+    ("AP Electric Industrial 7R Tour rev B - CONCEPTO, sin certificar. Desconectar la red antes de abrir.", 88.0, 88.5, 0.9, "B"),
 ]
-FLAGS = [("VIN_RAW", 20.32, 20.32), ("V24", 50.8, 20.32), ("3V3", 66.04, 20.32), ("VF", 35.56, 30.48),
+FLAGS = [("VRTC", 172.72, 20.32), ("VIN_RAW", 20.32, 20.32), ("V24", 50.8, 20.32), ("3V3", 66.04, 20.32), ("VF", 35.56, 30.48),
          ("V5", 81.28, 20.32), ("VISO", 96.52, 20.32), ("GNDB", 111.76, 20.32), ("COMI", 127.0, 20.32),
          ("LF", 142.24, 20.32), ("N", 157.48, 20.32)]
-NOTES = [(150.0, 15.0, "AP Electric Industrial · 7R Tour rev A (CONCEPTO): 7 x G2RL-1A-E 24 V, ULN2003A, 4 x TCA9554 (0x20-0x23),\n"
-                       "8 entradas 24 V LTV-217, CA-IS3092W RS-485 aislado, ESP32-C3. SKU CA: IRM-20-24 + T2A + 10D471K.")]
-TITLE = "AP Electric Industrial · 7R Tour rev A - 7 relés, 8 entradas, Modbus aislado (CONCEPTO)"
+NOTES = [(150.0, 15.0, "AP Electric Industrial · 7R Tour rev B (CONCEPTO): 7 x G2RL-1A-E 24 V, ULN2003A, 4 x TCA9554 (0x20-0x23),\n"
+                       "8 entradas 24 V LTV-217, CA-IS3092W RS-485 aislado, ESP32-C3. SKU CA: IRM-20-24 + T2A + 10D471K.\n"
+                       "Rev B: conteo rápido en IO0/IO20 (entradas 1 y 2), reloj PCF8563T con batería externa, 11 puntos de prueba.")]
+TITLE = "AP Electric Industrial · 7R Tour rev B - 7 relés, 8 entradas, Modbus aislado (CONCEPTO)"
 SUBTITLES = ["Placa de 2 capas, 2 oz (JLCPCB)", "Estado: concepto. Límites del producto por determinar por ensayo"]
 COMPANY = "PCB 176 x 90 mm, 2 capas, 2 oz"
 OCULTAR_REF = tuple(["RL%d" % k for k in range(1, 8)] + ["RSA%d" % k for k in range(1, 8)] + ["RSB%d" % k for k in range(1, 8)])

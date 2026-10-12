@@ -28,11 +28,16 @@
 #include "ap_control.h"
 #include "modbus_esclavo.h"
 #include "unidad_packml.h"
+#include "reloj.h"
+#include "autoprueba.h"
+#include <time.h>
 #include "logica.h"
 
 void abrirAP();
 void conectarSTA();
 void iniciarModbus();
+bool autoprueba(bool reles);
+void fijarHoraGlobal(uint32_t epoch);
 
 #define VERSION "AP Control 1.0"
 const uint16_t VERSION_NUM = 100;
@@ -42,6 +47,8 @@ enum Placa : uint8_t { PLACA_HOME = 2, PLACA_7R = 1 };
 Placa placa = PLACA_HOME;
 // 7R Tour
 const uint8_t P7_SDA = 2, P7_SCL = 8, P7_INT = 4, P7_LRUN = 5, P7_LFAL = 6, P7_LCOM = 7, P7_TX = 1, P7_RX = 3, P7_DE = 10;
+const uint8_t P7_E1 = 0, P7_E2 = 20;       // rev B: las entradas 1 y 2 también llegan a IO0 e IO20 (conteo rápido por interrupción)
+const uint8_t RTC_DIR = 0x51;               // rev B: reloj de tiempo real PCF8563
 const uint8_t TCA_SAL = 0x20, TCA_ENT = 0x21, TCA_RETRO = 0x22, TCA_BTN = 0x23;
 // AP Home
 const uint8_t PH_RELE = 4, PH_LVERDE = 5, PH_LROJO = 6, PH_SW = 7;
@@ -49,6 +56,10 @@ const uint8_t P_MODO = 9;
 
 apc::Controlador ctl;
 apc::UnidadPackML pk;
+volatile uint32_t pulsosRapidos[2] = {0, 0}, ultimoPulsoUs[2] = {0, 0};
+// Pulso = flanco de bajada (el optoacoplador activo lleva la línea a 0). Se ignoran los de menos de 2 ms: el máximo es 500 por segundo.
+void IRAM_ATTR isrE1() { uint32_t u = micros(); if (u - ultimoPulsoUs[0] > 2000) { ultimoPulsoUs[0] = u; pulsosRapidos[0] = pulsosRapidos[0] + 1; } }
+void IRAM_ATTR isrE2() { uint32_t u = micros(); if (u - ultimoPulsoUs[1] > 2000) { ultimoPulsoUs[1] = u; pulsosRapidos[1] = pulsosRapidos[1] + 1; } }
 uint32_t segundos = 0;
 apc::Esclavo mb(ctl, VERSION_NUM, PLACA_HOME, &segundos);
 Preferences pref;
@@ -108,6 +119,62 @@ void leerHardware(uint8_t& ent, uint8_t& btn, uint8_t& bob) {
     ent = (tSwActivo && millis() - tSwActivo < 25) ? 1 : 0;
     btn = 0; bob = 0;
   }
+}
+
+// ---------------- reloj de tiempo real (7R Tour rev B) ----------------
+bool i2cResponde(uint8_t d) { Wire.beginTransmission(d); return Wire.endTransmission() == 0; }
+// true = se pudo leer; `buena` = la hora es creíble (el reloj no perdió la tensión)
+bool rtcLeer(apc::HoraCal& h, bool& buena) {
+  buena = false;
+  Wire.beginTransmission(RTC_DIR); Wire.write(0x02);
+  if (Wire.endTransmission(false) != 0 || Wire.requestFrom((int)RTC_DIR, 7) != 7) return false;
+  uint8_t r[7]; for (auto& x : r) x = Wire.read();
+  bool perdida; buena = apc::leerPCF8563(r, h, perdida);
+  return true;
+}
+bool rtcEscribir(const apc::HoraCal& h) {
+  uint8_t r[7]; apc::escribirPCF8563(h, r);
+  Wire.beginTransmission(RTC_DIR); Wire.write(0x00); Wire.write(0x00); Wire.write(0x00);   // control 1 y 2 en 0: reloj en marcha
+  Wire.write(r, 7);
+  return Wire.endTransmission() == 0;
+}
+void fijarHoraGlobal(uint32_t epoch) {
+  if (!pk.fijarHora(epoch, millis())) return;
+  if (placa == PLACA_7R) rtcEscribir(apc::deEpoch(epoch));
+}
+
+// ---------------- autoprueba de puesta en marcha (solo por la consola USB) ----------------
+bool autoprueba(bool reles) {
+  if (placa != PLACA_7R) { Serial.println("TEST: solo en la placa 7R Tour"); return false; }
+  apc::LecturaBasica l{};
+  l.i2cSalidas = i2cResponde(TCA_SAL); l.i2cEntradas = i2cResponde(TCA_ENT); l.i2cRetro = i2cResponde(TCA_RETRO); l.i2cBotones = i2cResponde(TCA_BTN);
+  int id = tcaLeer(TCA_SAL); l.idCorrecto = id >= 0 && !(id & 0x80);
+  uint8_t e = 0, b = 0, r = 0; leerHardware(e, b, r);
+  l.bobinas = ctl.salida == 0 ? r : 0; l.forzado = 0; l.botones = b; l.entradas = e;
+  l.nivelIo0 = digitalRead(P7_E1); l.nivelIo20 = digitalRead(P7_E2);
+  apc::HoraCal h{}; bool buena = false;
+  l.rtcResponde = i2cResponde(RTC_DIR) && rtcLeer(h, buena); l.rtcHoraBuena = buena;
+  uint16_t f = apc::evaluarBasica(l);
+  Serial.printf("TEST: entradas 0x%02X · botones 0x%02X · bobinas 0x%02X · IO0 %d · IO20 %d\n", e, b, r, l.nivelIo0, l.nivelIo20);
+  for (uint16_t bit = 1; bit <= apc::PT_AVISO_RTC_HORA; bit <<= 1) if (f & bit) Serial.printf("  %s\n", apc::describirFalla(bit));
+  int fallas = 0;
+  for (uint16_t bit = 1; bit <= apc::PT_AVISO_RTC_HORA; bit <<= 1) if ((f & bit) && !(apc::PT_AVISOS & bit)) fallas++;
+  if (reles) {
+    bool puede = pk.estado == apc::PK_STOPPED && !plcRun && ctl.salida == 0 && l.i2cSalidas && l.i2cRetro;
+    if (!puede) { Serial.println("TEST RELES: solo con la unidad detenida, el PLC en STOP, sin salidas encendidas y los expansores contestando"); return false; }
+    Serial.println("TEST RELES: se encenderá cada relé 150 ms (se oyen los clics). Desconecte las cargas.");
+    for (uint8_t k = 1; k <= 7; k++) {
+      uint8_t ent2, btn2, on, off;
+      escribirSalidas(1 << (k - 1)); delay(150); esp_task_wdt_reset(); leerHardware(ent2, btn2, on);
+      escribirSalidas(0); delay(150); esp_task_wdt_reset(); leerHardware(ent2, btn2, off);
+      uint8_t fr = apc::evaluarRele(k, on, off, true);
+      if (fr) { char t[120]; apc::describirRele(k, fr, t, sizeof(t)); Serial.printf("  %s\n", t); fallas++; }
+      else Serial.printf("  canal %d: bien\n", k);
+    }
+    escribirSalidas(ctl.salida);
+  }
+  Serial.println(fallas ? "TEST: HAY FALLAS" : "TEST: bien");
+  return fallas == 0;
 }
 
 // ---------------- memoria ----------------
@@ -173,6 +240,12 @@ bool ejecutar(String s, bool local = false) {
     else if (a == "BORRAR") { plcModo(false); plc.n = 0; plcTexto = ""; pref.remove("plc"); }
     return true;
   }
+  if (s.startsWith("TEST")) {                           // autoprueba: solo desde la consola USB
+    if (!local) return false;
+    String a = s.substring(4); a.trim(); a.toUpperCase();
+    if (a == "RELES") { Serial.println("TEST RELES: escriba TEST RELES SI para confirmar que no hay cargas conectadas"); return true; }
+    return autoprueba(a == "RELES SI");
+  }
   if (s.startsWith("PK ")) {                          // unidad PackML: órdenes locales (las únicas que pueden dar permiso remoto)
     String a = s.substring(3); a.trim(); a.toUpperCase();
     static const char* cmds[] = {"", "RESET", "START", "STOP", "HOLD", "UNHOLD", "SUSPEND", "UNSUSPEND", "ABORT", "CLEAR"};
@@ -180,6 +253,7 @@ bool ejecutar(String s, bool local = false) {
     if (a == "SC") return pk.completar(t);
     if (a == "BUENA") return pk.contar(true, t);
     if (a == "MALA") return pk.contar(false, t);
+    if (a.startsWith("HORA ")) { long long v = a.substring(5).toInt(); if (v <= 0 || !apc::epochCreible((uint32_t)v)) return false; fijarHoraGlobal((uint32_t)v); return true; }
     if (a.startsWith("MODO ")) return pk.cambiarModo(a.substring(5).toInt(), t);
     if (a.startsWith("MOTIVO ")) { pk.motivoParo(a.substring(7).toInt()); return true; }
     if (a.startsWith("CICLO ")) { long v = a.substring(6).toInt(); if (v < 0 || v > 65535) return false; pk.cfg.cicloNominalMs = v; return true; }
@@ -324,7 +398,7 @@ String estadoJSON() {
   s += "],\"mb\":{\"dir\":"; s += ctl.cfg.mbDireccion; s += ",\"bps\":"; s += ctl.cfg.mbBaudios; s += ",\"vig\":"; s += ctl.cfg.mbVigilanciaS;
   s += ",\"ok\":"; s += mb.tramasBien; s += ",\"mal\":"; s += mb.tramasMal; s += "},\"pk\":{\"e\":"; s += pk.estado; s += ",\"m\":"; s += pk.modo; s += ",\"r\":"; s += pk.motivo; s += ",\"n\":"; s += pk.procesadas;
   s += ",\"d\":"; s += pk.defectuosas; s += ",\"disp\":"; s += pk.disponibilidad(); s += ",\"des\":"; s += pk.desempeno();
-  s += ",\"cal\":"; s += pk.calidad(); s += ",\"oee\":"; s += pk.oee(); s += ",\"mp\":"; s += pk.microparo; s += ",\"rem\":"; s += pk.cfg.remotoReanuda;
+  s += ",\"cal\":"; s += pk.calidad(); s += ",\"oee\":"; s += pk.oee(); s += ",\"mp\":"; s += pk.microparo; s += ",\"rem\":"; s += pk.cfg.remotoReanuda; s += ",\"h\":"; s += pk.epochAhora(millis()); s += ",\"hv\":"; s += pk.horaFijada;
   s += "},\"plc\":{\"run\":"; s += plcRun;
   s += ",\"n\":"; s += plc.n; s += ",\"err\":\""; s += plc.error; s += "\"},\"id\":\""; s += mac6(); s += "\",\"t\":"; s += segundos; s += '}';
   return s;
@@ -360,6 +434,13 @@ void setup() {
   mb.placa = placa;
   mb.um = &pk;
   pk.iniciar(millis());
+  if (placa == PLACA_7R) {
+    pinMode(P7_E1, INPUT); pinMode(P7_E2, INPUT);
+    attachInterrupt(P7_E1, isrE1, FALLING); attachInterrupt(P7_E2, isrE2, FALLING);
+    pk.rapidas = 0x03;                                  // entradas 1 y 2: se cuentan por interrupción
+    apc::HoraCal hr{}; bool buena = false;
+    if (rtcLeer(hr, buena) && buena) pk.fijarHora(apc::aEpoch(hr), millis());      // el reloj conserva la hora con la batería
+  }
   { apc::ConfigMonitor m; uint32_t n[2] = {0, 0};
     if (pref.getBytes("pkm", &m, sizeof(m)) == sizeof(m)) pk.cargarMonitor(m, placa == PLACA_7R ? 8 : 1);
     if (pref.getBytes("pkn", n, sizeof(n)) == sizeof(n)) pk.restaurarContadores(n[0], n[1]); }
@@ -406,6 +487,7 @@ void loop() {
     btnAnt = m;
     ctl.paso(t, ent, btn, bob);
     if (fallaI2C) ctl.fallas |= apc::F_EXPANSOR; else ctl.fallas &= ~apc::F_EXPANSOR;
+    if (placa == PLACA_7R) { pk.pulsos(1, pulsosRapidos[0], t); pk.pulsos(2, pulsosRapidos[1], t); }
     pk.entradas(ctl.entradas, t); pk.paso(t); pk.alFalla(ctl.fallas, t);        // unidad PackML: tiempos por estado y paro o retención ante fallas
     uint8_t dif = antes ^ ctl.entradas;
     for (int k = 0; k < 8; k++) if (dif & (1 << k)) enviarEvento(k + 1, ctl.entradas & (1 << k));
@@ -420,6 +502,14 @@ void loop() {
     ctl.plc(entorno.q, t);
   }
   atenderModbus(t);
+  if (mb.horaNueva) { mb.horaNueva = false; if (placa == PLACA_7R) rtcEscribir(apc::deEpoch(pk.epochAhora(t))); }
+  static uint32_t tNtp = 0; static bool ntpIniciado = false;
+  if (wifiActivo && WiFi.status() == WL_CONNECTED && t - tNtp > 30000UL) {          // hora de red, si hay (opcional)
+    if (!ntpIniciado) { configTime(0, 0, "pool.ntp.org"); ntpIniciado = true; }
+    time_t ahora = time(nullptr);
+    if (apc::epochCreible((uint32_t)ahora) && (!pk.horaFijada || t - tNtp > 21600000UL)) fijarHoraGlobal((uint32_t)ahora);
+    tNtp = t;
+  }
   if (wifiActivo) { web.handleClient(); recibirEventos(t); }
   if (wifiActivo && WiFi.getMode() == WIFI_AP && WiFi.softAPgetStationNum() == 0 && t - tWifi > 900000UL) {
     WiFi.mode(WIFI_OFF); wifiActivo = false;          // la red de configuración se cierra sola a los 15 min

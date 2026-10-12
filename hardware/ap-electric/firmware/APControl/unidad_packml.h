@@ -16,6 +16,7 @@
 //      * El modo solo cambia en STOPPED o ABORTED.
 #pragma once
 #include "ap_control.h"
+#include "reloj.h"
 
 namespace apc {
 
@@ -62,13 +63,15 @@ struct ConfigPK {
   uint32_t scAuto = 0;              // bit n = el estado "actuando" n termina solo; se llena en iniciar()
 };
 
-struct EventoPK { uint32_t t; uint8_t de, a, cmd, origen; uint16_t motivo; };
+struct EventoPK { uint32_t t; uint8_t de, a, cmd, origen; uint16_t motivo; uint32_t epoch; };   // epoch 0 = hora sin ajustar
 
 class UnidadPackML {
  public:
   ConfigPK cfg;
   ConfigMonitor mon{FIRMA_MONITOR, 0, 0, 0, 0, 0, MK_PRODUCCION, 0, 0};
-  bool contadoresCambiaron = false;       // para guardarlos con límite de escrituras
+  bool contadoresCambiaron = false;
+  uint8_t rapidas = 0;                    // bit n-1 = la entrada n se cuenta con pulsos por interrupción (no por lectura)
+  bool horaFijada = false;       // para guardarlos con límite de escrituras
   uint8_t estado = PK_STOPPED, modo = MK_PRODUCCION, ultimoCmd = CK_NADA;
   uint16_t motivo = 0;                          // última causa de paro (categoria * 100 + causa)
   uint64_t ms[PK_N] = {};                       // tiempo acumulado en cada estado
@@ -174,6 +177,7 @@ class UnidadPackML {
   // Se llama cada pocos ms con el reloj.
   void paso(uint32_t ahora) {
     uint32_t dt = ahora - tUlt; tUlt = ahora;
+    if (horaFijada && ahora - msBase > 86400000UL) { uint32_t s = (ahora - msBase) / 1000; epochBase += s; msBase += s * 1000; }   // evita perder la cuenta al dar la vuelta millis()
     ms[estado] += dt;
     if (estado == PK_EXECUTE && cfg.cicloNominalMs) {
       // microparo = EXECUTE sin piezas durante más de 3 ciclos nominales (mínimo 2 s)
@@ -191,8 +195,8 @@ class UnidadPackML {
     entPrev = ent; primeraLectura = false;
     if (!subio) return;
     auto sube = [&](uint8_t n) { return n >= 1 && n <= 8 && (subio & (1 << (n - 1))); };
-    if (sube(mon.entCiclo)) contar(true, ahora);
-    if (sube(mon.entMala)) contar(false, ahora);
+    if (sube(mon.entCiclo) && !(rapidas & (1 << (mon.entCiclo - 1)))) contar(true, ahora);
+    if (sube(mon.entMala) && !(rapidas & (1 << (mon.entMala - 1)))) contar(false, ahora);
     if (sube(mon.entAndon) && estado == PK_EXECUTE) { motivo = MOTIVO_ANDON; comando(CK_HOLD, OR_ENTRADA, ahora); }
     if (sube(mon.entReanuda)) comando(CK_UNHOLD, OR_ENTRADA, ahora);
   }
@@ -224,6 +228,27 @@ class UnidadPackML {
   void restaurarContadores(uint32_t buenas, uint32_t malas) {
     if (malas > buenas) return;
     procesadas = buenas; defectuosas = malas;
+  }
+
+  // ---- Hora: segundos desde 1970 (la fija el reloj de tiempo real, la red o un maestro Modbus) ----
+  bool fijarHora(uint32_t epoch, uint32_t ahora) {
+    if (!epochCreible(epoch)) return false;
+    epochBase = epoch; msBase = ahora; horaFijada = true; return true;
+  }
+  uint32_t epochAhora(uint32_t ahora) const { return horaFijada ? epochBase + (ahora - msBase) / 1000 : 0; }
+
+  // ---- Pulsos contados por interrupción en una entrada de conteo rápido (1 o 2): `total` es el acumulado del hardware ----
+  // Cada pulso nuevo cuenta como pieza buena o mala según la función de la entrada. Más de 1000 en un paso se ignora.
+  void pulsos(uint8_t n, uint32_t total, uint32_t ahora) {
+    if (n < 1 || n > 2) return;
+    uint32_t d = total - pulsosPrev[n - 1];
+    pulsosPrev[n - 1] = total;
+    if (!pulsosListos[n - 1]) { pulsosListos[n - 1] = true; return; }    // la primera lectura solo toma el acumulado
+    if (d > 1000) return;                                              // salto imposible en un paso: se ignora, no se inventan piezas
+    for (uint32_t i = 0; i < d; i++) {
+      if (mon.entCiclo == n) contar(true, ahora);
+      if (mon.entMala == n) contar(false, ahora);
+    }
   }
 
   // Fallas nuevas del controlador: piden ABORT o HOLD. Una falla que sigue activa bloquea CLEAR, RESET y START.
@@ -271,6 +296,7 @@ class UnidadPackML {
  private:
   uint32_t tUlt = 0, tEntrada = 0, tUltCuenta = 0;
   uint8_t entPrev = 0; bool primeraLectura = true;
+  uint32_t epochBase = 0, msBase = 0, pulsosPrev[2] = {0, 0}; bool pulsosListos[2] = {false, false};
 
   static uint8_t bitBajo(uint16_t v) { uint8_t i = 0; while (v && !(v & 1)) { v >>= 1; i++; } return i + 1; }
   void pasarA(uint8_t d, uint8_t c, uint8_t origen, uint32_t ahora) {
@@ -280,7 +306,7 @@ class UnidadPackML {
   }
   void rechazar(uint8_t c, uint8_t origen, uint32_t ahora) { registrar(estado, estado, c, origen, ahora); }
   void registrar(uint8_t de, uint8_t a, uint8_t c, uint8_t origen, uint32_t ahora) {
-    ev[sigEv] = EventoPK{ahora, de, a, c, origen, motivo};
+    ev[sigEv] = EventoPK{ahora, de, a, c, origen, motivo, epochAhora(ahora)};
     sigEv = (sigEv + 1) % 16; if (nEv < 16) nEv++;
   }
 };

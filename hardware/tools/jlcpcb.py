@@ -65,6 +65,10 @@ CONOCIDOS = {
     ("DSWB08LHGET", "SW_DIP_SPSTx08_Slide_9.78x22.5mm_W7.62mm_P2.54mm"): ("C99413", "Extended"),
     ("ULN2003ADR", "SOIC-16_3.9x9.9mm_P1.27mm"): ("C7512", "Basic Component"),
     ("SMBJ33A", "D_SMB"): ("C19077586", "Preferred Component"),
+    # 7R Tour rev B: reloj de tiempo real (verificadas en lcsc.com / jlcpcb.com por búsqueda, octubre 2026)
+    ("PCF8563T/5,518", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C7440", "Extended"),               # NXP, RTC I2C
+    ("32.768kHz 12.5pF", "Crystal_SMD_3215-2Pin_3.2x1.5mm"): ("C32346", "Extended"),     # Epson Q13FC13500004, 12.5 pF
+    ("BAT54C", "SOT-23"): ("C181200", "Extended"),                                       # Hottech, 2 Schottky cátodo común
 }
 
 # Piezas cuyo valor es una etiqueta ("RESET", "MODO / BOOT"): se reconocen por la huella.
@@ -73,6 +77,7 @@ POR_HUELLA = {
     "PinSocket_2x08_P2.54mm_Vertical": ("C30734", "Extended"),          # zócalo 2x8, 8.5 mm de alto
     "PinHeader_2x08_P2.54mm_Vertical": ("C68234", "Extended"),
     "PinHeader_1x04_P2.54mm_Vertical": ("C5116483", "Extended"),
+    "PinHeader_1x02_P2.54mm_Vertical": ("C5116481", "Extended"),        # ZHOURI 2.54-1*2
     "JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal": ("C160404", "Extended"),
     "Fuseholder_Blade_Mini_Keystone_3568": ("C3206956", "Extended"),    # Keystone 3568
     # clema de 2 polos 5.08 mm: KEFA KF128-5.08-2P (misma separación que la Phoenix MKDS 3)

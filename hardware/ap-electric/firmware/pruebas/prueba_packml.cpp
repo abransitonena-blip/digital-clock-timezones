@@ -3,6 +3,8 @@
 #include "../APControl/unidad_packml.h"
 #include "../APControl/modbus_esclavo.h"
 #include "../APControl/logica.h"
+#include "../APControl/reloj.h"
+#include "../APControl/autoprueba.h"
 #include <cstdio>
 #include <cmath>
 #include <vector>
@@ -172,7 +174,7 @@ int main() {
     uint32_t t = 1000;
     auto correr = [&](uint32_t ms) { for (uint32_t i = 0; i < ms; i += 10) { t += 10; u.paso(t); } };
     REVISA(leer(mb, 4, 100, t) == 1 && leer(mb, 4, 101, t) == PK_STOPPED && leer(mb, 4, 102, t) == MK_PRODUCCION);
-    REVISA(bit(mb, 49, t) == 0 && bit(mb, 48, t) == 0 && bit(mb, 50, t) == 0 && bit(mb, 51, t) == -1);
+    REVISA(bit(mb, 49, t) == 0 && bit(mb, 48, t) == 0 && bit(mb, 50, t) == 0 && bit(mb, 51, t) == 0 && bit(mb, 52, t) == -1);
     // el maestro no puede reanudar: RESET por Modbus se rechaza con la excepción 04
     REVISA(escribir(mb, 300, CK_RESET, t) == 4 && u.estado == PK_STOPPED);
     REVISA(escribir(mb, 300, 99, t) == 3);
@@ -260,6 +262,92 @@ int main() {
     REVISA(escribir(mb, 307, 1, 0) == 3 && leer(mb, 3, 307, 0) == 2);              // repetida
     REVISA(escribir(mb, 308, 9, 0) == 3 && escribir(mb, 308, 300, 0) == 3);        // fuera de rango
     REVISA(escribir(mb, 308, 0, 0) == 0 && leer(mb, 3, 308, 0) == 0);              // quitar la función
+  }
+  // 16) hora: conversión de calendario, registros del PCF8563 y la hora de la unidad
+  {
+    HoraCal h{2026, 10, 12, 8, 30, 15};
+    uint32_t e = aEpoch(h);
+    REVISA(e == 1791793815u);                                 // 2026-10-12 08:30:15 UTC
+    HoraCal v = deEpoch(e);
+    REVISA(v.anio == 2026 && v.mes == 10 && v.dia == 12 && v.hora == 8 && v.min == 30 && v.seg == 15);
+    HoraCal bi = deEpoch(aEpoch(HoraCal{2028, 2, 29, 23, 59, 59}));                   // año bisiesto
+    REVISA(bi.anio == 2028 && bi.mes == 2 && bi.dia == 29 && bi.hora == 23 && bi.seg == 59);
+    REVISA(aEpoch(HoraCal{2024, 1, 1, 0, 0, 0}) == EPOCH_MINIMO);
+    REVISA(horaValida(h) && !horaValida(HoraCal{2026, 2, 30, 0, 0, 0}) && !horaValida(HoraCal{2026, 13, 1, 0, 0, 0}) &&
+           !horaValida(HoraCal{2023, 1, 1, 0, 0, 0}) && horaValida(HoraCal{2028, 2, 29, 0, 0, 0}) && !horaValida(HoraCal{2027, 2, 29, 0, 0, 0}));
+    REVISA(epochCreible(e) && !epochCreible(0) && !epochCreible(EPOCH_MINIMO - 1));
+    uint8_t r[7]; escribirPCF8563(h, r);              // ida y vuelta con los registros del PCF8563
+    REVISA(r[0] == 0x15 && r[1] == 0x30 && r[2] == 0x08 && r[3] == 0x12 && r[5] == 0x10 && r[6] == 0x26);
+    REVISA(r[4] == 1);                               // día de la semana (0 = domingo)
+    HoraCal l{}; bool perdida = true;
+    REVISA(leerPCF8563(r, l, perdida) && !perdida && aEpoch(l) == e);
+    r[0] |= 0x80; REVISA(!leerPCF8563(r, l, perdida) && perdida);                     // bit VL: perdió la tensión
+    r[0] = 0x7A; REVISA(!leerPCF8563(r, l, perdida));                                 // BCD inválido
+    UnidadPackML u; u.iniciar(0);                     // la hora corre con millis(), también al dar la vuelta
+    REVISA(u.epochAhora(5000) == 0 && !u.fijarHora(100, 0));
+    REVISA(u.fijarHora(e, 1000) && u.epochAhora(1000) == e && u.epochAhora(61000) == e + 60);
+    uint32_t t = 1000; for (int i = 0; i < 3; i++) { t += 86400000UL; u.paso(t); }     // 3 días
+    REVISA(u.epochAhora(t) == e + 3 * 86400u);
+    UnidadPackML w; w.iniciar(0); REVISA(w.fijarHora(e, 4294960000u) && w.epochAhora(10000u) == e + 17);
+    // las transiciones llevan la hora de calendario
+    UnidadPackML x; x.iniciar(0); x.fijarHora(e, 0); x.comando(CK_RESET, OR_BOTON, 5000);
+    REVISA(x.ev[0].epoch == e + 5); UnidadPackML y; y.iniciar(0); y.comando(CK_RESET, OR_BOTON, 5000); REVISA(y.ev[0].epoch == 0);
+  }
+  // 17) conteo rápido por interrupción (entradas 1 y 2): cuenta pulsos del acumulado y evita contar doble
+  {
+    Banco b; ConfigMonitor m = b.u.mon; m.entCiclo = 1; m.entMala = 2; REVISA(b.u.configurarMonitor(m, 8));
+    b.u.rapidas = 0x03;
+    b.aExecute();
+    b.u.pulsos(1, 500, b.t); b.u.pulsos(2, 70, b.t);            // primera lectura: solo toma el acumulado
+    REVISA(b.u.procesadas == 0);
+    b.u.pulsos(1, 507, b.t); b.u.pulsos(2, 72, b.t);
+    REVISA(b.u.procesadas == 9 && b.u.defectuosas == 2);        // 7 buenas + 2 malas (las malas también son piezas)
+    b.u.entradas(0, b.t); b.u.entradas(0x01, b.t); b.u.entradas(0, b.t);                 // por lectura no cuenta si es rápida
+    REVISA(b.u.procesadas == 9);
+    b.u.pulsos(1, 0xFFFFFFFEu, b.t); REVISA(b.u.procesadas == 9);                         // salto imposible: se ignora
+    b.u.pulsos(1, 2, b.t); REVISA(b.u.procesadas == 13);        // el acumulado de 32 bits da la vuelta: 4 pulsos
+    b.cmd(CK_HOLD); b.correr(30); uint32_t antes = b.u.procesadas; b.u.pulsos(1, 12, b.t); REVISA(b.u.procesadas == antes);   // en HELD no cuenta
+    b.u.pulsos(3, 5, b.t); b.u.pulsos(0, 5, b.t);                                         // entradas sin conteo rápido: se ignoran
+    Banco c; ConfigMonitor m2 = c.u.mon; m2.entCiclo = 1; c.u.configurarMonitor(m2, 8);   // sin `rapidas`: sigue contando por lectura
+    c.aExecute(); c.u.entradas(0, c.t); c.u.entradas(1, c.t); REVISA(c.u.procesadas == 1);
+  }
+  // 18) Modbus: hora
+  {
+    Config c = fabrica(7, 8); c.mbDireccion = 1; c.crc = crcDe(c);
+    Controlador ctl; ctl.iniciar(c, 0, nullptr, 0, false);
+    uint32_t seg = 0; Esclavo mb(ctl, 100, 1, &seg);
+    UnidadPackML u; u.iniciar(0); mb.um = &u;
+    uint32_t e = 1791793815u;
+    REVISA(leer(mb, 4, 162, 1000) == 0 && leer(mb, 4, 160, 1000) == 0);
+    REVISA(escribir(mb, 320, e & 0xFFFF, 1000) == 0 && escribir(mb, 321, 100, 1000) == 3 && !mb.horaNueva);   // alta absurda: 100 << 16 + baja
+    REVISA(escribir(mb, 320, e & 0xFFFF, 1000) == 0 && escribir(mb, 321, e >> 16, 1000) == 0 && mb.horaNueva);
+    REVISA(leer(mb, 4, 162, 1000) == 1 && bit(mb, 51, 1000) == 1);
+    REVISA(leer(mb, 4, 160, 11000) == ((e + 10) & 0xFFFF) && leer(mb, 4, 161, 11000) == ((e + 10) >> 16));   // corre con la hora de la trama
+  }
+  // 19) autoprueba: evaluación de lo que lee el equipo
+  {
+    LecturaBasica bien{true, true, true, true, true, true, true, 0, 0, 0, 0, true, true};
+    REVISA(evaluarBasica(bien) == 0);
+    LecturaBasica mal = bien; mal.i2cRetro = false; mal.i2cBotones = false;
+    REVISA(evaluarBasica(mal) == (PT_I2C_RETRO | PT_I2C_BOTONES));
+    mal = bien; mal.idCorrecto = false; REVISA(evaluarBasica(mal) == PT_ID);
+    mal = bien; mal.bobinas = 0x04; REVISA(evaluarBasica(mal) == PT_FORZADO);
+    mal = bien; mal.botones = 0x10; REVISA(evaluarBasica(mal) == PT_BOTON_PRESIONADO);
+    mal = bien; mal.entradas = 0x01; REVISA(evaluarBasica(mal) == PT_CONTEO_E1);              // el expansor ve la entrada 1 activa y IO0 no
+    mal = bien; mal.entradas = 0x01; mal.nivelIo0 = false; REVISA(evaluarBasica(mal) == 0);    // IO0 en 0 = activa: coincide
+    mal = bien; mal.nivelIo20 = false; REVISA(evaluarBasica(mal) == PT_CONTEO_E2);
+    mal = bien; mal.rtcResponde = false; REVISA(evaluarBasica(mal) == PT_AVISO_RTC_AUSENTE && (evaluarBasica(mal) & ~PT_AVISOS) == 0);
+    mal = bien; mal.rtcHoraBuena = false; REVISA(evaluarBasica(mal) == PT_AVISO_RTC_HORA);
+    mal = bien; mal.i2cSalidas = false; REVISA((evaluarBasica(mal) & PT_I2C_SALIDAS) && !(evaluarBasica(mal) & PT_ID));   // sin 0x20 no se juzga la identificación
+    for (uint16_t f = 1; f <= PT_AVISO_RTC_HORA; f <<= 1) REVISA(describirFalla(f)[0] != 0);
+    // relés: solo su bobina debe energizarse y soltar al apagar
+    REVISA(evaluarRele(3, 0x04, 0, true) == 0);
+    REVISA(evaluarRele(3, 0x00, 0, true) == PR_NO_ENERGIZA);
+    REVISA(evaluarRele(3, 0x0C, 0, true) == PR_OTRA_BOBINA);
+    REVISA(evaluarRele(3, 0x04, 0x04, true) == PR_NO_SUELTA);
+    REVISA(evaluarRele(7, 0x40, 0, true) == 0 && evaluarRele(1, 0x01, 0, false) == PR_SIN_RETRO);
+    char txt[160]; describirRele(2, PR_NO_ENERGIZA | PR_NO_SUELTA, txt, sizeof(txt));
+    REVISA(strstr(txt, "canal 2") && strstr(txt, "no se energizó") && strstr(txt, "no soltó"));
   }
   // 12) PLC: los estados PackML se leen como bits del área S (S10 + estado)
   {
