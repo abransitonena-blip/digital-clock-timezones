@@ -314,6 +314,10 @@ SIN_COBRE = [[(163.0, 61.0), (175.7, 61.0), (175.7, 89.7), (163.0, 89.7)]]      
 # --- bus RS-485 aislado: todo su cobre dentro de _ZB, trazado a mano; la lógica queda fuera de _ZB + 1.6 mm ---
 _ZB = [(70.2, 70.4), (73.9, 70.4), (73.9, 67.8), (84.1, 67.8), (84.1, 70.4), (90.7, 70.4), (90.7, 77.6), (88.5, 77.6),
        (88.5, 89.7), (70.2, 89.7)]
+# redes largas que el ruteador automático deja sin unir (de un punto de cobre al otro; capa F, B o None = vía existente)
+RUTAS_AUTO = [("INT", (68.0, 69.675, "F"), (158.822, 67.505, None)),
+              ("RS_DE", (91.5, 55.0, "F"), (147.762, 83.804, None)),
+              ("RS_RX", (87.5, 51.0, "F"), (157.5, 82.495, None))]
 ZONAS_FINALES = [("GNDB", _ZB), ("GNDB", _ZB, "B")]
 
 
@@ -359,7 +363,7 @@ SILK = [("CANAL %d" % k, xc, 30.0, 1.0, "F") for k, xc in enumerate(XC, 1)] + \
     ("I1   I2   I3   I4   I5   I6   I7   I8   COM", 27.0, 89.3, 0.8, "F"),
     ("+24V   0V", 95.5, 89.3, 0.8, "F"), ("A    B    0V aisl.", 79.0, 89.3, 0.8, "F"),
     ("DIP 1-7: forzar rele   8: Wi-Fi apagado", 98.5, 55.8, 0.8, "F"),
-    ("BAT + / -", 128.5, 52.6, 0.7, "F"),
+    ("BAT + / -", 128.5, 52.6, 0.8, "F"),
     ("AP ELECTRIC INDUSTRIAL  7R TOUR  rev B", 60.0, 36.5, 1.4, "F"),
     ("AP Electric Industrial 7R Tour rev B - CONCEPTO, sin certificar. Desconectar la red antes de abrir.", 88.0, 88.5, 0.9, "B"),
 ]

@@ -8,7 +8,7 @@ Lo que se comprueba por software **no sustituye** a los ensayos eléctricos: un 
 |---|---|---|
 | Esquema 7R Tour y AP Home | ERC de KiCad 9 | 0 errores |
 | Placa AP Home | DRC con reglas propias: red-baja tensión ≥ 6.4 mm en el aire y por la superficie; ≥ 2.0 / 2.4 mm entre redes de red | 0 violaciones, 0 sin conectar, paridad 0, reglas de JLCPCB 0 |
-| Placa 7R Tour | Igual; además el bus RS-485 aislado ≥ 1.5 mm de la lógica (aislamiento funcional, no de seguridad) | 0 violaciones, 0 sin conectar, paridad 0, reglas de JLCPCB 0 |
+| Placa 7R Tour rev B | Igual; además el bus RS-485 aislado ≥ 1.5 mm de la lógica (aislamiento funcional, no de seguridad) | 0 violaciones, 0 sin conectar, paridad 0, reglas de JLCPCB 0 |
 | BOM | Todas las piezas con código LCSC (relés, fuentes, aisladores verificados por búsqueda en lcsc.com / jlcpcb.com) | Ver `fabricacion/jlcpcb` |
 | Programa | Compila para ESP32-C3 (arduino-cli 3.1.1) | 1.06 MB, 53 % |
 | Unidad PackML | `tools/probar_apbus.sh` (`prueba_packml.cpp`) | Ciclo de estados, comandos inválidos, reglas de reanudación remota, fallas, tiempos por estado, OEE, microparos y mapa Modbus PackTags. Falta probarla en una máquina real |

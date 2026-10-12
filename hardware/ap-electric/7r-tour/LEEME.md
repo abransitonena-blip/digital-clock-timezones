@@ -1,4 +1,4 @@
-# AP Electric Industrial · 7R Tour: placa rev A (CONCEPTO)
+# AP Electric Industrial · 7R Tour: placa rev B (CONCEPTO)
 
 ![Placa 7R Tour](fabricacion/3d/render_superior.png)
 
@@ -20,7 +20,16 @@ Los archivos `AP_7R_TOUR_BOM_JLCPCB_solo_SMD.csv` y `AP_7R_TOUR_CPL_JLCPCB_solo_
 | ERC del esquema (KiCad 9) | 0 errores |
 | DRC con las reglas propias (`kicad/AP_7R_TOUR.kicad_dru`) | 0 violaciones, 0 sin conectar, paridad esquema-placa 0 |
 | Reglas de fabricación de JLCPCB (DFM) | 0 problemas |
-| Códigos LCSC | 55 tipos y 178 piezas por placa, todos con código; relés, fuentes, aislador y bornes verificados en lcsc.com / jlcpcb.com |
+| Revisión del pedido (`tools/revisar_pedido.py`, 24DC y CA) | Sin errores (2 avisos conocidos: el código C13585 sirve para 10 µF de 25 V y de 50 V; el pulsador C318884 se repite en 9 designadores) |
+| Códigos LCSC | 59 tipos y 183 piezas por placa (CA; 177 en 24DC), todos con código; relés, fuentes, aislador y bornes verificados en lcsc.com / jlcpcb.com |
+
+## Cambios de la rev B respecto a la rev A
+
+- Entradas 1 y 2 también a IO0 e IO20 del ESP32-C3: conteo rápido de piezas por interrupción.
+- Reloj de tiempo real PCF8563T con cristal de 32.768 kHz, OR de batería (BAT54C) y conector J16 de 2 pines para la batería (no incluida en el ensamble).
+- 11 puntos de prueba (24 V, 5 V, 3.3 V, dos de 0 V, SDA, SCL, TX, RX, DE, EN).
+- Ruteo: el ruteador automático dejó 3 redes largas sin unir (INT, RS_DE, RS_RX); las cierra `tools/ruta_auto.py` (buscador de caminos propio, `RUTAS_AUTO` en `gen/make.py`). Revisar en KiCad esas 3 rutas (unos 100 mm cada una) antes de pedir.
+- Procedimiento de primera prueba: [../PUESTA_EN_MARCHA.md](../PUESTA_EN_MARCHA.md).
 
 Que el DRC pase **no** significa que el producto esté listo para vender. Faltan fabricar, medir, ensayar y certificar (ver `../PLAN_VERIFICACION.md`).
 

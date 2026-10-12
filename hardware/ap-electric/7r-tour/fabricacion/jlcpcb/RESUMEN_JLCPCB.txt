@@ -1,14 +1,14 @@
-AP_7R_TOUR: 55 tipos de pieza, 178 piezas por placa.
+AP_7R_TOUR: 59 tipos de pieza, 183 piezas por placa.
 Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
 
-Pedido completo (BOM/CPL normales):      17 tipos Extended  -> ~51 USD de cargo
-Pedido económico (BOM/CPL _solo_SMD):    11 tipos Extended  -> ~33 USD de cargo;
-   se sueldan a mano 23 piezas de patas: J1,J2,J3,J4,J5,J6,J7,J8,J9, J11,J12,J13,J14, K1,K2,K3,K4,K5,K6,K7, PS1, RV1, SW1
+Pedido completo (BOM/CPL normales):      21 tipos Extended  -> ~63 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):    14 tipos Extended  -> ~42 USD de cargo;
+   se sueldan a mano 24 piezas de patas: J1,J2,J3,J4,J5,J6,J7,J8,J9, J11,J12,J13,J14, J16, K1,K2,K3,K4,K5,K6,K7, PS1, RV1, SW1
 Piezas Basic/Preferred: ~0.99 USD por placa (precio de catálogo, sin las Extended).
 
 Basic (34):
   10uF 50V               C13585         C1,C2,C3,C11
-  100nF                  C14663         C10,C13,C18,C20,C21,C22,C23,C25,C27
+  100nF                  C14663         C10,C13,C18,C20,C21,C22,C23,C25,C27,C28
   22uF 25V               C12891         C12
   10uF 25V               C13585         C14
   22uF                   C45783         C15,C16
@@ -46,12 +46,14 @@ Preferred (4):
   B5819W                 C64885         D7
   AMARILLO               C89811         D10
   SM712                  C7420375       D11
-Extended (17):
+Extended (21):
+  BAT54C                 C181200        D12
   3A                     C355685        F1
   T2A 250VCA             C2838939       F2
   KF128-5.08-2P          C474952        J1,J2,J3,J4,J5,J6,J7,J8,J9  [THT]
   KF128-5.08-3P          C474953        J11,J12,J13,J14  [THT]
   USB-C                  C165948        J15
+  BAT                    C5116481       J16  [THT]
   G2RL-1A-E DC24         C231362        K1,K2,K3,K4,K5,K6,K7  [THT]
   47uH                   C167888        L1
   4.7uH                  C167874        L2
@@ -64,3 +66,5 @@ Extended (17):
   AP63203WU              C780769        U8
   ESP32-C3-WROOM-02      C2934560       U9
   USBLC6-2SC6            C7519          U10
+  PCF8563T/5,518         C7440          U11
+  32.768kHz 12.5pF       C32346         Y1

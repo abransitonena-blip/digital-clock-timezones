@@ -32,7 +32,7 @@ mm = pcbnew.FromMM
 def _defaults(S):
     for k, v in dict(HOLES=[], NETCLASS={}, POWER_ZONES=[], KEEPOUT_NETS=(), PRE=[], PREVIAS=[], VIAS=[],
                      SIN_COBRE=[], RETORNO=[], SILK=[], FLAGS=[], NOTES=[], SUBTITLES=[], COMPANY="", PAPER="A3", DRU="",
-                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], RUTEO_PROHIBIDO=[], SIN_RELLENO=[], ZONAS_FINALES=[], SOLO_PLACA=[], RANURAS=[],
+                     RED_HV=None, DESCONECTAR=[], RADIO_ESQUINA=0.0, MODELOS={}, CAPAS=2, COSTURA=0.0, SIN_PISTAS=[], RUTEO_PROHIBIDO=[], SIN_RELLENO=[], ZONAS_FINALES=[], RUTAS_AUTO=[], SOLO_PLACA=[], RANURAS=[],
                      PLANOS=[("GND", "In1"), ("GND", "In2")]).items():
         if not hasattr(S, k):
             setattr(S, k, v)
@@ -411,6 +411,9 @@ def main(S):
         for z in list(b.Zones()):
             if z.GetIsRuleArea() and z.GetZoneName().startswith("ruteo_"):
                 b.Remove(z)
+        if S.RUTAS_AUTO:                   # redes que el ruteador dejó sin unir: buscador de caminos propio (tools/ruta_auto.py)
+            import ruta_auto
+            ruta_auto.rutas(S, b, S.RUTAS_AUTO)
         for z in S.ZONAS_FINALES:          # planos que el ruteador trató como pistas normales (p. ej. tierra aislada)
             add_zone(b, z[0], pcbnew.B_Cu if len(z) > 2 and z[2] == "B" else pcbnew.F_Cu, z[1], prio=5, clearance=0.3,
                      solid=False)                    # debajo de las zonas de potencia (prioridad 10)
