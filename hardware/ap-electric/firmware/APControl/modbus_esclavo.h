@@ -28,6 +28,8 @@
 //                          302 StopReason (categoría x 100 + causa) · 303 contar pieza (1 buena · 2 defectuosa)
 //                          304 ciclo nominal en ms (0 = sin ciclo)
 //                          305 comandos remotos que reanudan (0 no · 1 sí): SOLO LECTURA por Modbus, se cambia en el equipo
+//                          306 entrada de pieza buena · 307 de pieza mala · 308 de andon (pide HOLD) · 309 de reanudar (0-8; 0 = ninguna;
+//                          una entrada no puede tener dos funciones; excepción 03). Se guardan con la orden 200 = 0xA55A
 // Los cambios de configuración se validan y valen al momento, pero solo se guardan con la orden 0xA55A
 // (así un maestro que escribe seguido no desgasta la memoria). Una escritura inválida responde la excepción 03.
 #pragma once
@@ -179,6 +181,10 @@ struct Esclavo {
     if (um && a == 303) return 0;
     if (um && a == 304) return um->cfg.cicloNominalMs;
     if (um && a == 305) return um->cfg.remotoReanuda;
+    if (um && a == 306) return um->mon.entCiclo;
+    if (um && a == 307) return um->mon.entMala;
+    if (um && a == 308) return um->mon.entAndon;
+    if (um && a == 309) return um->mon.entReanuda;
     return -1;
   }
   uint8_t escribirBobina(uint16_t a, bool v, uint32_t ahora) {
@@ -195,6 +201,11 @@ struct Esclavo {
       case 303: if (v != 1 && v != 2) return 3; return um->contar(v == 1, ahora) ? 0 : 4;
       case 304: um->cfg.cicloNominalMs = v; return 0;
       case 305: return 2;                       // solo lectura: un maestro no puede darse permiso para reanudar
+      case 306: case 307: case 308: case 309: {    // función de cada entrada (0 = ninguna); no puede repetirse
+        ConfigMonitor n = um->mon;
+        (a == 306 ? n.entCiclo : a == 307 ? n.entMala : a == 308 ? n.entAndon : n.entReanuda) = v > 255 ? 255 : v;
+        return um->configurarMonitor(n, ctl.cfg.nEntradas) ? 0 : 3;
+      }
     }
     return 2;
   }
@@ -202,7 +213,7 @@ struct Esclavo {
     Config c = ctl.cfg;
     int n = c.nCanales, ne = c.nEntradas;
     ctl.modbusEscribio(ahora);
-    if (um && a >= 300 && a <= 305) return escribirPK(a, v, ahora);
+    if (um && a >= 300 && a <= 309) return escribirPK(a, v, ahora);
     if (a == 1) {
       if (v >> n) return 3;
       for (int k = 0; k < n; k++) if (ctl.ordenar(k + 1, (v >> k) & 1, OR_MODBUS, ahora) != OK) return 4;

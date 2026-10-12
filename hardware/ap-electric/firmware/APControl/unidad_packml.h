@@ -42,6 +42,18 @@ inline bool esActuando(uint8_t e) {
          e == PK_UNHOLDING || e == PK_SUSPENDING || e == PK_UNSUSPENDING || e == PK_RESETTING || e == PK_COMPLETING;
 }
 
+// Qué hace cada entrada de la máquina (1-8; 0 = no se usa). Se guarda en memoria con la orden de guardar.
+//   ciclo: cada flanco de subida cuenta una pieza buena · mala: cuenta una pieza defectuosa · andon: pide HOLD con la causa
+//   «llamado de andon» · reanuda: botón junto a la máquina que sale de HOLD (origen local).
+const uint16_t MOTIVO_ANDON = CP_AVERIA * 100 + 90;      // causa 190 = llamado de andon
+struct ConfigMonitor {
+  uint32_t firma;
+  uint8_t entCiclo, entMala, entAndon, entReanuda;
+  uint16_t cicloNominalMs; uint8_t modo, libre;
+  uint32_t crc;
+};
+const uint32_t FIRMA_MONITOR = 0x41504D31;      // "APM1"
+
 struct ConfigPK {
   uint16_t cicloNominalMs = 0;      // 0 = sin ciclo nominal: no se calcula el desempeño ni los microparos
   uint16_t abortarCon = F_SIN_24V | F_VIGILANTE | F_EXPANSOR;   // fallas nuevas que piden ABORT
@@ -55,6 +67,8 @@ struct EventoPK { uint32_t t; uint8_t de, a, cmd, origen; uint16_t motivo; };
 class UnidadPackML {
  public:
   ConfigPK cfg;
+  ConfigMonitor mon{FIRMA_MONITOR, 0, 0, 0, 0, 0, MK_PRODUCCION, 0, 0};
+  bool contadoresCambiaron = false;       // para guardarlos con límite de escrituras
   uint8_t estado = PK_STOPPED, modo = MK_PRODUCCION, ultimoCmd = CK_NADA;
   uint16_t motivo = 0;                          // última causa de paro (categoria * 100 + causa)
   uint64_t ms[PK_N] = {};                       // tiempo acumulado en cada estado
@@ -69,7 +83,7 @@ class UnidadPackML {
     estado = PK_STOPPED; modo = MK_PRODUCCION; ultimoCmd = CK_NADA; motivo = 0;
     memset(ms, 0, sizeof(ms)); procesadas = defectuosas = 0; microparo = false; microMs = 0; fallasPrev = 0;
     nEv = sigEv = 0;
-    tUlt = tEntrada = tUltCuenta = ahora;
+    tUlt = tEntrada = tUltCuenta = ahora; entPrev = 0; primeraLectura = true;
     cfg.scAuto = 0;
     for (uint8_t e = 1; e < PK_N; e++) if (esActuando(e)) cfg.scAuto |= 1u << e;   // todo "actuando" termina solo
   }
@@ -152,6 +166,7 @@ class UnidadPackML {
   bool contar(bool buena, uint32_t ahora) {
     if (estado != PK_EXECUTE && estado != PK_COMPLETING) return false;
     procesadas++; if (!buena) defectuosas++;
+    contadoresCambiaron = true;
     tUltCuenta = ahora; microparo = false;
     return true;
   }
@@ -166,6 +181,49 @@ class UnidadPackML {
       if (ahora - tUltCuenta > umbral) { microparo = true; microMs += dt; }
     } else microparo = false;
     if (esActuando(estado) && (cfg.scAuto & (1u << estado)) && ahora != tEntrada) completar(ahora);
+  }
+
+
+  // ---- Entradas de la máquina (monitor): se llama cada paso con las entradas estables (bit = activa) ----
+  // La primera lectura solo toma el estado inicial: nada se cuenta ni se pide por una entrada que ya estaba activa.
+  void entradas(uint8_t ent, uint32_t ahora) {
+    uint8_t subio = primeraLectura ? 0 : (uint8_t)(ent & ~entPrev);
+    entPrev = ent; primeraLectura = false;
+    if (!subio) return;
+    auto sube = [&](uint8_t n) { return n >= 1 && n <= 8 && (subio & (1 << (n - 1))); };
+    if (sube(mon.entCiclo)) contar(true, ahora);
+    if (sube(mon.entMala)) contar(false, ahora);
+    if (sube(mon.entAndon) && estado == PK_EXECUTE) { motivo = MOTIVO_ANDON; comando(CK_HOLD, OR_ENTRADA, ahora); }
+    if (sube(mon.entReanuda)) comando(CK_UNHOLD, OR_ENTRADA, ahora);
+  }
+  // Una entrada no puede tener dos funciones. false = no válido (queda sin cambios).
+  bool configurarMonitor(const ConfigMonitor& n, uint8_t nEntradas) {
+    uint8_t v[4] = {n.entCiclo, n.entMala, n.entAndon, n.entReanuda};
+    for (int i = 0; i < 4; i++) {
+      if (v[i] > nEntradas) return false;
+      for (int j = i + 1; j < 4; j++) if (v[i] && v[i] == v[j]) return false;
+    }
+    if (n.modo < MK_PRODUCCION || n.modo > MK_MANUAL) return false;
+    mon = n; mon.firma = FIRMA_MONITOR; mon.crc = crc32((const uint8_t*)&mon, offsetof(ConfigMonitor, crc));
+    cfg.cicloNominalMs = mon.cicloNominalMs;
+    return true;
+  }
+  // La memoria es de confianza solo con firma y CRC correctos.
+  bool cargarMonitor(const ConfigMonitor& n, uint8_t nEntradas) {
+    if (n.firma != FIRMA_MONITOR || n.crc != crc32((const uint8_t*)&n, offsetof(ConfigMonitor, crc))) return false;
+    if (!configurarMonitor(n, nEntradas)) return false;
+    if (estado == PK_STOPPED) modo = mon.modo;
+    return true;
+  }
+  // Antes de guardar: copia el ciclo nominal y el modo vigentes.
+  const ConfigMonitor& paraGuardar() {
+    mon.firma = FIRMA_MONITOR; mon.cicloNominalMs = cfg.cicloNominalMs; mon.modo = modo;
+    mon.crc = crc32((const uint8_t*)&mon, offsetof(ConfigMonitor, crc));
+    return mon;
+  }
+  void restaurarContadores(uint32_t buenas, uint32_t malas) {
+    if (malas > buenas) return;
+    procesadas = buenas; defectuosas = malas;
   }
 
   // Fallas nuevas del controlador: piden ABORT o HOLD. Una falla que sigue activa bloquea CLEAR, RESET y START.
@@ -212,6 +270,7 @@ class UnidadPackML {
 
  private:
   uint32_t tUlt = 0, tEntrada = 0, tUltCuenta = 0;
+  uint8_t entPrev = 0; bool primeraLectura = true;
 
   static uint8_t bitBajo(uint16_t v) { uint8_t i = 0; while (v && !(v & 1)) { v >>= 1; i++; } return i + 1; }
   void pasarA(uint8_t d, uint8_t c, uint8_t origen, uint32_t ahora) {

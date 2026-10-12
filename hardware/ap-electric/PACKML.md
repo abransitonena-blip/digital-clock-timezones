@@ -83,6 +83,22 @@ Direcciones del protocolo, base 0. Sin unidad PackML los registros no existen (e
 | | 303 | 1 = contar pieza buena · 2 = defectuosa (solo en EXECUTE o COMPLETING) |
 | | 304 | Ciclo nominal en ms (0 = sin ciclo) |
 | | 305 | Solo lectura: comandos remotos que reanudan |
+| | 306 · 307 · 308 · 309 | Entrada de pieza buena · de pieza mala · de andon · de reanudar (0-8; 0 = ninguna; no se puede repetir una entrada: excepción 03) |
+
+## Entradas de la máquina (origen automático de piezas)
+
+Cada entrada puede tener **una** función. Se detecta el flanco de subida de la entrada ya estable (con su antirrebote).
+
+| Función | Qué hace |
+|---|---|
+| Pieza buena | Cuenta una pieza (solo en EXECUTE o COMPLETING) |
+| Pieza mala | Cuenta una pieza defectuosa |
+| Andon | En EXECUTE pide HOLD con la causa 190 («llamado de andon») |
+| Reanudar | Botón junto a la máquina: sale de HOLD. Se considera origen local |
+
+Una entrada que ya estaba activa al arrancar no cuenta ni pide nada. Con una torreta de luz o un sensor de ciclo se usa la entrada de pieza buena; con un botón de la estación, andon y reanudar.
+
+**Memoria:** la función de cada entrada, el ciclo nominal y el modo se guardan con la orden de guardar (`GUARDAR` o el registro 200 = 0xA55A) y se cargan solo si la firma y el CRC son correctos. Los contadores de piezas se guardan con límite de escrituras (1 min sin cambios y como máximo cada 10 min). Los tiempos por estado no se guardan: empiezan en cero al encender. «Valores de fábrica» borra todo.
 
 ## Órdenes locales
 
@@ -94,6 +110,7 @@ Por la consola USB (con permiso para reanudar) o por `/api?c=` (sin él):
 | `PK SC` | Fin del estado «actuando» o de EXECUTE |
 | `PK BUENA` · `PK MALA` | Cuenta una pieza |
 | `PK MODO n` · `PK MOTIVO n` · `PK CICLO ms` | Modo, causa de paro y ciclo nominal |
+| `PK ENT ciclo mala andon reanuda` | Qué entrada (1-8) hace cada cosa; 0 = ninguna. Ver «Entradas de la máquina» |
 | `PK REMOTO 0/1` | **Solo por la consola USB.** Permite o no que Modbus y la web reanuden |
 
 Los bits **S11-S27** del PLC valen 1 cuando la unidad está en el estado S − 10 (por ejemplo, `LD S16` = EXECUTE). `/api` devuelve el bloque `pk` con estado, modo, causa, piezas, disponibilidad, desempeño, calidad y OEE.
@@ -101,7 +118,7 @@ Los bits **S11-S27** del PLC valen 1 cuando la unidad está en el estado S − 1
 ## Lo que falta
 
 1. Confirmar con el texto de ISA-TR88.00.02-2022 los estados, comandos, modos y estados habilitados por modo.
-2. Que los contadores, el ciclo nominal y el modo se guarden en memoria con escrituras limitadas (hoy se pierden al reiniciar).
-3. Hora real de cada evento y bitácora en memoria flash.
-4. Un origen automático de piezas (entrada de conteo rápido, torreta de luz) y el tablero OEE en AP Studio.
+2. Hora real de cada evento y bitácora en memoria flash (los tiempos por estado se reinician al encender).
+3. Entrada de conteo rápido: hoy la cuenta pasa por el ciclo de 5 ms y el antirrebote, así que no sirve para más de unas decenas de piezas por segundo.
+4. El tablero OEE completo en AP Studio (la página del equipo ya muestra estado, piezas y OEE).
 5. Probarlo con una máquina real y validar la definición de OEE con un cliente.

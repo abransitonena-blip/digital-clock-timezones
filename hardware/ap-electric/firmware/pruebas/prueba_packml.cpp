@@ -202,6 +202,65 @@ int main() {
     REVISA(escribir(mb, 301, MK_MANTENIMIENTO, t) == 0 && leer(mb, 3, 301, t) == MK_MANTENIMIENTO);
     REVISA(leer(mb, 4, 157, t) == 0xDEAD);            // fuera del mapa
   }
+  // 13) entradas de la máquina: ciclo, mala, andon y reanudar; una entrada, una función
+  {
+    Banco b;
+    ConfigMonitor m = b.u.mon; m.entCiclo = 1; m.entMala = 2; m.entAndon = 3; m.entReanuda = 4; m.cicloNominalMs = 800; m.modo = MK_PRODUCCION;
+    REVISA(b.u.configurarMonitor(m, 8) && b.u.cfg.cicloNominalMs == 800);
+    b.u.entradas(0x01, b.t);                          // la entrada 1 ya estaba activa al arrancar: no cuenta
+    b.correr(30); b.u.entradas(0x01, b.t); REVISA(b.u.procesadas == 0);
+    b.u.entradas(0, b.t);
+    b.aExecute();
+    auto pulso = [&](uint8_t bit) { b.u.entradas(bit, b.t); b.correr(30); b.u.entradas(0, b.t); b.correr(30); };
+    pulso(0x01); pulso(0x01); pulso(0x02);
+    REVISA(b.u.procesadas == 3 && b.u.defectuosas == 1);
+    pulso(0x08);                                      // reanudar sin estar en HOLD: se ignora
+    REVISA(b.u.estado == PK_EXECUTE);
+    pulso(0x04);                                      // andon
+    REVISA(b.u.estado == PK_HELD && b.u.motivo == MOTIVO_ANDON);
+    pulso(0x01); REVISA(b.u.procesadas == 3);         // en HELD no se cuentan piezas
+    pulso(0x08);                                      // el botón junto a la máquina reanuda (origen local)
+    REVISA(b.u.estado == PK_EXECUTE);
+    bool desdeEntrada = false;                        // la bitácora anotó el UNHOLD con origen de entrada
+    for (int i = 0; i < b.u.nEv; i++) if (b.u.ev[i].cmd == CK_UNHOLD && b.u.ev[i].origen == OR_ENTRADA) desdeEntrada = true;
+    REVISA(desdeEntrada);
+    // una entrada con dos funciones, o fuera de rango, no se acepta y deja todo como estaba
+    ConfigMonitor malo = b.u.mon; malo.entMala = 1;
+    REVISA(!b.u.configurarMonitor(malo, 8) && b.u.mon.entMala == 2);
+    malo = b.u.mon; malo.entCiclo = 9; REVISA(!b.u.configurarMonitor(malo, 8));
+    malo = b.u.mon; malo.entCiclo = 5; REVISA(!b.u.configurarMonitor(malo, 4));      // AP Home solo tiene 1 entrada
+    malo = b.u.mon; malo.modo = 7; REVISA(!b.u.configurarMonitor(malo, 8));
+  }
+  // 14) memoria: se carga solo con firma y CRC buenos; contadores con tope lógico
+  {
+    Banco b; b.u.cfg.cicloNominalMs = 1200; b.u.cambiarModo(MK_MANTENIMIENTO, b.t);
+    ConfigMonitor m = b.u.mon; m.entCiclo = 2; REVISA(b.u.configurarMonitor(m, 8));
+    b.u.cfg.cicloNominalMs = 1200;
+    ConfigMonitor g = b.u.paraGuardar();
+    REVISA(g.cicloNominalMs == 1200 && g.modo == MK_MANTENIMIENTO && g.entCiclo == 2);
+    Banco c;
+    REVISA(c.u.cargarMonitor(g, 8) && c.u.mon.entCiclo == 2 && c.u.cfg.cicloNominalMs == 1200 && c.u.modo == MK_MANTENIMIENTO);
+    ConfigMonitor roto = g; roto.entMala = 7;           // cambia sin recalcular el CRC
+    Banco d; REVISA(!d.u.cargarMonitor(roto, 8) && d.u.mon.entCiclo == 0);
+    ConfigMonitor sinFirma = g; sinFirma.firma = 0; REVISA(!d.u.cargarMonitor(sinFirma, 8));
+    Banco e; e.u.restaurarContadores(100, 7); REVISA(e.u.procesadas == 100 && e.u.defectuosas == 7);
+    e.u.restaurarContadores(5, 9); REVISA(e.u.procesadas == 100);                  // más malas que buenas: se ignora
+    // el modo de la memoria solo se aplica si la unidad está detenida
+    Banco f; f.aExecute(); REVISA(f.u.cargarMonitor(g, 8) && f.u.modo == MK_PRODUCCION);
+    Banco h; h.aExecute(); h.u.contadoresCambiaron = false; h.u.contar(true, h.t); REVISA(h.u.contadoresCambiaron);
+  }
+  // 15) Modbus: función de cada entrada
+  {
+    Config c = fabrica(7, 8); c.mbDireccion = 1; c.crc = crcDe(c);
+    Controlador ctl; ctl.iniciar(c, 0, nullptr, 0, false);
+    uint32_t seg = 0; Esclavo mb(ctl, 100, 1, &seg);
+    UnidadPackML u; u.iniciar(0); mb.um = &u;
+    REVISA(escribir(mb, 306, 1, 0) == 0 && escribir(mb, 307, 2, 0) == 0 && escribir(mb, 308, 3, 0) == 0 && escribir(mb, 309, 4, 0) == 0);
+    REVISA(leer(mb, 3, 306, 0) == 1 && leer(mb, 3, 309, 0) == 4 && u.mon.entAndon == 3);
+    REVISA(escribir(mb, 307, 1, 0) == 3 && leer(mb, 3, 307, 0) == 2);              // repetida
+    REVISA(escribir(mb, 308, 9, 0) == 3 && escribir(mb, 308, 300, 0) == 3);        // fuera de rango
+    REVISA(escribir(mb, 308, 0, 0) == 0 && leer(mb, 3, 308, 0) == 0);              // quitar la función
+  }
   // 12) PLC: los estados PackML se leen como bits del área S (S10 + estado)
   {
     struct Ent : logica::Entorno {

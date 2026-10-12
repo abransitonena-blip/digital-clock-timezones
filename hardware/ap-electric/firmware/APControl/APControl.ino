@@ -60,7 +60,7 @@ String plcTexto;
 bool wifiApagadoDip = false, wifiActivo = false;
 uint32_t tWifi = 0;
 String red, clave;
-apc::LimiteEscritura limEstado, limManiobras;
+apc::LimiteEscritura limEstado, limManiobras, limPk;
 uint8_t escrito = 0xFF;
 bool fallaI2C = false;
 
@@ -114,6 +114,7 @@ void leerHardware(uint8_t& ent, uint8_t& btn, uint8_t& bob) {
 void guardarConfig() {
   ctl.cfg.crc = apc::crcDe(ctl.cfg);
   pref.putBytes("cfg", &ctl.cfg, sizeof(ctl.cfg));
+  pref.putBytes("pkm", &pk.paraGuardar(), sizeof(apc::ConfigMonitor));      // función de cada entrada, ciclo nominal y modo
   pref.putBytes("vinc", vinc, sizeof(vinc));
 }
 void cargarVinculos() {
@@ -165,7 +166,7 @@ bool ejecutar(String s, bool local = false) {
   apc::Config cfg = ctl.cfg;
   auto aplicar = [&](void) { cfg.crc = apc::crcDe(cfg); if (!apc::validar(cfg)) return false; ctl.cfg = cfg; return true; };
   if (s.startsWith("GUARDAR")) { guardarConfig(); return true; }
-  if (s.startsWith("FABRICA")) { pref.remove("cfg"); pref.remove("vinc"); pref.remove("est"); delay(100); ESP.restart(); }
+  if (s.startsWith("FABRICA")) { pref.remove("cfg"); pref.remove("vinc"); pref.remove("est"); pref.remove("pkm"); pref.remove("pkn"); delay(100); ESP.restart(); }
   if (s.startsWith("PLC ")) {
     String a = s.substring(4);
     if (a == "RUN") plcModo(true); else if (a == "STOP") plcModo(false);
@@ -182,6 +183,11 @@ bool ejecutar(String s, bool local = false) {
     if (a.startsWith("MODO ")) return pk.cambiarModo(a.substring(5).toInt(), t);
     if (a.startsWith("MOTIVO ")) { pk.motivoParo(a.substring(7).toInt()); return true; }
     if (a.startsWith("CICLO ")) { long v = a.substring(6).toInt(); if (v < 0 || v > 65535) return false; pk.cfg.cicloNominalMs = v; return true; }
+    if (a.startsWith("ENT ")) {                       // PK ENT ciclo mala andon reanuda (0 = ninguna)
+      const char* q = a.c_str() + 4; apc::ConfigMonitor n = pk.mon;
+      n.entCiclo = num(q); n.entMala = num(q); n.entAndon = num(q); n.entReanuda = num(q);
+      return pk.configurarMonitor(n, ctl.cfg.nEntradas);
+    }
     if (a.startsWith("REMOTO ") && local) { pk.cfg.remotoReanuda = a.substring(7).toInt() != 0; return true; }
     return false;
   }
@@ -292,13 +298,17 @@ void recibirEventos(uint32_t t) {
 const char PAGINA[] PROGMEM = R"HTML(<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AP Control</title><style>body{font:16px system-ui;margin:16px;background:#f2f2f7;color:#1c1c1e}.c{background:#fff;border-radius:14px;padding:14px;margin:10px 0}
 button{font:inherit;border:0;border-radius:10px;padding:10px 14px;margin:4px;background:#e5e5ea}.on{background:#30d158;color:#fff}.f{color:#c0281f}</style>
-<h2 id=t>AP Control</h2><div class=c id=s></div><div class=c id=e></div><div class=c id=f></div>
+<h2 id=t>AP Control</h2><div class=c id=s></div><div class=c id=e></div><div class=c id=k></div><div class=c id=f></div>
 <p>Más ajustes: órdenes por /api?c=… o por la consola USB (ver el manual).</p>
 <script>
 async function a(c){const r=await fetch('/api'+(c?'?c='+encodeURIComponent(c):''));const j=await r.json();p(j)}
 function p(j){t.textContent=j.placa+' · '+j.v;let h='';for(let k=1;k<=j.n;k++){const o=j.s>>(k-1)&1;h+=`<button class="${o?'on':''}" onclick="a('C ${k} 2')">Canal ${k}${j.fz>>(k-1)&1?' (manual)':''}</button>`}
 s.innerHTML=h;let g='Entradas: ';for(let k=1;k<=j.ne;k++)g+=(j.e>>(k-1)&1?'●':'○')+' ';e.textContent=g;
-f.innerHTML=j.f?'<b class=f>Falla: '+j.fn.join(', ')+'</b>':'Sin fallas';}
+f.innerHTML=j.f?'<b class=f>Falla: '+j.fn.join(', ')+'</b>':'Sin fallas';
+const E=['','Limpiando','Detenida','Arrancando','Lista','Suspendida','En marcha','Deteniendo','Abortando','Abortada','Reteniendo','Retenida','Reanudando','Suspendiendo','Reanudando susp.','Reiniciando','Terminando','Terminada'];
+const q=j.pk,P=v=>v==65535?'—':(v/10).toFixed(1)+' %';
+k.innerHTML='<b>'+E[q.e]+'</b> · piezas '+q.n+' ('+q.d+' malas)<br>Disponibilidad '+P(q.disp)+' · Desempeño '+P(q.des)+' · Calidad '+P(q.cal)+' · <b>OEE '+P(q.oee)+'</b>'+(q.mp?' <span class=f>microparo</span>':'')+
+'<br><button onclick="a(\'PK HOLD\')">Retener</button><button onclick="a(\'PK STOP\')">Parar</button><button onclick="a(\'PK ABORT\')">Abortar</button>'+(q.rem?'':' <small>Arrancar y reanudar: en la máquina</small>');}
 a();setInterval(a,1500)</script></html>)HTML";
 const char* NOMBRE_FALLA[] = {"configuración inválida", "bobina sin tensión", "comunicación perdida", "sin 24 V",
                               "mantenimiento de relés", "reinicio por vigilante", "expansor I2C"};
@@ -350,6 +360,9 @@ void setup() {
   mb.placa = placa;
   mb.um = &pk;
   pk.iniciar(millis());
+  { apc::ConfigMonitor m; uint32_t n[2] = {0, 0};
+    if (pref.getBytes("pkm", &m, sizeof(m)) == sizeof(m)) pk.cargarMonitor(m, placa == PLACA_7R ? 8 : 1);
+    if (pref.getBytes("pkn", n, sizeof(n)) == sizeof(n)) pk.restaurarContadores(n[0], n[1]); }
   apc::Config c;
   uint8_t nC = placa == PLACA_7R ? 7 : 1, nE = placa == PLACA_7R ? 8 : 1;
   if (pref.getBytes("cfg", &c, sizeof(c)) != sizeof(c) || c.nCanales != nC) c = apc::fabrica(nC, nE);
@@ -393,7 +406,7 @@ void loop() {
     btnAnt = m;
     ctl.paso(t, ent, btn, bob);
     if (fallaI2C) ctl.fallas |= apc::F_EXPANSOR; else ctl.fallas &= ~apc::F_EXPANSOR;
-    pk.paso(t); pk.alFalla(ctl.fallas, t);        // unidad PackML: tiempos por estado y paro o retención ante fallas
+    pk.entradas(ctl.entradas, t); pk.paso(t); pk.alFalla(ctl.fallas, t);        // unidad PackML: tiempos por estado y paro o retención ante fallas
     uint8_t dif = antes ^ ctl.entradas;
     for (int k = 0; k < 8; k++) if (dif & (1 << k)) enviarEvento(k + 1, ctl.entradas & (1 << k));
     escribirSalidas(ctl.salida);
@@ -418,6 +431,8 @@ void loop() {
   ctl.guardarEstado = false;
   if (limManiobras.debeEscribir(ctl.guardarManiobras, t, 60000, 3600000UL)) pref.putBytes("man", ctl.maniobras, sizeof(ctl.maniobras));
   ctl.guardarManiobras = false;
+  if (limPk.debeEscribir(pk.contadoresCambiaron, t, 60000, 600000UL)) { uint32_t n[2] = {pk.procesadas, pk.defectuosas}; pref.putBytes("pkn", n, sizeof(n)); }
+  pk.contadoresCambiaron = false;
   // indicadores
   if (t - tSeg >= 1000) { tSeg = t; segundos++; }
   bool run = (t / 500) & 1, fal = ctl.fallas && ((t / 150) % 4 == 0);
