@@ -15,4 +15,6 @@ node ../../../ap-studio/pruebas/prueba_logica.cjs      # el mismo motor en AP St
 cd ../../../ap-electric/firmware/pruebas
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_control prueba_control.cpp
 /tmp/prueba_control
+g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_packml prueba_packml.cpp
+/tmp/prueba_packml
 cmp ../APControl/logica.h ../../../ap1-prog/firmware/LetreroLabAP1/logica.h && echo "logica.h: la copia de AP Control es la misma"

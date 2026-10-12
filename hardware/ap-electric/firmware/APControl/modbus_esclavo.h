@@ -15,10 +15,24 @@
 //                         60-67 canal de la entrada (0 = ninguno) · 70-77 antirrebote en ms
 //                         100 dirección · 101 baudios / 100 · 102 paridad (0 N, 1 E, 2 O)
 //                         200 orden: 0xA55A = guardar la configuración en la memoria, 0x5AA5 = valores de fábrica
+//   PackTags v1 (solo si el equipo tiene unidad PackML; si no, excepción 02). Estados y comandos: unidad_packml.h
+//     Entradas discretas  48 microparo · 49 proceso habilitado (estado EXECUTE) · 50 comandos remotos que reanudan permitidos
+//     Registros de entrada 100 versión del mapa (1) · 101 StateCurrent · 102 UnitModeCurrent · 103 StopReason
+//                          104 último comando aceptado · 105-106 ProdProcessedCount · 107-108 ProdDefectiveCount
+//                          110-143 segundos acumulados en cada estado 1-17 (32 bits: bajo, alto; estado n en 110 + 2 (n-1))
+//                          150 disponibilidad · 151 desempeño · 152 calidad · 153 OEE (milésimas; 65535 = no calculable)
+//                          154 microparo (0/1) · 155-156 segundos en microparo (bajo, alto)
+//     Registros (4x)       300 CntrlCmd (escribir 1 Reset · 2 Start · 3 Stop · 4 Hold · 5 Unhold · 6 Suspend · 7 Unsuspend ·
+//                          8 Abort · 9 Clear; excepción 04 si el estado, el modo o el origen no lo permiten)
+//                          301 UnitMode (1 producción · 2 mantenimiento · 3 manual; solo en STOPPED o ABORTED)
+//                          302 StopReason (categoría x 100 + causa) · 303 contar pieza (1 buena · 2 defectuosa)
+//                          304 ciclo nominal en ms (0 = sin ciclo)
+//                          305 comandos remotos que reanudan (0 no · 1 sí): SOLO LECTURA por Modbus, se cambia en el equipo
 // Los cambios de configuración se validan y valen al momento, pero solo se guardan con la orden 0xA55A
 // (así un maestro que escribe seguido no desgasta la memoria). Una escritura inválida responde la excepción 03.
 #pragma once
 #include "ap_control.h"
+#include "unidad_packml.h"
 
 namespace apc {
 
@@ -35,6 +49,7 @@ struct Esclavo {
   Controlador& ctl;
   uint16_t version, placa;
   uint32_t* segundos;
+  UnidadPackML* um = nullptr;                    // opcional: sin ella los registros PackTags no existen
   bool pedirGuardar = false, pedirFabrica = false, cambioComunicacion = false;
   uint32_t tramasBien = 0, tramasMal = 0;
   Esclavo(Controlador& c, uint16_t v, uint16_t p, uint32_t* s) : ctl(c), version(v), placa(p), segundos(s) {}
@@ -110,6 +125,9 @@ struct Esclavo {
     if (a == 32) return wifiApagado;
     if (a == 33) return ctl.comPerdida;
     if (a == 34) return ctl.fallas != 0;
+    if (um && a == 48) return um->microparo;
+    if (um && a == 49) return um->procesoHabilitado();
+    if (um && a == 50) return um->cfg.remotoReanuda;
     return -1;
   }
   int32_t input(uint16_t a) {
@@ -121,6 +139,21 @@ struct Esclavo {
     if (a >= 20 && a < 20 + 2 * ctl.cfg.nCanales) {
       uint32_t v = ctl.maniobras[(a - 20) / 2];
       return (a - 20) % 2 ? v >> 16 : v & 0xFFFF;
+    }
+    return um ? inputPK(a) : -1;
+  }
+  int32_t inputPK(uint16_t a) {
+    const UnidadPackML& u = *um;
+    switch (a) {
+      case 100: return 1; case 101: return u.estado; case 102: return u.modo; case 103: return u.motivo;
+      case 104: return u.ultimoCmd; case 105: return u.procesadas & 0xFFFF; case 106: return u.procesadas >> 16;
+      case 107: return u.defectuosas & 0xFFFF; case 108: return u.defectuosas >> 16;
+      case 150: return u.disponibilidad(); case 151: return u.desempeno(); case 152: return u.calidad(); case 153: return u.oee();
+      case 154: return u.microparo; case 155: return (uint32_t)(u.microMs / 1000) & 0xFFFF; case 156: return (uint32_t)(u.microMs / 1000) >> 16;
+    }
+    if (a >= 110 && a < 110 + 2 * (PK_COMPLETE)) {
+      uint32_t v = u.segundosEn(1 + (a - 110) / 2);
+      return (a - 110) % 2 ? v >> 16 : v & 0xFFFF;
     }
     return -1;
   }
@@ -140,6 +173,12 @@ struct Esclavo {
     if (a == 101) return c.mbBaudios / 100;
     if (a == 102) return c.mbParidad;
     if (a == 200) return 0;
+    if (um && a == 300) return um->ultimoCmd;
+    if (um && a == 301) return um->modo;
+    if (um && a == 302) return um->motivo;
+    if (um && a == 303) return 0;
+    if (um && a == 304) return um->cfg.cicloNominalMs;
+    if (um && a == 305) return um->cfg.remotoReanuda;
     return -1;
   }
   uint8_t escribirBobina(uint16_t a, bool v, uint32_t ahora) {
@@ -147,10 +186,23 @@ struct Esclavo {
     ctl.modbusEscribio(ahora);
     return ctl.ordenar(a + 1, v, OR_MODBUS, ahora) == OK ? 0 : 4;    // 4 = el canal lo maneja el programa PLC
   }
+  // 3 = valor ilegal; 4 = el estado, el modo o el origen no lo permiten (nunca se reanuda por sí solo)
+  uint8_t escribirPK(uint16_t a, uint16_t v, uint32_t ahora) {
+    switch (a) {
+      case 300: if (v == CK_NADA) return 0; if (v >= CK_N) return 3; return um->comando(v, OR_MODBUS, ahora) ? 0 : 4;
+      case 301: if (v < MK_PRODUCCION || v > MK_MANUAL) return 3; return um->cambiarModo(v, ahora) ? 0 : 4;
+      case 302: if (v > 999) return 3; um->motivoParo(v); return 0;
+      case 303: if (v != 1 && v != 2) return 3; return um->contar(v == 1, ahora) ? 0 : 4;
+      case 304: um->cfg.cicloNominalMs = v; return 0;
+      case 305: return 2;                       // solo lectura: un maestro no puede darse permiso para reanudar
+    }
+    return 2;
+  }
   uint8_t escribirHolding(uint16_t a, uint16_t v, uint32_t ahora) {
     Config c = ctl.cfg;
     int n = c.nCanales, ne = c.nEntradas;
     ctl.modbusEscribio(ahora);
+    if (um && a >= 300 && a <= 305) return escribirPK(a, v, ahora);
     if (a == 1) {
       if (v >> n) return 3;
       for (int k = 0; k < n; k++) if (ctl.ordenar(k + 1, (v >> k) & 1, OR_MODBUS, ahora) != OK) return 4;

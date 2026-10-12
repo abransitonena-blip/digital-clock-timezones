@@ -46,6 +46,7 @@
 | `MB dir baud par vig` | Modbus |
 | `GUARDAR` · `FABRICA` | Guardar la configuración · valores de fábrica |
 | `PLC RUN` · `PLC STOP` · `PLC BORRAR` | Programa tipo PLC (se sube con POST /plc; lenguaje en `../AP_LOGICA.md`) |
+| `PK RESET` … `PK ABORT` · `PK BUENA` · `PK MODO n` | Unidad PackML: estado de la máquina, piezas y modo (ver [PACKML.md](PACKML.md)). Por la web solo parar, retener y abortar |
 | `WIFI OFF` | Apaga el Wi-Fi |
 
 Los cambios valen al momento y se guardan con `GUARDAR`, para que la memoria no se desgaste.
@@ -61,4 +62,5 @@ Mapa completo en `firmware/APControl/modbus_esclavo.h`.
 | Entradas discretas 16-22 | Bobina energizada |
 | Registros de entrada | Versión, fallas, salidas, maniobras |
 | Registros de retención | Configuración (vigilancia, arranque, carga, pulsos, entradas) |
+| Registros 100-156 y 300-305 | Estado PackML, tiempos por estado, piezas y OEE (ver [PACKML.md](PACKML.md)) |
 | Registro 200 | 0xA55A guarda |

@@ -27,6 +27,7 @@
 #include "esp_task_wdt.h"
 #include "ap_control.h"
 #include "modbus_esclavo.h"
+#include "unidad_packml.h"
 #include "logica.h"
 
 void abrirAP();
@@ -47,6 +48,7 @@ const uint8_t PH_RELE = 4, PH_LVERDE = 5, PH_LROJO = 6, PH_SW = 7;
 const uint8_t P_MODO = 9;
 
 apc::Controlador ctl;
+apc::UnidadPackML pk;
 uint32_t segundos = 0;
 apc::Esclavo mb(ctl, VERSION_NUM, PLACA_HOME, &segundos);
 Preferences pref;
@@ -124,7 +126,8 @@ struct EntornoAPC : logica::Entorno {
   bool leerBit(char a, int i) override {
     if (a == 'I') return i >= 1 && i <= 8 && (ctl.entradas & (1 << (i - 1)));
     if (a == 'Q') return i >= 1 && i <= 7 && (ctl.salida & (1 << (i - 1)));
-    if (a == 'S') return i == 2 ? (millis() / 500) & 1 : i == 3 ? true : i == 5 ? ctl.fallas != 0 : false;
+    if (a == 'S') return i == 2 ? (millis() / 500) & 1 : i == 3 ? true : i == 5 ? ctl.fallas != 0
+                     : (i >= 10 && i < 10 + apc::PK_N) ? pk.estado == i - 10 : false;   // S11-S27: estado PackML (S10 + estado)
     return false;
   }
   float valor(char, int) override { return NAN; }
@@ -152,7 +155,9 @@ void plcModo(bool run) {
 // ---------------- órdenes ----------------
 long num(const char*& p) { while (*p == ' ' || *p == ',') p++; long v = strtol(p, (char**)&p, 0); return v; }
 String estadoJSON();
-bool ejecutar(String s) {
+// `local` = la orden viene de la consola USB (alguien junto al equipo). Por la web o la red (local = false) la unidad PackML
+// solo acepta parar, retener y abortar, igual que por Modbus, y no se puede dar permiso para reanudar.
+bool ejecutar(String s, bool local = false) {
   s.trim(); if (!s.length()) return false;
   const char* p = s.c_str() + 1;
   char c = toupper(s[0]);
@@ -166,6 +171,19 @@ bool ejecutar(String s) {
     if (a == "RUN") plcModo(true); else if (a == "STOP") plcModo(false);
     else if (a == "BORRAR") { plcModo(false); plc.n = 0; plcTexto = ""; pref.remove("plc"); }
     return true;
+  }
+  if (s.startsWith("PK ")) {                          // unidad PackML: órdenes locales (las únicas que pueden dar permiso remoto)
+    String a = s.substring(3); a.trim(); a.toUpperCase();
+    static const char* cmds[] = {"", "RESET", "START", "STOP", "HOLD", "UNHOLD", "SUSPEND", "UNSUSPEND", "ABORT", "CLEAR"};
+    for (int i = 1; i < 10; i++) if (a == cmds[i]) return pk.comando(i, local ? apc::OR_BOTON : apc::OR_RED, t);
+    if (a == "SC") return pk.completar(t);
+    if (a == "BUENA") return pk.contar(true, t);
+    if (a == "MALA") return pk.contar(false, t);
+    if (a.startsWith("MODO ")) return pk.cambiarModo(a.substring(5).toInt(), t);
+    if (a.startsWith("MOTIVO ")) { pk.motivoParo(a.substring(7).toInt()); return true; }
+    if (a.startsWith("CICLO ")) { long v = a.substring(6).toInt(); if (v < 0 || v > 65535) return false; pk.cfg.cicloNominalMs = v; return true; }
+    if (a.startsWith("REMOTO ") && local) { pk.cfg.remotoReanuda = a.substring(7).toInt() != 0; return true; }
+    return false;
   }
   if (s.startsWith("WIFI")) {
     String a = s.substring(5);
@@ -294,7 +312,10 @@ String estadoJSON() {
   s += "],\"arr\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].arranque; }
   s += "],\"carga\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].carga; }
   s += "],\"mb\":{\"dir\":"; s += ctl.cfg.mbDireccion; s += ",\"bps\":"; s += ctl.cfg.mbBaudios; s += ",\"vig\":"; s += ctl.cfg.mbVigilanciaS;
-  s += ",\"ok\":"; s += mb.tramasBien; s += ",\"mal\":"; s += mb.tramasMal; s += "},\"plc\":{\"run\":"; s += plcRun;
+  s += ",\"ok\":"; s += mb.tramasBien; s += ",\"mal\":"; s += mb.tramasMal; s += "},\"pk\":{\"e\":"; s += pk.estado; s += ",\"m\":"; s += pk.modo; s += ",\"r\":"; s += pk.motivo; s += ",\"n\":"; s += pk.procesadas;
+  s += ",\"d\":"; s += pk.defectuosas; s += ",\"disp\":"; s += pk.disponibilidad(); s += ",\"des\":"; s += pk.desempeno();
+  s += ",\"cal\":"; s += pk.calidad(); s += ",\"oee\":"; s += pk.oee(); s += ",\"mp\":"; s += pk.microparo; s += ",\"rem\":"; s += pk.cfg.remotoReanuda;
+  s += "},\"plc\":{\"run\":"; s += plcRun;
   s += ",\"n\":"; s += plc.n; s += ",\"err\":\""; s += plc.error; s += "\"},\"id\":\""; s += mac6(); s += "\",\"t\":"; s += segundos; s += '}';
   return s;
 }
@@ -327,6 +348,8 @@ void setup() {
   }
   pinMode(P_MODO, INPUT_PULLUP);
   mb.placa = placa;
+  mb.um = &pk;
+  pk.iniciar(millis());
   apc::Config c;
   uint8_t nC = placa == PLACA_7R ? 7 : 1, nE = placa == PLACA_7R ? 8 : 1;
   if (pref.getBytes("cfg", &c, sizeof(c)) != sizeof(c) || c.nCanales != nC) c = apc::fabrica(nC, nE);
@@ -370,6 +393,7 @@ void loop() {
     btnAnt = m;
     ctl.paso(t, ent, btn, bob);
     if (fallaI2C) ctl.fallas |= apc::F_EXPANSOR; else ctl.fallas &= ~apc::F_EXPANSOR;
+    pk.paso(t); pk.alFalla(ctl.fallas, t);        // unidad PackML: tiempos por estado y paro o retención ante fallas
     uint8_t dif = antes ^ ctl.entradas;
     for (int k = 0; k < 8; k++) if (dif & (1 << k)) enviarEvento(k + 1, ctl.entradas & (1 << k));
     escribirSalidas(ctl.salida);
@@ -388,7 +412,7 @@ void loop() {
     WiFi.mode(WIFI_OFF); wifiActivo = false;          // la red de configuración se cierra sola a los 15 min
   }
   if (WiFi.getMode() == WIFI_AP && WiFi.softAPgetStationNum()) tWifi = t;
-  if (Serial.available()) { String l = Serial.readStringUntil('\n'); bool ok = ejecutar(l); Serial.println(ok ? estadoJSON() : "?"); }
+  if (Serial.available()) { String l = Serial.readStringUntil('\n'); bool ok = ejecutar(l, true); Serial.println(ok ? estadoJSON() : "?"); }
   // memoria con escrituras limitadas
   if (limEstado.debeEscribir(ctl.guardarEstado, t)) pref.putUChar("est", ctl.salida);
   ctl.guardarEstado = false;
