@@ -71,7 +71,7 @@ Revisión de escritorio del diseño, hecha por el equipo de diseño; **no sustit
 | 3 | Las entradas son PNP | Diseño de la rev B | No conectar sensores NPN; planear la rev C |
 | 4 | Batería del reloj | Conector de 2 polos con un OR de diodos Schottky (BAT54C); una pila no recargable no debe recibir corriente | Medir que, con 3.3 V presentes, no entra corriente a la pila; polaridad marcada en la serigrafía |
 | 5 | Pines de arranque del ESP32-C3 | IO2, IO8 e IO9 son de arranque; llevan I2C y el botón de modo | La prueba automática `tools/revisar_pines.py` confirma que la placa y el programa coinciden; en banco, comprobar que arranca con y sin 24 V |
-| 6 | Salidas del expansor al encender | Antes de que el programa las configure las patas del TCA9554 son entradas | Hay una resistencia de 10 kΩ a 0 V por canal; comprobar con el osciloscopio que ningún relé hace clic al energizar |
+| 6 | Salidas del expansor al encender | Antes de que el programa las configure, las patas del TCA9554 son entradas con 100 kΩ a 3.3 V ([hoja de TI](https://www.ti.com/document-viewer/ja-jp/TCA9554/datasheet/detailed-description)); sin pull-down, la entrada del ULN2003A podía excitar un relé unos instantes en cada encendido | **Corregido en la rev B, antes de fabricar**: resistencia de 10 kΩ a 0 V en cada una de las 7 líneas (RD1-RD7). Comprobar con el osciloscopio que ningún relé hace clic al energizar |
 | 7 | Cobre de 2 oz | No se confirmó que JLCPCB lo ofrezca también con ensamble | Verlo en la cotización antes de pagar |
 | 8 | Capacidad de contactos y calentamiento | Todos los límites por canal están en PD | Ensayos de la sección 3 antes de declarar cualquier valor |
 

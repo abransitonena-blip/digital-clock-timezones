@@ -11,6 +11,7 @@ Cambios de la placa respecto a la rev A, todos para el plan industrial (OEE, and
 | IO0 recibe la entrada 1 e IO20 la entrada 2 (conteo rápido por interrupción) | Contar piezas hasta ~500 por segundo sin pasar por el ciclo de 5 ms | Casi nulo: solo une dos redes que ya existían |
 | Reloj PCF8563T + cristal + OR de batería + conector de batería de 2 pines | Hora de cada evento sin red | Un circuito nuevo en el bus I2C. Si falla, se arma una variante sin él |
 | 11 puntos de prueba (24 V, 5 V, 3.3 V, 2 × 0 V, SDA, SCL, TX, RX, DE, EN) | Medir con el osciloscopio durante la puesta en marcha | Ninguno (no entran al BOM) |
+| 7 resistencias de 10 kΩ a 0 V en las entradas del ULN2003A (RD1-RD7) | Los relés no se mueven mientras el programa arranca: el TCA9554 trae 100 kΩ a 3.3 V al encender | Casi nulo: 7 piezas básicas |
 | Firmware: conteo rápido, reloj, ajuste de hora por Modbus, autoprueba `TEST` | Probar la placa sin instrumentos y saber qué falló | Solo software |
 
 **Sin cambios, pero conviene saberlo antes de comprar:**

@@ -193,6 +193,8 @@ for k in range(1, 8):
         ("J%d" % k, "KF128-5.08-2P", "Connector:Screw_Terminal_01x02", KF2, {"1": "C%d" % k, "2": "N%d" % k},
          "Canal %d: 1 = común (llega la fase), 2 = NA (sale a la carga)" % k),
         ("RL%d" % k, "10k", R, R06, {"1": "V24", "2": "LA%d" % k}, "LED de bobina %d (2.2 mA)" % k),
+        ("RD%d" % k, "10k", R, R06, {"1": "DO%d" % k, "2": "GND"},
+         "Pull-down de la entrada %d del ULN2003A: el TCA9554 arranca con 100 kΩ a 3.3 V y sin esto el relé podría excitarse hasta que el programa lo configure" % k),
         ("LD%d" % k, "VERDE", "Device:LED", LED06, {"1": "BOB%d" % k, "2": "LA%d" % k}, "Bobina %d con tensión" % k),
         ("RSA%d" % k, "100k", R, R06, {"1": "BOB%d" % k, "2": "SEN%d" % k}, "Divisor de la bobina %d" % k),
         ("RSB%d" % k, "15k", R, R06, {"1": "SEN%d" % k, "2": "GND"}, "Divisor: 24 V -> 3.1 V"),
@@ -248,6 +250,8 @@ POS = {
     "J15": (136.0, 85.5, 0), "R9": (127.5, 84.5, 90), "R10": (127.5, 88.0, 90), "U10": (136.0, 77.3, 0),
     # salidas
     "U1": (63.0, 60.5, 90), "U2": (63.0, 68.5, 90), "C20": (59.0, 68.5, 90), "R11": (67.0, 74.5, 90),
+    "RD1": (55.2, 74.3, 0), "RD2": (58.6, 74.3, 0), "RD3": (62.0, 74.3, 0),
+    "RD4": (52.0, 76.2, 0), "RD5": (55.4, 76.2, 0), "RD6": (58.8, 76.2, 0), "RD7": (62.2, 76.2, 0),
     "SW1": (89.5, 65.5, 90),
     "U4": (116.0, 60.0, 0), "C21": (121.5, 60.0, 90), "U5": (127.0, 60.0, 0), "C22": (132.5, 59.0, 90),
     # entradas
@@ -376,7 +380,7 @@ NOTES = [(150.0, 15.0, "AP Electric Industrial · 7R Tour rev B (CONCEPTO): 7 x 
 TITLE = "AP Electric Industrial · 7R Tour rev B - 7 relés, 8 entradas, Modbus aislado (CONCEPTO)"
 SUBTITLES = ["Placa de 2 capas, 2 oz (JLCPCB)", "Estado: concepto. Límites del producto por determinar por ensayo"]
 COMPANY = "PCB 176 x 90 mm, 2 capas, 2 oz"
-OCULTAR_REF = tuple(["RL%d" % k for k in range(1, 8)] + ["RSA%d" % k for k in range(1, 8)] + ["RSB%d" % k for k in range(1, 8)])
+OCULTAR_REF = tuple(["RL%d" % k for k in range(1, 8)] + ["RD%d" % k for k in range(1, 8)] + ["RSA%d" % k for k in range(1, 8)] + ["RSB%d" % k for k in range(1, 8)])
 
 if __name__ == "__main__":
     if "--cajas" in sys.argv:
