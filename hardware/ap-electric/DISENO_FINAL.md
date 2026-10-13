@@ -28,6 +28,7 @@ Segmentos fuera de estas placas: **Luz/LED** (letreros, AP FOCO, PWM4) se mantie
 - **Arriba de la placa** (franja de y < 31 mm): los siete relés y sus pistas anchas de **2 mm en las dos caras, cobre de 2 oz**. Es la zona de contactos, separada de la lógica por **ranuras y ≥ 6.4 mm** de aislamiento.
 - **Parte baja**: lógica de 24 V, ESP32-C3, expansores, entradas aisladas, RS-485 aislado y bornes.
 - Las 3 redes largas (INT, RS_DE, RS_RX) las trazó una herramienta propia (`tools/ruta_auto.py`); conviene revisarlas en KiCad antes de pedir.
+- Cada línea de excitación del ULN2003A lleva una resistencia de 10 kΩ a 0 V (RD1-RD7): los relés no se mueven mientras el programa arranca.
 
 ### Voltajes
 | Punto | Valor |
@@ -62,7 +63,7 @@ Capacidad, irrupción de LED y corriente total simultánea: **PD**. Motores y bo
 Estados de máquina PackML, conteo de piezas, causas de paro, microparos, andon, OEE, bitácora con hora, lógica tipo PLC en escalera, autoprueba (`TEST`) y tablero en AP Studio.
 
 ### Cierre por software (rev B)
-ERC 0 · DRC 0 (0 sin conectar, paridad esquema-placa 0) · reglas de JLCPCB 0 · pedido revisado sin errores: **24DC 56 filas / 177 piezas; CA 59 filas / 183 piezas** (con avisos conocidos de códigos compartidos).
+ERC 0 · DRC 0 (0 sin conectar, paridad esquema-placa 0) · reglas de JLCPCB 0 · pedido revisado sin errores: **24DC 56 filas / 184 piezas; CA 59 filas / 190 piezas** (con avisos conocidos de códigos compartidos).
 
 ---
 

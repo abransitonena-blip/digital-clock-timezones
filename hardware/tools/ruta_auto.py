@@ -250,25 +250,61 @@ def rutas(S, b, lista):
     print("limpieza: %d elementos quitados" % limpiar(b, {r for r, _, _ in lista}))
 
 
+def _dist_seg(p, a, b):
+    dx, dy = b.x - a.x, b.y - a.y
+    L2 = dx * dx + dy * dy
+    u = 0 if L2 == 0 else max(0, min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L2))
+    return ((p.x - (a.x + u * dx)) ** 2 + (p.y - (a.y + u * dy)) ** 2) ** 0.5
+
+
 def limpiar(b, redes):
-    """Quita las vías de esas redes que quedaron unidas por una sola cara y las pistas de menos de 0.05 mm sobrantes del ruteador."""
-    quitar = []
-    pistas = [t for t in b.GetTracks() if t.GetClass() != "PCB_VIA"]
-    for t in b.GetTracks():
-        if t.GetClass() == "PCB_VIA":
-            if t.GetNetname().lstrip("/") not in redes:
-                continue
+    """Limpieza tras rutear (solo en las redes indicadas): quita vías duplicadas o unidas por una sola cara y poda las
+    ramas sin salida (pistas con un extremo que no toca pad, vía ni otra pista) que deja el ruteador."""
+    quitadas = 0
+    TOL = 5000       # 5 µm
+    for _ in range(6):
+        cambio = False
+        trk = [t for t in b.GetTracks() if t.GetClass() != "PCB_VIA" and t.GetNetname().lstrip("/") in redes]
+        via = [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetname().lstrip("/") in redes]
+        pads = [p for p in b.GetPads() if p.GetNetname().lstrip("/") in redes]
+        # vías duplicadas
+        for i, v in enumerate(via):
+            if any(v.GetNetCode() == w.GetNetCode() and (v.GetPosition() - w.GetPosition()).EuclideanNorm() < 0.4e6 for w in via[:i]):
+                b.Remove(v); quitadas += 1; cambio = True; break
+        if cambio:
+            continue
+        # vías con una sola cara
+        for v in via:
             caras = set()
-            for p in pistas:
-                if p.GetNetCode() == t.GetNetCode() and (p.HitTest(t.GetPosition())):
-                    caras.add(p.GetLayer())
-            for p in b.GetPads():
-                if p.GetNetCode() == t.GetNetCode() and p.HitTest(t.GetPosition()):
+            for t in trk:
+                if t.GetNetCode() == v.GetNetCode() and (_dist_seg(v.GetPosition(), t.GetStart(), t.GetEnd()) < TOL * 4):
+                    caras.add(t.GetLayer())
+            for p in pads:
+                if p.GetNetCode() == v.GetNetCode() and p.HitTest(v.GetPosition()):
                     caras |= {pcbnew.F_Cu, pcbnew.B_Cu} if p.GetDrillSize().x > 0 else {l for l in (pcbnew.F_Cu, pcbnew.B_Cu) if p.IsOnLayer(l)}
             if len(caras) < 2:
-                quitar.append(t)
-        elif _mm(t.GetLength()) < 0.05:
-            quitar.append(t)
-    for t in quitar:
-        b.Remove(t)
-    return len(quitar)
+                b.Remove(v); quitadas += 1; cambio = True; break
+        if cambio:
+            continue
+        # ramas sin salida
+        def toca(t, pt):
+            for o in trk:
+                if o is not t and o.GetNetCode() == t.GetNetCode() and o.GetLayer() == t.GetLayer() and _dist_seg(pt, o.GetStart(), o.GetEnd()) < TOL:
+                    return True
+            for v in via:
+                if v.GetNetCode() == t.GetNetCode() and (v.GetPosition() - pt).EuclideanNorm() < TOL * 4:
+                    return True
+            for p in pads:
+                if p.GetNetCode() == t.GetNetCode() and p.IsOnLayer(t.GetLayer()) and p.HitTest(pt):
+                    return True
+            return False
+        for t in trk:
+            if _mm(t.GetLength()) < 0.05 or not (toca(t, t.GetStart()) and toca(t, t.GetEnd())):
+                b.Remove(t); quitadas += 1; cambio = True; break
+        if not cambio:
+            break
+    # sobrantes de menos de 0.05 mm en cualquier red (sin conectar nada)
+    for t in list(b.GetTracks()):
+        if t.GetClass() != "PCB_VIA" and _mm(t.GetLength()) < 0.05:
+            b.Remove(t); quitadas += 1
+    return quitadas

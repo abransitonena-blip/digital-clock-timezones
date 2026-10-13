@@ -1,10 +1,10 @@
-AP_7R_TOUR: 59 tipos de pieza, 183 piezas por placa.
+AP_7R_TOUR: 59 tipos de pieza, 190 piezas por placa.
 Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
 
 Pedido completo (BOM/CPL normales):      21 tipos Extended  -> ~63 USD de cargo
 Pedido económico (BOM/CPL _solo_SMD):    14 tipos Extended  -> ~42 USD de cargo;
    se sueldan a mano 24 piezas de patas: J1,J2,J3,J4,J5,J6,J7,J8,J9, J11,J12,J13,J14, J16, K1,K2,K3,K4,K5,K6,K7, PS1, RV1, SW1
-Piezas Basic/Preferred: ~0.99 USD por placa (precio de catálogo, sin las Extended).
+Piezas Basic/Preferred: ~1.02 USD por placa (precio de catálogo, sin las Extended).
 
 Basic (34):
   10uF 50V               C13585         C1,C2,C3,C11
@@ -20,7 +20,7 @@ Basic (34):
   ROJO                   C2286          D9
   1N4148W                C81598         DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8
   LTV-217-B              C115450        OK1,OK2,OK3,OK4,OK5,OK6,OK7,OK8
-  10k                    C25804         R1,R2,R5,R11,R12,RB2,RL1,RL2,RL3,RL4,RL5,RL6,RL7,RP1,RP2,RP3,RP4,RP5,RP6,RP7,RP8
+  10k                    C25804         R1,R2,R5,R11,R12,RB2,RD1,RD2,RD3,RD4,RD5,RD6,RD7,RL1,RL2,RL3,RL4,RL5,RL6,RL7,RP1,RP2,RP3,RP4,RP5,RP6,RP7,RP8
   4.7k                   C23162         R3,R4
   1k                     C21190         R6,R7,R8
   5.1k                   C23186         R9,R10

@@ -318,10 +318,10 @@ SIN_COBRE = [[(163.0, 61.0), (175.7, 61.0), (175.7, 89.7), (163.0, 89.7)]]      
 # --- bus RS-485 aislado: todo su cobre dentro de _ZB, trazado a mano; la lógica queda fuera de _ZB + 1.6 mm ---
 _ZB = [(70.2, 70.4), (73.9, 70.4), (73.9, 67.8), (84.1, 67.8), (84.1, 70.4), (90.7, 70.4), (90.7, 77.6), (88.5, 77.6),
        (88.5, 89.7), (70.2, 89.7)]
-# redes largas que el ruteador automático deja sin unir (de un punto de cobre al otro; capa F, B o None = vía existente)
-RUTAS_AUTO = [("INT", (68.0, 69.675, "F"), (158.822, 67.505, None)),
-              ("RS_DE", (91.5, 55.0, "F"), (147.762, 83.804, None)),
-              ("RS_RX", (87.5, 51.0, "F"), (157.5, 82.495, None))]
+# redes largas que el ruteador automático deja sin unir (de un punto de cobre al otro; capa F o B; el destino es un pad del ESP32; la poda quita las ramas sin salida que deja el ruteador)
+RUTAS_AUTO = [("INT", (68.0, 69.675, "F"), (159.0, 66.25, "F")),
+              ("RS_DE", (91.5, 55.0, "F"), (150.0, 83.75, "F")),
+              ("RS_RX", (87.5, 51.0, "F"), (157.5, 83.75, "F"))]
 ZONAS_FINALES = [("GNDB", _ZB), ("GNDB", _ZB, "B")]
 
 

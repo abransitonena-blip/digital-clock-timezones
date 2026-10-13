@@ -21,7 +21,7 @@ Los archivos `AP_7R_TOUR_BOM_JLCPCB_solo_SMD.csv` y `AP_7R_TOUR_CPL_JLCPCB_solo_
 | DRC con las reglas propias (`kicad/AP_7R_TOUR.kicad_dru`) | 0 violaciones, 0 sin conectar, paridad esquema-placa 0 |
 | Reglas de fabricación de JLCPCB (DFM) | 0 problemas |
 | Revisión del pedido (`tools/revisar_pedido.py`, 24DC y CA) | Sin errores (2 avisos conocidos: el código C13585 sirve para 10 µF de 25 V y de 50 V; el pulsador C318884 se repite en 9 designadores) |
-| Códigos LCSC | 59 tipos y 183 piezas por placa (CA; 177 en 24DC), todos con código; relés, fuentes, aislador y bornes verificados en lcsc.com / jlcpcb.com |
+| Códigos LCSC | 59 tipos y 190 piezas por placa (CA; 184 en 24DC), todos con código; relés, fuentes, aislador y bornes verificados en lcsc.com / jlcpcb.com |
 
 ## Cambios de la rev B respecto a la rev A
 
@@ -29,6 +29,7 @@ Los archivos `AP_7R_TOUR_BOM_JLCPCB_solo_SMD.csv` y `AP_7R_TOUR_CPL_JLCPCB_solo_
 - Reloj de tiempo real PCF8563T con cristal de 32.768 kHz, OR de batería (BAT54C) y conector J16 de 2 pines para la batería (no incluida en el ensamble).
 - 11 puntos de prueba (24 V, 5 V, 3.3 V, dos de 0 V, SDA, SCL, TX, RX, DE, EN).
 - Ruteo: el ruteador automático dejó 3 redes largas sin unir (INT, RS_DE, RS_RX); las cierra `tools/ruta_auto.py` (buscador de caminos propio, `RUTAS_AUTO` en `gen/make.py`). Revisar en KiCad esas 3 rutas (unos 100 mm cada una) antes de pedir.
+- 7 resistencias de 10 kΩ a 0 V (RD1-RD7) en las entradas del ULN2003A: el TCA9554 arranca con 100 kΩ a 3.3 V y sin ellas un relé podía excitarse unos instantes en cada encendido.
 - Procedimiento de primera prueba: [../PUESTA_EN_MARCHA.md](../PUESTA_EN_MARCHA.md).
 
 Que el DRC pase **no** significa que el producto esté listo para vender. Faltan fabricar, medir, ensayar y certificar (ver `../PLAN_VERIFICACION.md`).
