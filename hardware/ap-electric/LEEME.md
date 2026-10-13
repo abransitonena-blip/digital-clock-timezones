@@ -31,6 +31,8 @@ Las placas de LED de corriente constante son otra familia, **AP LED**, y no alim
 | [INSTALACION.md](INSTALACION.md) · [instalacion/](instalacion/) | Instrucciones y diagramas por variante: Plug, Switch sencillo, Switch de escalera, 7R Tour |
 | [MANUAL_USUARIO.md](MANUAL_USUARIO.md) | Manual breve: uso local, LED, fallas, órdenes, Modbus |
 | [ESTUDIO_MERCADO_INDUSTRIAL.md](ESTUDIO_MERCADO_INDUSTRIAL.md) | Estudio de mercado industrial y automotriz de México: segmentos, dolores, competencia y precios, normas, arquitectura (PackML), 18 oportunidades y hoja de ruta. Estudio de escritorio, sin entrevistas |
+| [ANALISIS_ECOSISTEMA.md](ANALISIS_ECOSISTEMA.md) | Mapa del ecosistema de PLC, placas y controladores; qué conservar, congelar y descartar; producto del piloto y las tres puertas de preventa |
+| [PREVENTA_AP_MONITOR.md](PREVENTA_AP_MONITOR.md) | Ficha del programa piloto AP Monitor 24: qué es, qué no es y cómo participar |
 | [PACKML.md](PACKML.md) | Unidad PackML de AP Control: máquina de estados, tiempos por estado, OEE, causas de paro, mapa Modbus «PackTags v1» y reglas de reanudación remota |
 | [PLAN_VERIFICACION.md](PLAN_VERIFICACION.md) | Lo comprobado por software, el banco de prototipo y el laboratorio; pendientes concretos |
 | `7r-tour/`, `home/` | Proyectos KiCad 9 (generadores en `gen/`):<br>• esquema;<br>• placa;<br>• `fabricacion/jlcpcb` con Gerbers, taladros, BOM y CPL |
