@@ -14,10 +14,10 @@
 
 | | |
 |---|---|
-| Modelos (SKU) | **7R Tour 24DC** (24 V CC externos) · **7R Tour CA** (fuente de red integrada). La misma placa rev A: el CA monta J8, F2, RV1, PS1, D3 y C3 |
+| Modelos (SKU) | **7R Tour 24DC** (24 V CC externos) · **7R Tour CA** (fuente de red integrada). La misma placa rev B: el CA monta J8, F2, RV1, PS1, D3 y C3 |
 | Función | Controlador de 7 salidas por relé para alumbrado y para mando de contactores; 8 entradas de 24 V; lógica tipo PLC; Modbus RTU esclavo aislado |
 | Nombre | «7R» = siete canales de relé: **supuesto pendiente de confirmar** |
-| Revisión | Placa rev A · programa AP Control 1.0 |
+| Revisión | Placa **rev B** (conteo rápido en IO0/IO20, reloj PCF8563 con batería externa, 11 puntos de prueba) · programa AP Control con PackML/OEE · ver [DISENO_FINAL.md](DISENO_FINAL.md) |
 
 ## Cargas
 
