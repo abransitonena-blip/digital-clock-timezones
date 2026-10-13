@@ -193,6 +193,38 @@ footer .wrap { display: grid; gap: 8px; }
   .resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   nav.secciones { margin-left: 0; }
 }
+
+/* placa base, catálogo y solicitudes */
+.pasos { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 14px 0; counter-reset: paso; }
+.pasos div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 4px; counter-increment: paso; }
+.pasos div::before { content: counter(paso); font: 600 1.4rem var(--font-display); color: var(--accent); }
+.pasos b { font-family: var(--font-display); font-size: 1.1rem; } .pasos span { color: var(--muted); font-size: 0.88rem; }
+.dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.dos ul { margin: 6px 0 0; padding-left: 18px; } .dos li { margin: 3px 0; }
+.si { border-left: 3px solid var(--ok); } .no { border-left: 3px solid var(--bad); } .fut { border-left: 3px solid var(--info); }
+.diagrama { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.diagrama text { font: 500 13px var(--font-body); fill: var(--fg); } .diagrama .mu { fill: var(--muted); font-size: 11px; }
+.diagrama rect.bx { fill: var(--sunken); stroke: var(--line); } .diagrama rect.ac { fill: var(--accent-soft); stroke: var(--accent); }
+.diagrama path { stroke: var(--muted); fill: none; stroke-width: 1.5; }
+.filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.filtros button { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 99px; padding: 6px 14px; cursor: pointer; font: 500 0.88rem var(--font-body); }
+.filtros button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.cat { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.item h3 { margin: 0; font-family: var(--font-display); font-size: 1.25rem; } .item p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.item ul { margin: 0; padding-left: 18px; font-size: 0.86rem; } .item .pie { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 4px; }
+.estado.pausa { background: var(--sunken); color: var(--muted); } .estado.serv { background: var(--ok-soft); color: var(--ok); } .estado.conc { background: var(--bad-soft); color: var(--bad); }
+.form2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.form2 label { display: grid; gap: 4px; font-size: 0.86rem; color: var(--muted); } .form2 .todo { grid-column: 1 / -1; }
+.form2 input, .form2 select, .form2 textarea { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%; }
+.form2 textarea { min-height: 84px; resize: vertical; }
+.carrito { border: 1px dashed var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; }
+.carrito .lin { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.carrito input[type=number] { width: 80px; }
+.conf { border: 2px solid var(--ok); background: var(--ok-soft); border-radius: var(--radius); padding: 16px; display: grid; gap: 8px; }
+.conf .folio { font: 600 1.7rem var(--font-mono); letter-spacing: .04em; }
+.linea-t { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; } .linea-t span { font-size: 0.78rem; padding: 3px 10px; border-radius: 99px; background: var(--sunken); color: var(--muted); }
+.linea-t span.hecho { background: var(--ok-soft); color: var(--ok); } .linea-t span.ahora { background: var(--accent); color: var(--accent-ink); }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 </style>
 
@@ -207,13 +239,17 @@ footer .wrap { display: grid; gap: 8px; }
       <a href="#industrial">Industrial</a>
       <a href="#luz">Luz</a>
       <a href="#software">Software</a>
+      <a href="#placa">La placa</a>
+      <a href="#catalogo">Catálogo</a>
+      <a href="#solicitud">Solicitar</a>
+      <a href="consola.html">Consola</a>
       <a href="#elegir">¿Cuál necesito?</a>
       <a href="#proveedores" class="panel">Proveedores</a>
       <a href="#marca">Marca</a>
     </nav>
   </div>
 </header>
-<div class="aviso" role="note"><div class="wrap"><b>Prototipo de diseño (rev A).</b> Ningún producto está a la venta: no se han fabricado, medido ni certificado. Los valores marcados <span class="pd">PD</span> están por determinar.</div></div>
+<div class="aviso" role="note"><div class="wrap"><b>Prototipo de diseño (rev B).</b> Ningún producto está a la venta: no se han fabricado, medido ni certificado. Los valores marcados <span class="pd">PD</span> están por determinar.</div></div>
 
 <main id="inicio">
   <section class="portada">
@@ -433,6 +469,102 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     </div>
   </section>
 
+  <!-- PLACA BASE -->
+  <section class="linea" id="placa">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">La placa base</span><h2>Una placa, muchas máquinas</h2></div>
+        <p>La placa base es el cerebro común de AP Electric: recibe señales, decide con un programa y manda relés. Cambian la caja, los bornes y el programa; no cambia la idea. Hay una versión industrial (7R Tour, 24 V) y una de hogar (AP Home, 127 V).</p>
+      </div>
+      <svg class="diagrama" viewBox="0 0 900 250" role="img" aria-label="Sensores entran a la placa, la placa decide y manda relés; la consola, Modbus y la red hablan con la placa">
+        <rect class="bx" x="20" y="40" width="150" height="70" rx="8"/><text x="95" y="68" text-anchor="middle">Sensores y botones</text><text class="mu" x="95" y="88" text-anchor="middle">8 entradas de 24 V</text>
+        <rect class="ac" x="330" y="30" width="240" height="190" rx="10"/><text x="450" y="58" text-anchor="middle" style="font-weight:600">Placa base · AP Control</text>
+        <text class="mu" x="450" y="86" text-anchor="middle">Estados de máquina (PackML)</text><text class="mu" x="450" y="106" text-anchor="middle">Conteo, causas de paro, OEE</text>
+        <text class="mu" x="450" y="126" text-anchor="middle">Lógica tipo PLC · horarios</text><text class="mu" x="450" y="146" text-anchor="middle">Arranque seguro · vigilante</text>
+        <text class="mu" x="450" y="166" text-anchor="middle">Reloj y bitácora</text><text class="mu" x="450" y="196" text-anchor="middle">ESP32-C3 · Wi-Fi · USB-C</text>
+        <rect class="bx" x="730" y="40" width="150" height="70" rx="8"/><text x="805" y="68" text-anchor="middle">Máquina o carga</text><text class="mu" x="805" y="88" text-anchor="middle">7 relés de contacto seco</text>
+        <rect class="bx" x="20" y="150" width="150" height="70" rx="8"/><text x="95" y="178" text-anchor="middle">Consola y AP Studio</text><text class="mu" x="95" y="198" text-anchor="middle">USB o red local</text>
+        <rect class="bx" x="730" y="150" width="150" height="70" rx="8"/><text x="805" y="178" text-anchor="middle">PLC, SCADA, gateway</text><text class="mu" x="805" y="198" text-anchor="middle">Modbus RTU aislado</text>
+        <path d="M170 75 H330"/><path d="M570 75 H730"/><path d="M170 185 H330"/><path d="M570 185 H730"/>
+      </svg>
+      <div class="pasos">
+        <div><b>Siente</b><span>Una entrada de 24 V (sensor de pieza, botón de andon, fin de ciclo) cambia de estado. Las dos primeras cuentan hasta unos 500 pulsos por segundo.</span></div>
+        <div><b>Decide</b><span>El programa lleva el estado de la máquina, cuenta piezas, registra la causa de cada paro y calcula el OEE. Una lógica tipo PLC puede agregar reglas propias.</span></div>
+        <div><b>Actúa</b><span>Un relé enciende una torre de luz, un contactor o una alarma. Al arrancar, todo está apagado; si se pierde la comunicación, los canales de proceso se apagan.</span></div>
+        <div><b>Informa</b><span>Se ve y se configura desde la <a href="consola.html">consola</a> por USB o red local, y se lee por Modbus. Sin nube obligatoria.</span></div>
+      </div>
+      <div class="dos">
+        <div class="caja si"><b>Qué hace</b><ul>
+          <li>Estado de máquina, piezas buenas y malas, microparos y causa de paro.</li>
+          <li>OEE: disponibilidad × desempeño × calidad, con hora de cada evento.</li>
+          <li>Mando de 7 salidas, con mando manual por hardware.</li>
+          <li>Modbus RTU aislado y, en red local, una API que usa la consola.</li>
+          <li>Autoprueba para la puesta en marcha.</li></ul></div>
+        <div class="caja no"><b>Qué no es</b><ul>
+          <li>No es una función de seguridad: no sustituye paro de emergencia, guardas ni relés de seguridad.</li>
+          <li>No está certificada (NOM, UL, CE) ni tiene el radio homologado.</li>
+          <li>No hay mediciones: las capacidades marcadas PD están por determinar.</li>
+          <li>Las entradas son PNP: un sensor NPN no funciona directo (mejora prevista).</li>
+          <li>No hay Ethernet ni nube obligatoria.</li></ul></div>
+        <div class="caja fut"><b>Qué se espera (sin compromiso de fecha)</b><ul>
+          <li>Primero: probar placas reales y corregir lo que falle.</li>
+          <li>Después: entradas NPN/PNP, memoria para la bitácora, historial por turno, MQTT con TLS y Ethernet.</li>
+          <li>Más adelante, con evidencia: energía, gateway, poka-yoke y variantes certificadas.</li></ul></div>
+        <div class="caja"><b>Abierta, no cerrada a lo ya definido</b><ul>
+          <li>La consola lee qué sabe hacer la placa y solo muestra eso: un modelo nuevo aparece sin rehacer la página.</li>
+          <li>Los perfiles de aplicación son datos que se agregan sin cambiar el firmware.</li>
+          <li>El catálogo es una lista que crece; si tu caso no está, pide un diseño a medida.</li></ul></div>
+      </div>
+      <p style="margin-top:16px"><a class="btn primario" href="consola.html">Probar la consola (demostración)</a> <a class="btn" href="#solicitud">Hacer una solicitud</a></p>
+    </div>
+  </section>
+
+  <!-- CATALOGO -->
+  <section class="linea" id="catalogo">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Catálogo vivo</span><h2>Qué hay y en qué estado</h2></div>
+        <p>Cada fila dice su estado real. Ninguna se vende todavía: puedes pedir cotización, participar en el piloto o pedir algo a medida.</p>
+      </div>
+      <div class="filtros" id="catFiltros" role="group" aria-label="Filtrar el catálogo"></div>
+      <div class="cat" id="catLista"></div>
+    </div>
+  </section>
+
+  <!-- SOLICITUD -->
+  <section class="linea" id="solicitud">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow">Solicitudes</span><h2>Pide lo que necesitas</h2></div>
+        <p>Cotización, piloto, muestra de ingeniería, diseño a medida o soporte. Recibes un <b>folio</b> y ves su estado. Una solicitud <b>no es una compra</b>: no cobramos nada ni prometemos fecha o precio.</p>
+      </div>
+      <div class="ancho" style="margin-top:0">
+        <form class="caja form2" id="formSol" novalidate>
+          <label class="todo">Tipo de solicitud<select id="sTipo"></select></label>
+          <div class="todo carrito" id="sCarrito"><span class="nota">Agrega productos desde el catálogo con «Agregar a mi solicitud».</span></div>
+          <label>Segmento<select id="sSeg"><option>Industrial</option><option>Hogar</option><option>Luz / LED</option><option>Educación</option><option>Otro</option></select></label>
+          <label>Organización (opcional)<input id="sOrg" maxlength="80" placeholder="Planta, taller, escuela…"></label>
+          <label>Cómo te contactamos (correo o teléfono)<input id="sCon" maxlength="120" placeholder="Solo lo ve el equipo"></label>
+          <label>Alimentación disponible<select id="sVolt"><option>24 V CC</option><option>127 V CA</option><option>220 V CA</option><option>12 V CC</option><option>No sé</option></select></label>
+          <label>Sensores o cargas<select id="sSens"><option>PNP de 24 V</option><option>NPN</option><option>Contacto seco</option><option>Torre de luz</option><option>Lámparas / alumbrado</option><option>Contactores</option><option>No sé</option></select></label>
+          <label class="todo">Cuéntanos el caso<textarea id="sMsg" maxlength="600" placeholder="Qué máquina o instalación, qué quieres lograr, cuántas piezas…"></textarea></label>
+          <label class="todo" style="grid-template-columns:auto 1fr;align-items:start;gap:8px"><input type="checkbox" id="sAcepto" style="width:auto"><span>Entiendo que es un <b>prototipo de ingeniería</b>, sin certificación, sin precio ni fecha comprometidos, y que esta solicitud no es una compra.</span></label>
+          <div class="todo"><button class="btn primario" type="submit">Enviar solicitud</button> <span class="msg" id="sMsgEst" role="status"></span></div>
+        </form>
+        <div class="caja" id="sPanel">
+          <span class="eyebrow">Tu solicitud</span>
+          <div id="sConf"><p class="nota">Aquí aparece tu folio y su estado al enviarla.</p></div>
+          <span class="eyebrow" style="margin-top:8px">Mis solicitudes</span>
+          <div id="sMias"><p class="nota">Todavía no hay solicitudes en este navegador.</p></div>
+        </div>
+      </div>
+      <div id="sEquipo" class="caja" hidden style="margin-top:20px">
+        <span class="eyebrow">Solicitudes recibidas (solo lo ve el equipo)</span>
+        <div class="matriz"><table style="min-width:720px"><thead><tr><th>Folio</th><th>Tipo</th><th>Productos</th><th>Contacto y caso</th><th>Estado</th></tr></thead><tbody id="sLista"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
   <!-- INTERÉS -->
   <section class="linea" id="interes">
     <div class="wrap">
@@ -521,7 +653,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
 
 <footer>
   <div class="wrap">
-    <span>AP Electric · prototipo de diseño rev A · hardware, programa y documentación en desarrollo.</span>
+    <span>AP Electric · prototipo de diseño rev B · hardware, programa y documentación en desarrollo.</span>
     <span>Sin sellos CE, UL, NOM ni IFT/CRT: no se han hecho los ensayos ni los trámites. «7R» = siete relés, nombre pendiente de confirmar.</span>
   </div>
 </footer>
@@ -717,5 +849,191 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     }, function () {});
     pintar(); pintarNombres();
   });
+})();
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  function txt(tag, text, cls) { var el = document.createElement(tag); if (text != null) el.textContent = text; if (cls) el.className = cls; return el; }
+
+  /* ---------- Catálogo: datos, no código. Agregar una fila la muestra y la hace solicitable ---------- */
+  var CATALOGO = [
+    { id: "ap-monitor-24", nombre: "AP Monitor 24 (7R Tour 24DC rev B)", seg: "Industrial", estado: "Prototipo",
+      resumen: "Andon, conteo y OEE para máquinas sin datos. 7 relés, 8 entradas PNP de 24 V, RS-485 aislado, Wi-Fi, USB-C.",
+      puntos: ["24 V CC de una fuente certificada de terceros", "Programa PackML + consola + AP Studio", "Piloto abierto: sin precio ni fecha"] },
+    { id: "7r-tour-ca", nombre: "7R Tour CA", seg: "Industrial", estado: "En pausa",
+      resumen: "La misma placa con fuente de red integrada (85-264 V CA).", puntos: ["Espera pruebas de seguridad eléctrica", "No se ofrece en el piloto"] },
+    { id: "ap-gate", nombre: "AP GATE", seg: "Industrial", estado: "Diseño",
+      resumen: "Maestro Modbus RTU hacia MQTT y red local.", puntos: ["Ruta a MQTT con TLS y OPC UA", "Sin demanda comprobada aún"] },
+    { id: "ap-io", nombre: "AP PRO DO8 · DI8 · AI4", seg: "Industrial", estado: "Diseño",
+      resumen: "Módulos de 8 salidas, 8 entradas y 4 analógicas (0-10 V / 4-20 mA).", puntos: ["Amplían la placa base", "Después del piloto"] },
+    { id: "ap-uno", nombre: "AP UNO", seg: "Industrial", estado: "Diseño",
+      resumen: "Módulo compacto todo en uno para conteo y mando simple.", puntos: ["Útil cuando basta una entrada y pocas salidas"] },
+    { id: "ap-energia", nombre: "AP Energía", seg: "Industrial", estado: "Concepto",
+      resumen: "Demanda y factor de potencia con un medidor Modbus de terceros.", puntos: ["Idea priorizada en el estudio de mercado", "Sin hardware propio todavía"] },
+    { id: "home-plug", nombre: "Home Plug", seg: "Hogar", estado: "En pausa",
+      resumen: "Una lámpara de 127 V con Wi-Fi, se enchufa.", puntos: ["Requiere certificación de seguridad de red", "Congelado por ahora"] },
+    { id: "home-switch", nombre: "Home Switch", seg: "Hogar", estado: "En pausa",
+      resumen: "Un circuito de alumbrado conservando el apagador (sencillo o escalera).", puntos: ["Instalación fija por persona competente", "Congelado por ahora"] },
+    { id: "linea-luz", nombre: "Línea Luz (AP FOCO, PWM4, letreros)", seg: "Luz", estado: "Diseño",
+      resumen: "Tiras LED, letreros y focos de corriente constante, 12-24 V.", puntos: ["Línea aparte, no usa la placa base"] },
+    { id: "consola", nombre: "Consola AP Base", seg: "Software", estado: "Servicio",
+      resumen: "Controla y configura la placa desde el navegador por USB, red local o demostración.", puntos: ["Disponible hoy en demostración", "Se adapta a lo que la placa sabe hacer"], enlace: "consola.html" },
+    { id: "ap-studio", nombre: "AP Studio", seg: "Software", estado: "Servicio",
+      resumen: "Aplicación de luces, reglas, lógica en escalera y producción.", puntos: ["Se abre desde la propia placa o en demostración"] },
+    { id: "piloto", nombre: "Piloto acompañado de 30 días", seg: "Servicios", estado: "Concepto",
+      resumen: "Instalación guiada en una máquina real, con retroalimentación.", puntos: ["Después de probar placas reales", "Contrato corto"] },
+    { id: "a-medida", nombre: "Diseño a medida", seg: "Servicios", estado: "Servicio",
+      resumen: "Placa, firmware o integración para un caso que el catálogo no cubre.", puntos: ["Se evalúa caso por caso", "Sin precio hasta revisar alcance"] },
+    { id: "capacitacion", nombre: "AP Lab: capacitación", seg: "Servicios", estado: "Concepto",
+      resumen: "Kit y práctica de automatización para escuelas técnicas.", puntos: ["Basado en la placa base y AP Studio"] }
+  ];
+  var CLASE = { "Prototipo": "proto", "Diseño": "dis", "Concepto": "conc", "En pausa": "pausa", "Servicio": "serv" };
+  var SEGS = ["Todos", "Industrial", "Hogar", "Luz", "Software", "Servicios"], segSel = "Todos", carrito = [];
+
+  function pintarCatalogo() {
+    var f = $("catFiltros"); f.textContent = "";
+    SEGS.forEach(function (g) {
+      var b = txt("button", g); b.type = "button"; b.setAttribute("aria-pressed", String(g === segSel));
+      b.addEventListener("click", function () { segSel = g; pintarCatalogo(); }); f.appendChild(b);
+    });
+    var l = $("catLista"); l.textContent = "";
+    CATALOGO.filter(function (x) { return segSel === "Todos" || x.seg === segSel; }).forEach(function (x) {
+      var d = txt("div", null, "item"), cab = txt("div", null, "pie"); cab.style.marginTop = "0";
+      cab.appendChild(txt("span", x.seg, "tag")); cab.appendChild(txt("span", x.estado.toUpperCase(), "estado " + (CLASE[x.estado] || "")));
+      d.appendChild(cab); d.appendChild(txt("h3", x.nombre)); d.appendChild(txt("p", x.resumen));
+      var ul = txt("ul"); x.puntos.forEach(function (t) { ul.appendChild(txt("li", t)); }); d.appendChild(ul);
+      var pie = txt("div", null, "pie");
+      var add = txt("button", carrito.indexOf(x.id) >= 0 ? "En mi solicitud" : "Agregar a mi solicitud", "btn chico"); add.type = "button";
+      add.addEventListener("click", function () { if (carrito.indexOf(x.id) < 0) carrito.push(x.id); pintarCarrito(); pintarCatalogo(); location.hash = "#solicitud"; });
+      pie.appendChild(add);
+      if (x.enlace) { var a = txt("a", "Abrir", "btn chico"); a.href = x.enlace; pie.appendChild(a); }
+      d.appendChild(pie); l.appendChild(d);
+    });
+  }
+  function nombreDe(id) { var x = CATALOGO.filter(function (c) { return c.id === id; })[0]; return x ? x.nombre : id; }
+  function pintarCarrito() {
+    var c = $("sCarrito"); c.textContent = "";
+    if (!carrito.length) { c.appendChild(txt("span", "Agrega productos desde el catálogo con «Agregar a mi solicitud». También puedes enviar la solicitud sin productos.", "nota")); return; }
+    carrito.forEach(function (id) {
+      var r = txt("div", null, "lin"); r.appendChild(txt("span", nombreDe(id)));
+      var q = document.createElement("input"); q.type = "number"; q.min = 1; q.max = 999; q.value = q.dataset.v || 1; q.id = "q_" + id; q.setAttribute("aria-label", "Cantidad de " + nombreDe(id));
+      var k = txt("button", "Quitar", "btn chico"); k.type = "button"; k.addEventListener("click", function () { carrito = carrito.filter(function (z) { return z !== id; }); pintarCarrito(); pintarCatalogo(); });
+      var w = txt("span"); w.appendChild(q); w.appendChild(document.createTextNode(" ")); w.appendChild(k); r.appendChild(w); c.appendChild(r);
+    });
+  }
+
+  /* ---------- Solicitudes ---------- */
+  var TIPOS = ["Cotización", "Participar en el piloto (AP Monitor 24)", "Muestra de ingeniería (cuando haya)", "Diseño a medida", "Soporte o duda técnica", "Lista de interés", "Soy proveedor"];
+  var ESTADOS = ["Recibida", "En revisión", "Respondida", "Piloto o muestra confirmados", "En lista de espera", "Cerrada", "No viable"];
+  var EXPLICA = { "Recibida": "Tu solicitud llegó. Aún no la revisa una persona.", "En revisión": "El equipo la está leyendo.", "Respondida": "El equipo te contestó por el contacto que dejaste.",
+    "Piloto o muestra confirmados": "Hay un lugar para ti en el piloto o la muestra. No es una compra.", "En lista de espera": "No hay unidades todavía; quedas en la lista.", "Cerrada": "Terminó.", "No viable": "No podemos atenderla con lo que hay hoy." };
+  var db = null, usuario = null, miId = null, esEquipo = false, mias = [], estados = {}, todas = [];
+  TIPOS.forEach(function (t) { $("sTipo").add(new Option(t, t)); });
+  function lsGet() { try { return JSON.parse(localStorage.getItem("apSolicitudes") || "[]"); } catch (e) { return []; } }
+  function lsSet(v) { try { localStorage.setItem("apSolicitudes", JSON.stringify(v)); } catch (e) {} }
+  function folio() {
+    var d = new Date(), z = function (n) { return String(n).padStart(2, "0"); }, a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = "";
+    var u = new Uint8Array(4); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(u) : u.forEach(function (_, i) { u[i] = Math.floor(Math.random() * 256); });
+    for (var i = 0; i < 4; i++) r += a[u[i] % a.length];
+    return "AP-" + String(d.getFullYear()).slice(2) + z(d.getMonth() + 1) + z(d.getDate()) + "-" + r;
+  }
+  function estadoDe(f) { return (estados[f] && estados[f].estado) || "Recibida"; }
+  function lineaTiempo(e) {
+    var d = txt("div", null, "linea-t"), orden = ["Recibida", "En revisión", "Respondida"], i = orden.indexOf(e);
+    orden.forEach(function (n, k) { d.appendChild(txt("span", n, i > k ? "hecho" : (i === k ? "ahora" : ""))); });
+    if (i < 0) d.appendChild(txt("span", e, "ahora"));
+    return d;
+  }
+  function resumen(x) {
+    return ["Folio: " + x.folio, "Tipo: " + x.tipo, "Productos: " + (x.items.length ? x.items.map(function (i) { return i.cant + " × " + nombreDe(i.id); }).join("; ") : "—"),
+      "Segmento: " + x.seg + (x.org ? " · " + x.org : ""), "Alimentación: " + x.volt + " · Sensores/cargas: " + x.sens, "Caso: " + (x.msg || "—"), "Fecha: " + x.fecha,
+      "Nota: prototipo de ingeniería; sin precio ni fecha comprometidos; no es una compra."].join("\n");
+  }
+  function tarjeta(x, grande) {
+    var e = estadoDe(x.folio), d = txt("div", null, grande ? "conf" : "caja");
+    d.appendChild(txt("span", "Folio", "eyebrow")); d.appendChild(txt("div", x.folio, "folio"));
+    d.appendChild(txt("div", x.tipo + " · " + x.fecha.slice(0, 10), "nota")); d.appendChild(lineaTiempo(e));
+    var est = txt("p"); est.appendChild(txt("b", e)); est.appendChild(document.createTextNode(" — " + (EXPLICA[e] || "")));
+    if (estados[x.folio] && estados[x.folio].nota) est.appendChild(document.createTextNode(" Nota del equipo: " + estados[x.folio].nota));
+    d.appendChild(est);
+    if (grande) {
+      d.appendChild(txt("p", "Qué sigue: si dejaste un contacto, el equipo te escribe cuando revise tu solicitud. Guarda tu folio; no se cobra nada ni se promete fecha o precio.", "nota"));
+      var cp = txt("button", "Copiar resumen", "btn chico"); cp.type = "button";
+      cp.addEventListener("click", function () { var t = resumen(x); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { cp.textContent = "Copiado"; }, function () { cp.textContent = "No se pudo copiar"; }); });
+      d.appendChild(cp);
+    }
+    return d;
+  }
+  function pintarMias() {
+    var c = $("sMias"); c.textContent = "";
+    if (!mias.length) { c.appendChild(txt("p", "Todavía no hay solicitudes " + (db ? "en tu cuenta." : "en este navegador."), "nota")); return; }
+    mias.slice().reverse().slice(0, 6).forEach(function (x) { c.appendChild(tarjeta(x, false)); c.lastChild.style.marginBottom = "8px"; });
+  }
+  function guardar(x) {
+    mias.push(x); mias = mias.slice(-20);
+    if (db && miId) { return db.collection("solicitudes").doc(miId).set({ pedidos: mias, actualizado: new Date().toISOString() }); }
+    lsSet(mias); return Promise.resolve();
+  }
+  $("formSol").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var m = $("sMsgEst");
+    if (!$("sAcepto").checked) { m.className = "msg mal"; m.textContent = "Marca que entiendes que es un prototipo y que no es una compra."; return; }
+    var tipo = $("sTipo").value, msg = $("sMsg").value.trim(), con = $("sCon").value.trim();
+    if (!carrito.length && msg.length < 10) { m.className = "msg mal"; m.textContent = "Elige un producto o cuéntanos el caso (al menos una frase)."; return; }
+    if (tipo !== "Lista de interés" && !con) { m.className = "msg mal"; m.textContent = "Para responderte necesitamos un correo o teléfono (solo lo ve el equipo)."; return; }
+    var x = { folio: folio(), tipo: tipo, fecha: new Date().toISOString(), seg: $("sSeg").value, org: $("sOrg").value.trim(), contacto: con, volt: $("sVolt").value, sens: $("sSens").value, msg: msg,
+      items: carrito.map(function (id) { var q = $("q_" + id); return { id: id, cant: Math.max(1, Math.min(999, +(q && q.value) || 1)) }; }) };
+    m.className = "msg"; m.textContent = "Enviando…";
+    guardar(x).then(function () {
+      m.className = "msg ok"; m.textContent = "Listo.";
+      $("sConf").textContent = ""; $("sConf").appendChild(tarjeta(x, true)); pintarMias();
+      carrito = []; pintarCarrito(); pintarCatalogo(); $("sMsg").value = ""; $("sAcepto").checked = false;
+    }).catch(function (e) {
+      mias.pop(); m.className = "msg mal"; m.textContent = "No se guardó (" + ((e && e.code) || "error") + "). Copia tu solicitud y envíala por otro medio.";
+    });
+  });
+
+  /* panel del equipo */
+  function pintarEquipo() {
+    if (!esEquipo) return; $("sEquipo").hidden = false;
+    var tb = $("sLista"); tb.textContent = "";
+    var filas = []; todas.forEach(function (u) { (u.pedidos || []).forEach(function (x) { filas.push({ uid: u.id, x: x }); }); });
+    filas.sort(function (a, b) { return a.x.fecha < b.x.fecha ? 1 : -1; });
+    if (!filas.length) { var tr = txt("tr"), td = txt("td", "Todavía no hay solicitudes.", "vacio"); td.colSpan = 5; tr.appendChild(td); tb.appendChild(tr); return; }
+    filas.forEach(function (f) {
+      var x = f.x, tr = txt("tr");
+      tr.appendChild(txt("td", x.folio, "mono")); tr.appendChild(txt("td", x.tipo));
+      tr.appendChild(txt("td", (x.items || []).map(function (i) { return i.cant + " × " + nombreDe(i.id); }).join("; ") || "—"));
+      var c = txt("td"); c.appendChild(txt("b", x.contacto || "(sin contacto)")); c.appendChild(document.createElement("br")); c.appendChild(txt("span", [x.seg, x.org, x.volt, x.sens].filter(Boolean).join(" · "), "nota"));
+      c.appendChild(document.createElement("br")); c.appendChild(txt("span", x.msg || "", "nota")); tr.appendChild(c);
+      var e = txt("td"), sel = document.createElement("select"); ESTADOS.forEach(function (n) { sel.add(new Option(n, n)); });
+      var cur = (estados[f.uid] && estados[f.uid][x.folio] && estados[f.uid][x.folio].estado) || "Recibida"; sel.value = cur;
+      sel.setAttribute("aria-label", "Estado de " + x.folio);
+      sel.addEventListener("change", function () {
+        var patch = {}; patch[x.folio] = { estado: sel.value, nota: (estados[f.uid] && estados[f.uid][x.folio] && estados[f.uid][x.folio].nota) || "", fecha: new Date().toISOString() };
+        var ref = db.collection("confirmaciones").doc(f.uid);
+        ref.get().then(function (d) { return d.exists ? ref.update(patch) : ref.set(patch); }).catch(function (er) { alert("No se guardó (" + ((er && er.code) || "error") + ")."); });
+      });
+      e.appendChild(sel); tr.appendChild(e); tb.appendChild(tr);
+    });
+  }
+
+  pintarCatalogo(); pintarCarrito(); mias = lsGet(); pintarMias();
+  if (!window.claude || !window.claude.use) return;
+  window.claude.use("user").then(function (u) {
+    usuario = u; esEquipo = !!(u && u.canEdit && u.canEdit());
+    if (u && u.id) { return Promise.resolve(u.id()).then(function (id) { miId = id; }); }
+  }).then(function () { return window.claude.use("db"); }).then(function (d) {
+    if (!d || !miId) return; db = d;
+    db.collection("solicitudes").doc(miId).onSnapshot(function (s) { if (s.exists) { mias = (s.data().pedidos || []); pintarMias(); } }, function () {});
+    db.collection("confirmaciones").doc(miId).onSnapshot(function (s) { estados[miId] = s.exists ? s.data() : {}; Object.keys(estados[miId] || {}).forEach(function (k) { estados[k] = estados[miId][k]; }); pintarMias(); if (esEquipo) pintarEquipo(); }, function () {});
+    if (esEquipo) {
+      db.collection("solicitudes").onSnapshot(function (s) { todas = s.docs.map(function (x) { var o = x.data() || {}; o.id = x.id; return o; }); pintarEquipo(); }, function () {});
+      db.collection("confirmaciones").onSnapshot(function (s) { s.docs.forEach(function (x) { estados[x.id] = x.data() || {}; }); pintarEquipo(); }, function () {});
+    }
+  }).catch(function () {});
 })();
 </script>

@@ -395,11 +395,17 @@ String estadoJSON() {
   s += "],\"man\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.maniobras[k]; }
   s += "],\"arr\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].arranque; }
   s += "],\"carga\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].carga; }
-  s += "],\"mb\":{\"dir\":"; s += ctl.cfg.mbDireccion; s += ",\"bps\":"; s += ctl.cfg.mbBaudios; s += ",\"vig\":"; s += ctl.cfg.mbVigilanciaS;
+  s += "],\"mb\":{\"dir\":"; s += ctl.cfg.mbDireccion; s += ",\"bps\":"; s += ctl.cfg.mbBaudios; s += ",\"par\":"; s += ctl.cfg.mbParidad; s += ",\"vig\":"; s += ctl.cfg.mbVigilanciaS;
   s += ",\"ok\":"; s += mb.tramasBien; s += ",\"mal\":"; s += mb.tramasMal; s += "},\"pk\":{\"e\":"; s += pk.estado; s += ",\"m\":"; s += pk.modo; s += ",\"r\":"; s += pk.motivo; s += ",\"n\":"; s += pk.procesadas;
   s += ",\"d\":"; s += pk.defectuosas; s += ",\"disp\":"; s += pk.disponibilidad(); s += ",\"des\":"; s += pk.desempeno();
   s += ",\"cal\":"; s += pk.calidad(); s += ",\"oee\":"; s += pk.oee(); s += ",\"mp\":"; s += pk.microparo; s += ",\"rem\":"; s += pk.cfg.remotoReanuda; s += ",\"h\":"; s += pk.epochAhora(millis()); s += ",\"hv\":"; s += pk.horaFijada;
-  s += "},\"plc\":{\"run\":"; s += plcRun;
+  s += "},\"api\":2,\"cap\":[\"salidas\",\"entradas\",\"packml\",\"plc\",\"modbus_esclavo\""; if (placa == PLACA_7R) s += ",\"rs485\",\"rtc\",\"conteo_rapido\",\"autoprueba\""; s += "]";
+  s += ",\"cfg\":{\"pul\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].pulsoS; }
+  s += "],\"acc\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].accionCom; }
+  s += "],\"ent\":["; for (int k = 0; k < ctl.cfg.nEntradas; k++) { if (k) s += ','; s += '['; s += ctl.cfg.entrada[k].modo; s += ','; s += ctl.cfg.entrada[k].canal; s += ','; s += ctl.cfg.entrada[k].antirreboteMs; s += ']'; }
+  s += "],\"mon\":["; s += pk.mon.entCiclo; s += ','; s += pk.mon.entMala; s += ','; s += pk.mon.entAndon; s += ','; s += pk.mon.entReanuda;
+  s += "],\"cic\":"; s += pk.cfg.cicloNominalMs; s += "}";
+  s += ",\"plc\":{\"run\":"; s += plcRun;
   s += ",\"n\":"; s += plc.n; s += ",\"err\":\""; s += plc.error; s += "\"},\"id\":\""; s += mac6(); s += "\",\"t\":"; s += segundos; s += '}';
   return s;
 }

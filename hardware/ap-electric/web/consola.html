@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consola AP Base</title>
+<style>
+:root{--bg:#f3f4f6;--surface:#fff;--sunken:#e8eaee;--fg:#1d1f24;--muted:#5b606b;--line:#d3d6dc;--accent:#e85d04;--accent-ink:#fff;
+--ok:#1f7a4a;--ok-soft:#dcf1e5;--warn:#8a5a00;--warn-soft:#fbefd2;--bad:#a3271c;--bad-soft:#f8dcd8;--info:#2d5b9a;--info-soft:#dde7f5;
+--font-display:"Saira Condensed","Arial Narrow",sans-serif;--font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--font-mono:ui-monospace,Menlo,monospace;--r:10px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181c;--surface:#1f2228;--sunken:#2a2e35;--fg:#eceef1;--muted:#a2a8b3;--line:#353a42;--accent:#ff7a1f;--accent-ink:#1a1206;--ok:#6fd39c;--ok-soft:#173326;--warn:#f0c060;--warn-soft:#3a2d10;--bad:#f08a7e;--bad-soft:#3d1c18;--info:#8db6ee;--info-soft:#1b2a40;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#16181c;--surface:#1f2228;--sunken:#2a2e35;--fg:#eceef1;--muted:#a2a8b3;--line:#353a42;--accent:#ff7a1f;--accent-ink:#1a1206;--ok:#6fd39c;--ok-soft:#173326;--warn:#f0c060;--warn-soft:#3a2d10;--bad:#f08a7e;--bad-soft:#3d1c18;--info:#8db6ee;--info-soft:#1b2a40;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--font-body)}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+header{background:var(--surface);border-bottom:1px solid var(--line)}header .wrap{display:flex;gap:12px;align-items:center;justify-content:space-between;padding-block:12px;flex-wrap:wrap}
+h1{font:600 1.6rem var(--font-display);margin:0;letter-spacing:.02em}h2{font:600 1.2rem var(--font-display);margin:0 0 8px;letter-spacing:.02em}
+.sub{color:var(--muted);font-size:.88rem}.mono{font-family:var(--font-mono)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+button,select,input{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--sunken);border-radius:8px;padding:9px 14px;cursor:pointer;min-height:40px}
+.btn:hover{border-color:var(--accent)}.btn.p{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.d{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--info);outline-offset:2px}
+.chip{display:inline-block;border-radius:99px;padding:3px 10px;font-size:.8rem;background:var(--sunken);margin:2px 4px 2px 0}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.warn{background:var(--warn-soft);color:var(--warn)}.chip.bad{background:var(--bad-soft);color:var(--bad)}.chip.info{background:var(--info-soft);color:var(--info)}
+.canal{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:grid;gap:8px;background:var(--bg)}
+.canal.on{border-color:var(--ok);background:var(--ok-soft)}.canal b{font-family:var(--font-display);font-size:1.15rem}
+.led{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--line);margin-right:6px;vertical-align:-1px}.led.on{background:var(--ok)}
+.estado{border-radius:var(--r);padding:16px;color:#fff;background:#6e6e73}.estado b{font:600 1.7rem var(--font-display);display:block}
+.estado.e6{background:#30a14e}.estado.e3,.estado.e4,.estado.e15,.estado.e16,.estado.e17{background:#0a84ff}.estado.e5,.estado.e10,.estado.e11,.estado.e12,.estado.e13,.estado.e14{background:#e08a00}.estado.e8,.estado.e9{background:#d93025}
+.kpi{text-align:center;border:1px solid var(--line);border-radius:var(--r);padding:12px}.kpi .v{font:600 1.9rem var(--font-display)}.kpi .l{color:var(--muted);font-size:.8rem}
+.fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+label.c{display:grid;gap:3px;font-size:.82rem;color:var(--muted)}label.c select,label.c input{padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
+pre{background:var(--sunken);border-radius:8px;padding:10px;max-height:240px;overflow:auto;font:12px/1.4 var(--font-mono);white-space:pre-wrap;margin:8px 0 0}
+.aviso{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:10px 14px;margin:12px 0;font-size:.9rem}
+.msg{font-size:.85rem;color:var(--muted)}.hidden{display:none!important}
+table{border-collapse:collapse;width:100%}td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:.9rem}
+@media (max-width:560px){.wrap{padding:0 12px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div><h1>Consola AP Base</h1><div class="sub">Controla y configura una placa base AP Electric (7R Tour, AP Home y las que vengan) desde el navegador</div></div>
+  <div class="fila"><span class="chip" id="cEstado">Sin conexión</span><button class="btn" id="bSalir" hidden>Desconectar</button></div>
+</div></header>
+
+<main class="wrap">
+<section class="card" id="conectar">
+  <h2>Conectar</h2>
+  <p class="sub">Tres caminos, todos sin nube. La consola lee qué sabe hacer la placa y muestra solo lo que existe, así que sirve igual para modelos futuros.</p>
+  <div class="fila">
+    <button class="btn p" id="bUsb">Conectar por USB</button>
+    <label class="c">Por red (IP de la placa)<input id="iIp" placeholder="192.168.1.50" inputmode="decimal" style="width:170px"></label>
+    <button class="btn" id="bRed">Conectar por red</button>
+    <button class="btn" id="bD7">Demostración 7R Tour</button>
+    <button class="btn" id="bDH">Demostración AP Home</button>
+  </div>
+  <p class="msg" id="mConectar" role="status"></p>
+  <details style="margin-top:8px"><summary>¿Cuál camino uso?</summary>
+    <ul class="sub">
+      <li><b>USB</b> (Chrome o Edge en computadora o Android): funciona desde esta página aunque esté en internet. Es origen <b>local</b>: puede reanudar la máquina, dar el permiso remoto y correr la autoprueba.</li>
+      <li><b>Red</b>: solo si esta página se abre como <span class="mono">http://</span> (por ejemplo, desde la propia placa en <span class="mono">http://IP/</span> o desde un archivo local). Un sitio <span class="mono">https://</span> no puede hablar con un equipo <span class="mono">http://</span> de tu red: es una regla del navegador. Es origen <b>red</b>: por seguridad solo acepta Stop, Hold y Abort y no puede dar permisos.</li>
+      <li><b>Demostración</b>: simula la placa para conocer el panel. No toca ningún equipo.</li>
+    </ul>
+  </details>
+</section>
+
+<div id="panel" class="hidden">
+  <div class="aviso" id="aviso">Prototipo de ingeniería. Esta consola informa y manda órdenes; <b>no es una función de seguridad</b> ni sustituye paro de emergencia, guardas o relés de seguridad.</div>
+
+  <section class="card" id="sEstado"><h2>Equipo</h2><div id="eqInfo"></div><div id="eqFallas" style="margin-top:6px"></div></section>
+
+  <section class="card" id="sSalidas"><h2>Salidas</h2><p class="sub">Un clic alterna el canal. En una carga de <b>proceso</b> el arranque siempre es apagado y se apaga al perder la comunicación.</p>
+    <div class="grid" id="canales"></div>
+    <details style="margin-top:12px"><summary>Configurar canales</summary><div id="cfgCanales" style="margin-top:10px"></div></details></section>
+
+  <section class="card" id="sEntradas"><h2>Entradas</h2><div class="fila" id="entradas"></div>
+    <details style="margin-top:12px"><summary>Configurar entradas</summary><div id="cfgEntradas" style="margin-top:10px"></div></details></section>
+
+  <section class="card" id="sProd"><h2>Producción (PackML)</h2>
+    <div class="estado" id="pkEst"><b>—</b><span></span></div>
+    <div class="grid" style="margin-top:12px" id="pkKpi"></div>
+    <div class="fila" style="margin-top:12px" id="pkBt"></div>
+    <p class="msg" id="pkNota"></p>
+    <div class="fila" style="margin-top:8px">
+      <label class="c">Causa de paro<select id="pkMot"></select></label>
+      <label class="c">Ciclo nominal (ms)<input id="pkCic" type="number" min="0" max="65535" style="width:120px"></label>
+      <button class="btn" id="pkCicOk">Aplicar ciclo</button>
+    </div>
+    <details style="margin-top:12px"><summary>Qué entrada hace qué (conteo automático)</summary>
+      <div class="fila" style="margin-top:8px" id="pkEnt"></div><p class="sub">0 = ninguna. Cada entrada puede tener una sola función.</p></details></section>
+
+  <section class="card" id="sCom"><h2>Comunicaciones y hora</h2><div id="comInfo"></div>
+    <div class="fila" style="margin-top:8px">
+      <label class="c">Dirección Modbus<input id="mbDir" type="number" min="1" max="247" style="width:100px"></label>
+      <label class="c">Baudios<select id="mbBps"><option>9600</option><option>19200</option><option>38400</option><option>57600</option><option>115200</option></select></label>
+      <label class="c">Paridad<select id="mbPar"><option value="0">Ninguna (8N2)</option><option value="1">Par (8E1)</option><option value="2">Impar (8O1)</option></select></label>
+      <label class="c">Vigilancia (s, 0 = sin)<input id="mbVig" type="number" min="0" max="3600" style="width:120px"></label>
+      <button class="btn" id="mbOk">Aplicar Modbus</button>
+    </div>
+    <div class="fila" style="margin-top:8px"><button class="btn" id="bHora">Poner la hora de esta computadora</button></div></section>
+
+  <section class="card" id="sAcc"><h2>Acciones</h2>
+    <div class="fila">
+      <button class="btn p" id="bGuardar">Guardar configuración en la placa</button>
+      <button class="btn" id="bTest" hidden>Autoprueba (TEST)</button>
+      <button class="btn d" id="bTestR" hidden>Probar relés (haz clic)</button>
+      <button class="btn d" id="bFabrica">Valores de fábrica</button>
+    </div>
+    <p class="msg" id="mAcc" role="status"></p>
+    <h2 style="margin-top:14px">Perfiles de aplicación</h2><p class="sub">Atajos que mandan varias órdenes. Se agregan en la lista <span class="mono">PERFILES</span> de esta página, sin tocar el firmware.</p>
+    <div class="fila" id="perfiles"></div></section>
+
+  <section class="card" id="sAvz"><h2>Avanzado</h2>
+    <div class="fila"><input class="mono" id="iCmd" placeholder="Orden, por ejemplo: PK STOP · C 1 2 · A 3 1" style="flex:1;min-width:200px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--surface)"><button class="btn" id="bCmd">Enviar</button><button class="btn" id="bBk">Copiar respaldo de configuración</button></div>
+    <pre id="log" aria-live="polite"></pre></section>
+</div>
+</main>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const ESTADO_PK=["","Limpiando falla","Detenida","Arrancando","Lista","Suspendida","En producción","Deteniendo","Abortando","Abortada","Reteniendo","Retenida","Reanudando","Suspendiendo","Reanudando de suspensión","Reiniciando","Terminando","Terminada"];
+const MODO_PK=["","Producción","Mantenimiento","Manual"];
+const CAUSAS=["Sin causa","Avería","Cambio de producto","Microparo","Velocidad reducida","Defectos","Arranque","Paro planeado","Causa externa"];
+const ARRANQUE=["Apagado","Último estado","Encendido"],MODOS_ENT=["Pulsador","Interruptor","Conmutador","Desacoplada"];
+const REMOTO_NO=["RESET","START","UNHOLD","CLEAR"];     // el equipo los rechaza desde la red
+/* Perfiles de aplicación: datos, no código. Agregar uno aquí lo muestra en el panel. */
+const PERFILES=[
+  {id:"andon",nombre:"Andon y OEE básico",desc:"Entrada 1 = pieza buena, 2 = mala, 3 = andon, 4 = reanudar; ciclo de 2 s; modo producción",req:["packml"],cmds:["PK ENT 1 2 3 4","PK CICLO 2000","PK MODO 1"]},
+  {id:"torre",nombre:"Arranque seguro de proceso",desc:"Todos los canales arrancan apagados",req:["salidas"],cmds:"TODOS_APAGADO"}
+];
+let T=null,J=null,cola=Promise.resolve(),sondeo=null,sucio={},demoSim=null;
+
+/* ---------- transportes ---------- */
+function log(t){const l=$("log");l.textContent=(l.textContent+t+"\n").split("\n").slice(-200).join("\n");l.scrollTop=l.scrollHeight}
+function transporteUsb(port){
+  const enc=new TextEncoder(),dec=new TextDecoder();let esperando=null,buf="",lector,escritor;
+  const t={nombre:"USB",origen:"local",
+    async abrir(){await port.open({baudRate:115200});escritor=port.writable.getWriter();lector=port.readable.getReader();
+      (async()=>{try{for(;;){const{value,done}=await lector.read();if(done)break;buf+=dec.decode(value);let i;
+        while((i=buf.indexOf("\n"))>=0){const l=buf.slice(0,i).replace(/\r$/,"");buf=buf.slice(i+1);
+          if(l[0]=="{"&&esperando){try{esperando.ok(JSON.parse(l))}catch(e){log("(JSON incompleto)")}}
+          else if(l=="?"&&esperando){esperando.rechazo()}
+          else if(l)log(l)}}}catch(e){}
+        if(T===t)desconectar("Se perdió la conexión USB.")})()},
+    enviar(c,ms=2500){return new Promise((res,rej)=>{
+      const x=setTimeout(()=>{esperando=null;rej(new Error("La placa no contestó"))},ms);
+      esperando={ok:j=>{clearTimeout(x);esperando=null;res({ok:true,j})},rechazo:()=>{clearTimeout(x);esperando=null;res({ok:false})}};
+      escritor.write(enc.encode(c+"\n")).catch(rej)})},
+    async cerrar(){try{lector.cancel();await lector.releaseLock();escritor.releaseLock();await port.close()}catch(e){}}};
+  return t}
+function transporteRed(ip){
+  const base=/^https?:/.test(ip)?ip:"http://"+ip;
+  return{nombre:"Red",origen:"red",async abrir(){},async cerrar(){},
+    async enviar(c,ms=3000){const r=await fetch(base+"/api?c="+encodeURIComponent(c),{cache:"no-store",signal:AbortSignal.timeout(ms)});
+      if(!r.ok)throw new Error("HTTP "+r.status);return{ok:true,j:await r.json()}}}}
+/* Placa simulada: misma forma de JSON que /api del firmware (api 2) */
+function transporteDemo(tipo){
+  const n7=tipo=="7r",N=n7?7:1,NE=n7?8:1,S={s:0,e:0,man:Array(N).fill(0),arr:Array(N).fill(0),carga:Array(N).fill(0),pul:Array(N).fill(0),acc:Array(N).fill(0),
+    ent:Array.from({length:NE},()=>[3,0,30]),mon:[0,0,0,0],cic:0,pk:{e:2,m:1,r:0,n:0,d:0,rem:0},t:0,hv:0,h:0,mb:{dir:1,bps:9600,par:0,vig:0},T:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],rem:0};
+  const cap=["salidas","entradas","packml","plc","modbus_esclavo"].concat(n7?["rs485","rtc","conteo_rapido","autoprueba"]:[]);
+  const NEXT={1:2,3:6,7:2,8:9,10:11,12:6,15:4},P=S.pk;
+  const iv=setInterval(()=>{S.t++;if(NEXT[P.e])P.e=NEXT[P.e];S.T[P.e]++;if(P.e==6&&S.mon[0]){/* pulsos manuales con entradas */}
+    if(P.e==6&&S.T[6]%2==0){P.n++;if(Math.random()<.04)P.d++}},1000);
+  const pct=(a,b)=>b?Math.round(1000*a/b):65535;
+  function json(){const ex=S.T[6],perd=[10,11,12,5,13,14,8,9,1].reduce((x,i)=>x+S.T[i],0);
+    const disp=pct(ex,ex+perd),des=ex&&P.n?Math.min(1000,Math.round(1000*P.n*2/ex)):65535,cal=P.n?pct(P.n-P.d,P.n):65535;
+    const oee=[disp,des,cal].includes(65535)?65535:Math.round(disp*des*cal/1e6);
+    return{v:"demo",placa:n7?"7R Tour":"AP Home",n:N,ne:NE,s:S.s,e:S.e,b:S.s,fz:0,f:0,fn:[],man:S.man,arr:S.arr,carga:S.carga,
+      mb:{dir:S.mb.dir,bps:S.mb.bps,par:S.mb.par||0,vig:S.mb.vig,ok:0,mal:0},pk:{e:P.e,m:P.m,r:P.r,n:P.n,d:P.d,disp,des,cal,oee,mp:0,rem:S.rem,h:Math.floor(Date.now()/1000),hv:S.hv},
+      api:2,cap,cfg:{pul:S.pul,acc:S.acc,ent:S.ent,mon:S.mon,cic:S.cic},plc:{run:0,n:0,err:""},id:"DEM0"+(n7?"7R":"HM"),t:S.t}}
+  const PKT={RESET:{2:15,17:15},START:{4:3},STOP:{3:7,4:7,5:7,6:7,10:7,11:7,12:7,13:7,14:7,15:7,16:7,17:7},HOLD:{6:10},UNHOLD:{11:12},CLEAR:{9:1}};
+  return{nombre:"Demostración",origen:"local",async abrir(){},async cerrar(){clearInterval(iv)},
+    async enviar(c){const w=c.trim().split(/\s+/),k=w[0].toUpperCase(),a=w.slice(1).map(Number);let ok=true;
+      if(k=="C"){const i=a[0]-1;if(i<0||i>=N)ok=false;else{const b=1<<i;S.s=a[1]==2?S.s^b:a[1]?S.s|b:S.s&~b;S.man[i]++}}
+      else if(k=="A"&&a[0]>=1&&a[0]<=N){S.arr[a[0]-1]=a[1];if(a[1]&&S.carga[a[0]-1])S.carga[a[0]-1]=0}
+      else if(k=="T"&&a[0]>=1&&a[0]<=N){S.carga[a[0]-1]=a[1];if(a[1]){S.arr[a[0]-1]=0;S.acc[a[0]-1]=0}}
+      else if(k=="P"&&a[0]>=1&&a[0]<=N)S.pul[a[0]-1]=a[1];
+      else if(k=="X"&&a[0]>=1&&a[0]<=N){S.acc[a[0]-1]=S.carga[a[0]-1]?0:a[1]}
+      else if(k=="E"&&a[0]>=1&&a[0]<=NE)S.ent[a[0]-1]=[a[1],a[2],a[3]];
+      else if(k=="MB"){S.mb={dir:a[0],bps:a[1],par:a[2],vig:a[3]}}
+      else if(k=="GUARDAR"||k=="?"){}
+      else if(k=="PK"){const s=(w[1]||"").toUpperCase(),a=w.slice(2).map(Number);
+        if(["RESET","START","UNHOLD","CLEAR"].includes(s)&&!S.rem&&false){ok=false}
+        else if(PKT[s]&&PKT[s][P.e]!=null)P.e=PKT[s][P.e];
+        else if(s=="ABORT"){if(P.e!=9&&P.e!=8)P.e=8}
+        else if(s=="BUENA"||s=="MALA"){if(P.e==6||P.e==16){P.n++;if(s=="MALA")P.d++}else ok=false}
+        else if(s=="MOTIVO")P.r=a[0]||0;else if(s=="MODO")P.m=a[0];else if(s=="CICLO")S.cic=a[0];
+        else if(s=="ENT"){S.mon=a.slice(0,4)}else if(s=="HORA"){S.hv=1}else if(s=="REMOTO")S.rem=a[0]?1:0;else ok=false}
+      else if(k=="TEST"){log("[demostración] TEST: todo contesta");}
+      else ok=false;
+      return ok?{ok:true,j:json()}:{ok:false}}}}
+
+function mandar(c,ms){const p=cola.then(()=>T?T.enviar(c,ms):Promise.reject(new Error("Sin conexión")));cola=p.catch(()=>{});return p}
+async function orden(c,ms){
+  log("> "+c);
+  try{const r=await mandar(c,ms);if(!r.ok){log("  rechazada por la placa");aviso("La placa rechazó la orden: "+c,true);await leer();return false}
+    J=r.j;pintar();return true}
+  catch(e){log("  "+e.message);aviso(e.message,true);return false}}
+async function leer(){try{const r=await mandar("?");if(r.ok){J=r.j;pintar()}}catch(e){}}
+function aviso(t,mal){const m=$("mAcc");m.textContent=t;m.style.color=mal?"var(--bad)":"var(--muted)"}
+
+/* ---------- conexión ---------- */
+function estado(t,cls){const c=$("cEstado");c.textContent=t;c.className="chip "+(cls||"")}
+async function conectar(tr){
+  if(T)await desconectar();
+  try{T=tr;await T.abrir();$("mConectar").textContent="Conectando…";
+    let r=null;for(let i=0;i<4&&!r;i++){try{r=await mandar("?",1800)}catch(e){await new Promise(z=>setTimeout(z,500))}}
+    if(!r||!r.ok)throw new Error("La placa no contesta. Revisa el cable, los baudios (115200) y que corra AP Control.");
+    J=r.j;if(!J.api){log("Firmware sin api 2: se muestran solo los datos básicos")}
+    $("conectar").classList.add("hidden");$("panel").classList.remove("hidden");$("bSalir").hidden=false;
+    estado(T.nombre+" · "+(J.placa||"placa"),"ok");$("mConectar").textContent="";
+    sucio={};construirFijos();pintar();
+    sondeo=setInterval(()=>{if(!document.hidden&&!Object.keys(sucio).length)leer()},1200)
+  }catch(e){const m=e.message||String(e);T=null;$("mConectar").textContent=m;$("mConectar").style.color="var(--bad)";estado("Sin conexión","")}}
+async function desconectar(m){clearInterval(sondeo);const t=T;T=null;J=null;if(t)await t.cerrar();
+  $("panel").classList.add("hidden");$("conectar").classList.remove("hidden");$("bSalir").hidden=true;estado("Sin conexión","");
+  if(m){$("mConectar").textContent=m;$("mConectar").style.color="var(--bad)"}}
+$("bSalir").onclick=()=>desconectar();
+$("bUsb").onclick=async()=>{
+  if(!("serial" in navigator)){$("mConectar").textContent="Este navegador no tiene Web Serial. Usa Chrome o Edge (computadora o Android).";return}
+  try{const port=await navigator.serial.requestPort();await conectar(transporteUsb(port))}catch(e){$("mConectar").textContent=e.name=="NotFoundError"?"No elegiste ningún puerto.":(e.message||"No se pudo abrir el puerto")}};
+$("bRed").onclick=()=>{const ip=$("iIp").value.trim();if(!ip){$("mConectar").textContent="Escribe la IP de la placa.";return}
+  if(location.protocol=="https:"){$("mConectar").textContent="Esta página es https:// y el navegador no permite hablar con un equipo http:// de tu red. Usa USB, o abre esta consola desde la propia placa (http://"+ip+"/) o desde un archivo local.";return}
+  conectar(transporteRed(ip))};
+$("bD7").onclick=()=>conectar(transporteDemo("7r"));$("bDH").onclick=()=>conectar(transporteDemo("home"));
+
+/* ---------- pintar ---------- */
+const tiene=c=>J&&(J.cap||[]).includes(c);
+function txt(tag,t,cls){const e=document.createElement(tag);if(t!=null)e.textContent=t;if(cls)e.className=cls;return e}
+function limpia(e){e.textContent="";return e}
+function chip(t,cls){return txt("span",t,"chip "+(cls||""))}
+function numerado(sel,v){if(document.activeElement!==sel)sel.value=String(v)}
+function construirFijos(){
+  const m=limpia($("pkMot"));CAUSAS.forEach((t,i)=>m.add(new Option(t,i*100)));m.onchange=()=>orden("PK MOTIVO "+m.value);
+  const pb=limpia($("pkBt"));[["RESET","Reset"],["START","Start"],["UNHOLD","Reanudar"],["HOLD","Hold"],["STOP","Stop"],["ABORT","Abort"],["CLEAR","Clear"]].forEach(([c,t])=>{
+    const b=txt("button",t,"btn"+(c=="ABORT"?" d":""));b.dataset.c=c;b.onclick=()=>orden("PK "+c);pb.appendChild(b)});
+  [["BUENA","+1 buena"],["MALA","+1 mala"]].forEach(([c,t])=>{const b=txt("button",t,"btn");b.onclick=()=>orden("PK "+c);pb.appendChild(b)});
+  $("pkCicOk").onclick=()=>orden("PK CICLO "+(+$("pkCic").value||0));
+  $("mbOk").onclick=()=>orden(`MB ${+$("mbDir").value} ${+$("mbBps").value} ${+$("mbPar").value} ${+$("mbVig").value}`);
+  $("bHora").onclick=()=>orden("PK HORA "+Math.floor(Date.now()/1000));
+  $("bGuardar").onclick=async()=>{if(await orden("GUARDAR"))aviso("Configuración guardada en la placa.")};
+  $("bTest").hidden=!(tiene("autoprueba")&&T.origen=="local");$("bTestR").hidden=$("bTest").hidden;
+  $("bTest").onclick=()=>orden("TEST",20000);
+  $("bTestR").onclick=async()=>{if(!confirm("Los contactos van a hacer clic. ¿Desconectaste TODAS las cargas de los relés?"))return;
+    await orden("TEST RELES SI",30000)};
+  $("bFabrica").onclick=async()=>{if(!confirm("Se borra toda la configuración y la placa se reinicia. ¿Continuar?"))return;
+    log("> FABRICA");try{await T.enviar("FABRICA",1500)}catch(e){}aviso("Placa reiniciada: vuelve a conectar.");desconectar()};
+  $("bCmd").onclick=()=>{const c=$("iCmd").value.trim();if(c){orden(c);$("iCmd").value=""}};
+  $("iCmd").onkeydown=e=>{if(e.key=="Enter")$("bCmd").click()};
+  $("bBk").onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(respaldo()).then(()=>aviso("Respaldo copiado: lista de órdenes para restaurar."),()=>log(respaldo()))};
+  const pf=limpia($("perfiles"));
+  PERFILES.filter(p=>(p.req||[]).every(tiene)).forEach(p=>{const b=txt("button",p.nombre,"btn");b.title=p.desc;b.onclick=async()=>{
+      const cmds=p.cmds=="TODOS_APAGADO"?Array.from({length:J.n},(_,i)=>`A ${i+1} 0`):p.cmds;
+      if(!confirm(p.nombre+"\n"+p.desc+"\n\nSe mandan "+cmds.length+" órdenes. ¿Aplicar?"))return;
+      for(const c of cmds){if(!await orden(c))return}aviso("Perfil aplicado. Usa «Guardar» para conservarlo.")};pf.appendChild(b)});
+  $("sProd").classList.toggle("hidden",!tiene("packml"));$("sCom").classList.toggle("hidden",!tiene("modbus_esclavo"));
+  $("mbBps").closest("label").classList.toggle("hidden",!tiene("rs485"));
+  for(const id of["mbDir","mbPar","mbVig"])$(id).closest("label").classList.toggle("hidden",!tiene("rs485"));
+  $("mbOk").classList.toggle("hidden",!tiene("rs485"));
+  const pe=limpia($("pkEnt"));["Pieza buena","Pieza mala","Andon","Reanudar"].forEach((t,i)=>{const l=txt("label",null,"c");l.appendChild(document.createTextNode(t));
+    const s=document.createElement("select");s.dataset.k=i;for(let k=0;k<=J.ne;k++)s.add(new Option(k?"Entrada "+k:"Ninguna",k));
+    s.onchange=()=>{const v=[...pe.querySelectorAll("select")].map(x=>x.value);orden("PK ENT "+v.join(" "))};l.appendChild(s);pe.appendChild(l)});
+  // configuración de canales y entradas (se arma una vez; los valores se refrescan en pintar)
+  const cc=limpia($("cfgCanales"));
+  const tb=document.createElement("table");tb.innerHTML="<thead><tr><th>Canal</th><th>Tipo de carga</th><th>Al encender</th><th>Pulso (s)</th><th>Si se pierde Modbus</th></tr></thead>";
+  const body=document.createElement("tbody");
+  for(let k=1;k<=J.n;k++){const tr=document.createElement("tr");tr.appendChild(txt("td","C"+k));
+    const mk=(id,opts,cmd)=>{const td=document.createElement("td"),s=document.createElement("select");s.id=id;opts.forEach(([v,t])=>s.add(new Option(t,v)));
+      s.onchange=()=>orden(cmd(s.value));td.appendChild(s);tr.appendChild(td);return s};
+    mk("cT"+k,[[0,"Alumbrado"],[1,"Proceso"]],v=>`T ${k} ${v}`);
+    mk("cA"+k,[[0,"Apagado"],[1,"Último estado"],[2,"Encendido"]],v=>`A ${k} ${v}`);
+    const tdp=document.createElement("td"),ip=document.createElement("input");ip.type="number";ip.min=0;ip.max=65535;ip.id="cP"+k;ip.style.width="90px";ip.onchange=()=>orden(`P ${k} ${+ip.value||0}`);tdp.appendChild(ip);tr.appendChild(tdp);
+    mk("cX"+k,[[0,"Apagar"],[1,"Mantener"]],v=>`X ${k} ${v}`);body.appendChild(tr)}
+  tb.appendChild(body);cc.appendChild(tb);cc.appendChild(txt("p","Un canal de proceso siempre arranca apagado y se apaga al perder la comunicación: el equipo lo impone aunque pidas otra cosa.","sub"));
+  const ce=limpia($("cfgEntradas")),te=document.createElement("table");te.innerHTML="<thead><tr><th>Entrada</th><th>Modo</th><th>Canal que manda</th><th>Antirrebote (ms)</th></tr></thead>";
+  const be=document.createElement("tbody");
+  for(let k=1;k<=J.ne;k++){const tr=document.createElement("tr");tr.appendChild(txt("td","I"+k));
+    const sm=document.createElement("select");sm.id="eM"+k;MODOS_ENT.forEach((t,i)=>sm.add(new Option(t,i)));
+    const sc=document.createElement("select");sc.id="eC"+k;for(let c=0;c<=J.n;c++)sc.add(new Option(c?"Canal "+c:"Ninguno",c));
+    const ia=document.createElement("input");ia.type="number";ia.min=0;ia.max=2000;ia.id="eA"+k;ia.style.width="90px";
+    const envia=()=>orden(`E ${k} ${sm.value} ${sc.value} ${+ia.value||30}`);
+    [sm,sc,ia].forEach(x=>x.onchange=envia);
+    for(const x of[sm,sc,ia]){const td=document.createElement("td");td.appendChild(x);tr.appendChild(td)}be.appendChild(tr)}
+  te.appendChild(be);ce.appendChild(te)}
+
+function pintar(){
+  if(!J)return;
+  const info=limpia($("eqInfo"));
+  [[J.placa,"info"],["fw "+J.v,""],["id "+J.id,""],[J.n+" salidas",""],[J.ne+" entradas",""],["encendida hace "+Math.floor(J.t/60)+" min",""],[T.origen=="local"?"origen: local":"origen: red (solo Stop, Hold y Abort)",T.origen=="local"?"ok":"warn"]].forEach(([t,c])=>info.appendChild(chip(t,c)));
+  (J.cap||[]).forEach(c=>info.appendChild(chip(c,"info")));
+  const fl=limpia($("eqFallas"));if(J.f)(J.fn||[]).forEach(f=>fl.appendChild(chip("Falla: "+f,"bad")));else fl.appendChild(chip("Sin fallas","ok"));
+  const cn=limpia($("canales"));
+  for(let k=1;k<=J.n;k++){const on=(J.s>>(k-1))&1,fz=(J.fz>>(k-1))&1,bo=(J.b>>(k-1))&1;
+    const d=txt("div",null,"canal"+(on?" on":""));const t=txt("b","Canal "+k);d.appendChild(t);
+    const s=txt("div");const led=txt("span",null,"led"+(bo?" on":""));s.appendChild(led);s.appendChild(document.createTextNode(bo?"Bobina con tensión":"Bobina sin tensión"));d.appendChild(s);
+    d.appendChild(txt("span",(fz?"Forzado por el DIP · ":"")+"maniobras: "+((J.man||[])[k-1]||0),"sub"));
+    const b=txt("button",on?"Apagar":"Encender","btn"+(on?"":" p"));b.onclick=()=>orden(`C ${k} 2`);d.appendChild(b);cn.appendChild(d)}
+  const en=limpia($("entradas"));for(let k=1;k<=J.ne;k++){const on=(J.e>>(k-1))&1;const c=txt("span",null,"chip"+(on?" ok":""));c.appendChild(txt("span",null,"led"+(on?" on":"")));c.appendChild(document.createTextNode("I"+k+(on?" activa":" reposo")));en.appendChild(c)}
+  if(J.cfg){for(let k=1;k<=J.n;k++){numerado($("cT"+k),J.carga[k-1]);numerado($("cA"+k),J.arr[k-1]);numerado($("cX"+k),J.cfg.acc[k-1]);const p=$("cP"+k);if(document.activeElement!==p)p.value=J.cfg.pul[k-1]}
+    for(let k=1;k<=J.ne;k++){const e=J.cfg.ent[k-1];if(!e)continue;numerado($("eM"+k),e[0]);numerado($("eC"+k),e[1]);const a=$("eA"+k);if(document.activeElement!==a)a.value=e[2]}}
+  else $("cfgCanales").textContent="Este firmware no informa la configuración (api 1).";
+  const K=J.pk;
+  if(K&&tiene("packml")){
+    const est=$("pkEst");est.className="estado e"+K.e;
+    est.replaceChildren(txt("b",ESTADO_PK[K.e]||"?"),txt("span",(MODO_PK[K.m]?"Modo "+MODO_PK[K.m]:"")+(K.r?" · causa "+(CAUSAS[Math.floor(K.r/100)]||"?")+" "+(K.r%100):"")+(K.mp?" · MICROPARO":"")));
+    const pm=v=>v>1000?"—":(v/10).toFixed(v%10?1:0)+" %",kp=limpia($("pkKpi"));
+    [["OEE",pm(K.oee)],["Disponibilidad",pm(K.disp)],["Desempeño",pm(K.des)],["Calidad",pm(K.cal)],["Piezas",K.n],["Defectuosas",K.d]].forEach(([l,v])=>{const d=txt("div",null,"kpi");d.appendChild(txt("div",String(v),"v"));d.appendChild(txt("div",l,"l"));kp.appendChild(d)});
+    $("pkBt").querySelectorAll("button[data-c]").forEach(b=>{b.disabled=T.origen=="red"&&!K.rem&&REMOTO_NO.includes(b.dataset.c)});
+    $("pkNota").textContent=T.origen=="red"&&!K.rem?"Por red solo se aceptan Stop, Hold y Abort. Para reanudar: conecta por USB (origen local) o usa el botón de la máquina.":"";
+    numerado($("pkMot"),Math.floor(K.r/100)*100);if(document.activeElement!==$("pkCic"))$("pkCic").value=J.cfg?J.cfg.cic:"";
+    if(J.cfg&&J.cfg.mon)$("pkEnt").querySelectorAll("select").forEach((s,i)=>numerado(s,J.cfg.mon[i]))}
+  if(tiene("modbus_esclavo")&&J.mb){const ci=limpia($("comInfo"));
+    ci.appendChild(chip(J.mb.ok+" tramas buenas","ok"));ci.appendChild(chip(J.mb.mal+" con error",J.mb.mal?"warn":""));
+    ci.appendChild(chip(K&&K.hv?"Hora: "+new Date(K.h*1000).toLocaleString():"Hora sin ajustar",K&&K.hv?"ok":"warn"));
+    numerado($("mbDir"),J.mb.dir);numerado($("mbBps"),J.mb.bps);if(J.mb.par!=null)numerado($("mbPar"),J.mb.par);numerado($("mbVig"),J.mb.vig)}
+}
+function respaldo(){const L=["# Respaldo de configuración "+J.placa+" "+J.id+" "+new Date().toISOString()];
+  for(let k=1;k<=J.n;k++){L.push(`T ${k} ${J.carga[k-1]}`,`A ${k} ${J.arr[k-1]}`);if(J.cfg){L.push(`P ${k} ${J.cfg.pul[k-1]}`,`X ${k} ${J.cfg.acc[k-1]}`)}}
+  if(J.cfg){J.cfg.ent.forEach((e,i)=>L.push(`E ${i+1} ${e[0]} ${e[1]} ${e[2]}`));if(tiene("packml")){L.push("PK ENT "+J.cfg.mon.join(" "),"PK CICLO "+J.cfg.cic)}}
+  if(tiene("rs485"))L.push(`MB ${J.mb.dir} ${J.mb.bps} ${J.mb.par||0} ${J.mb.vig}`);L.push("GUARDAR");return L.join("\n")}
+</script>
+</body>
+</html>
