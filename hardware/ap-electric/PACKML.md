@@ -130,5 +130,5 @@ Los bits **S11-S27** del PLC valen 1 cuando la unidad está en el estado S − 1
 1. Confirmar con el texto de ISA-TR88.00.02-2022 los estados, comandos, modos y estados habilitados por modo.
 2. Bitácora en memoria permanente (los tiempos por estado y la bitácora se reinician al encender).
 3. Probar la interrupción de conteo rápido y el reloj en una placa rev B real.
-4. El tablero OEE completo en AP Studio (la página del equipo ya muestra estado, piezas y OEE).
+4. AP Studio ya tiene la pestaña **Producción** (estado, OEE, piezas, órdenes, causa de paro; con demostración sin equipo). Falta el historial por turno y la gráfica de causas de paro.
 5. Probarlo con una máquina real y validar la definición de OEE con un cliente.

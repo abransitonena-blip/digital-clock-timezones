@@ -138,6 +138,18 @@ textarea.code{font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;min-height:320
 .plcEst{font-size:22px;font-weight:700;letter-spacing:-.01em}
 .plcEst.run{color:var(--green)}.plcEst.stop{color:var(--sub)}
 .chip.sel{cursor:pointer}.chip.on2{background:var(--orange);color:#fff}
+
+/* producción (PackML / OEE) */
+.pkEst{border-radius:var(--r);padding:18px 16px;color:#fff;margin:10px 0;background:#8e8e93}
+.pkEst b{font-size:26px;display:block}.pkEst span{font-size:13px;opacity:.9}
+.pkEst.e6{background:#30a14e}.pkEst.e4,.pkEst.e3,.pkEst.e15,.pkEst.e16,.pkEst.e17{background:#0a84ff}
+.pkEst.e10,.pkEst.e11,.pkEst.e12,.pkEst.e5,.pkEst.e13,.pkEst.e14{background:#e08a00}
+.pkEst.e8,.pkEst.e9{background:#d93025}.pkEst.e1,.pkEst.e7{background:#6e6e73}
+.pkG{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.pkG .card{margin:0;text-align:center}.pkG .v{font-size:30px;font-weight:600}.pkG .l{font-size:12px;color:var(--sub)}
+.pkG .barra{height:6px;border-radius:3px;background:var(--card2);margin-top:8px;overflow:hidden}.pkG .barra i{display:block;height:100%;background:var(--accent)}
+.pkBt{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.pkBt button{flex:1;min-width:92px;border:0;border-radius:12px;padding:12px 8px;background:var(--card);color:var(--text,inherit);font-size:15px;box-shadow:var(--shadow)}
+.pkBt button:disabled{opacity:.35}.pkBt button.r{background:#d93025;color:#fff}.pkBt button.n{background:#e08a00;color:#fff}
 </style>
 </head>
 <body>
@@ -212,6 +224,31 @@ textarea.code{font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;min-height:320
     <div class="grid store" id="tienda" style="margin-top:12px"></div>
   </section>
 
+  <!-- PRODUCCIÓN -->
+  <section id="v-prod" class="hidden">
+    <h1>Producción</h1>
+    <p class="sub" style="margin:0 4px">Estado de la máquina (modelo PackML), piezas y OEE. Informa; <b>no es una función de seguridad</b>.</p>
+    <div class="pkEst" id="pkEst"><b>—</b><span></span></div>
+    <div class="pkG">
+      <div class="card"><div class="v" id="pkOee">—</div><div class="l">OEE</div><div class="barra"><i id="pkOeeB" style="width:0"></i></div></div>
+      <div class="card"><div class="v" id="pkDisp">—</div><div class="l">Disponibilidad</div><div class="barra"><i id="pkDispB" style="width:0"></i></div></div>
+      <div class="card"><div class="v" id="pkDes">—</div><div class="l">Desempeño</div><div class="barra"><i id="pkDesB" style="width:0"></i></div></div>
+      <div class="card"><div class="v" id="pkCal">—</div><div class="l">Calidad</div><div class="barra"><i id="pkCalB" style="width:0"></i></div></div>
+    </div>
+    <div class="card"><div class="item" style="padding:6px 0"><div class="t"><b id="pkPz">0 piezas</b><span id="pkPzS"></span></div></div>
+      <div class="chips" id="pkChips" style="margin-top:8px"></div></div>
+    <h2>Órdenes</h2>
+    <div class="pkBt" id="pkBt">
+      <button data-c="RESET">Reset</button><button data-c="START">Start</button><button data-c="UNHOLD">Reanudar</button>
+      <button data-c="HOLD" class="n">Hold</button><button data-c="STOP">Stop</button><button data-c="ABORT" class="r">Abort</button><button data-c="CLEAR">Clear</button>
+    </div>
+    <p class="sub" id="pkNota" style="margin:0 4px"></p>
+    <h2>Causa de paro</h2>
+    <div class="card"><select id="pkMot" style="width:100%;padding:10px;border-radius:10px;border:0;background:var(--card2);font-size:16px"></select></div>
+    <h2>Conteo manual</h2>
+    <div class="pkBt"><button data-c="BUENA">+1 buena</button><button data-c="MALA">+1 mala</button></div>
+  </section>
+
   <!-- LOGICA (PLC) -->
   <section id="v-logica" class="hidden">
     <h1>Lógica</h1>
@@ -264,6 +301,7 @@ textarea.code{font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;min-height:320
   <button data-v="equipo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Salidas</button>
   <button data-v="auto"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 10.4 3.5 2.1-.9 1.5L11 13V6h2z"/></svg>Reglas</button>
   <button data-v="logica"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18M21 3v18M3 8h4M7 5v6M11 5v6M11 8h3M17 8a2 2 0 1 0 0 .01M17 8h4M3 16h4M7 13v6M11 13v6M11 16h10"/></svg>Lógica</button>
+  <button data-v="prod"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z"/></svg>Producción</button>
   <button data-v="mod"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg>Módulos</button>
   <button data-v="ajustes"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.7 7.7 0 0 0-1.7-1L15 3.3h-4L10.6 6a7.7 7.7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.2 1.6 2 3.5 2.5-1a7.7 7.7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>Ajustes</button>
 </nav>
@@ -316,6 +354,7 @@ function accTxt(a,v){if(a==255)return "Nada";const t=ACC[a]||"?";const k=ACC_VAL
 /* ---------- pintar ---------- */
 function pintar(){
   if(!E||!E.v)return;
+  pintarProd();
   $("#hNom").textContent=E.nom||"Equipo";
   $("#hDot").className="dot "+(demo?"demo":"on");
   $("#hEst").textContent=demo?"Demostración":(E.ip||"En línea")+(E.rssi?` · ${E.rssi} dBm`:"");
@@ -757,6 +796,32 @@ async function pintarBitacora(){
     <div class="t"><b>${esc(x)}</b><span>${t>1.6e9?new Date(t*1000).toLocaleString():"a los "+t+" s del arranque"}</span></div></div>`).join("")||'<div class="empty">Sin eventos.</div>';
 }
 
+
+/* ---------- Producción: PackML y OEE ---------- */
+const PK_EST=["","Clearing","Stopped","Starting","Idle","Suspended","Execute","Stopping","Aborting","Aborted","Holding","Held","Unholding","Suspending","Unsuspending","Resetting","Completing","Complete"];
+const PK_ES=["","Limpiando falla","Detenida","Arrancando","Lista","Suspendida","En producción","Deteniendo","Abortando","Abortada","Reteniendo","Retenida","Reanudando","Suspendiendo","Reanudando de suspensión","Reiniciando","Terminando","Terminada"];
+const PK_MODO=["","Producción","Mantenimiento","Manual"];
+const PK_CAT=["Sin causa","Avería","Cambio de producto","Microparo","Velocidad reducida","Defectos","Arranque","Paro planeado","Causa externa"];
+const PK_REM=["RESET","START","UNHOLD","CLEAR"];        // el equipo los rechaza desde la red si no se permitió en el equipo
+const pm=v=>v==null||v>1000?"—":(v/10).toFixed(v%10?1:0)+" %";
+function pintarProd(){
+  const K=E.pk;if(!K||$("#v-prod").classList.contains("hidden"))return;
+  const est=$("#pkEst");est.className="pkEst e"+K.e;
+  est.innerHTML=`<b>${esc(PK_ES[K.e]||"?")}</b><span>${esc(PK_EST[K.e]||"")} · modo ${esc(PK_MODO[K.m]||K.m)}${K.r?" · causa "+esc(PK_CAT[Math.floor(K.r/100)]||"?")+" "+(K.r%100):""}</span>`;
+  [["Oee",K.oee],["Disp",K.disp],["Des",K.des],["Cal",K.cal]].forEach(([n,v])=>{$("#pk"+n).textContent=pm(v);$("#pk"+n+"B").style.width=(v>1000?0:v/10)+"%"});
+  $("#pkPz").textContent=`${K.n} pieza${K.n==1?"":"s"}`;$("#pkPzS").textContent=`${K.n-K.d} buenas · ${K.d} defectuosas`;
+  const c=[];if(K.mp)c.push(["Microparo","warn"]);K.rem?c.push(["Reanudar desde la red: permitido","ok"]):c.push(["Reanudar solo en el equipo","chip"]);
+  c.push(K.hv?["Hora: "+new Date(K.h*1000).toLocaleString(),"ok"]:["Hora sin ajustar","warn"]);
+  $("#pkChips").innerHTML=c.map(([t,k])=>`<span class="chip ${k=="chip"?"":k}">${esc(t)}</span>`).join("");
+  $$("#pkBt button[data-c]").forEach(b=>{b.disabled=!K.rem&&PK_REM.includes(b.dataset.c)&&!demo});
+  $("#pkNota").textContent=K.rem||demo?"":"Por red solo se aceptan Stop, Hold y Abort. Para reanudar, habilitarlo en el equipo (consola USB: PK REMOTO 1) o usar el botón de la máquina.";
+  const m=$("#pkMot");if(!m.options.length)m.innerHTML=PK_CAT.map((t,i)=>`<option value="${i*100}">${esc(t)}</option>`).join("");
+  if(document.activeElement!==m)m.value=Math.floor(K.r/100)*100;
+}
+$("#pkBt").addEventListener("click",e=>{const b=e.target.closest("button[data-c]");if(b&&!b.disabled)api("PK "+b.dataset.c)});
+$("#v-prod").addEventListener("click",e=>{const b=e.target.closest(".pkBt button[data-c]");if(b&&b.dataset.c.match(/BUENA|MALA/))api("PK "+b.dataset.c)});
+$("#pkMot").addEventListener("change",e=>api("PK MOTIVO "+e.target.value));
+
 /* ---------- AP LÓGICA: equipo ---------- */
 async function plcBajar(){
   try{const t=demo?Sim.plcTxt:await (await fetch(base()+"/plc",{cache:"no-store"})).text();LG.dev=t;LG.devIns=insDe(t)||[];return t}
@@ -885,7 +950,9 @@ const Sim=(()=>{
     lu:{m:0x301,o:2**0+2**1+2**32+2**34,s:2**32,r:1,fh:[1000,500],n:[70,40,100,0,...Array(28).fill(100),80,60,50,100],f:[[548,700,0,1],[0,350,0,2],[246,500,0,1],[0,0,0,0]]},
     geo:[19.43,-99.13],noche:0,solh:[1127,402],sol:[[1,0,0,9,33,127],[1,1,15,10,33,127],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]],
     ai:{m:0},et:{l1:"Fachada",l2:"Marquesina",l33:"Vitrina",l34:"Mostrador",l35:"Pasillo",s1:"Bomba",s2:"Calentador",s9:"Focos patio",s10:"Contactos cocina",e1:"Botón entrada",e2:"Sensor puerta"},
-    base:{ok:1,mod:"LL-UNO",sn:"7F3A-19C2",h:812},aviso:""};
+    base:{ok:1,mod:"LL-UNO",sn:"7F3A-19C2",h:812},aviso:"",
+    pk:{e:2,m:1,r:0,n:0,d:0,disp:65535,des:65535,cal:65535,oee:65535,mp:0,rem:1,h:Math.floor(Date.now()/1000),hv:1}};
+  const pkT=Array(18).fill(0),CICLO=2;       // segundos por estado y ciclo nominal de la demostración
   const P=new Plc();let plcTxt="// Bomba: I1 marcha, I2 paro\nLD I1\nOR Q1\nANDN I2\nOUT Q1\n// Focos del patio 5 s después de la bomba\nLD Q1\nTON T1 5000\nLD T1\nOUT Q9\n// Cuenta los arranques de la bomba\nLDP Q1\nCTU C1 100\n// Vitrina de noche o con el sensor de puerta\nLD S4\nOR I2\nAND P\nOUT L33",plcRun=true;
   P.compilar(plcTxt);s.io.e=[0];
   const log=[[Math.floor(Date.now()/1000)-3600,"Arranque AP-1 fw 2.3 (normal), PLC en RUN"],[Math.floor(Date.now()/1000)-1800,"PLC: programa nuevo (14 instrucciones)"]];
@@ -902,11 +969,30 @@ const Sim=(()=>{
   setInterval(()=>{if(demo&&!$("#v-logica").classList.contains("hidden")&&!$("#sheetBg").classList.contains("show")){E=estado();pintarLogica();pintarIO()}},300);
   function plcCargar(t){const q=new Plc();if(!q.compilar(t))return {ok:0,err:q.error};if(plcRun)apagar();
     q.m=P.m;q.c.forEach((c,k)=>c.cv=P.c[k].cv);Object.assign(P,q);plcTxt=t;log.push([Math.floor(Date.now()/1000),`PLC: programa nuevo (${P.n} instrucciones)`]);return {ok:1,n:P.n,err:""}}
+  const PKT={RESET:{2:15,17:15,9:null},START:{4:3},STOP:{3:7,4:7,5:7,6:7,10:7,11:7,12:7,13:7,14:7,15:7,16:7,17:7,2:2},HOLD:{6:10},UNHOLD:{11:12},ABORT:"*",CLEAR:{9:1}};
+  const PKN={1:2,3:6,7:2,8:9,10:11,12:6,15:4};     // estados «actuando» que terminan solos
+  function pkCmd(r){const k=r.split(/\s+/)[0],a=+r.split(/\s+/)[1],p=s.pk;
+    if(k=="MOTIVO"){p.r=a||0;return}
+    if(k=="BUENA"||k=="MALA"){if(p.e==6||p.e==16){p.n++;if(k=="MALA")p.d++}return}
+    if(k=="ABORT"){if(p.e!=9&&p.e!=8)p.e=8;return}
+    const t=PKT[k];if(t&&t[p.e]!=null)p.e=t[p.e]}
+  setInterval(()=>{if(!demo)return;const p=s.pk;
+    if(PKN[p.e])p.e=PKN[p.e];if(p.e==1)p.e=2;
+    pkT[p.e]++;
+    if(p.e==6&&pkT[6]%CICLO==0){p.n++;if(Math.random()<.04)p.d++}
+    const ex=pkT[6],perd=[10,11,12,5,13,14,8,9,1].reduce((x,i)=>x+pkT[i],0);
+    p.disp=ex+perd?Math.round(1000*ex/(ex+perd)):65535;
+    p.des=ex&&p.n?Math.min(1000,Math.round(1000*p.n*CICLO/ex)):65535;
+    p.cal=p.n?Math.round(1000*(p.n-p.d)/p.n):65535;
+    p.oee=[p.disp,p.des,p.cal].includes(65535)?65535:Math.round(p.disp*p.des*p.cal/1e6);
+    p.h=Math.floor(Date.now()/1000);
+    if(!$("#v-prod").classList.contains("hidden")){E=estado();pintarProd()}},1000);
   function entrada(n){const m=(n-1)>>3,b=1<<((n-1)&7);s.io.e[m]=(s.io.e[m]||0)^b}
   const num=q=>q.trim().split(/\s+/).map(Number);
   function cmd(c){const p=c.trim(),k=p.split(/\s+/)[0],r=p.slice(k.length).trim(),a=num(r),L=s.lu;
     const setb=(o,n,v)=>v?(bit(o,n)?o:o+2**n):(bit(o,n)?o-2**n:o);
     switch(k){case"P":s.p=a[0]?1:0;break;case"B":s.b=a[0];break;case"M":s.m=a[0];s.n=MODOS[a[0]];break;case"C":s.c=a.slice(0,4);break;
+      case"PK":pkCmd(r);break;
       case"E":s.e=a[0];break;case"V":s.s=a[0];break;case"D":s.nom=r;break;
       case"LU":L.n[a[0]-1]=a[1];L.o=setb(L.o,a[0]-1,a[1]>0);break;
       case"LO":{const n=a[0]-1,v=a[1]==2?!bit(L.o,n):!!a[1];L.o=setb(L.o,n,v);if(v&&!L.n[n])L.n[n]=100;break}
