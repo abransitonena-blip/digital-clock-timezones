@@ -17,4 +17,14 @@ g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_control prueba_control.cpp
 /tmp/prueba_control
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_packml prueba_packml.cpp
 /tmp/prueba_packml
+# JSON del equipo (API 2): se extrae del programa real y se valida
+python3 - <<'PY'
+import re
+src = open("../APControl/APControl.ino", encoding="utf-8").read()
+i = src.index("const char* NOMBRE_FALLA[]"); j = src.index("\n}\n", src.index("String estadoJSON() {")) + 3
+open("/tmp/estado_json.inc", "w", encoding="utf-8").write(src[i:j])
+PY
+g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_json prueba_json.cpp
+/tmp/prueba_json
+python3 probar_json.py
 cmp ../APControl/logica.h ../../../ap1-prog/firmware/LetreroLabAP1/logica.h && echo "logica.h: la copia de AP Control es la misma"

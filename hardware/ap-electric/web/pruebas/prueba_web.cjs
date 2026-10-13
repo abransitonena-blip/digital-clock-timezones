@@ -1,0 +1,81 @@
+// Pruebas en navegador (Playwright) de la consola AP Base (en demostración) y de la web de la empresa (catálogo y solicitudes).
+// Uso: bash tools/probar_web.sh   (requiere Node y Playwright con Chromium)
+const { chromium } = require('playwright');
+const path = require('path');
+const base = 'file://' + path.resolve(__dirname, '..') + '/';
+let fallas = 0;
+const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
+const stub = `(function(){const st={},subs=[];
+ const mk=p=>({get:async()=>({exists:p in st,data:()=>st[p],id:p.split('/').pop()}),set:async d=>{st[p]=JSON.parse(JSON.stringify(d));fire()},
+  update:async d=>{if(!(p in st))throw{code:'invalid_argument'};st[p]=Object.assign({},st[p],JSON.parse(JSON.stringify(d)));fire()},
+  onSnapshot:f=>{subs.push([p,f]);setTimeout(fire,0);return()=>{}}});
+ function fire(){subs.forEach(([p,f])=>{if(p.split('/').length==2)f({exists:p in st,data:()=>st[p],id:p.split('/')[1]});else f({docs:Object.keys(st).filter(k=>k.startsWith(p+'/')).map(k=>({id:k.split('/')[1],data:()=>st[k]}))})})}
+ const db={collection:c=>({doc:i=>mk(c+'/'+i),onSnapshot:f=>{subs.push([c,f]);setTimeout(fire,0);return()=>{}}})};
+ window.claude={use:async n=>n=='user'?{canEdit:()=>window.__team===true,id:async()=>'u1',isOwner:()=>false,profiles:async()=>({})}:n=='db'?db:null};window.__store=st})();`;
+(async () => {
+  let b; try { b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }); } catch (e) { b = await chromium.launch(); }
+  const errs = [];
+  const nueva = async (init) => { const p = await b.newPage({ viewport: { width: 1100, height: 900 } }); p.on('pageerror', e => errs.push(String(e))); p.on('dialog', d => d.accept()); if (init) await p.addInitScript(init); return p; };
+
+  // --- consola en demostración: 7R Tour ---
+  let p = await nueva();
+  await p.goto(base + 'consola.html');
+  await p.click('#bD7'); await p.waitForTimeout(700);
+  ok(await p.$$eval('#canales .canal', e => e.length) === 7, '7 canales en la demostración 7R');
+  ok(await p.$$eval('#entradas .chip', e => e.length) === 8, '8 entradas');
+  await p.click('#canales .canal:nth-child(2) button'); await p.waitForTimeout(300);
+  ok((await p.$eval('#canales .canal:nth-child(2)', e => e.className)).includes('on'), 'el canal 2 enciende');
+  await p.evaluate(() => document.querySelectorAll('details').forEach(d => d.open = true));
+  await p.selectOption('#cT4', '1'); await p.selectOption('#cA4', '2'); await p.waitForTimeout(300);
+  ok(await p.$eval('#cT4', e => e.value) === '1', 'carga de proceso aplicada');
+  ok(await p.$eval('#cA4', e => e.value) === '0', 'un canal de proceso rechaza el arranque encendido (como el firmware)');
+  await p.click('#pkBt button[data-c=RESET]'); await p.waitForTimeout(1200);
+  await p.click('#pkBt button[data-c=START]'); await p.waitForTimeout(1300);
+  ok((await p.innerText('#pkEst')).includes('En producción'), 'PackML llega a En producción');
+  await p.click('#perfiles button:first-child'); await p.waitForTimeout(500);
+  ok((await p.$$eval('#pkEnt select', s => s.map(x => x.value))).join() === '1,2,3,4', 'perfil Andon aplica las entradas');
+  await p.fill('#iCmd', 'PK HOLD'); await p.click('#bCmd'); await p.waitForTimeout(300);
+  ok((await p.innerText('#pkEst')).includes('Reteniendo') || (await p.innerText('#pkEst')).includes('Retenida'), 'HOLD acepta');
+  const bk = await p.evaluate(() => respaldo()); ok(/GUARDAR/.test(bk) && /PK CICLO/.test(bk) && !/NaN/.test(bk), 'respaldo sin NaN');
+  ok(await p.$eval('#bTestR', e => !e.hidden), 'prueba de relés visible con origen local');
+  await p.click('#bSalir');
+  // --- Home: sin secciones que no existen ---
+  await p.click('#bDH'); await p.waitForTimeout(600);
+  ok(await p.$$eval('#canales .canal', e => e.length) === 1, 'AP Home: 1 canal');
+  ok(await p.$eval('#mbOk', e => e.classList.contains('hidden')), 'AP Home: sin RS-485');
+  // --- red en https: se explica ---
+  await p.click('#bSalir');
+  await p.close();
+
+  // --- web de la empresa, sin base de datos ---
+  p = await nueva();
+  await p.goto(base + 'index.html');
+  ok(await p.$$eval('#catLista .item', e => e.length) >= 10, 'catálogo con filas');
+  await p.click('#catFiltros button:nth-child(2)');
+  ok(await p.$$eval('#catLista .item', e => e.every(x => x.innerText.includes('Industrial'))), 'filtro Industrial');
+  await p.click('#catLista .item:first-child button.btn');
+  await p.fill('#sCon', 'x@y.mx'); await p.fill('#sMsg', 'Inyectora sin PLC con sensor PNP');
+  await p.click('#formSol button[type=submit]');
+  ok((await p.innerText('#sMsgEst')).includes('prototipo'), 'exige aceptar el aviso de prototipo');
+  await p.click('#sAcepto'); await p.click('#formSol button[type=submit]'); await p.waitForTimeout(300);
+  ok(/AP-\d{6}-[A-Z0-9]{4}/.test(await p.innerText('#sConf')), 'folio generado');
+  ok((await p.innerText('#sConf')).includes('no se cobra nada'), 'confirmación aclara que no es compra');
+  await p.close();
+
+  // --- con base de datos simulada: el usuario envía; el equipo confirma ---
+  p = await nueva('window.__team=true;' + stub);
+  await p.goto(base + 'index.html'); await p.waitForTimeout(400);
+  await p.selectOption('#sTipo', 'Lista de interés'); await p.fill('#sMsg', 'Avísenme cuando haya prototipos'); await p.click('#sAcepto');
+  await p.click('#formSol button[type=submit]'); await p.waitForTimeout(500);
+  ok(await p.evaluate(() => Object.keys(window.__store).includes('solicitudes/u1')), 'solicitud guardada en la base');
+  ok(await p.$eval('#sEquipo', e => !e.hidden), 'panel del equipo visible');
+  await p.selectOption('#sLista tr:first-child select', 'En revisión'); await p.waitForTimeout(500);
+  ok(await p.evaluate(() => JSON.stringify(window.__store['confirmaciones/u1'] || {}).includes('En revisión')), 'confirmación guardada por el equipo');
+  ok((await p.innerText('#sMias')).includes('En revisión'), 'el solicitante ve el nuevo estado');
+  await p.close();
+
+  ok(errs.length === 0, 'errores de página: ' + errs.slice(0, 3).join(' | '));
+  await b.close();
+  console.log(fallas ? 'Web: ' + fallas + ' fallas' : 'Web y consola: todo bien');
+  process.exit(fallas ? 1 : 0);
+})();

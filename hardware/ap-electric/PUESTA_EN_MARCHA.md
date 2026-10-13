@@ -75,6 +75,16 @@ Anotar cada resultado con fecha y número de placa. Si un paso falla, **parar** 
 ### Qué anotar
 Fecha, número de placa, resultado de cada paso, mediciones (24 V, 5 V, 3.3 V, corriente en reposo y con 7 relés) y fotos. Pasarlo a `PLAN_VERIFICACION.md`.
 
+## 4 bis. Hacerlo con la consola en vez de la terminal
+
+La [consola AP Base](web/consola.html) (Chrome o Edge) hace por USB lo mismo que la terminal serie, con botones:
+1. Abrir `web/consola.html`, **Conectar por USB** y elegir el puerto de la placa (115200 baudios). Si no contesta en unos segundos: cable de datos, otro puerto, o que corra AP Control.
+2. **Autoprueba (TEST)**: el resultado aparece en el registro de la parte de abajo (Avanzado). **Probar relés** pide confirmar que no hay cargas.
+3. En **Salidas** alterna cada canal y mira «Bobina con tensión»; en **Entradas** comprueba cada una con un sensor o un botón de 24 V.
+4. En **Comunicaciones** pon la dirección y los baudios de Modbus y la hora de la computadora.
+5. Antes de apagar: **Guardar configuración en la placa**, y **Copiar respaldo** para tener la lista de órdenes.
+Es origen *local*: puede reanudar la máquina y dar el permiso remoto. Por red local solo acepta Stop, Hold y Abort. **Aún no se ha probado con una placa real**: anota en `PLAN_VERIFICACION.md` cualquier diferencia.
+
 ## 5. Si algo sale mal
 
 | Síntoma | Qué revisar primero |
