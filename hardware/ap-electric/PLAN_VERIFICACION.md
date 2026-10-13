@@ -59,3 +59,19 @@ Lo que se comprueba por software **no sustituye** a los ensayos eléctricos: un 
 3. Proveedor de la clavija y el receptáculo certificados del Home Plug.
 4. Límites de producto por canal (sección 2.4 y 2.5).
 5. Reemplazo del G2RL por un relé con valor de irrupción publicado (G5RL-1A-E-HR) si las mediciones lo piden. Requiere su dibujo de montaje.
+
+## 5. Riesgos conocidos de la rev B del 7R Tour (revisar en la primera tanda)
+
+Revisión de escritorio del diseño, hecha por el equipo de diseño; **no sustituye medir**. «[CG]» = conocimiento general por confirmar con la hoja del fabricante.
+
+| # | Riesgo | Por qué | Qué hacer |
+|---|---|---|---|
+| 1 | El reloj puede adelantar o atrasar unos minutos por mes | El cristal elegido (32.768 kHz, 12.5 pF, C32346) puede no coincidir con la capacitancia de carga que pide el PCF8563 (7 pF típica [CG]) | Confirmar en la hoja del PCF8563; medir la deriva comparando contra la hora de la red durante varios días; si pesa, cambiar el cristal en la rev C. Mientras tanto la hora se reajusta por Modbus o consola |
+| 2 | Tres pistas largas (INT, RS_DE, RS_RX, ≈ 100 mm) trazadas por una herramienta propia | El ruteador automático no las unió | Revisarlas en KiCad antes de pedir; con osciloscopio, verlas en TP (DE, RX) a 9600-115200 Bd: deben verse limpias |
+| 3 | Las entradas son PNP | Diseño de la rev B | No conectar sensores NPN; planear la rev C |
+| 4 | Batería del reloj | Conector de 2 polos con un OR de diodos Schottky (BAT54C); una pila no recargable no debe recibir corriente | Medir que, con 3.3 V presentes, no entra corriente a la pila; polaridad marcada en la serigrafía |
+| 5 | Pines de arranque del ESP32-C3 | IO2, IO8 e IO9 son de arranque; llevan I2C y el botón de modo | La prueba automática `tools/revisar_pines.py` confirma que la placa y el programa coinciden; en banco, comprobar que arranca con y sin 24 V |
+| 6 | Salidas del expansor al encender | Antes de que el programa las configure las patas del TCA9554 son entradas | Hay una resistencia de 10 kΩ a 0 V por canal; comprobar con el osciloscopio que ningún relé hace clic al energizar |
+| 7 | Cobre de 2 oz | No se confirmó que JLCPCB lo ofrezca también con ensamble | Verlo en la cotización antes de pagar |
+| 8 | Capacidad de contactos y calentamiento | Todos los límites por canal están en PD | Ensayos de la sección 3 antes de declarar cualquier valor |
+
