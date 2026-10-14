@@ -16,6 +16,9 @@ Una caja de riel DIN de 24 V CC que se conecta a una máquina que hoy no entrega
 - RS-485 aislado, Wi-Fi, reloj con batería externa, puntos de prueba.
 - Alimentación: 24 V CC de una **fuente certificada de terceros** (no incluida).
 
+## Límite de las salidas en el piloto
+Los contactos de los relés son contactos secos que conmutan **lo que el cliente les conecte**. En el piloto solo se aceptan cargas de **hasta 30 V** (torre de luz, avisador, bobinas de contactor de 24 V, entradas de otro equipo). **Nada de red de 127/220 V en los contactos del piloto**: eso exige las pruebas de seguridad eléctrica que aún no existen.
+
 ## Qué NO es
 - No es un dispositivo de seguridad: no sustituye paro de emergencia, guardas ni relé de seguridad.
 - No está certificado (NOM, UL, CE) ni tiene el radio homologado.

@@ -59,6 +59,12 @@ ENTRADAS = [
     ("O2b opto CA, R 4.7k / RS 1.0k",                       4.7e3, 1.0e3, 0, False, "354T"),
     ("O2c opto CA, R 4.7k / RS 0.82k",                      4.7e3, 0.82e3, 0, False, "354T"),
     ("O2d opto CA, R 3.3k / RS 1.0k + LED serie bicolor/antiparalelo (Vf~2V)", 3.3e3, 1.0e3, 0, True, "354T"),
+    ("O2e opto CA, R 3.9k / RS 1.0k + LED serie antiparalelo",             3.9e3, 1.0e3, 0, True, "354T"),
+    ("O2f B1 solo BOM: opto CA, LI->0R, R 2.2k+2.4k / RS 1.0k",           4.6e3, 1.0e3, 0, False, "354T"),
+    ("O3 dos LTV-217 antiparalelo, sin LED serie, R 4.7k / RS 2.2k",       4.7e3, 2.2e3, 0, False, "217-B"),
+    ("O3b dos LTV-217 antiparalelo, sin LED serie, R 4.7k / RS 1.5k",      4.7e3, 1.5e3, 0, False, "217-B"),
+    ("O5 rev B + pull-up externo 1k a +24V (NPN, logica invertida)",       5.4e3, 2.2e3, 0, True, "217-B"),
+    ("O5b rev B + pull-up externo 2.2k a +24V (NPN, logica invertida)",    6.6e3, 2.2e3, 0, True, "217-B"),
 ]
 
 if __name__ == "__main__":

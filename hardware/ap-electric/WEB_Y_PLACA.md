@@ -9,7 +9,7 @@ La web de la empresa explica y vende lo que hay; la **consola** controla y confi
 | Camino | Cómo | Origen para el equipo | Cuándo sirve |
 |---|---|---|---|
 | **USB** | Web Serial (Chrome o Edge) a 115200 baudios, una orden por línea; la placa contesta con una línea JSON | **local**: puede reanudar la máquina, dar el permiso remoto (`PK REMOTO 1`) y correr `TEST` | Puesta en marcha, taller, desde la web pública (https) |
-| **Red local** | `GET /api?c=ORDEN` a la IP de la placa | **red**: solo Stop, Hold y Abort; no da permisos | Cuando la consola se abre desde la propia placa (`http://IP/`) o desde un archivo local. Un sitio `https://` **no puede** llamar a un `http://` de la red (regla del navegador) |
+| **Red local** | `GET /api` lee el estado sin clave; `GET /api?c=ORDEN&k=CLAVE` manda una orden y **exige la clave del equipo** (la de la etiqueta; sin ella, 401) | **red**: solo Stop, Hold y Abort; no da permisos | Cuando la consola se abre desde la propia placa (`http://IP/`) o desde un archivo local. Un sitio `https://` **no puede** llamar a un `http://` de la red (regla del navegador) |
 | **Demostración** | Simulador dentro de la página | — | Conocer el panel sin equipo |
 
 Una conexión **remota por internet** (nube, MQTT) no existe y no es necesaria. Si se agrega, será opcional, con TLS, credenciales por equipo y escritura restringida (ver `ESTUDIO_MERCADO_INDUSTRIAL.md`, §7.6).

@@ -152,7 +152,7 @@ Prioridad: **P0** condición para seguir (corrige fallas) · **P1** habilita la 
 | C-09 | P3 | **Ethernet** (V2) | Variante con el MCU que se elija pasa las mismas etapas A-F; Modbus TCP responde con las mismas reglas de origen | Solo si se cumple el disparador de V2 |
 | C-10 | P3 | **Segundo puerto RS-485 o puente** (V7) | Maestro y esclavo coexisten sin colisión en 24 h de corrida | Solo con cliente que lo necesite |
 | C-11 | P3 | **Salida estática** (V8) | Vida eléctrica a la frecuencia de conmutación del cliente medida | Solo con falla de relés |
-| — | No | Más relés o entradas en la base; medición de red; 4-20 mA en la base; SKU CA | — | Se resuelven con módulos o están congelados (§9) |
+| — | No | Más relés o entradas en la base; medición de red; 4-20 mA en la base; SKU CA | — | Se resuelven con módulos o están congelados (§11) |
 
 ### 3.2 Criterios de salida de la Rev C (para pedir la tanda 2)
 1. Todos los P0 y P1 cumplen su criterio **en banco con la placa nueva** (mínimo 2 unidades).
@@ -278,7 +278,7 @@ Los de `ANALISIS_ECOSISTEMA.md` §9 más los de plataforma:
 2. **Fallos de aislamiento o de alimentación** en la tanda 1 → corregir antes de entregar nada.
 3. **Rev C sin evidencia** (sin NPN, sin apagones, sin pedido de cable) → no se rediseña; se mejora software.
 4. **Un competidor local publica un precio claramente menor** y el diferenciador (aplicación sin nube y soporte) no pesa → detener.
-5. **Una línea candidata no llega a Diseño en 2 trimestres** consecutivos de su ventana → pasa a descartada (§9).
+5. **Una línea candidata no llega a Diseño en 2 trimestres** consecutivos de su ventana → pasa a descartada (§11).
 6. **Costo de soporte** de un piloto supera el valor aprendido (se mide en horas de ingeniería por piloto; umbral lo fija Dirección con finanzas) → limitar pilotos.
 7. **Aviso de seguridad grave** (daño real o casi accidente atribuible al equipo) → retirar y notificar a clientes; revisión completa.
 

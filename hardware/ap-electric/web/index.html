@@ -336,7 +336,7 @@ footer .wrap { display: grid; gap: 8px; }
         <span class="eyebrow">Programa piloto · sin cobro todavía</span>
         <h3 style="margin:6px 0">AP Monitor 24: andon, conteo y OEE para máquinas sin datos</h3>
         <p>Es el 7R Tour 24DC con el programa de estados de máquina (PackML), conteo de piezas, causas de paro y tablero local en AP Studio, sin nube. Buscamos <b>3 a 5 plantas o integradores</b> para probarlo con una máquina real.</p>
-        <p><b>Estado honesto:</b> prototipo de ingeniería, todavía sin placas fabricadas, sin mediciones y sin certificación. No es una función de seguridad. En la revisión B las entradas son <b>PNP</b> (un sensor NPN no funciona directo) y no hay Ethernet. No hay fecha ni precio comprometidos: el precio de referencia que probamos es de $5,000 a $7,000 MXN por máquina y se confirmará con clientes.</p>
+        <p><b>Estado honesto:</b> prototipo de ingeniería, todavía sin placas fabricadas, sin mediciones y sin certificación. No es una función de seguridad. En la revisión B las entradas son <b>PNP</b> (un sensor NPN no funciona directo) y no hay Ethernet. En el piloto los contactos solo manejan cargas de hasta 30 V (torre de luz, avisador, bobinas de 24 V): nada de 127/220 V. No hay fecha ni precio comprometidos: el precio de referencia que probamos es de $5,000 a $7,000 MXN por máquina y se confirmará con clientes.</p>
         <p><a class="btn primario" href="#interes">Quiero participar</a></p>
       </div>
       <div class="productos">
@@ -549,6 +549,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
           <label>Sensores o cargas<select id="sSens"><option>PNP de 24 V</option><option>NPN</option><option>Contacto seco</option><option>Torre de luz</option><option>Lámparas / alumbrado</option><option>Contactores</option><option>No sé</option></select></label>
           <label class="todo">Cuéntanos el caso<textarea id="sMsg" maxlength="600" placeholder="Qué máquina o instalación, qué quieres lograr, cuántas piezas…"></textarea></label>
           <label class="todo" style="grid-template-columns:auto 1fr;align-items:start;gap:8px"><input type="checkbox" id="sAcepto" style="width:auto"><span>Entiendo que es un <b>prototipo de ingeniería</b>, sin certificación, sin precio ni fecha comprometidos, y que esta solicitud no es una compra.</span></label>
+          <p class="todo nota" id="sPrivacidad"><b>Aviso de privacidad (borrador, pendiente de revisión legal).</b> Usamos tu nombre de cuenta, organización, contacto y el caso que describes solo para responder esta solicitud y para evaluar el piloto. Lo ve el equipo de AP Electric y la plataforma donde se aloja esta página; no lo vendemos ni lo compartimos para publicidad. Para ver, corregir o borrar tus datos, escríbenos por el contacto que te demos al responderte. Esta página carga tipografías de Google Fonts, que recibe tu dirección IP. El texto completo y los plazos los fijará un abogado antes de abrir el piloto (ver <span class="mono">empresa/legal_marca/02_aviso_privacidad.md</span>).</p>
           <div class="todo"><button class="btn primario" type="submit">Enviar solicitud</button> <span class="msg" id="sMsgEst" role="status"></span></div>
         </form>
         <div class="caja" id="sPanel">

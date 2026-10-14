@@ -52,6 +52,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px 8px;border-bottom:1p
   <div class="fila">
     <button class="btn p" id="bUsb">Conectar por USB</button>
     <label class="c">Por red (IP de la placa)<input id="iIp" placeholder="192.168.1.50" inputmode="decimal" style="width:170px"></label>
+    <label class="c">Clave del equipo (etiqueta)<input id="iClave" placeholder="8 dígitos" inputmode="numeric" style="width:130px" autocomplete="off"></label>
     <button class="btn" id="bRed">Conectar por red</button>
     <button class="btn" id="bD7">Demostración 7R Tour</button>
     <button class="btn" id="bDH">Demostración AP Home</button>
@@ -151,10 +152,12 @@ function transporteUsb(port){
       escritor.write(enc.encode(c+"\n")).catch(rej)})},
     async cerrar(){try{lector.cancel();await lector.releaseLock();escritor.releaseLock();await port.close()}catch(e){}}};
   return t}
-function transporteRed(ip){
+function transporteRed(ip,clave){
   const base=/^https?:/.test(ip)?ip:"http://"+ip;
   return{nombre:"Red",origen:"red",async abrir(){},async cerrar(){},
-    async enviar(c,ms=3000){const r=await fetch(base+"/api?c="+encodeURIComponent(c),{cache:"no-store",signal:AbortSignal.timeout(ms)});
+    async enviar(c,ms=3000){const url=c=="?"?base+"/api":base+"/api?c="+encodeURIComponent(c)+"&k="+encodeURIComponent(clave||"");   // leer es libre; mandar órdenes pide la clave
+      const r=await fetch(url,{cache:"no-store",signal:AbortSignal.timeout(ms)});
+      if(r.status==401)throw new Error("La placa pide la clave del equipo (está en su etiqueta)");
       if(!r.ok)throw new Error("HTTP "+r.status);return{ok:true,j:await r.json()}}}}
 /* Placa simulada: misma forma de JSON que /api del firmware (api 2) */
 function transporteDemo(tipo){
@@ -224,7 +227,7 @@ $("bUsb").onclick=async()=>{
   try{const port=await navigator.serial.requestPort();await conectar(transporteUsb(port))}catch(e){$("mConectar").textContent=e.name=="NotFoundError"?"No elegiste ningún puerto.":(e.message||"No se pudo abrir el puerto")}};
 $("bRed").onclick=()=>{const ip=$("iIp").value.trim();if(!ip){$("mConectar").textContent="Escribe la IP de la placa.";return}
   if(location.protocol=="https:"){$("mConectar").textContent="Esta página es https:// y el navegador no permite hablar con un equipo http:// de tu red. Usa USB, o abre esta consola desde la propia placa (http://"+ip+"/) o desde un archivo local.";return}
-  conectar(transporteRed(ip))};
+  conectar(transporteRed(ip,$("iClave").value.trim()))};
 $("bD7").onclick=()=>conectar(transporteDemo("7r"));$("bDH").onclick=()=>conectar(transporteDemo("home"));
 
 /* ---------- pintar ---------- */

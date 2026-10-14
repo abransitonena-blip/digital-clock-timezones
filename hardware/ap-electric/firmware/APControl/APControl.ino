@@ -338,6 +338,12 @@ String claveAP() {                            // clave propia de cada equipo (va
   char b[9]; snprintf(b, 9, "%08lu", (unsigned long)(h % 100000000UL)); return b;
 }
 String mac6() { uint64_t m = ESP.getEfuseMac(); char b[7]; snprintf(b, 7, "%02X%02X%02X", (uint8_t)(m >> 24), (uint8_t)(m >> 32), (uint8_t)(m >> 40)); return b; }
+// Comparación en tiempo constante de la clave del equipo (8 dígitos de la etiqueta) con la que llega por red.
+bool claveCorrecta(const String& k) {
+  String c = claveAP(); if (k.length() != c.length()) return false;
+  uint8_t d = 0; for (size_t i = 0; i < c.length(); i++) d |= (uint8_t)(c[i] ^ k[i]);
+  return d == 0;
+}
 void abrirAP() {
   if (wifiApagadoDip) { Serial.println("Wi-Fi apagado por el DIP 8"); return; }
   WiFi.mode(WIFI_AP); WiFi.softAP(("APElectric-" + mac6()).c_str(), claveAP().c_str());
@@ -375,7 +381,9 @@ button{font:inherit;border:0;border-radius:10px;padding:10px 14px;margin:4px;bac
 <h2 id=t>AP Control</h2><div class=c id=s></div><div class=c id=e></div><div class=c id=k></div><div class=c id=f></div>
 <p>Más ajustes: órdenes por /api?c=… o por la consola USB (ver el manual).</p>
 <script>
-async function a(c){const r=await fetch('/api'+(c?'?c='+encodeURIComponent(c):''));const j=await r.json();p(j)}
+async function a(c){let k=localStorage.getItem('k')||'';let r=await fetch('/api'+(c?'?c='+encodeURIComponent(c)+'&k='+encodeURIComponent(k):''));
+if(r.status==401){k=prompt('Clave del equipo (está en la etiqueta)')||'';localStorage.setItem('k',k);r=await fetch('/api?c='+encodeURIComponent(c)+'&k='+encodeURIComponent(k))}
+const j=await r.json();p(j)}
 function p(j){t.textContent=j.placa+' · '+j.v;let h='';for(let k=1;k<=j.n;k++){const o=j.s>>(k-1)&1;h+=`<button class="${o?'on':''}" onclick="a('C ${k} 2')">Canal ${k}${j.fz>>(k-1)&1?' (manual)':''}</button>`}
 s.innerHTML=h;let g='Entradas: ';for(let k=1;k<=j.ne;k++)g+=(j.e>>(k-1)&1?'●':'○')+' ';e.textContent=g;
 f.innerHTML=j.f?'<b class=f>Falla: '+j.fn.join(', ')+'</b>':'Sin fallas';
@@ -411,9 +419,16 @@ String estadoJSON() {
 }
 void rutas() {
   web.on("/", []() { web.send_P(200, "text/html; charset=utf-8", PAGINA); });
-  web.on("/api", []() { if (web.hasArg("c")) ejecutar(web.arg("c")); web.send(200, "application/json", estadoJSON()); });
+  web.on("/api", []() {
+    if (web.hasArg("c")) {                              // leer el estado es libre; mandar órdenes exige la clave del equipo (la de la etiqueta)
+      if (!claveCorrecta(web.arg("k"))) { web.send(401, "application/json", "{\"err\":\"clave\"}"); return; }
+      ejecutar(web.arg("c"));
+    }
+    web.send(200, "application/json", estadoJSON());
+  });
   web.on("/plc", []() {
     if (web.method() == HTTP_POST) {
+      if (!claveCorrecta(web.arg("k"))) { web.send(401, "application/json", "{\"ok\":0,\"err\":\"clave\"}"); return; }
       String t = web.arg("plain");
       logica::Programa* q = new logica::Programa(); bool ok = t.length() < 3800 && q->compilar(t.c_str());
       if (ok) { bool r = plcRun; plcModo(false); plc = *q; plcTexto = t; pref.putString("plc", t); if (r) plcModo(true); }
