@@ -1,3 +1,39 @@
+# Matriz requisito → evidencia: AP Monitor 24 (7R Tour 24DC rev B + AP Control PackML/OEE + consola)
+
+Fecha: 2026-10-14 · Dueño: ap-calidad-normas · Estado: borrador para revisión. **Nada de esto declara cumplimiento.** Un requisito sin evidencia física sigue sin demostrarse.
+
+Archivo hermano con las mismas filas y columnas completas: `MATRIZ_REQUISITOS_EVIDENCIA.csv`.
+
+## Claves de evidencia actual
+| Clave | Qué es | Dónde |
+|---|---|---|
+| SW-ERC | ERC de KiCad 9, 0 errores | PLAN_VERIFICACION §1 |
+| SW-DRC | DRC con reglas propias (distancias, aislamiento funcional RS-485) 0 violaciones | PLAN_VERIFICACION §1 |
+| SW-BOM | BOM con códigos LCSC verificados por búsqueda | `fabricacion/jlcpcb` |
+| SW-COMP | Compilación para ESP32-C3, 1.06 MB (53 %) | PLAN_VERIFICACION §1 |
+| SW-PACKML | `tools/probar_apbus.sh` → `prueba_packml.cpp` | `firmware/pruebas/` |
+| SW-LOGICA | `tools/probar_apbus.sh`: arranque seguro, antirrebote, Modbus, vigilancia, PLC, retroalimentación, mantenimiento | `firmware/pruebas/prueba_control.cpp` y otras |
+| SW-JSON | `prueba_json.cpp`, `probar_json.py` | `firmware/pruebas/` |
+| SW-PINES | `tools/revisar_pines.py` | `tools/` |
+| SW-WEB | `web/pruebas/prueba_web.cjs` | `web/pruebas/` |
+| Doc | Texto del repositorio sin prueba | HOJA_DATOS, ARQUITECTURA |
+
+Las pruebas de software corren en PC: **no ejercen** interrupciones, tiempos reales, tensiones ni el microcontrolador físico.
+
+## Claves de ensayo
+`B-xx`: prueba de banco (ver `PLAN_PRUEBAS_BANCO.md` y `HOJA_CAPTURA_BANCO.csv`). `L-xx`: ensayo de laboratorio (ver `PLAN_ENSAYOS_LABORATORIO.md`). `D-xx`: documento del expediente (ver `EXPEDIENTE_PRODUCTO.md`).
+
+## Resumen de estado (57 requisitos)
+- Sin evidencia física: 15 · Parcial por software: 12 · Sin evidencia alguna: 9 · Solo documental: 8 · Diseño revisado: 5 · Software probado: 3 · Por confirmar: 3 · No declarado: 1 · Parcial: 1.
+- **Ninguno tiene evidencia [M].** Los marcados «Software probado» solo demuestran la lógica en PC.
+
+## Hallazgos de la matriz (antes de la tabla)
+1. **RQ-21 / RG-02:** el SKU «24DC» tiene baja tensión en la alimentación, pero sus contactos conmutan la tensión del usuario. Si el piloto conmuta 127/220 V, hay partes peligrosas accesibles en bornes y el aislamiento entra en juego aunque la alimentación sea SELV. PLAN_VERIFICACION §2.4 pide lámparas de 127 V; CONTEXTO regla 6 prohíbe red en el piloto. Proponer: piloto con cargas ≤ 30 V o bobinas de contactor, hasta L-01.
+2. **RQ-26, RQ-31, RQ-32:** Wi-Fi apagado de fábrica, DIP 8 y UDP: no se encontró prueba automática dedicada; quedan «por confirmar» por ap-firmware.
+3. **RQ-05/RQ-06:** distancias de 2.0 mm entre canales son «aislamiento funcional» a menos que se evalúe a la tensión declarada; no se debe presentar como seguridad.
+4. **RQ-33:** no se halló certificado mexicano del módulo (ver PLAN_ENSAYOS L-12).
+
+## Tabla
 | ID | Requisito | Meta | Evidencia actual | Falta | Ensayo | Quién | Prior. |
 |---|---|---|---|---|---|---|---|
 | RQ-01 | Operar con 24 V CC SELV de fuente externa certificada | Rango de diseño 19.2-30 V | Revisión de diseño: SS34 serie, SMBJ33A, buck U7 elegido por BOM (SW-BOM). Sin medición | Barrido de tensión 17-32 V con registro de 5 V y 3.3 V; confirmar rango de entrada del buck en su hoja original (PDF no obtenido) | B-C1, B-S9 | ap-hardware con persona de banco (PD) | Alta |
