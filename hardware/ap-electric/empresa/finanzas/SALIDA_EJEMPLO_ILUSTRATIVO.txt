@@ -1,0 +1,72 @@
+
+== Costo directo maximo permitido (no necesita cotizacion) ==
+Supuestos [H]: garantia 5 %, soporte 0 (sumelo luego). Precio sin IVA, MXN.
+
+Comision de canal 0 %   (margen = (precio*(1-com) - costo cargado)/precio)
+Precio        m=30%     m=50%     m=66%
+  3750        2,500     1,786     1,190
+  4560        3,040     2,171     1,448
+  5000        3,333     2,381     1,587
+  6000        4,000     2,857     1,905
+  7000        4,667     3,333     2,222
+
+Comision de canal 15 %   (margen = (precio*(1-com) - costo cargado)/precio)
+Precio        m=30%     m=50%     m=66%
+  3750        1,964     1,250       655
+  4560        2,389     1,520       796
+  5000        2,619     1,667       873
+  6000        3,143     2,000     1,048
+  7000        3,667     2,333     1,222
+==============================================================================
+VALORES ILUSTRATIVOS - NO SON COTIZACIONES NI DATOS. Solo prueban que el modelo corre.
+==============================================================================
+
+== Resultado por lote (MXN, sin IVA salvo indicacion) ==
+Concepto                                            Lote 5       Lote 50      Lote 200
+Placa por unidad (importada, con merma)              3,331         1,118           806
+Fuente+caja+etiqueta+empaque+flete                   1,020         1,020         1,020
+COSTO DIRECTO unitario                               4,351         2,138         1,826
++ reserva garantia                                     218           107            91
++ soporte                                              600           600           600
+COSTO CARGADO unitario                               5,168         2,845         2,518
+Arancel del lote                                       999         3,848        11,470
+IVA de importacion del lote (recuperable)            2,238         7,252        20,667
+Capital del lote sin IVA                            21,754       106,920       365,300
+Capital del lote con IVA importacion                23,993       114,172       385,967
+Capital lote + gastos fijos (NRE)                  223,993       314,172       585,967
+Equilibrio (unidades, cubre gastos fijos)              241            63            57
+Margen al precio de prueba 6,000                    13.9 %        52.6 %        58.0 %
+
+== Precio minimo (sin IVA) para margen objetivo ==
+Margen            Lote 5       Lote 50      Lote 200
+30 %               7,383         4,065         3,597
+50 %              10,337         5,691         5,036
+67 %              15,505         8,536         7,553
+(66.7 % = regla 'precio >= 3 x costo' de ANALISIS_ECOSISTEMA.md §6, aplicada al costo cargado)
+
+== Sensibilidad una a una, lote 50: costo cargado unitario (base 2,845) ==
+Variable                           -20 %      base     +20 %     rango
+tipo_cambio_mxn_usd                2,648     2,845     3,043       395
+piezas_usd                         2,703     2,845     2,988       285
+soporte_horas_unidad               2,725     2,845     2,965       240
+fuente_24v_mxn                     2,740     2,845     2,950       210
+caja_din_mxn                       2,782     2,845     2,908       126
+ensamble_usd                       2,817     2,845     2,874        57
+merma_placas_pct                   2,820     2,845     2,872        52
+garantia_pct_costo                 2,824     2,845     2,867        43
+arancel_pct                        2,827     2,845     2,863        36
+pcb_usd                            2,831     2,845     2,860        28
+envio_usd                          2,838     2,845     2,853        15
+cargo_extended_usd                 2,841     2,845     2,850         9
+
+== Cuadricula lote 50: costo cargado vs piezas (filas) y tipo de cambio (columnas) ==
+piezas x        FX 16.65    FX 18.50    FX 20.35
+0.7                2,554       2,632       2,709
+1.0                2,747       2,845       2,944
+1.5                3,067       3,201       3,336
+2.0                3,388       3,558       3,728
+
+== Margen del lote 50 segun precio de lista (comision 0 %) ==
+precio  5000: margen   43.1 %   equilibrio 93 unidades
+precio  6000: margen   52.6 %   equilibrio 63 unidades
+precio  7000: margen   59.4 %   equilibrio 48 unidades
