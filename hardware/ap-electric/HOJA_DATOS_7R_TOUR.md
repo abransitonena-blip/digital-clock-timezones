@@ -73,7 +73,7 @@
 | **Corriente por canal (producto)** | **PD**; meta 10 A resistivo a ≤ 250 V CA [R]. Pistas de 2.0 mm en las dos caras, 2 oz | |
 | **Corriente total simultánea** | **PD** (calentamiento del conjunto con los 7 canales) | |
 | Irrupción admisible / maniobras con LED | **PD** | |
-| Tensión máxima de contactos (producto) | **PD**; meta 250 V CA, monofásico [R] | |
+| Tensión máxima de contactos (producto) | **PD**; meta 250 V CA, monofásico [R]. **En el piloto del 24DC: solo hasta 30 V** (ver PREVENTA_AP_MONITOR.md) | |
 | Distancia entre canales en la placa | ≥ 2.0 mm en el aire y ≥ 2.4 mm por la superficie (DRC). Entre las dos patas de una bornera de 5.08 mm: 2.48 mm, el contacto abierto | [C] |
 | Supresión | Diodo de las bobinas en el ULN2003A. Para cargas inductivas de CA, supresor RC o varistor en la carga según el fabricante de la bobina (no incluido) | |
 | Indicación | LED en paralelo con cada bobina: tensión real en la bobina | |
@@ -91,7 +91,7 @@
 
 | | Valor | Origen |
 |---|---|---|
-| Transceptor RS-485 | Chipanalog CA-IS3092W, aislamiento de 5 kVrms con fuente aislada integrada | [E] |
+| Transceptor RS-485 | Chipanalog CA-IS3092W; el chip declara 5 kVrms con fuente aislada integrada [E]. **En la placa el aislamiento es funcional** (1.5 mm de aire entre la lógica y el bus): los 5 kVrms son del chip, no de la placa montada | [E] / [R] |
 | Protección del bus | SM712 | [E] |
 | Terminación | 120 Ω por puente | |
 | Polarización | Por puente (680 Ω) | |
@@ -109,7 +109,7 @@
 | Corte de 24 V o de red | Todos los relés abren (monoestables). Al volver, se aplica la política de arranque |
 | Programa trabado | Vigilante de 8 s: reinicia y aplica la política de arranque. **Mientras dura el bloqueo, el expansor mantiene las salidas como estaban** (hasta 8 s) |
 | Falla de los 3.3 V con 24 V presentes | Las entradas del ULN2003A quedan sin excitación y los relés abren [C]; PD [M] |
-| Pérdida de comunicación Modbus | Los canales que mandaba el maestro pasan a su acción configurada (apagar, por omisión). Al volver la comunicación no se reenciende nada |
+| Pérdida de comunicación Modbus | Los canales que mandaba el maestro pasan a su acción configurada (apagar, por omisión; la vigilancia viene **desactivada de fábrica**, valor 0, y cuenta cualquier trama válida dirigida al equipo, incluidas las lecturas). Al volver la comunicación no se reenciende nada |
 | Sobretemperatura | **No hay sensor**: no se detecta. Ventilación y reducción de capacidad PD |
 | Fallas que informa | Configuración inválida, bobina sin tensión, sin 24 V, comunicación perdida, mantenimiento de relés (80 % de la vida), reinicio por vigilante, expansor I2C |
 | Fallas que requieren intervención | Bobina sin tensión persistente, falla de expansor, contacto pegado (no detectado: revisión física) |

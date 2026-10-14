@@ -247,6 +247,9 @@ int main() {
     ConfigMonitor sinFirma = g; sinFirma.firma = 0; REVISA(!d.u.cargarMonitor(sinFirma, 8));
     Banco e; e.u.restaurarContadores(100, 7); REVISA(e.u.procesadas == 100 && e.u.defectuosas == 7);
     e.u.restaurarContadores(5, 9); REVISA(e.u.procesadas == 100);                  // más malas que buenas: se ignora
+    e.u.cfg.cicloNominalMs = 1000; e.u.ms[PK_EXECUTE] = 0;
+    REVISA(e.u.desempeno() == 0xFFFF && e.u.oee() == 0xFFFF);                      // tras restaurar piezas, sin tiempos: no calculable
+    e.u.reiniciarContadores(); REVISA(e.u.procesadas == 0 && !e.u.tiemposIncompletos);
     // el modo de la memoria solo se aplica si la unidad está detenida
     Banco f; f.aExecute(); REVISA(f.u.cargarMonitor(g, 8) && f.u.modo == MK_PRODUCCION);
     Banco h; h.aExecute(); h.u.contadoresCambiaron = false; h.u.contar(true, h.t); REVISA(h.u.contadoresCambiaron);

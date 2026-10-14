@@ -74,6 +74,8 @@ String red, clave;
 apc::LimiteEscritura limEstado, limManiobras, limPk;
 uint8_t escrito = 0xFF;
 bool fallaI2C = false;
+uint8_t i2cFallos = 0;                       // lecturas/escrituras seguidas que fallaron: la falla se declara a partir de 3
+inline void i2cResultado(bool ok) { if (ok) i2cFallos = 0; else if (i2cFallos < 255) i2cFallos++; fallaI2C = i2cFallos >= 3; }
 
 struct Vinculo { char mac[7]; uint8_t entrada, canal, modo; };
 Vinculo vinc[8];
@@ -100,7 +102,7 @@ void escribirSalidas(uint8_t m) {
   if (placa == PLACA_7R) {
     if (m != escrito || millis() % 1000 < 6) {
       bool ok = tcaEscribir(TCA_SAL, 1, m & 0x7F) && tcaEscribir(TCA_SAL, 3, 0x80);
-      fallaI2C = !ok; if (ok) escrito = m;
+      i2cResultado(ok); if (ok) escrito = m;
     }
   } else digitalWrite(PH_RELE, m & 1);
 }
@@ -108,7 +110,8 @@ uint32_t tSwActivo = 0;
 void leerHardware(uint8_t& ent, uint8_t& btn, uint8_t& bob) {
   if (placa == PLACA_7R) {
     int e = tcaLeer(TCA_ENT), b = tcaLeer(TCA_BTN), r = tcaLeer(TCA_RETRO);
-    if (e < 0 || b < 0 || r < 0) { fallaI2C = true; ent = ctl.entradas; btn = 0; bob = ctl.bobinas; return; }
+    if (e < 0 || b < 0 || r < 0) { i2cResultado(false); ent = ctl.entradas; btn = 0; bob = ctl.bobinas; return; }
+    i2cResultado(true);
     ent = ~e & 0xFF;                         // optoacoplador encendido = 0
     btn = ~b & 0x7F;
     bob = ~r & 0x7F;                         // divisor de la bobina en 0 = bobina energizada
@@ -136,7 +139,9 @@ bool rtcEscribir(const apc::HoraCal& h) {
   uint8_t r[7]; apc::escribirPCF8563(h, r);
   Wire.beginTransmission(RTC_DIR); Wire.write(0x00); Wire.write(0x00); Wire.write(0x00);   // control 1 y 2 en 0: reloj en marcha
   Wire.write(r, 7);
-  return Wire.endTransmission() == 0;
+  bool ok = Wire.endTransmission() == 0;
+  Wire.beginTransmission(RTC_DIR); Wire.write(0x0D); Wire.write(0x00); Wire.endTransmission();   // CLKOUT apagado: no gasta la batería
+  return ok;
 }
 void fijarHoraGlobal(uint32_t epoch) {
   if (!pk.fijarHora(epoch, millis())) return;
@@ -225,6 +230,8 @@ long num(const char*& p) { while (*p == ' ' || *p == ',') p++; long v = strtol(p
 String estadoJSON();
 // `local` = la orden viene de la consola USB (alguien junto al equipo). Por la web o la red (local = false) la unidad PackML
 // solo acepta parar, retener y abortar, igual que por Modbus, y no se puede dar permiso para reanudar.
+String claveAP();
+String claveNueva();
 bool ejecutar(String s, bool local = false) {
   s.trim(); if (!s.length()) return false;
   const char* p = s.c_str() + 1;
@@ -233,7 +240,15 @@ bool ejecutar(String s, bool local = false) {
   apc::Config cfg = ctl.cfg;
   auto aplicar = [&](void) { cfg.crc = apc::crcDe(cfg); if (!apc::validar(cfg)) return false; ctl.cfg = cfg; return true; };
   if (s.startsWith("GUARDAR")) { guardarConfig(); return true; }
-  if (s.startsWith("FABRICA")) { pref.remove("cfg"); pref.remove("vinc"); pref.remove("est"); pref.remove("pkm"); pref.remove("pkn"); delay(100); ESP.restart(); }
+  if (s.startsWith("CLAVE")) {                             // solo por la consola USB: la clave del equipo (etiqueta)
+    if (!local) return false;
+    String k = s.indexOf("NUEVA") > 0 ? claveNueva() : claveAP();       // CLAVE NUEVA: cambia la clave (hay que reimprimir la etiqueta)
+    Serial.printf("Clave del equipo: %s\n", k.c_str());
+    return true;
+  }
+  if (s.startsWith("FABRICA")) {                           // borra toda la configuración; conserva solo la clave del equipo (la de la etiqueta)
+    String ck = claveAP(); pref.clear(); pref.putString("ckey", ck); delay(100); ESP.restart();
+  }
   if (s.startsWith("PLC ")) {
     String a = s.substring(4);
     if (a == "RUN") plcModo(true); else if (a == "STOP") plcModo(false);
@@ -251,6 +266,7 @@ bool ejecutar(String s, bool local = false) {
     static const char* cmds[] = {"", "RESET", "START", "STOP", "HOLD", "UNHOLD", "SUSPEND", "UNSUSPEND", "ABORT", "CLEAR"};
     for (int i = 1; i < 10; i++) if (a == cmds[i]) return pk.comando(i, local ? apc::OR_BOTON : apc::OR_RED, t);
     if (a == "SC") return pk.completar(t);
+    if (a == "BORRAR" && local) { pk.reiniciarContadores(); { uint32_t z[2] = {0, 0}; pref.putBytes("pkn", z, 8); } return true; }   // empieza una cuenta nueva
     if (a == "BUENA") return pk.contar(true, t);
     if (a == "MALA") return pk.contar(false, t);
     if (a.startsWith("HORA ")) { long long v = a.substring(5).toInt(); if (v <= 0 || !apc::epochCreible((uint32_t)v)) return false; fijarHoraGlobal((uint32_t)v); return true; }
@@ -333,9 +349,17 @@ void atenderModbus(uint32_t t) {
 }
 
 // ---------------- Wi-Fi (opcional) ----------------
-String claveAP() {                            // clave propia de cada equipo (va en la etiqueta y en la consola)
-  uint64_t m = ESP.getEfuseMac(); uint32_t h = apc::crc32((const uint8_t*)&m, 6);
-  char b[9]; snprintf(b, 9, "%08lu", (unsigned long)(h % 100000000UL)); return b;
+// Clave propia de cada equipo: 8 dígitos ALEATORIOS (generador de hardware del ESP32), guardados en la memoria la primera vez.
+// Va en la etiqueta (se lee por USB con la orden CLAVE) y protege el punto de acceso y las órdenes por red. No se deriva de la MAC.
+String claveCache;
+String claveNueva() {
+  char b[9]; snprintf(b, 9, "%08lu", (unsigned long)(esp_random() % 100000000UL));
+  claveCache = b; pref.putString("ckey", claveCache); return claveCache;
+}
+String claveAP() {
+  if (claveCache.length() == 8) return claveCache;
+  claveCache = pref.getString("ckey", "");
+  return claveCache.length() == 8 ? claveCache : claveNueva();
 }
 String mac6() { uint64_t m = ESP.getEfuseMac(); char b[7]; snprintf(b, 7, "%02X%02X%02X", (uint8_t)(m >> 24), (uint8_t)(m >> 32), (uint8_t)(m >> 40)); return b; }
 // Comparación en tiempo constante de la clave del equipo (8 dígitos de la etiqueta) con la que llega por red.
@@ -442,6 +466,7 @@ void rutas() {
 // ---------------- arranque y ciclo ----------------
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(20);                     // una línea sin salto no debe bloquear el ciclo
   pref.begin("apcontrol", false);
   placa = detectar7R() ? PLACA_7R : PLACA_HOME;
   if (placa == PLACA_7R) {
@@ -467,7 +492,7 @@ void setup() {
     if (pref.getBytes("pkn", n, sizeof(n)) == sizeof(n)) pk.restaurarContadores(n[0], n[1]); }
   apc::Config c;
   uint8_t nC = placa == PLACA_7R ? 7 : 1, nE = placa == PLACA_7R ? 8 : 1;
-  if (pref.getBytes("cfg", &c, sizeof(c)) != sizeof(c) || c.nCanales != nC) c = apc::fabrica(nC, nE);
+  if (pref.getBytes("cfg", &c, sizeof(c)) != sizeof(c) || c.nCanales != nC || c.nEntradas != nE) c = apc::fabrica(nC, nE);
   uint32_t man[7] = {0}; pref.getBytes("man", man, sizeof(man));
   uint8_t ultimo = pref.getUChar("est", 0);
   bool porVigilante = esp_reset_reason() == ESP_RST_TASK_WDT || esp_reset_reason() == ESP_RST_INT_WDT;

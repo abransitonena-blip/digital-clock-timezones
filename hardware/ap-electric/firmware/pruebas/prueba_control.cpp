@@ -30,7 +30,8 @@ int main() {
   // 2) entradas: pulsador alterna, interruptor sigue, conmutador (escalera) alterna en cada cambio, antirrebote
   {
     Config c = fabrica(7, 8);
-    c.entrada[1].modo = ENT_INTERRUPTOR; c.entrada[2].modo = ENT_CONMUTADOR; c.entrada[3].modo = ENT_DESACOPLADA;
+    for (int k = 0; k < 3; k++) c.entrada[k].canal = k + 1;               // de fábrica las entradas no están acopladas a ningún canal
+    c.entrada[0].modo = ENT_PULSADOR; c.entrada[1].modo = ENT_INTERRUPTOR; c.entrada[2].modo = ENT_CONMUTADOR; c.entrada[3].modo = ENT_DESACOPLADA;
     c.crc = crcDe(c);
     Banco b; b.c.iniciar(c, 0, nullptr, 0, false);
     b.ent = 1; b.correr(20); REVISA(!(b.c.salida & 1));      // 20 ms: todavía no pasa el antirrebote de 30 ms
@@ -80,11 +81,32 @@ int main() {
     b.correr(1900); REVISA(!b.c.comPerdida);
     b.correr(200); REVISA(b.c.comPerdida && (b.c.fallas & F_COMUNICACION));
     REVISA((b.c.salida & 0x0F) == 0x02);            // 1, 3, 4 se apagan; el 2 (mantener) sigue
-    q = trama({3, 3, 0, 0, 0, 1}); m.procesar(q.data(), q.size(), r, b.t);          // una lectura no cuenta
-    REVISA(b.c.comPerdida);
-    q = trama({3, 6, 0, 0, 0, 2}); m.procesar(q.data(), q.size(), r, b.t);
+    q = trama({3, 3, 0, 0, 0, 1}); m.procesar(q.data(), q.size(), r, b.t);          // una lectura SÍ cuenta: el maestro está presente
     REVISA(!b.c.comPerdida && (b.c.salida & 0x0D) == 0);                            // vuelve sin reencender nada
+    q = trama({3, 6, 0, 0, 0, 2}); m.procesar(q.data(), q.size(), r, b.t);
+    REVISA(!b.c.comPerdida && (b.c.salida & 0x0D) == 0);
     q = trama({3, 6, 0, 200, 0xA5, 0x5A}); m.procesar(q.data(), q.size(), r, b.t); REVISA(m.pedirGuardar);
+    q = trama({3, 6, 0, 200, 0x5A, 0xA5}); n = m.procesar(q.data(), q.size(), r, b.t);
+    REVISA(n == 5 && r[1] == 0x86 && r[2] == 4 && !m.pedirFabrica);               // fábrica por Modbus exige el permiso local
+    q = trama({3, 3, 0xFF, 0xFF, 0, 2}); n = m.procesar(q.data(), q.size(), r, b.t);
+    REVISA(n == 5 && r[1] == 0x83 && r[2] == 2);                                   // dirección + cantidad pasan de 65535
+  }
+  // 4 bis) un maestro que solo LEE no dispara la pérdida de comunicación
+  {
+    Config c = fabrica(7, 8); c.mbVigilanciaS = 2; c.crc = crcDe(c);
+    Banco b; b.c.iniciar(c, 0, nullptr, 0, false);
+    Esclavo m(b.c, 1, 1, nullptr); m.ultimoAhora = 0; std::vector<uint8_t> q; uint8_t r[260];
+    q = trama({1, 5, 0, 0, 0xFF, 0}); m.procesar(q.data(), q.size(), r, b.t); REVISA(b.c.salida & 1);
+    for (int i = 0; i < 20; i++) { b.correr(1000); q = trama({1, 3, 0, 0, 0, 1}); m.procesar(q.data(), q.size(), r, b.t); }
+    REVISA(!b.c.comPerdida && (b.c.salida & 1));                                   // 20 s solo leyendo: sigue encendido
+    b.correr(2500); REVISA(b.c.comPerdida && !(b.c.salida & 1));                   // sin ninguna trama: ahí sí
+  }
+  // 4 ter) valores de fábrica: placa de varios canales con entradas desacopladas; AP Home con pulsador
+  {
+    Banco b; b.c.iniciar(fabrica(7, 8), 0, nullptr, 0, false);
+    for (int i = 0; i < 10; i++) { b.ent = 3; b.correr(60); b.ent = 0; b.correr(60); }
+    REVISA(b.c.salida == 0);                                                       // contar piezas no mueve relés
+    Config h = fabrica(1, 1); REVISA(h.entrada[0].modo == ENT_PULSADOR && h.entrada[0].canal == 1);
   }
   // 5) PLC: los canales del programa no aceptan otras órdenes
   {

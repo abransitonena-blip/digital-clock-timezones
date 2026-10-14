@@ -36,8 +36,8 @@ Segmentos fuera de estas placas: **Luz/LED** (letreros, AP FOCO, PWM4) se mantie
 | Entrada de alimentación (24DC) | 24 V CC; fusible rápido de 3 A, diodo contra polaridad invertida y supresor SMBJ33A [E] |
 | Interno | 5 V (regulador) y 3.3 V (lógica y ESP32); consumo ≈ 3.6 W con 7 relés [C] |
 | Bobinas de relé | 24 V CC |
-| Contactos de salida | Meta **250 V CA** monofásico [R]; capacidad del relé 16 A 250 V CA resistivo [E]; **límite del producto: PD** (meta 10 A por canal) |
-| Bus RS-485 | Aislado 5 kVrms con su propia fuente [E] |
+| Contactos de salida | **Piloto: solo cargas de hasta 30 V** (torre de luz, avisador, bobinas de 24 V). Meta del producto con certificación: 250 V CA monofásico [R]; capacidad del relé 16 A 250 V CA resistivo [E]; **límite del producto: PD** |
+| Bus RS-485 | Aislamiento **funcional** en la placa (1.5 mm); el chip declara 5 kVrms con su propia fuente [E] |
 
 ### Salidas (7)
 | Canal | Tipo | Bornera | Notas |

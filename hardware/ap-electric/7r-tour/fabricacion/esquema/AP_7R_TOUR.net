@@ -1,14 +1,14 @@
 (export (version "E")
   (design
     (source "/work/hardware/ap-electric/7r-tour/kicad/AP_7R_TOUR.kicad_sch")
-    (date "2026-10-13T07:26:44+0000")
+    (date "2026-10-14T20:54:46+0000")
     (tool "Eeschema 9.0.9")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block
         (title "AP Electric Industrial · 7R Tour rev B - 7 relés, 8 entradas, Modbus aislado (CONCEPTO)")
         (company "PCB 176 x 90 mm, 2 capas, 2 oz")
         (rev "1.0")
-        (date "2026-10-13")
+        (date "2026-10-14")
         (source "AP_7R_TOUR.kicad_sch")
         (comment (number "1") (value "Placa de 2 capas, 2 oz (JLCPCB)"))
         (comment (number "2") (value "Estado: concepto. Límites del producto por determinar por ensayo"))

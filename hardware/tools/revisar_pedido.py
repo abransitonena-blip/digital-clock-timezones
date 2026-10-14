@@ -78,9 +78,9 @@ def main():
     if solo_cpl:
         errores.append("En el CPL pero no en el BOM: %s" % ", ".join(sorted(solo_cpl)))
 
-    # 4: posiciones dentro de la placa
+    # 4: posiciones dentro de la placa, en las mismas coordenadas que los Gerber (X, Y de Gerber; el CPL de salidas.py las usa tal cual)
     gbr = os.path.join(REPO, carpeta, "fabricacion", "gerber")
-    ancho = alto = None
+    caja = None; ancho = alto = None
     for f in os.listdir(gbr) if os.path.isdir(gbr) else []:
         if f.endswith("Edge_Cuts.gbr"):
             xs, ys = [], []
@@ -89,18 +89,18 @@ def main():
                 if m:
                     xs.append(int(m.group(1)) / 1e6); ys.append(int(m.group(2)) / 1e6)
             if xs:
-                ancho, alto = max(xs) - min(xs), max(ys) - min(ys)
-                x0, y0 = min(xs), min(ys)
+                caja = (min(xs), min(ys), max(xs), max(ys)); ancho, alto = caja[2] - caja[0], caja[3] - caja[1]
     for r in cpl:
         if r["Layer"] not in ("Top", "Bottom"):
             errores.append("CPL: %s tiene capa «%s»" % (r["Designator"], r["Layer"]))
         try:
-            x = float(r["Mid X"].replace("mm", "")); y = -float(r["Mid Y"].replace("mm", ""))
+            x = float(r["Mid X"].replace("mm", "")); y = float(r["Mid Y"].replace("mm", ""))
             float(r["Rotation"])
         except ValueError:
             errores.append("CPL: %s tiene posición o giro ilegibles" % r["Designator"]); continue
-        if ancho and not (-1 <= x <= ancho + 1 and -1 <= y <= alto + 1):
-            avisos.append("CPL: %s en (%.1f, %.1f) parece quedar fuera de la placa de %.0f x %.0f mm" % (r["Designator"], x, y, ancho, alto))
+        if caja and not (caja[0] - 1 <= x <= caja[2] + 1 and caja[1] - 1 <= y <= caja[3] + 1):
+            errores.append("CPL: %s en (%.1f, %.1f) queda fuera del contorno de los Gerber (%.1f..%.1f, %.1f..%.1f): origen distinto" %
+                           (r["Designator"], x, y, caja[0], caja[2], caja[1], caja[3]))
 
     # 5: Gerber
     if not os.path.exists(zip_f):

@@ -11,7 +11,7 @@ Una placa sirve para dos SKU. Cambia lo que se monta, no el diseño.
 
 Los Gerbers y taladros son los mismos para los dos: `fabricacion/jlcpcb/AP_7R_TOUR_gerber_JLCPCB.zip`.
 
-Los archivos `AP_7R_TOUR_BOM_JLCPCB_solo_SMD.csv` y `AP_7R_TOUR_CPL_JLCPCB_solo_SMD.csv` corresponden a la placa CA con las piezas de patas soldadas a mano. Ver `RESUMEN_JLCPCB.txt`.
+Los archivos `AP_7R_TOUR_<SKU>_BOM_JLCPCB_solo_SMD.csv` y `..._CPL_JLCPCB_solo_SMD.csv` (SKU = 24DC o CA) llevan solo las piezas SMD; las de patas se sueldan a mano. Los archivos sin SKU en el nombre son de la placa completa (= CA): no usarlos para el 24DC. Ver `RESUMEN_JLCPCB.txt`.
 
 ## Estado de cierre (comprobado por software)
 

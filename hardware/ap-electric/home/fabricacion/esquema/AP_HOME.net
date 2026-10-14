@@ -1,7 +1,7 @@
 (export (version "E")
   (design
     (source "/work/hardware/ap-electric/home/kicad/AP_HOME.kicad_sch")
-    (date "2026-10-12T02:08:26+0000")
+    (date "2026-10-14T20:55:56+0000")
     (tool "Eeschema 9.0.9")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block

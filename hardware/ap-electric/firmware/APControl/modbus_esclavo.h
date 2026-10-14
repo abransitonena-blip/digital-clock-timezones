@@ -68,12 +68,13 @@ struct Esclavo {
     uint8_t dir = q[0];
     if (dir != 0 && dir != ctl.cfg.mbDireccion) return 0;
     tramasBien++; ultimoAhora = ahora;
+    ctl.modbusEscribio(ahora);                    // un maestro que solo lee también está presente (vigilancia de comunicación)
     uint8_t fn = q[1];
     uint16_t a = n >= 6 ? (q[2] << 8 | q[3]) : 0, c = n >= 6 ? (q[4] << 8 | q[5]) : 0;
     size_t m = 0;
     r[m++] = ctl.cfg.mbDireccion; r[m++] = fn;
-    uint8_t ex = 0;
-    switch (fn) {
+    uint8_t ex = ((fn == 1 || fn == 2 || fn == 3 || fn == 4 || fn == 15 || fn == 16) && (uint32_t)a + c > 65536u) ? 2 : 0;
+    if (!ex) switch (fn) {
       case 1: case 2: {
         if (n != 8 || c < 1 || c > 2000) { ex = 3; break; }
         uint8_t nb = (c + 7) / 8; r[m++] = nb;
@@ -236,7 +237,7 @@ struct Esclavo {
     }
     if (a == 200) {
       if (v == 0xA55A) { pedirGuardar = true; return 0; }
-      if (v == 0x5AA5) { pedirFabrica = true; return 0; }
+      if (v == 0x5AA5) { if (!(um && um->cfg.remotoReanuda)) return 4; pedirFabrica = true; return 0; }   // exige el permiso local
       return 3;
     }
     if (a == 0) { if (v > 3600) return 3; c.mbVigilanciaS = v; }

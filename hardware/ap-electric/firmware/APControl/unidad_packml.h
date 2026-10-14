@@ -84,7 +84,7 @@ class UnidadPackML {
 
   void iniciar(uint32_t ahora) {
     estado = PK_STOPPED; modo = MK_PRODUCCION; ultimoCmd = CK_NADA; motivo = 0;
-    memset(ms, 0, sizeof(ms)); procesadas = defectuosas = 0; microparo = false; microMs = 0; fallasPrev = 0;
+    memset(ms, 0, sizeof(ms)); procesadas = defectuosas = 0; tiemposIncompletos = false; microparo = false; microMs = 0; fallasPrev = 0;
     nEv = sigEv = 0;
     tUlt = tEntrada = tUltCuenta = ahora; entPrev = 0; primeraLectura = true;
     cfg.scAuto = 0;
@@ -225,9 +225,13 @@ class UnidadPackML {
     mon.crc = crc32((const uint8_t*)&mon, offsetof(ConfigMonitor, crc));
     return mon;
   }
+  // Tras un reinicio se recuperan las piezas, pero NO los tiempos por estado: el desempeño y el OEE no son calculables
+  // hasta reiniciar los contadores (si no, saldrían inflados al dividir entre un tiempo en EXECUTE que volvió a cero).
+  bool tiemposIncompletos = false;
+  void reiniciarContadores() { memset(ms, 0, sizeof(ms)); procesadas = defectuosas = 0; microparo = false; microMs = 0; tiemposIncompletos = false; }
   void restaurarContadores(uint32_t buenas, uint32_t malas) {
     if (malas > buenas) return;
-    procesadas = buenas; defectuosas = malas;
+    procesadas = buenas; defectuosas = malas; tiemposIncompletos = true;
   }
 
   // ---- Hora: segundos desde 1970 (la fija el reloj de tiempo real, la red o un maestro Modbus) ----
@@ -281,7 +285,7 @@ class UnidadPackML {
     return t ? (uint16_t)(ms[PK_EXECUTE] * 1000 / t) : 0xFFFF;
   }
   uint16_t desempeno() const {
-    if (!cfg.cicloNominalMs || !ms[PK_EXECUTE] || !procesadas) return 0xFFFF;
+    if (tiemposIncompletos || !cfg.cicloNominalMs || !ms[PK_EXECUTE] || !procesadas) return 0xFFFF;
     uint64_t v = (uint64_t)procesadas * cfg.cicloNominalMs * 1000 / ms[PK_EXECUTE];
     return v > 1000 ? 1000 : (uint16_t)v;
   }

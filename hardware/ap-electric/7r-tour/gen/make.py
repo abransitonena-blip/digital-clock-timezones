@@ -361,7 +361,7 @@ PRE += [
 PREVIAS = [("RSA", 75.0, 71.45), ("RSA", 71.44, 77.3), ("RSA", 85.925, 77.2),
            ("GNDB", 74.0, 71.0), ("GNDB", 81.82, 73.4), ("GNDB", 85.25, 73.5)]
 SILK = [("CANAL %d" % k, xc, 30.0, 1.0, "F") for k, xc in enumerate(XC, 1)] + \
-       [("C%d   NA%d" % (k, k), xc, 14.5, 0.9, "F") for k, xc in enumerate(XC, 1)] + [
+       [("NA%d   C%d" % (k, k), xc, 14.5, 0.9, "F") for k, xc in enumerate(XC, 1)] + [
     ("PELIGRO: contactos y fuente a tension de red", 60.0, 27.5, 1.0, "F"),
     ("N    L   (solo 7R Tour CA)", 134.0, 14.5, 0.8, "F"),
     ("I1   I2   I3   I4   I5   I6   I7   I8   COM", 27.0, 89.3, 0.8, "F"),

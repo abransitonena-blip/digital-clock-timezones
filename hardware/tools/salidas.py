@@ -53,7 +53,8 @@ def jlc_files(jlc):
         if f.GetAttributes() & pcbnew.FP_THROUGH_HOLE:
             tht.add((val, fpn))
         p = f.GetPosition()
-        cpl[ref] = [ref, "%.3fmm" % (pcbnew.ToMM(p.x) - 100), "%.3fmm" % (100 - pcbnew.ToMM(p.y)),
+        # mismas coordenadas que los Gerber (origen absoluto de KiCad; Y hacia arriba = -Y de KiCad), como el archivo de posiciones de KiCad
+        cpl[ref] = [ref, "%.3fmm" % pcbnew.ToMM(p.x), "%.3fmm" % (-pcbnew.ToMM(p.y)),
                     "Top" if f.GetLayer() == pcbnew.F_Cu else "Bottom", "%.1f" % f.GetOrientationDegrees()]
     key = lambda r: (r.rstrip("0123456789"), int("0" + r[len(r.rstrip("0123456789")):]))
     filas = []

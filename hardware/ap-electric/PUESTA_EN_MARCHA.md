@@ -26,9 +26,9 @@ Cambios de la placa respecto a la rev A, todos para el plan industrial (OEE, and
 | Cantidad | 5 placas. Ensamblar solo 2 o 3 y dejar el resto sin piezas por si hay que corregir |
 | Variante | Empezar con **7R Tour 24DC** (sin la parte de red): es la menos peligrosa de probar |
 | Archivos | `fabricacion/jlcpcb/AP_7R_TOUR_gerber_JLCPCB.zip`, `AP_7R_TOUR_24DC_BOM_JLCPCB.csv` y `AP_7R_TOUR_24DC_CPL_JLCPCB.csv` |
-| Piezas de patas (relés, bornes, DIP, conector de batería) | Para la primera tanda usar los archivos `_solo_SMD` y soldar a mano lo demás: se ahorra el cargo por tipo Extended y se pueden revisar los relés |
+| Piezas de patas (relés, bornes, DIP, conector de batería) | Para la primera tanda usar `AP_7R_TOUR_24DC_BOM_JLCPCB_solo_SMD.csv` y `AP_7R_TOUR_24DC_CPL_JLCPCB_solo_SMD.csv` (los archivos sin «24DC» en el nombre son de la placa completa = SKU CA) y soldar a mano lo demás: se ahorra el cargo por tipo Extended y se pueden revisar los relés |
 | Cobre | 2 oz; grosor 1.6 mm; acabado HASL con plomo o ENIG (el ENIG cuesta más y no es necesario) |
-| Antes de pagar | 1) correr `python3 tools/revisar_pedido.py ap-electric/7r-tour AP_7R_TOUR 24DC`; 2) en la pantalla «Component Placement» de JLCPCB revisar la **orientación** de cada pieza con polaridad (diodos, LED, U1-U11, relés, J15 USB-C) y 3) confirmar que todas las piezas tienen existencias |
+| Antes de pagar | 1) correr `python3 tools/revisar_pedido.py ap-electric/7r-tour AP_7R_TOUR 24DC`; 2) en la pantalla «Component Placement» de JLCPCB revisar la **orientación** de cada pieza con polaridad (diodos, LED, U1-U11, relés, J15 USB-C) y 3) confirmar que todas las piezas tienen existencias. El CPL usa las mismas coordenadas que los Gerber (las de KiCad); en «Component Placement» mira con más cuidado las piezas que más suelen llegar giradas: SOT-23 (D11, D12), SOIC-16 (U1, U6), TSSOP-16 (U2-U5), SOP-4 (OK1-OK8), USB-C (J15), módulo ESP32 (U9) y los LED. Si alguna sale girada, corrige su «Rotation» en el CPL antes de pagar |
 | Pieza que no se arma en JLCPCB | La **batería** del reloj y su cable: se compra aparte (CR2032 con portapilas y cable, o CR1220 con cable) |
 
 ## 3. Qué comprar aparte
@@ -52,7 +52,9 @@ Anotar cada resultado con fecha y número de placa. Si un paso falla, **parar** 
 ### Etapa B: alimentación (solo USB, sin 24 V)
 4. Conectar el USB-C. Medir 5 V en TP2 (V5) y 3.3 V en TP3. Corriente de la computadora normal.
 5. Debe aparecer el puerto serie. Abrir la consola (115200 baudios): debe escribir la línea de arranque con la versión.
-6. Escribir `TEST`. Sin 24 V es esperable que reporte «no contesta el expansor de retroalimentación» o bobinas sin energía según el caso; lo importante son los demás expansores y el reloj.
+6. Escribir `TEST`. **Solo con USB, la tensión de 5 V regresa por el regulador y sube V24 a unos 4 V** (revisión adversarial, por medir): el divisor de bobinas lee 0 y `TEST` puede reportar las 7 bobinas «energizadas» o «forzado». Es esperable sin 24 V: lo importante en esta etapa son los expansores, el reloj, la identificación y el USB; las bobinas se juzgan en la etapa C con 24 V reales.
+
+7. **Clave del equipo:** por la consola USB escribir `CLAVE`; el equipo imprime 8 dígitos aleatorios (se generan una vez y se guardan; no se derivan de la dirección de red). Anotarla en la etiqueta: protege el punto de acceso Wi-Fi y las órdenes por red (`/api?c=…&k=CLAVE`). `CLAVE NUEVA` la cambia; «Valores de fábrica» **conserva** la clave. Sin ella las órdenes por red responden 401.
 
 ### Etapa C: 24 V
 7. Con la fuente de 24 V en 0 V de salida y **sin cargas**, subir lentamente a 24 V mirando la corriente: en reposo debe ser de unas decenas de mA. Medir 24 V en TP1 (después del diodo) y 5 V en TP2.
@@ -62,7 +64,7 @@ Anotar cada resultado con fecha y número de placa. Si un paso falla, **parar** 
 
 ### Etapa D: entradas, conteo y reloj
 11. Con 24 V en la entrada 1 (respecto a COMI), debe encenderse su LED y la consola mostrar la entrada activa.
-12. Conteo rápido: `PK ENT 1 2 0 0` (entrada 1 = pieza buena, 2 = mala), `PK RESET`, `PK START` y dar pulsos a la entrada 1. El campo `n` de `?` debe subir uno por pulso. Probar pulsos rápidos (hasta unos 100 Hz con un generador, o con un botón comprobar que no se pierden).
+12. Conteo rápido (de fábrica las entradas están **desacopladas** de los relés: contar no mueve ninguno): `PK ENT 1 2 0 0` (entrada 1 = pieza buena, 2 = mala), `PK RESET`, `PK START` y dar pulsos a la entrada 1. El campo `n` de `?` debe subir uno por pulso. Probar pulsos rápidos (hasta unos 100 Hz con un generador, o con un botón comprobar que no se pierden).
 13. Reloj: `PK HORA <segundos desde 1970>` (por ejemplo `date +%s` en Linux). Quitar el USB y el 24 V, esperar 1 minuto y volver a conectar: la hora debe conservarse con la batería puesta.
 14. Con la batería **quitada**, apagar y encender: el reloj debe perder la hora y `TEST` debe avisarlo, sin impedir el uso del resto del equipo.
 

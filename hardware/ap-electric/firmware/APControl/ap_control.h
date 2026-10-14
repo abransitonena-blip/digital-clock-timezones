@@ -56,14 +56,17 @@ inline uint32_t crc32(const uint8_t* d, size_t n) {
 }
 inline uint32_t crcDe(const Config& c) { return crc32((const uint8_t*)&c, offsetof(Config, crc)); }
 
-// Valores de fábrica: todo apagado al arrancar, entradas como pulsador del canal del mismo número.
+// Valores de fábrica: todo apagado al arrancar. Placa de 1 canal (AP Home): la entrada es pulsador del canal 1.
+// Placa de varios canales (7R Tour): entradas DESACOPLADAS; se acoplan a un canal solo a propósito (las entradas cuentan piezas
+// o dan andon; que cada pieza haga conmutar un relé gastaría su vida y movería cargas).
 inline Config fabrica(uint8_t nCanales, uint8_t nEntradas) {
   Config c;
   memset(&c, 0, sizeof(c));
   c.firma = FIRMA; c.version = VERSION_CFG; c.nCanales = nCanales; c.nEntradas = nEntradas;
   for (int k = 0; k < MAX_CANALES; k++) c.canal[k] = ConfigCanal{ARR_APAGADO, CARGA_ALUMBRADO, COM_APAGAR, 0, 0, 0};
   for (int k = 0; k < MAX_ENTRADAS; k++)
-    c.entrada[k] = ConfigEntrada{ENT_PULSADOR, (uint8_t)(k < nCanales ? k + 1 : 0), 0, 0, 30, 0};
+    c.entrada[k] = nCanales > 1 ? ConfigEntrada{ENT_DESACOPLADA, 0, 0, 0, 30, 0}
+                                : ConfigEntrada{ENT_PULSADOR, (uint8_t)(k < nCanales ? k + 1 : 0), 0, 0, 30, 0};
   c.mbDireccion = 1; c.mbParidad = 0; c.mbVigilanciaS = 0; c.mbBaudios = 9600;
   c.vidaManiobras = 30000;                     // G2RL-1A-E: 30 000 maniobras a 16 A 250 VCA resistivo (hoja Omron)
   c.crc = crcDe(c);
@@ -73,7 +76,8 @@ inline Config fabrica(uint8_t nCanales, uint8_t nEntradas) {
 // Revisa rangos. Devuelve false si algo estaba mal (lo corrige). Un canal de proceso queda en ARRANQUE APAGADO.
 inline bool validar(Config& c) {
   bool ok = c.firma == FIRMA && c.version == VERSION_CFG && c.crc == crcDe(c);
-  if (c.nCanales < 1 || c.nCanales > MAX_CANALES || c.nEntradas > MAX_ENTRADAS) return false;
+  if (c.nCanales < 1 || c.nCanales > MAX_CANALES) return false;
+  if (c.nEntradas > MAX_ENTRADAS) { c.nEntradas = MAX_ENTRADAS; ok = false; }
   for (int k = 0; k < MAX_CANALES; k++) {
     ConfigCanal& x = c.canal[k];
     if (x.carga > CARGA_PROCESO) { x.carga = CARGA_PROCESO; ok = false; }
@@ -155,6 +159,7 @@ class Controlador {
     return OK;
   }
 
+  // «Maestro presente»: se llama con CUALQUIER trama Modbus válida dirigida a este equipo (lecturas incluidas), no solo con escrituras.
   void modbusEscribio(uint32_t ahora) {
     tModbus = ahora ? ahora : 1;
     if (comPerdida) { comPerdida = false; fallas &= ~F_COMUNICACION; evento(ahora, EV_COM_OK, 0, 0, OR_MODBUS); }
