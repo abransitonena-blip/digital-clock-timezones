@@ -52,8 +52,8 @@
 |---|---|---|
 | Tipo | Optoaisladas (LTV-217-B) | [E] |
 | Común | Propio, COMI: el sensor da +24 V a la entrada y su 0 V va a COMI | [R] |
-| Encendida | > ≈ 11 V | [C] |
-| Apagada | < ≈ 5 V | [C] |
+| Encendida | Meta > 11 V. El cálculo de escritorio da ≈ 7 V de encendido garantizado (corriente mínima del optoacoplador, LED indicador y 2 × 2.2 kΩ) | [C] **PD [M]** |
+| Apagada | Meta < 5 V, **sin garantía**: con el mismo cálculo el optoacoplador puede leer «activa» cerca de 5 V (importa con sensores de 2 hilos con fuga). Se mide en la primera tanda; el umbral se ajusta cambiando RA y RB en la lista de piezas, sin cambiar la placa | [C] **PD [M]** |
 | Corriente a 24 V | ≈ 4.8 mA | [C] |
 | Meta | IEC 61131-2 tipo 1/3; PD [M] | [R] |
 | Polaridad invertida | Diodo en antiparalelo | [R] |

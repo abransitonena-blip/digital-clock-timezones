@@ -15,7 +15,7 @@ Cambios de la placa respecto a la rev A, todos para el plan industrial (OEE, and
 | Firmware: conteo rápido, reloj, ajuste de hora por Modbus, autoprueba `TEST` | Probar la placa sin instrumentos y saber qué falló | Solo software |
 
 **Sin cambios, pero conviene saberlo antes de comprar:**
-- Las entradas son de tipo **PNP / sumidero** (la corriente entra por IN y sale por COMI). Un sensor **NPN** (el más común en máquinas japonesas y chinas viejas) **no funciona** conectado directo. Habría que usar un optoacoplador bipolar de la misma caja SOP-4 (pendiente de verificar el código) en una rev C.
+- Las entradas son de tipo **PNP / sumidero** (la corriente entra por IN y sale por COMI). Un sensor **NPN** (el más común en máquinas japonesas y chinas viejas) **no funciona** conectado directo. Habría que usar un optoacoplador de entrada bipolar. **Ojo:** el LTV-814S no tiene la misma huella (es de 9.53 mm); una alternativa en SOP-4 es el LTV-354T o el EL354, con la huella por verificar. Además, mezclar PNP y NPN en una misma placa pide dos comunes separados (COMA y COMB). Ver `empresa/hardware/ESTUDIO_REV_C.md`.
 - No hay Ethernet: el ESP32-C3 no tiene los pines libres. Para Modbus TCP se usa Wi-Fi o un AP GATE.
 - El cobre es de **2 oz** (dice el subtítulo de la placa): hay que elegirlo al cotizar. JLCPCB lo ofrece, pero **no se confirmó que también se pueda en ensamble**; verlo en la cotización antes de pagar.
 
