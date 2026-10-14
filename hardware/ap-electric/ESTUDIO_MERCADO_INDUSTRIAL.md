@@ -111,7 +111,7 @@ Fecha de consulta: 12-oct-2026. Tipo de cambio de referencia: ~18 MXN/USD. Los p
 
 | Producto | Modelo y precio | Fuente |
 |---|---|---|
-| Evocon | 189-319 USD por máquina al mes, en la nube | [Evocon](https://evocon.com/pricing-old/) |
+| Evocon | 189-319 USD por máquina al mes, en la nube (corrección del 14-oct-2026: un listado más reciente en Capterra muestra €159, €209 y €269 por máquina al mes; la página citada era antigua. Ver `empresa/mercado_industrial/AMPLIACION_MERCADO_INDUSTRIAL.md`; abrir la fuente antes de citar) | [Evocon](https://evocon.com/pricing-old/) |
 | TeepTrak | Hardware €2,031 más licencia anual | [RS](https://benl.rs-online.com/web/p/condition-monitoring/1830023) |
 | Ignition + Sepasoft OEE | Ignition desde 3,018 USD; Sepasoft 22,000-22,700 USD por sitio | [Inductive Automation](https://inductiveautomation.com/pricing), [Sepasoft](https://www.sepasoft.com/?p=32859) |
 | Tulip | 100-250 USD por interfaz al mes | [PricingSaaS](https://pricingsaas.com/companies/tulip) |
@@ -162,7 +162,7 @@ El esquema usual (medidor + gateway + plataforma en la nube) es caro y fragmenta
 
 | Línea | Ancla competitiva | Objetivo sugerido |
 |---|---|---|
-| AP Monitor, por máquina | LOGO! ~$4,500 MXN; Evocon 189 USD al mes | $5,000-7,000 MXN, pago único; tablero local gratis |
+| AP Monitor, por máquina | LOGO! ~$4,500 MXN; Evocon ~189 USD al mes (ver corrección en §5.2) | $5,000-7,000 MXN, pago único; tablero local gratis |
 | AP Poka-Yoke, por estación | Mountz 4,835-7,615 USD; Banner ~200 USD por nodo | $12,000-25,000 MXN; recibe la señal OK/NOK de la herramienta existente |
 | AP Gateway | Moxa €518 más medidor y nube | $4,000-6,000 MXN; kit con medidor ~$8,000 MXN |
 

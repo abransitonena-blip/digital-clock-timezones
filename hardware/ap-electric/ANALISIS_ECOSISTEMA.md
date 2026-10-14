@@ -37,7 +37,7 @@ Lectura: es un mercado grande pero **maduro y concentrado**; las firmas de inves
 | Placas ESP32 con relés (clones baratos) | Kincony, Norvi, DFRobot, Waveshare, genéricos | Kincony 55 USD, Norvi 88 USD [V]; DFRobot 10 E/S ≈ AUD 261 [V] | Precio muy bajo | Sin soporte local, sin aislamiento serio, sin documentación de planta, sin software de OEE | **Sí es la competencia directa por precio**: AP debe justificar la diferencia con aislamiento, soporte y la aplicación |
 | E/S remotas Modbus | Advantech, Moxa, Wago, genéricos | €100+ | Estándar | Solo E/S, sin lógica ni aplicación | AP Gate/E/S: **después** |
 | Gateways Modbus a MQTT/OPC UA | Moxa MGate (€518), Teltonika TRB246 (€176) | [V, estudio §5.4] | Robustez | Precio y configuración | **Después** (etapa 3) |
-| Software de OEE y andon | Evocon (189-319 USD/máquina/mes), Tulip, Sepasoft, TeepTrak; locales Pulsar y JoonX | [V, estudio §5.2] | Producto completo | Suscripción en la nube; plantas que no sacan datos a internet | **Es el hueco central de AP** |
+| Software de OEE y andon | Evocon (≈ €159-269 o 189-319 USD/máquina/mes según la fuente; ver corrección en el estudio §5.2), Tulip, Sepasoft, TeepTrak; locales Pulsar y JoonX | [V, estudio §5.2] | Producto completo | Suscripción en la nube; plantas que no sacan datos a internet | **Es el hueco central de AP** |
 | Nube IIoT | AWS, Azure, Tractian | sin precio público | Escala | Dependencia y costo recurrente | **No** |
 | Poka-yoke y torque | Mountz, Atlas Copco, Banner | 4,835-7,615 USD por estación [V] | Calidad probada | Precio | **Después**, sobre el mismo hardware |
 
@@ -105,7 +105,7 @@ Cada línea del ecosistema AP se calificó con seis preguntas (sí / no / por sa
 
 ## 6. Precio: lo que se sabe y lo que no
 
-**Anclas [V]:** LOGO! 8 ≈ $3,750-4,560 MXN; Zelio 276-383 USD; Opta 146-184 USD; Kincony/Norvi 55-88 USD; Evocon 189-319 USD por máquina al mes.
+**Anclas [V]:** LOGO! 8 ≈ $3,750-4,560 MXN; Zelio 276-383 USD; Opta 146-184 USD; Kincony/Norvi 55-88 USD; Evocon, entre €159 y 319 USD por máquina al mes según la fuente consultada.
 
 **Hipótesis de precio final [H]:** $5,000-7,000 MXN por máquina, pago único, tablero local sin costo (del estudio, §6). Está por encima de un clon de 55 USD y por debajo de un año de suscripción de OEE.
 
