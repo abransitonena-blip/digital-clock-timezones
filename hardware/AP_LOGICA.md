@@ -89,6 +89,7 @@ Arranque y paro con autorretención · retardo a la conexión · minutero de esc
 |---|---|
 | `GET /plc` | El programa (texto) |
 | `POST /plc` (cuerpo: texto) | Lo compila, lo guarda y responde `{"ok":1,"n":14}` o `{"ok":0,"err":"renglon 3: ..."}` |
+| En los equipos AP Control (7R Tour, AP Home) toda orden por red pide la clave del equipo: `/api?c=…&k=CLAVE` y `POST /plc?k=CLAVE` (sin ella, 401). AP Studio la pide una vez | |
 | `/api?c=PLC RUN` · `PLC STOP` · `PLC BORRAR` · `PLC MAX` | Modo, borrar el programa, reiniciar el tiempo máximo de ciclo |
 | `/api` → `"plc"` | `run`, `n`, `err`, `us` / `usm` (tiempo de ciclo y máximo, µs), `m` (M1-M128 en hexadecimal), `fl` (estado de cada instrucción, para el monitoreo), `t` / `tq`, `c` / `cq` |
 | `GET /log` | Bitácora: los últimos 32 eventos (arranques, fallas, RUN/STOP, programas nuevos), con hora |

@@ -10,7 +10,7 @@
   --fg: #1d1f24;
   --muted: #5b606b;
   --line: #d3d6dc;
-  --accent: #e85d04;
+  --accent: #c2410c;
   --accent-ink: #ffffff;
   --accent-soft: #fde6d6;
   --ok: #1f7a4a; --ok-soft: #dcf1e5;
@@ -225,6 +225,8 @@ footer .wrap { display: grid; gap: 8px; }
 .conf .folio { font: 600 1.7rem var(--font-mono); letter-spacing: .04em; }
 .linea-t { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; } .linea-t span { font-size: 0.78rem; padding: 3px 10px; border-radius: 99px; background: var(--sunken); color: var(--muted); }
 .linea-t span.hecho { background: var(--ok-soft); color: var(--ok); } .linea-t span.ahora { background: var(--accent); color: var(--accent-ink); }
+@media (max-width: 520px) { nav.secciones { flex-wrap: nowrap; overflow-x: auto; width: 100%; } nav.secciones a { white-space: nowrap; } header.top .wrap { gap: 6px; } }
+html, body { max-width: 100%; overflow-x: clip; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 </style>
 
@@ -257,7 +259,7 @@ footer .wrap { display: grid; gap: 8px; }
       <div class="texto">
         <span class="eyebrow">Control eléctrico · hecho para México</span>
         <h1>Prende, apaga y automatiza sin depender de internet.</h1>
-        <p class="lead">Dos placas dan cuatro productos con un solo programa: para la lámpara de la sala, para el apagador de la escalera y para el tablero de la nave. Todos se enlazan entre sí por la red local o por Modbus, sin cuenta ni nube.</p>
+        <p class="lead">Dos placas dan cuatro productos con un solo programa: para la lámpara de la sala, para el apagador de la escalera y para el tablero de la nave. Se enlazan entre sí por la red local o por Modbus, sin nube. Los vínculos por red local (UDP) todavía no llevan clave ni firma: úsalos solo en redes de confianza.</p>
         <div class="botones">
           <a class="btn primario" href="#elegir">Encuentra tu producto</a>
           <a class="btn" href="#interes">Avísame de los prototipos</a>
@@ -293,8 +295,8 @@ footer .wrap { display: grid; gap: 8px; }
         <article class="producto">
           <figure><img src="img/home_plug.jpg" alt="Home Plug: caja blanca con receptáculo y botón" loading="lazy"></figure>
           <div class="cuerpo">
-            <div class="fila"><h3>Home Plug</h3><span class="estado proto">PROTOTIPO</span></div>
-            <p>Se enchufa en el contacto y la lámpara se conecta a él. Clavija y receptáculo encerrados: nadie toca cables de red.</p>
+            <div class="fila"><h3>Home Plug</h3><span class="estado pausa">EN PAUSA</span></div>
+            <p>Se enchufa en el contacto y la lámpara se conecta a él. Clavija y receptáculo encerrados (diseño, sin ensayos).</p>
             <div class="tags"><span class="tag">127 V CA 60 Hz</span><span class="tag">enchufar y usar</span><span class="tag">sin regulación</span></div>
             <table class="spec">
               <tr><td>Carga</td><td>Lámparas incandescentes y focos LED no regulables · máximo <span class="pd">PD</span> (meta 6 A)<span class="origen">[R]</span></td></tr>
@@ -309,7 +311,7 @@ footer .wrap { display: grid; gap: 8px; }
         <article class="producto">
           <figure><img src="img/home_switch.jpg" alt="Home Switch: caja blanca con bornes L, N, LS y SW" loading="lazy"></figure>
           <div class="cuerpo">
-            <div class="fila"><h3>Home Switch</h3><span class="estado proto">PROTOTIPO</span></div>
+            <div class="fila"><h3>Home Switch</h3><span class="estado pausa">EN PAUSA</span></div>
             <p>Controla un circuito de alumbrado y conserva tu apagador de pared, incluso el de escalera. Instalación fija por una persona competente, con el circuito desenergizado.</p>
             <div class="tags"><span class="tag">L · N · LS · SW</span><span class="tag">requiere neutro</span><span class="tag">escalera 3 vías</span></div>
             <table class="spec">
@@ -343,11 +345,11 @@ footer .wrap { display: grid; gap: 8px; }
         <article class="producto">
           <figure><img src="img/7r_tour.jpg" alt="7R Tour: gabinete DIN con 7 canales y bornes" loading="lazy"></figure>
           <div class="cuerpo">
-            <div class="fila"><h3>7R Tour 24DC</h3><span class="estado proto">PROTOTIPO</span></div>
-            <p>Siete salidas por relé, cada una con su propio común, ocho entradas de 24 V y bus RS-485 aislado. Se alimenta con 24 V CC de una fuente certificada.</p>
+            <div class="fila"><h3>7R Tour 24DC</h3><span class="estado dis">DISEÑO</span></div>
+            <p>Siete salidas por relé, cada una con su propio común, ocho entradas de 24 V y bus RS-485 aislado. Se alimenta con 24 V CC de una fuente externa (se recomienda una con certificación propia).</p>
             <div class="tags"><span class="tag">7 relés</span><span class="tag">8 entradas 24 V</span><span class="tag">Modbus RTU</span><span class="tag">riel DIN</span></div>
             <table class="spec">
-              <tr><td>Relés</td><td>Omron G2RL-1A-E DC24, 16 A 250 V CA resistivo<span class="origen">[E]</span></td></tr>
+              <tr><td>Relés</td><td>Omron G2RL-1A-E DC24, 16 A 250 V CA resistivo<span class="origen">[E]</span> · <b>en el piloto: solo cargas de hasta 30 V</b></td></tr>
               <tr><td>Límite por canal</td><td><span class="pd">PD</span> · meta 10 A resistivos<span class="origen">[R]</span></td></tr>
               <tr><td>Bus</td><td>CA-IS3092W, aislado 5 kVrms<span class="origen">[E]</span></td></tr>
               <tr><td>Mando manual</td><td>DIP de 8: fuerza cada relé aunque el procesador esté detenido</td></tr>
@@ -358,7 +360,7 @@ footer .wrap { display: grid; gap: 8px; }
         <article class="producto">
           <figure><img src="img/placa_7r.jpg" alt="Placa del 7R Tour vista desde arriba" loading="lazy"></figure>
           <div class="cuerpo">
-            <div class="fila"><h3>7R Tour CA</h3><span class="estado proto">PROTOTIPO</span></div>
+            <div class="fila"><h3>7R Tour CA</h3><span class="estado pausa">EN PAUSA</span></div>
             <p>El mismo equipo con la fuente de red montada en la placa: se conecta directo a 127/220 V CA. Mismo programa, misma placa, otro armado. <b>En pausa:</b> no se ofrece en el piloto hasta tener pruebas de seguridad eléctrica con un organismo acreditado.</p>
             <div class="tags"><span class="tag">85-264 V CA</span><span class="tag">IRM-20-24</span><span class="tag">fusible T2A</span></div>
             <table class="spec">
@@ -457,10 +459,10 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
         <table>
           <thead><tr><th>Quiero controlar</th><th>Producto</th><th>Instalación</th><th>Estado</th></tr></thead>
           <tbody>
-            <tr><td>Una lámpara de mesa o de pie de 127 V</td><td><b>Home Plug</b></td><td>Se enchufa</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
-            <tr><td>El foco del techo, conservando el apagador (sencillo o escalera)</td><td><b>Home Switch</b></td><td>Fija, con neutro, persona competente</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
-            <tr><td>Varios circuitos de alumbrado o bobinas de contactor desde un tablero</td><td><b>7R Tour 24DC / CA</b></td><td>Riel DIN, gabinete cerrado</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
-            <tr><td>Motores, bombas, compresores</td><td><b>7R Tour + contactor</b></td><td>Contactor elegido por categoría AC-3</td><td><span class="estado proto">PROTOTIPO</span></td></tr>
+            <tr><td>Una lámpara de mesa o de pie de 127 V</td><td><b>Home Plug</b></td><td>Se enchufa</td><td><span class="estado pausa">EN PAUSA</span></td></tr>
+            <tr><td>El foco del techo, conservando el apagador (sencillo o escalera)</td><td><b>Home Switch</b></td><td>Fija, con neutro, persona competente</td><td><span class="estado pausa">EN PAUSA</span></td></tr>
+            <tr><td>Bobinas de contactor de 24 V, torres de luz y avisadores desde un tablero (<b>piloto: solo cargas de hasta 30 V</b>). Alumbrado de 127/220 V: no en el piloto</td><td><b>7R Tour 24DC</b></td><td>Riel DIN, gabinete cerrado</td><td><span class="estado dis">DISEÑO</span></td></tr>
+            <tr><td>Motores, bombas, compresores (no en el piloto: exigen contactor externo y pruebas de seguridad eléctrica)</td><td><b>7R Tour + contactor</b></td><td>Contactor elegido por categoría AC-3</td><td><span class="estado pausa">EN PAUSA</span></td></tr>
             <tr><td>Tiras LED, letreros, focos de corriente constante</td><td><b>Línea Luz</b></td><td>Riel DIN, 12-24 V</td><td><span class="estado dis">DISEÑO</span></td></tr>
             <tr><td>Lámparas regulables con atenuador</td><td colspan="3">No soportado todavía: la regulación de brillo sería un modelo aparte</td></tr>
           </tbody>
@@ -488,7 +490,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
         <path d="M170 75 H330"/><path d="M570 75 H730"/><path d="M170 185 H330"/><path d="M570 185 H730"/>
       </svg>
       <div class="pasos">
-        <div><b>Siente</b><span>Una entrada de 24 V (sensor de pieza, botón de andon, fin de ciclo) cambia de estado. Las dos primeras cuentan hasta unos 500 pulsos por segundo.</span></div>
+        <div><b>Siente</b><span>Una entrada de 24 V (sensor de pieza, botón de andon, fin de ciclo) cambia de estado. Las dos primeras cuentan por interrupción (límite de programa ≈ 500 pulsos por segundo; el de hardware está por medir).</span></div>
         <div><b>Decide</b><span>El programa lleva el estado de la máquina, cuenta piezas, registra la causa de cada paro y calcula el OEE. Una lógica tipo PLC puede agregar reglas propias.</span></div>
         <div><b>Actúa</b><span>Un relé enciende una torre de luz, un contactor o una alarma. Al arrancar, todo está apagado; si se pierde la comunicación, los canales de proceso se apagan.</span></div>
         <div><b>Informa</b><span>Se ve y se configura desde la <a href="consola.html">consola</a> por USB o red local, y se lee por Modbus. Sin nube obligatoria.</span></div>
@@ -578,7 +580,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
         <label class="todo" for="iNota">Nota (opcional, la ve quien abre esta página)<input id="iNota" maxlength="200" placeholder="Ej.: 20 piezas para una bodega en Monterrey"></label>
         <div class="todo acciones"><button class="btn primario" type="submit">Guardar mi interés</button><button class="btn" id="iQuitar" type="button" hidden>Quitar mi interés</button><span class="msg" id="iMsg" role="status"></span></div>
         <p class="todo nota">Se guarda con tu cuenta de Claude: no pedimos correo ni teléfono. El equipo de AP Electric ve tu nombre para avisarte.</p>
-        <div class="todo" id="iEquipo" hidden><span class="eyebrow">Interesados (solo lo ve el equipo)</span><div class="tabla" style="margin-top:8px"><table style="min-width:520px"><thead><tr><th>Persona</th><th>Productos</th><th>Nota</th></tr></thead><tbody id="iLista"></tbody></table></div></div>
+        <div class="todo" id="iEquipo" hidden><span class="eyebrow">Interesados (la página solo se lo muestra al equipo; los datos de esta lista los puede leer quien abra la página: no escribas nada privado)</span><div class="tabla" style="margin-top:8px"><table style="min-width:520px"><thead><tr><th>Persona</th><th>Productos</th><th>Nota</th></tr></thead><tbody id="iLista"></tbody></table></div></div>
       </form>
     </div>
   </section>
@@ -675,6 +677,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     if (!/^https?:\/\//i.test(url || "")) return null;
     var a = txt("a", texto); a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer"; return a;
   }
+  function cadenas(v) { return Array.isArray(v) ? v.filter(function (z) { return typeof z === "string"; }) : []; }   // datos de la base: se asumen malformados
   function pill(e) { var s = txt("span", e, "pill"); s.setAttribute("data-e", e); return s; }
 
   function pintarResumen() {
@@ -776,7 +779,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
   });
   function pintarInteres() {
     PRODUCTOS.forEach(function (n, i) {
-      var c = interes.filter(function (x) { return (x.productos || []).indexOf(n) >= 0; }).length;
+      var c = interes.filter(function (x) { return cadenas(x.productos).indexOf(n) >= 0; }).length;
       $("iC" + i).textContent = c ? String(c) : "";
     });
     var mio = interes.filter(function (x) { return x.id === miId; })[0];
@@ -790,7 +793,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
       interes.forEach(function (x) {
         var tr = txt("tr"), pr = ps && ps[x.id];
         tr.appendChild(txt("td", (pr && pr.name) || "Alguien"));
-        tr.appendChild(txt("td", (x.productos || []).join(", ")));
+        tr.appendChild(txt("td", cadenas(x.productos).join(", ")));
         tr.appendChild(txt("td", x.nota || ""));
         tb.appendChild(tr);
       });
@@ -799,7 +802,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
   function cargarMio() {
     var mio = interes.filter(function (x) { return x.id === miId; })[0];
     if (!mio) return;
-    PRODUCTOS.forEach(function (n, i) { $("iP" + i).checked = (mio.productos || []).indexOf(n) >= 0; });
+    PRODUCTOS.forEach(function (n, i) { $("iP" + i).checked = cadenas(mio.productos).indexOf(n) >= 0; });
     $("iNota").value = mio.nota || "";
   }
   $("formInteres").addEventListener("submit", function (ev) {
@@ -861,7 +864,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
 
   /* ---------- Catálogo: datos, no código. Agregar una fila la muestra y la hace solicitable ---------- */
   var CATALOGO = [
-    { id: "ap-monitor-24", nombre: "AP Monitor 24 (7R Tour 24DC rev B)", seg: "Industrial", estado: "Prototipo",
+    { id: "ap-monitor-24", nombre: "AP Monitor 24 (7R Tour 24DC rev B)", seg: "Industrial", estado: "Diseño",
       resumen: "Andon, conteo y OEE para máquinas sin datos. 7 relés, 8 entradas PNP de 24 V, RS-485 aislado, Wi-Fi, USB-C.",
       puntos: ["24 V CC de una fuente certificada de terceros", "Programa PackML + consola + AP Studio", "Piloto abierto: sin precio ni fecha"] },
     { id: "7r-tour-ca", nombre: "7R Tour CA", seg: "Industrial", estado: "En pausa",
@@ -880,13 +883,13 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
       resumen: "Un circuito de alumbrado conservando el apagador (sencillo o escalera).", puntos: ["Instalación fija por persona competente", "Congelado por ahora"] },
     { id: "linea-luz", nombre: "Línea Luz (AP FOCO, PWM4, letreros)", seg: "Luz", estado: "Diseño",
       resumen: "Tiras LED, letreros y focos de corriente constante, 12-24 V.", puntos: ["Línea aparte, no usa la placa base"] },
-    { id: "consola", nombre: "Consola AP Base", seg: "Software", estado: "Servicio",
-      resumen: "Controla y configura la placa desde el navegador por USB, red local o demostración.", puntos: ["Disponible hoy en demostración", "Se adapta a lo que la placa sabe hacer"], enlace: "consola.html" },
-    { id: "ap-studio", nombre: "AP Studio", seg: "Software", estado: "Servicio",
+    { id: "consola", nombre: "Consola AP Base", seg: "Software", estado: "Prototipo",
+      resumen: "Controla y configura la placa desde el navegador por USB, red local o demostración.", puntos: ["Funciona hoy en demostración; sin probar con una placa real", "Se adapta a lo que la placa sabe hacer"], enlace: "consola.html" },
+    { id: "ap-studio", nombre: "AP Studio", seg: "Software", estado: "Prototipo",
       resumen: "Aplicación de la serie AP-1 y AP UNO: luces, reglas, lógica en escalera y un panel de producción.", puntos: ["La placa base (7R Tour, AP Home) se maneja con la Consola AP Base", "Se abre desde el equipo AP-1 o en demostración"] },
     { id: "piloto", nombre: "Piloto acompañado de 30 días", seg: "Servicios", estado: "Concepto",
       resumen: "Instalación guiada en una máquina real, con retroalimentación.", puntos: ["Después de probar placas reales", "Contrato corto"] },
-    { id: "a-medida", nombre: "Diseño a medida", seg: "Servicios", estado: "Servicio",
+    { id: "a-medida", nombre: "Diseño a medida", seg: "Servicios", estado: "Concepto",
       resumen: "Placa, firmware o integración para un caso que el catálogo no cubre.", puntos: ["Se evalúa caso por caso", "Sin precio hasta revisar alcance"] },
     { id: "capacitacion", nombre: "AP Lab: capacitación", seg: "Servicios", estado: "Concepto",
       resumen: "Kit y práctica de automatización para escuelas técnicas.", puntos: ["Basado en la placa base y AP Studio"] }
@@ -920,7 +923,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     if (!carrito.length) { c.appendChild(txt("span", "Agrega productos desde el catálogo con «Agregar a mi solicitud». También puedes enviar la solicitud sin productos.", "nota")); return; }
     carrito.forEach(function (id) {
       var r = txt("div", null, "lin"); r.appendChild(txt("span", nombreDe(id)));
-      var q = document.createElement("input"); q.type = "number"; q.min = 1; q.max = 999; q.value = q.dataset.v || 1; q.id = "q_" + id; q.setAttribute("aria-label", "Cantidad de " + nombreDe(id));
+      var q = document.createElement("input"); q.type = "number"; q.min = 1; q.max = 999; q.value = cant[id] || 1; q.addEventListener("change", function () { cant[id] = Math.max(1, Math.min(999, +q.value || 1)); }); q.id = "q_" + id; q.setAttribute("aria-label", "Cantidad de " + nombreDe(id));
       var k = txt("button", "Quitar", "btn chico"); k.type = "button"; k.addEventListener("click", function () { carrito = carrito.filter(function (z) { return z !== id; }); pintarCarrito(); pintarCatalogo(); });
       var w = txt("span"); w.appendChild(q); w.appendChild(document.createTextNode(" ")); w.appendChild(k); r.appendChild(w); c.appendChild(r);
     });
@@ -933,12 +936,16 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     "Piloto o muestra confirmados": "Hay un lugar para ti en el piloto o la muestra. No es una compra.", "En lista de espera": "No hay unidades todavía; quedas en la lista.", "Cerrada": "Terminó.", "No viable": "No podemos atenderla con lo que hay hoy." };
   var db = null, usuario = null, miId = null, esEquipo = false, mias = [], estados = {}, todas = [];
   TIPOS.forEach(function (t) { $("sTipo").add(new Option(t, t)); });
+  function lista(v) { return Array.isArray(v) ? v.filter(function (z) { return z && typeof z === "object"; }) : []; }   // datos de la base: se asumen malformados
+  function cadenas(v) { return Array.isArray(v) ? v.filter(function (z) { return typeof z === "string"; }) : []; }
+  function norm(x) { x.items = lista(x.items); x.folio = String(x.folio || ""); x.tipo = String(x.tipo || ""); x.fecha = String(x.fecha || ""); return x; }
+  var cant = {};
   function lsGet() { try { return JSON.parse(localStorage.getItem("apSolicitudes") || "[]"); } catch (e) { return []; } }
   function lsSet(v) { try { localStorage.setItem("apSolicitudes", JSON.stringify(v)); } catch (e) {} }
   function folio() {
     var d = new Date(), z = function (n) { return String(n).padStart(2, "0"); }, a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = "";
-    var u = new Uint8Array(4); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(u) : u.forEach(function (_, i) { u[i] = Math.floor(Math.random() * 256); });
-    for (var i = 0; i < 4; i++) r += a[u[i] % a.length];
+    var u = new Uint8Array(6); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(u) : u.forEach(function (_, i) { u[i] = Math.floor(Math.random() * 256); });
+    for (var i = 0; i < 6; i++) r += a[u[i] % a.length];
     return "AP-" + String(d.getFullYear()).slice(2) + z(d.getMonth() + 1) + z(d.getDate()) + "-" + r;
   }
   function estadoDe(f) { return (estados[f] && estados[f].estado) || "Recibida"; }
@@ -971,13 +978,15 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
   function pintarMias() {
     var c = $("sMias"); c.textContent = "";
     if (!mias.length) { c.appendChild(txt("p", "Todavía no hay solicitudes " + (db ? "en tu cuenta." : "en este navegador."), "nota")); return; }
-    mias.slice().reverse().slice(0, 6).forEach(function (x) { c.appendChild(tarjeta(x, false)); c.lastChild.style.marginBottom = "8px"; });
+    mias.slice().reverse().forEach(function (x) { c.appendChild(tarjeta(x, false)); c.lastChild.style.marginBottom = "8px"; });
   }
   function guardar(x) {
-    mias.push(x); mias = mias.slice(-20);
-    if (db && miId) { return db.collection("solicitudes").doc(miId).set({ pedidos: mias, actualizado: new Date().toISOString() }); }
-    lsSet(mias); return Promise.resolve();
+    if (!db || !miId) { var e = new Error("sin_base"); e.code = "sin_base"; return Promise.reject(e); }
+    if (mias.length >= 20) { var e2 = new Error("limite"); e2.code = "limite"; return Promise.reject(e2); }
+    var nuevas = mias.concat([x]);
+    return db.collection("solicitudes").doc(miId).set({ pedidos: nuevas, actualizado: new Date().toISOString() }).then(function () { mias = nuevas; });
   }
+  var enviando = false;
   $("formSol").addEventListener("submit", function (ev) {
     ev.preventDefault();
     var m = $("sMsgEst");
@@ -987,13 +996,23 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     if (tipo !== "Lista de interés" && !con) { m.className = "msg mal"; m.textContent = "Para responderte necesitamos un correo o teléfono (solo lo ve el equipo)."; return; }
     var x = { folio: folio(), tipo: tipo, fecha: new Date().toISOString(), seg: $("sSeg").value, org: $("sOrg").value.trim(), contacto: con, volt: $("sVolt").value, sens: $("sSens").value, msg: msg,
       items: carrito.map(function (id) { var q = $("q_" + id); return { id: id, cant: Math.max(1, Math.min(999, +(q && q.value) || 1)) }; }) };
+    if (enviando) return;
+    enviando = true; var btnEnv = $("formSol").querySelector("button[type=submit]"); btnEnv.disabled = true;
     m.className = "msg"; m.textContent = "Enviando…";
     guardar(x).then(function () {
+      enviando = false; btnEnv.disabled = false;
       m.className = "msg ok"; m.textContent = "Listo.";
       $("sConf").textContent = ""; $("sConf").appendChild(tarjeta(x, true)); pintarMias();
-      carrito = []; pintarCarrito(); pintarCatalogo(); $("sMsg").value = ""; $("sAcepto").checked = false;
+      carrito = []; cant = {}; pintarCarrito(); pintarCatalogo(); $("sMsg").value = ""; $("sAcepto").checked = false;
     }).catch(function (e) {
-      mias.pop(); m.className = "msg mal"; m.textContent = "No se guardó (" + ((e && e.code) || "error") + "). Copia tu solicitud y envíala por otro medio.";
+      enviando = false; btnEnv.disabled = false; m.className = "msg mal";
+      var c = e && e.code;
+      m.textContent = c === "sin_base" ? "NO SE ENVIÓ: esta página no está conectada a la base del equipo (ábrela dentro de Claude con tu sesión, o espera a que cargue). Copia el resumen y mándalo por otro medio."
+        : c === "limite" ? "Ya tienes 20 solicitudes guardadas; espera la respuesta del equipo antes de enviar otra."
+        : "NO SE GUARDÓ (" + (c || "error") + "). Copia tu solicitud y envíala por otro medio.";
+      $("sConf").textContent = ""; var cp = txt("button", "Copiar el resumen de mi solicitud", "btn chico"); cp.type = "button";
+      cp.addEventListener("click", function () { (navigator.clipboard ? navigator.clipboard.writeText(resumen(x)) : Promise.reject()).then(function () { cp.textContent = "Copiado"; }, function () { cp.textContent = "No se pudo copiar"; }); });
+      $("sConf").appendChild(cp);
     });
   });
 
@@ -1001,13 +1020,13 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
   function pintarEquipo() {
     if (!esEquipo) return; $("sEquipo").hidden = false;
     var tb = $("sLista"); tb.textContent = "";
-    var filas = []; todas.forEach(function (u) { (u.pedidos || []).forEach(function (x) { filas.push({ uid: u.id, x: x }); }); });
+    var filas = []; todas.forEach(function (u) { try { lista(u.pedidos).forEach(function (x) { filas.push({ uid: u.id, x: norm(x) }); }); } catch (e) {} });
     filas.sort(function (a, b) { return a.x.fecha < b.x.fecha ? 1 : -1; });
     if (!filas.length) { var tr = txt("tr"), td = txt("td", "Todavía no hay solicitudes.", "vacio"); td.colSpan = 5; tr.appendChild(td); tb.appendChild(tr); return; }
     filas.forEach(function (f) {
       var x = f.x, tr = txt("tr");
       tr.appendChild(txt("td", x.folio, "mono")); tr.appendChild(txt("td", x.tipo));
-      tr.appendChild(txt("td", (x.items || []).map(function (i) { return i.cant + " × " + nombreDe(i.id); }).join("; ") || "—"));
+      tr.appendChild(txt("td", lista(x.items).map(function (i) { return i.cant + " × " + nombreDe(i.id); }).join("; ") || "—"));
       var c = txt("td"); c.appendChild(txt("b", x.contacto || "(sin contacto)")); c.appendChild(document.createElement("br")); c.appendChild(txt("span", [x.seg, x.org, x.volt, x.sens].filter(Boolean).join(" · "), "nota"));
       c.appendChild(document.createElement("br")); c.appendChild(txt("span", x.msg || "", "nota")); tr.appendChild(c);
       var e = txt("td"), sel = document.createElement("select"); ESTADOS.forEach(function (n) { sel.add(new Option(n, n)); });
@@ -1022,14 +1041,14 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     });
   }
 
-  pintarCatalogo(); pintarCarrito(); mias = lsGet(); pintarMias();
+  pintarCatalogo(); pintarCarrito(); mias = []; pintarMias();       // las solicitudes no se guardan en el navegador: o llegan a la base del equipo o no se envían
   if (!window.claude || !window.claude.use) return;
   window.claude.use("user").then(function (u) {
     usuario = u; esEquipo = !!(u && u.canEdit && u.canEdit());
     if (u && u.id) { return Promise.resolve(u.id()).then(function (id) { miId = id; }); }
   }).then(function () { return window.claude.use("db"); }).then(function (d) {
     if (!d || !miId) return; db = d;
-    db.collection("solicitudes").doc(miId).onSnapshot(function (s) { if (s.exists) { mias = (s.data().pedidos || []); pintarMias(); } }, function () {});
+    db.collection("solicitudes").doc(miId).onSnapshot(function (s) { if (s.exists) { mias = lista(s.data().pedidos).map(norm); pintarMias(); } }, function () {});
     db.collection("confirmaciones").doc(miId).onSnapshot(function (s) { estados[miId] = s.exists ? s.data() : {}; Object.keys(estados[miId] || {}).forEach(function (k) { estados[k] = estados[miId][k]; }); pintarMias(); if (esEquipo) pintarEquipo(); }, function () {});
     if (esEquipo) {
       db.collection("solicitudes").onSnapshot(function (s) { todas = s.docs.map(function (x) { var o = x.data() || {}; o.id = x.id; return o; }); pintarEquipo(); }, function () {});

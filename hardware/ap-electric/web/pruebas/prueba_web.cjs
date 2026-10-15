@@ -47,31 +47,58 @@ const stub = `(function(){const st={},subs=[];
   await p.click('#bSalir');
   await p.close();
 
-  // --- web de la empresa, sin base de datos ---
+  // --- web de la empresa, sin base de datos: NO debe prometer que la solicitud llegó ---
   p = await nueva();
   await p.goto(base + 'index.html');
   ok(await p.$$eval('#catLista .item', e => e.length) >= 10, 'catálogo con filas');
   await p.click('#catFiltros button:nth-child(2)');
   ok(await p.$$eval('#catLista .item', e => e.every(x => x.innerText.includes('Industrial'))), 'filtro Industrial');
   await p.click('#catLista .item:first-child button.btn');
+  await p.fill('#q_ap-monitor-24', '7'); await p.dispatchEvent('#q_ap-monitor-24', 'change');
+  await p.click('#catFiltros button:nth-child(1)'); await p.click('#catLista .item:nth-child(2) button.btn');
+  ok(await p.$eval('#q_ap-monitor-24', e => e.value) === '7', 'la cantidad se conserva al agregar otro producto');
   await p.fill('#sCon', 'x@y.mx'); await p.fill('#sMsg', 'Inyectora sin PLC con sensor PNP');
   await p.click('#formSol button[type=submit]');
   ok((await p.innerText('#sMsgEst')).includes('prototipo'), 'exige aceptar el aviso de prototipo');
   await p.click('#sAcepto'); await p.click('#formSol button[type=submit]'); await p.waitForTimeout(300);
-  ok(/AP-\d{6}-[A-Z0-9]{4}/.test(await p.innerText('#sConf')), 'folio generado');
-  ok((await p.innerText('#sConf')).includes('no se cobra nada'), 'confirmación aclara que no es compra');
+  ok((await p.innerText('#sMsgEst')).includes('NO SE ENVIÓ'), 'sin base de datos avisa que NO se envió');
+  ok(!/AP-\d{6}-/.test(await p.innerText('#sConf')), 'sin base de datos no entrega folio');
+  ok(await p.evaluate(() => { try { return !localStorage.getItem('apSolicitudes'); } catch (e) { return true; } }), 'no guarda el contacto en el navegador');
+  ok(await p.$eval('#sMsg', e => e.value.length > 0), 'conserva lo escrito para no perderlo');
   await p.close();
 
-  // --- con base de datos simulada: el usuario envía; el equipo confirma ---
+  // --- con base de datos simulada: envío, doble envío, confirmación del equipo, datos malformados, límite ---
   p = await nueva('window.__team=true;' + stub);
   await p.goto(base + 'index.html'); await p.waitForTimeout(400);
   await p.selectOption('#sTipo', 'Lista de interés'); await p.fill('#sMsg', 'Avísenme cuando haya prototipos'); await p.click('#sAcepto');
-  await p.click('#formSol button[type=submit]'); await p.waitForTimeout(500);
-  ok(await p.evaluate(() => Object.keys(window.__store).includes('solicitudes/u1')), 'solicitud guardada en la base');
+  await p.evaluate(() => { const f = document.getElementById('formSol'); f.requestSubmit(); f.requestSubmit(); });   // doble envío
+  await p.waitForTimeout(500);
+  ok(await p.evaluate(() => (window.__store['solicitudes/u1'] || { pedidos: [] }).pedidos.length) === 1, 'el doble envío crea una sola solicitud');
+  ok(/AP-\d{6}-[A-Z0-9]{6}/.test(await p.innerText('#sConf')), 'folio generado con base de datos');
+  ok((await p.innerText('#sConf')).includes('no se cobra nada'), 'confirmación aclara que no es compra');
   ok(await p.$eval('#sEquipo', e => !e.hidden), 'panel del equipo visible');
   await p.selectOption('#sLista tr:first-child select', 'En revisión'); await p.waitForTimeout(500);
   ok(await p.evaluate(() => JSON.stringify(window.__store['confirmaciones/u1'] || {}).includes('En revisión')), 'confirmación guardada por el equipo');
   ok((await p.innerText('#sMias')).includes('En revisión'), 'el solicitante ve el nuevo estado');
+  // un documento malformado de otra cuenta no debe vaciar el panel del equipo
+  await p.evaluate(() => { window.__store['solicitudes/evil'] = { pedidos: 'basura' }; window.__store['interes/evil'] = { productos: 'x' }; });
+  await p.evaluate(() => { const f = document.getElementById('formSol'); });
+  await p.selectOption('#sTipo', 'Lista de interés'); await p.fill('#sMsg', 'Otra solicitud de prueba'); await p.click('#sAcepto');
+  await p.click('#formSol button[type=submit]'); await p.waitForTimeout(500);
+  ok(await p.$$eval('#sLista tr', e => e.length) >= 2, 'el panel del equipo sigue mostrando solicitudes con un documento malformado');
+  // límite de 20: avisa en vez de borrar en silencio
+  for (let i = 0; i < 22; i++) {
+    await p.selectOption('#sTipo', 'Lista de interés'); await p.fill('#sMsg', 'Solicitud número ' + i + ' de prueba'); await p.check('#sAcepto');
+    await p.click('#formSol button[type=submit]'); await p.waitForTimeout(120);
+  }
+  ok(await p.evaluate(() => window.__store['solicitudes/u1'].pedidos.length) === 20, 'el límite de 20 no descarta solicitudes: se detiene');
+  ok((await p.innerText('#sMsgEst')).includes('20 solicitudes'), 'avisa que se llegó al límite');
+  await p.close();
+
+  // --- consola: el perfil Andon no se ofrece en AP Home; la clave de red se pide al mandar órdenes ---
+  p = await nueva();
+  await p.goto(base + 'consola.html'); await p.click('#bDH'); await p.waitForTimeout(500);
+  ok((await p.$$eval('#perfiles button', b => b.map(x => x.textContent))).every(t => !/Andon/.test(t)), 'AP Home no ofrece el perfil Andon (1 entrada)');
   await p.close();
 
   ok(errs.length === 0, 'errores de página: ' + errs.slice(0, 3).join(' | '));

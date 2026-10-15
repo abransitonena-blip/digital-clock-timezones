@@ -81,25 +81,26 @@ int main() {
     b.correr(1900); REVISA(!b.c.comPerdida);
     b.correr(200); REVISA(b.c.comPerdida && (b.c.fallas & F_COMUNICACION));
     REVISA((b.c.salida & 0x0F) == 0x02);            // 1, 3, 4 se apagan; el 2 (mantener) sigue
-    q = trama({3, 3, 0, 0, 0, 1}); m.procesar(q.data(), q.size(), r, b.t);          // una lectura SÍ cuenta: el maestro está presente
-    REVISA(!b.c.comPerdida && (b.c.salida & 0x0D) == 0);                            // vuelve sin reencender nada
+    q = trama({3, 3, 0, 0, 0, 1}); m.procesar(q.data(), q.size(), r, b.t);          // una lectura NO es latido
+    REVISA(b.c.comPerdida);
     q = trama({3, 6, 0, 0, 0, 2}); m.procesar(q.data(), q.size(), r, b.t);
-    REVISA(!b.c.comPerdida && (b.c.salida & 0x0D) == 0);
+    REVISA(!b.c.comPerdida && (b.c.salida & 0x0D) == 0);                            // vuelve sin reencender nada
     q = trama({3, 6, 0, 200, 0xA5, 0x5A}); m.procesar(q.data(), q.size(), r, b.t); REVISA(m.pedirGuardar);
     q = trama({3, 6, 0, 200, 0x5A, 0xA5}); n = m.procesar(q.data(), q.size(), r, b.t);
     REVISA(n == 5 && r[1] == 0x86 && r[2] == 4 && !m.pedirFabrica);               // fábrica por Modbus exige el permiso local
     q = trama({3, 3, 0xFF, 0xFF, 0, 2}); n = m.procesar(q.data(), q.size(), r, b.t);
     REVISA(n == 5 && r[1] == 0x83 && r[2] == 2);                                   // dirección + cantidad pasan de 65535
   }
-  // 4 bis) un maestro que solo LEE no dispara la pérdida de comunicación
+  // 4 bis) la vigilancia es un LATIDO de escrituras: un maestro que solo lee no lo mantiene; uno que reescribe, sí
   {
     Config c = fabrica(7, 8); c.mbVigilanciaS = 2; c.crc = crcDe(c);
     Banco b; b.c.iniciar(c, 0, nullptr, 0, false);
     Esclavo m(b.c, 1, 1, nullptr); m.ultimoAhora = 0; std::vector<uint8_t> q; uint8_t r[260];
     q = trama({1, 5, 0, 0, 0xFF, 0}); m.procesar(q.data(), q.size(), r, b.t); REVISA(b.c.salida & 1);
-    for (int i = 0; i < 20; i++) { b.correr(1000); q = trama({1, 3, 0, 0, 0, 1}); m.procesar(q.data(), q.size(), r, b.t); }
-    REVISA(!b.c.comPerdida && (b.c.salida & 1));                                   // 20 s solo leyendo: sigue encendido
-    b.correr(2500); REVISA(b.c.comPerdida && !(b.c.salida & 1));                   // sin ninguna trama: ahí sí
+    for (int i = 0; i < 5; i++) { b.correr(1000); q = trama({1, 5, 0, 0, 0xFF, 0}); m.procesar(q.data(), q.size(), r, b.t); }
+    REVISA(!b.c.comPerdida && (b.c.salida & 1));                                   // reescribe cada segundo: sigue encendido
+    for (int i = 0; i < 3; i++) { b.correr(1000); q = trama({1, 3, 0, 0, 0, 1}); m.procesar(q.data(), q.size(), r, b.t); }
+    REVISA(b.c.comPerdida && !(b.c.salida & 1));                                   // solo lecturas: vence el latido
   }
   // 4 ter) valores de fábrica: placa de varios canales con entradas desacopladas; AP Home con pulsador
   {

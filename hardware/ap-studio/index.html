@@ -324,11 +324,15 @@ const ld=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 
 /* ---------- conexión ---------- */
 function base(){return host?(/^https?:/.test(host)?host:"http://"+host):""}
+/* equipos AP Control (7R Tour, AP Home): las órdenes por red piden la clave del equipo (la de su etiqueta); el estado se lee sin clave */
+const kq=()=>{const k=ld("apClave");return k?"&k="+encodeURIComponent(k):""};
+async function pedirClave(){const k=prompt("Este equipo pide su clave para mandar órdenes (está en la etiqueta o en la consola USB: orden CLAVE).");if(k){st("apClave",k.trim());return true}return false}
 async function api(c){
   if(demo){Sim.cmd(c);E=Sim.estado();pintar();return E}
   ocupado++;
   try{
-    const r=await fetch(base()+"/api"+(c?"?c="+encodeURIComponent(c):""),{cache:"no-store"});
+    let r=await fetch(base()+"/api"+(c?"?c="+encodeURIComponent(c)+kq():""),{cache:"no-store"});
+    if(r.status==401&&c&&await pedirClave())r=await fetch(base()+"/api?c="+encodeURIComponent(c)+kq(),{cache:"no-store"});
     if(!r.ok)throw 0; E=await r.json(); ultimo=Date.now(); pintar(); return E;
   }catch(e){ if(!c&&!E.v)entrarDemo(true); else aviso("Sin respuesta del equipo"); }
   finally{ocupado--}
@@ -830,7 +834,8 @@ async function plcBajar(){
 async function plcSubir(txt){
   const p=new Plc();if(!p.compilar(txt)){aviso(p.error);return false}
   let r;
-  try{r=demo?Sim.plcCargar(txt):await (await fetch(base()+"/plc",{method:"POST",headers:{"Content-Type":"text/plain"},body:txt})).json()}
+  try{r=demo?Sim.plcCargar(txt):await (async()=>{const q=()=>fetch(base()+"/plc"+(ld("apClave")?"?k="+encodeURIComponent(ld("apClave")):""),{method:"POST",headers:{"Content-Type":"text/plain"},body:txt});
+      let x=await q();if(x.status==401&&await pedirClave())x=await q();return x.json()})()}
   catch(e){aviso("Sin respuesta del equipo");return false}
   if(!r.ok){aviso(r.err||"El equipo no aceptó el programa");return false}
   LG.dev=txt;LG.devIns=p.ins;await api();

@@ -83,7 +83,7 @@ C_ = [
      {"1": "3V3", "2": "V5", "3": "V5", "4": "GND", "5": "SWP", "6": "BSTP"}, "Buck 3.3 V (síncrono)"),
     ("L2", "4.7uH", "Device:L", "Inductor_SMD:L_Changjiang_FNR4030S", {"1": "SWP", "2": "3V3"}, "Bobina 3.3 V"),
     ("C13", "100nF", C, C06, {"1": "BSTP", "2": "SWP"}, "Bootstrap"),
-    ("C14", "10uF 25V", C, C12, {"1": "V5", "2": "GND"}, "Entrada del buck de 3.3 V"),
+    ("C14", "10uF 50V", C, C12, {"1": "V5", "2": "GND"}, "Entrada del buck de 3.3 V"),
     ("C15", "22uF", C, C08, {"1": "3V3", "2": "GND"}, "Salida 3.3 V"),
     ("C16", "22uF", C, C08, {"1": "3V3", "2": "GND"}, "Salida 3.3 V"),
     # --- SKU 7R Tour CA: fuente de red en la placa (en 7R Tour 24DC no se monta) ---

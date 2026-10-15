@@ -68,7 +68,8 @@ struct Esclavo {
     uint8_t dir = q[0];
     if (dir != 0 && dir != ctl.cfg.mbDireccion) return 0;
     tramasBien++; ultimoAhora = ahora;
-    ctl.modbusEscribio(ahora);                    // un maestro que solo lee también está presente (vigilancia de comunicación)
+    // La vigilancia de comunicación es un LATIDO: el maestro debe ESCRIBIR (p. ej. reescribir una bobina o el registro 0) cada
+    // «vigilancia» segundos. Las lecturas no cuentan: un tablero HMI que solo lee no debe ocultar la muerte del maestro que manda.
     uint8_t fn = q[1];
     uint16_t a = n >= 6 ? (q[2] << 8 | q[3]) : 0, c = n >= 6 ? (q[4] << 8 | q[5]) : 0;
     size_t m = 0;
@@ -218,7 +219,7 @@ struct Esclavo {
         horaNueva = true; return 0;
       }
       case 306: case 307: case 308: case 309: {    // función de cada entrada (0 = ninguna); no puede repetirse
-        ConfigMonitor n = um->mon;
+        ConfigMonitor n = um->paraGuardar();
         (a == 306 ? n.entCiclo : a == 307 ? n.entMala : a == 308 ? n.entAndon : n.entReanuda) = v > 255 ? 255 : v;
         return um->configurarMonitor(n, ctl.cfg.nEntradas) ? 0 : 3;
       }

@@ -250,6 +250,9 @@ int main() {
     e.u.cfg.cicloNominalMs = 1000; e.u.ms[PK_EXECUTE] = 0;
     REVISA(e.u.desempeno() == 0xFFFF && e.u.oee() == 0xFFFF);                      // tras restaurar piezas, sin tiempos: no calculable
     e.u.reiniciarContadores(); REVISA(e.u.procesadas == 0 && !e.u.tiemposIncompletos);
+    // PK ENT / registros 306-309 parten de la configuración vigente: no deben devolver el ciclo nominal al último valor guardado
+    e.u.cfg.cicloNominalMs = 2000;
+    { ConfigMonitor n = e.u.paraGuardar(); n.entCiclo = 1; REVISA(e.u.configurarMonitor(n, 8)); REVISA(e.u.cfg.cicloNominalMs == 2000); }
     // el modo de la memoria solo se aplica si la unidad está detenida
     Banco f; f.aExecute(); REVISA(f.u.cargarMonitor(g, 8) && f.u.modo == MK_PRODUCCION);
     Banco h; h.aExecute(); h.u.contadoresCambiaron = false; h.u.contar(true, h.t); REVISA(h.u.contadoresCambiaron);

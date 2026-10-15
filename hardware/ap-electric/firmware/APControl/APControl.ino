@@ -31,6 +31,7 @@
 #include "reloj.h"
 #include "autoprueba.h"
 #include <time.h>
+#include "bootloader_random.h"
 #include "logica.h"
 
 void abrirAP();
@@ -74,8 +75,10 @@ String red, clave;
 apc::LimiteEscritura limEstado, limManiobras, limPk;
 uint8_t escrito = 0xFF;
 bool fallaI2C = false;
-uint8_t i2cFallos = 0;                       // lecturas/escrituras seguidas que fallaron: la falla se declara a partir de 3
-inline void i2cResultado(bool ok) { if (ok) i2cFallos = 0; else if (i2cFallos < 255) i2cFallos++; fallaI2C = i2cFallos >= 3; }
+uint8_t i2cFallosLec = 0, i2cFallosEsc = 0;  // ciclos seguidos con falla, por separado: leer bien no borra una falla de escritura ni al revés
+inline void i2cActualiza() { fallaI2C = i2cFallosLec >= 3 || i2cFallosEsc >= 3; }
+inline void i2cLectura(bool ok) { if (ok) i2cFallosLec = 0; else if (i2cFallosLec < 255) i2cFallosLec++; i2cActualiza(); }
+inline void i2cEscritura(bool ok) { if (ok) i2cFallosEsc = 0; else if (i2cFallosEsc < 255) i2cFallosEsc++; i2cActualiza(); }
 
 struct Vinculo { char mac[7]; uint8_t entrada, canal, modo; };
 Vinculo vinc[8];
@@ -102,7 +105,7 @@ void escribirSalidas(uint8_t m) {
   if (placa == PLACA_7R) {
     if (m != escrito || millis() % 1000 < 6) {
       bool ok = tcaEscribir(TCA_SAL, 1, m & 0x7F) && tcaEscribir(TCA_SAL, 3, 0x80);
-      i2cResultado(ok); if (ok) escrito = m;
+      i2cEscritura(ok); if (ok) escrito = m;
     }
   } else digitalWrite(PH_RELE, m & 1);
 }
@@ -110,8 +113,8 @@ uint32_t tSwActivo = 0;
 void leerHardware(uint8_t& ent, uint8_t& btn, uint8_t& bob) {
   if (placa == PLACA_7R) {
     int e = tcaLeer(TCA_ENT), b = tcaLeer(TCA_BTN), r = tcaLeer(TCA_RETRO);
-    if (e < 0 || b < 0 || r < 0) { i2cResultado(false); ent = ctl.entradas; btn = 0; bob = ctl.bobinas; return; }
-    i2cResultado(true);
+    if (e < 0 || b < 0 || r < 0) { i2cLectura(false); ent = ctl.entradas; btn = 0; bob = ctl.bobinas; return; }
+    i2cLectura(true);
     ent = ~e & 0xFF;                         // optoacoplador encendido = 0
     btn = ~b & 0x7F;
     bob = ~r & 0x7F;                         // divisor de la bobina en 0 = bobina energizada
@@ -232,6 +235,12 @@ String estadoJSON();
 // solo acepta parar, retener y abortar, igual que por Modbus, y no se puede dar permiso para reanudar.
 String claveAP();
 String claveNueva();
+// Borra toda la configuración y el programa; conserva la clave del equipo (la de la etiqueta) y las maniobras de los relés (su desgaste).
+void hacerFabrica() {
+  String ck = claveAP(); uint32_t man[7] = {0}; bool hayMan = pref.getBytes("man", man, sizeof(man)) == sizeof(man);
+  pref.clear(); pref.putString("ckey", ck); if (hayMan) pref.putBytes("man", man, sizeof(man));
+  delay(100); ESP.restart();
+}
 bool ejecutar(String s, bool local = false) {
   s.trim(); if (!s.length()) return false;
   const char* p = s.c_str() + 1;
@@ -246,8 +255,9 @@ bool ejecutar(String s, bool local = false) {
     Serial.printf("Clave del equipo: %s\n", k.c_str());
     return true;
   }
-  if (s.startsWith("FABRICA")) {                           // borra toda la configuración; conserva solo la clave del equipo (la de la etiqueta)
-    String ck = claveAP(); pref.clear(); pref.putString("ckey", ck); delay(100); ESP.restart();
+  if (s.startsWith("FABRICA")) {                           // solo por la consola USB (o por Modbus con el permiso local, ver atenderModbus)
+    if (!local) return false;
+    hacerFabrica();
   }
   if (s.startsWith("PLC ")) {
     String a = s.substring(4);
@@ -274,7 +284,7 @@ bool ejecutar(String s, bool local = false) {
     if (a.startsWith("MOTIVO ")) { pk.motivoParo(a.substring(7).toInt()); return true; }
     if (a.startsWith("CICLO ")) { long v = a.substring(6).toInt(); if (v < 0 || v > 65535) return false; pk.cfg.cicloNominalMs = v; return true; }
     if (a.startsWith("ENT ")) {                       // PK ENT ciclo mala andon reanuda (0 = ninguna)
-      const char* q = a.c_str() + 4; apc::ConfigMonitor n = pk.mon;
+      const char* q = a.c_str() + 4; apc::ConfigMonitor n = pk.paraGuardar();
       n.entCiclo = num(q); n.entMala = num(q); n.entAndon = num(q); n.entReanuda = num(q);
       return pk.configurarMonitor(n, ctl.cfg.nEntradas);
     }
@@ -343,7 +353,7 @@ void atenderModbus(uint32_t t) {
       digitalWrite(P7_LCOM, HIGH);
     }
     if (mb.pedirGuardar) { mb.pedirGuardar = false; guardarConfig(); }
-    if (mb.pedirFabrica) { ejecutar("FABRICA"); }
+    if (mb.pedirFabrica) { hacerFabrica(); }
     if (mb.cambioComunicacion) { mb.cambioComunicacion = false; iniciarModbus(); }
   }
 }
@@ -353,7 +363,10 @@ void atenderModbus(uint32_t t) {
 // Va en la etiqueta (se lee por USB con la orden CLAVE) y protege el punto de acceso y las órdenes por red. No se deriva de la MAC.
 String claveCache;
 String claveNueva() {
-  char b[9]; snprintf(b, 9, "%08lu", (unsigned long)(esp_random() % 100000000UL));
+  // Con el radio apagado esp_random() no garantiza entropía verdadera: se habilita la fuente de ruido del convertidor analógico (SAR ADC).
+  uint32_t r[2]; bootloader_random_enable(); esp_fill_random(r, sizeof(r)); bootloader_random_disable();
+  uint64_t v = ((uint64_t)r[0] << 32 | r[1]) ^ ((uint64_t)esp_random() << 16) ^ ESP.getEfuseMac();
+  char b[9]; snprintf(b, 9, "%08lu", (unsigned long)(v % 100000000ULL));
   claveCache = b; pref.putString("ckey", claveCache); return claveCache;
 }
 String claveAP() {
@@ -444,6 +457,7 @@ String estadoJSON() {
 void rutas() {
   web.on("/", []() { web.send_P(200, "text/html; charset=utf-8", PAGINA); });
   web.on("/api", []() {
+    web.sendHeader("Access-Control-Allow-Origin", "*");       // leer el estado es libre; las órdenes piden la clave
     if (web.hasArg("c")) {                              // leer el estado es libre; mandar órdenes exige la clave del equipo (la de la etiqueta)
       if (!claveCorrecta(web.arg("k"))) { web.send(401, "application/json", "{\"err\":\"clave\"}"); return; }
       ejecutar(web.arg("c"));
@@ -526,7 +540,7 @@ void loop() {
     if (m && !btnAnt) tBtn = t;
     if (!m && btnAnt) {
       uint32_t d = t - tBtn;
-      if (d >= 10000) ejecutar("FABRICA");
+      if (d >= 10000) hacerFabrica();
       else if (d >= 3000) abrirAP();
       else if (d > 40 && placa == PLACA_HOME) ctl.ordenar(1, 2, apc::OR_BOTON, t);
     }
@@ -561,7 +575,12 @@ void loop() {
     WiFi.mode(WIFI_OFF); wifiActivo = false;          // la red de configuración se cierra sola a los 15 min
   }
   if (WiFi.getMode() == WIFI_AP && WiFi.softAPgetStationNum()) tWifi = t;
-  if (Serial.available()) { String l = Serial.readStringUntil('\n'); bool ok = ejecutar(l, true); Serial.println(ok ? estadoJSON() : "?"); }
+  { static String linea;                      // una orden de consola se ejecuta solo con la línea COMPLETA (termina en salto)
+    while (Serial.available()) {
+      char ch = Serial.read();
+      if (ch == '\n' || ch == '\r') { if (linea.length()) { bool ok = ejecutar(linea, true); Serial.println(ok ? estadoJSON() : "?"); linea = ""; } }
+      else if (linea.length() < 120) linea += ch; else linea = "";      // línea demasiado larga: se descarta
+    } }
   // memoria con escrituras limitadas
   if (limEstado.debeEscribir(ctl.guardarEstado, t)) pref.putUChar("est", ctl.salida);
   ctl.guardarEstado = false;

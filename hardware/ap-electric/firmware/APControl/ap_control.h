@@ -159,7 +159,7 @@ class Controlador {
     return OK;
   }
 
-  // «Maestro presente»: se llama con CUALQUIER trama Modbus válida dirigida a este equipo (lecturas incluidas), no solo con escrituras.
+  // Latido del maestro: se llama con cada ESCRITURA Modbus aceptada (no con las lecturas).
   void modbusEscribio(uint32_t ahora) {
     tModbus = ahora ? ahora : 1;
     if (comPerdida) { comPerdida = false; fallas &= ~F_COMUNICACION; evento(ahora, EV_COM_OK, 0, 0, OR_MODBUS); }

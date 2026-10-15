@@ -20,7 +20,7 @@ Los archivos `AP_7R_TOUR_<SKU>_BOM_JLCPCB_solo_SMD.csv` y `..._CPL_JLCPCB_solo_S
 | ERC del esquema (KiCad 9) | 0 errores |
 | DRC con las reglas propias (`kicad/AP_7R_TOUR.kicad_dru`) | 0 violaciones, 0 sin conectar, paridad esquema-placa 0 |
 | Reglas de fabricación de JLCPCB (DFM) | 0 problemas |
-| Revisión del pedido (`tools/revisar_pedido.py`, 24DC y CA) | Sin errores (2 avisos conocidos: el código C13585 sirve para 10 µF de 25 V y de 50 V; el pulsador C318884 se repite en 9 designadores) |
+| Revisión del pedido (`tools/revisar_pedido.py`, 24DC y CA) | Sin errores (aviso conocido: el pulsador C318884 se repite en 9 designadores) |
 | Códigos LCSC | 59 tipos y 190 piezas por placa (CA; 184 en 24DC), todos con código; relés, fuentes, aislador y bornes verificados en lcsc.com / jlcpcb.com |
 
 ## Cambios de la rev B respecto a la rev A

@@ -109,7 +109,7 @@
 | Corte de 24 V o de red | Todos los relés abren (monoestables). Al volver, se aplica la política de arranque |
 | Programa trabado | Vigilante de 8 s: reinicia y aplica la política de arranque. **Mientras dura el bloqueo, el expansor mantiene las salidas como estaban** (hasta 8 s) |
 | Falla de los 3.3 V con 24 V presentes | Las entradas del ULN2003A quedan sin excitación y los relés abren [C]; PD [M] |
-| Pérdida de comunicación Modbus | Los canales que mandaba el maestro pasan a su acción configurada (apagar, por omisión; la vigilancia viene **desactivada de fábrica**, valor 0, y cuenta cualquier trama válida dirigida al equipo, incluidas las lecturas). Al volver la comunicación no se reenciende nada |
+| Pérdida de comunicación Modbus | Los canales que mandaba el maestro pasan a su acción configurada (apagar, por omisión; la vigilancia viene **desactivada de fábrica** (valor 0) y es un **latido de escrituras**: el maestro debe escribir algo (reescribir una bobina o el registro 0) al menos cada «vigilancia» segundos; las lecturas no cuentan). Al volver la comunicación no se reenciende nada |
 | Sobretemperatura | **No hay sensor**: no se detecta. Ventilación y reducción de capacidad PD |
 | Fallas que informa | Configuración inválida, bobina sin tensión, sin 24 V, comunicación perdida, mantenimiento de relés (80 % de la vida), reinicio por vigilante, expansor I2C |
 | Fallas que requieren intervención | Bobina sin tensión persistente, falla de expansor, contacto pegado (no detectado: revisión física) |
