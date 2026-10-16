@@ -59,8 +59,24 @@ for ref, cte in (("U6", "TCA_S1"), ("U7", "TCA_S2"), ("U8", "TCA_ENT"), ("U9", "
     dirx = 0x20 + sum((1 << i) for i, v in enumerate(mt.groups()) if v == "3V3")
     mc = re.search(r"%s = (0x[0-9A-Fa-f]+)" % cte, rino)
     if int(mc.group(1), 16) != dirx: errores.append("Rack %s: la placa da 0x%02X y el programa %s" % (ref, dirx, mc.group(1)))
+# IN16 y AI8: mismo ESP32 que el Rack 16, y las direcciones I2C que usa el programa para reconocer el tipo de módulo
+for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8")):
+    mk2 = open(os.path.join(R, carpeta, "gen/make.py"), encoding="utf-8").read()
+    if "importlib" not in mk2 or "rack16" not in mk2: errores.append("%s: no hereda las piezas del Rack 16" % tipo)
+if True:
+    m1 = re.search(r'B\.tca\("U6", \("(\w+)", "(\w+)", "(\w+)"\)', open(os.path.join(R, "in16/gen/make.py"), encoding="utf-8").read())
+    m2 = re.search(r'B\.tca\("U7", \("(\w+)", "(\w+)", "(\w+)"\)', open(os.path.join(R, "in16/gen/make.py"), encoding="utf-8").read())
+    d1 = 0x20 + sum((1 << i) for i, v in enumerate(m1.groups()) if v == "3V3"); d2 = 0x20 + sum((1 << i) for i, v in enumerate(m2.groups()) if v == "3V3")
+    for cte, dirx in (("TCA_E1", d1), ("TCA_E2", d2)):
+        mc = re.search(r"%s = (0x[0-9A-Fa-f]+)" % cte, rino)
+        if int(mc.group(1), 16) != dirx: errores.append("IN16 %s: la placa da 0x%02X y el programa %s" % (cte, dirx, mc.group(1)))
+    ai = open(os.path.join(R, "ai8/gen/make.py"), encoding="utf-8").read()
+    for ref, cte, dirx in (("U6", "ADS_A", 0x48), ("U7", "ADS_B", 0x49)):
+        mc = re.search(r"%s = (0x[0-9A-Fa-f]+)" % cte, rino)
+        if int(mc.group(1), 16) != dirx: errores.append("AI8 %s: el programa usa %s" % (cte, mc.group(1)))
+    if '("U6", "C15", "GND"' not in ai or '("U7", "C16", "3V3"' not in ai: errores.append("AI8: ADDR de los ADS1115 distinto de 0x48 (GND) y 0x49 (3V3)")
 if open(os.path.join(R, "firmware/APLink/ap_link.h")).read() != open(os.path.join(R, "firmware/APRack/ap_link.h")).read():
     errores.append("firmware/APRack/ap_link.h no es copia de firmware/APLink/ap_link.h")
 for e in errores: print("  ERROR:", e)
-print("Pines ESP32-C3: placas (7R Tour y AP Rack 16) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
+print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, IN16 y AI8) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
 sys.exit(1 if errores else 0)
