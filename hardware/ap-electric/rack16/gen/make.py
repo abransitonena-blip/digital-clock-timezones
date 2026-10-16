@@ -55,8 +55,8 @@ C_ = [
     # --- entrada de potencia ---
     ("J1", "VIN 12-30V", conectores.SYM[2], conectores.VH2, {"1": "VIN_RAW", "2": "GND"},
      "Alimentación 12-30 V CC: 1 = +, 2 = 0 V. JST VH, hasta 10 A por pata"),
-    ("F1", "MINI 10A", "Device:Fuse", "Fuse:Fuseholder_Blade_Mini_Keystone_3568", {"1": "VIN_RAW", "2": "V24"},
-     "Fusible mini de auto (ATM); se cambia sin soldar. Valor según la carga total"),
+    ("F1", "MINI 3A", "Device:Fuse", "Fuse:Fuseholder_Blade_Mini_Keystone_3568", {"1": "VIN_RAW", "2": "V24"},
+     "Fusible mini de auto (ATM) de 3 A en esta revisión: el +V de la placa va en pistas de 0.8 mm (sin medir); se cambia sin soldar"),
     ("D1", "SMBJ33A", "Device:D_TVS", SMB, {"1": "V24", "2": "GND"}, "Supresor de picos; con la polaridad invertida conduce y abre el fusible"),
     ("C1", "10uF 50V", C, C12, {"1": "V24", "2": "GND"}, "Reserva de entrada"),
     ("C2", "10uF 50V", C, C12, {"1": "V24", "2": "GND"}, "Reserva de entrada"),
@@ -256,10 +256,10 @@ SILK = [
     ("+V  0V", 66.0, 1.6, 0.8, "F"),
     ("I1 I2 I3 I4 I5 I6 I7 I8 COM", 6.0, 2.0, 0.8, "F"),
     ("ENTRA", 146.0, 90.5, 0.8, "F"), ("SIGUE", 160.0, 90.5, 0.8, "F"),
-    ("MODULO 8 4 2 1", 148.0, 63.5, 0.8, "F"), ("RUN FALLA COM CABEZA", 158.0, 73.2, 0.7, "F"),
+    ("MODULO 8 4 2 1", 148.0, 63.5, 0.8, "F"), ("RUN FALLA COM CABEZA", 158.0, 73.2, 0.8, "F"),
     ("AP ELECTRIC AP RACK 16 rev A - CONCEPTO. 12-30 V CC. Carga entre +V y la salida. Red solo con contactor. SENSE/A/B: solo AP LINK, no AP BUS.", 88.0, 98.5, 0.8, "B"),
 ]
-FLAGS = [("VIN_RAW", 20.32, 20.32), ("V24", 35.56, 20.32), ("V5", 50.8, 20.32), ("3V3", 66.04, 20.32), ("COMI", 81.28, 20.32)]
+FLAGS = [("GND", 96.52, 20.32), ("VIN_RAW", 20.32, 20.32), ("V24", 35.56, 20.32), ("V5", 50.8, 20.32), ("3V3", 66.04, 20.32), ("COMI", 81.28, 20.32)]
 NOTES = [(150.0, 15.0, "AP Electric Industrial · AP Rack 16 rev A (CONCEPTO): 16 x NCV8406A, 4 x 74HCT125, 4 x TCA9554 (0x20-0x23),\n"
                        "8 entradas de 12-30 V LTV-217, SP3485 + 2 x JST XH4 (AP LINK, cadena con SENSE), ESP32-C3. Sin red de CA.")]
 TITLE = "AP Electric Industrial · AP Rack 16 rev A - 16 salidas protegidas, 8 entradas, AP LINK (CONCEPTO)"
