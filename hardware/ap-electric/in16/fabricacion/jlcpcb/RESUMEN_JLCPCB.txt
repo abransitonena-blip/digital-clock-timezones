@@ -1,0 +1,52 @@
+AP_IN16: 41 tipos de pieza, 191 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):      12 tipos Extended  -> ~36 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     8 tipos Extended  -> ~24 USD de cargo;
+   se sueldan a mano 10 piezas de patas: F1, J1, J3,J4,J5,J6,J7,J8, JL1, JL2
+Piezas Basic/Preferred: ~1.06 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (24):
+  10uF 50V               C13585         C1,C2,C4,C7
+  100nF                  C14663         C3,C6,C11,C13,C14,C15,C16,C18
+  22uF 25V               C12891         C5
+  22uF                   C45783         C8,C9
+  10uF                   C15850         C10
+  1uF                    C15849         C12
+  SS210                  C14996         D2
+  1N4148W                C81598         DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8,DI9,DI10,DI11,DI12,DI13,DI14,DI15,DI16
+  VERDE                  C72043         DP1,DP2,DP3,DP4,DP5,DP8,LI1,LI2,LI3,LI4,LI5,LI6,LI7,LI8,LI9,LI10,LI11,LI12,LI13,LI14,LI15,LI16
+  ROJO                   C2286          DP6
+  LTV-217-B              C115450        OK1,OK2,OK3,OK4,OK5,OK6,OK7,OK8,OK9,OK10,OK11,OK12,OK13,OK14,OK15,OK16
+  10k                    C25804         R1,R2,R5,R7,R10,R14,R17,RB2,RQ1,RQ2,RQ3,RQ4,RQ5,RQ6,RQ7,RQ8,RQ9,RQ10,RQ11,RQ12,RQ13,RQ14,RQ15,RQ16
+  4.7k                   C23162         R3,R4
+  100k                   C25803         R6,R15
+  5.1k                   C23186         R8,R9
+  120                    C17909         R11
+  680                    C23228         R12,R13
+  1k                     C21190         R16,RP1,RP2,RP3,RP4,RP5,RP6,RP7,RP8
+  3.3k                   C26010         RA1,RA2,RA3,RA4,RA5,RA6,RA7,RA8,RA9,RA10,RA11,RA12,RA13,RA14,RA15,RA16,RC1,RC2,RC3,RC4,RC5,RC6,RC7,RC8,RC9,RC10,RC11,RC12,RC13,RC14,RC15,RC16
+  56k                    C23206         RB1
+  2.2k                   C4190          RS1,RS2,RS3,RS4,RS5,RS6,RS7,RS8,RS9,RS10,RS11,RS12,RS13,RS14,RS15,RS16
+  MODO                   C318884        SW1
+  RESET                  C318884        SW2
+  SP3485EN               C8963          U5
+Preferred (4):
+  SMBJ33A                C19077586      D1
+  B5819W                 C64885         D3
+  SM712                  C7420375       D4
+  AMARILLO               C89811         DP7
+Extended (13):
+  MINI 3A                C3206956       F1  [THT]
+  VIN 12-30V             C160315        J1  [THT]
+  USB-C                  C165948        J2
+  KF128-5.08-3P          C474953        J3,J4,J5,J6,J7,J8  [THT]
+  AP LINK ENTRA          C144395        JL1  [THT]
+  AP LINK SIGUE          C144395        JL2  [THT]
+  47uH                   C167888        L1
+  4.7uH                  C167874        L2
+  LMR16006XDDC           C87080         U1
+  AP63203WU              C780769        U2
+  ESP32-C3-WROOM-02      C2934560       U3
+  USBLC6-2SC6            C7519          U4
+  TCA9554PWR             C477924        U6,U7,U9
