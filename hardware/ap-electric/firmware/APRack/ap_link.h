@@ -27,7 +27,8 @@ namespace aplink {
 constexpr uint8_t SYNC = 0xA5;
 constexpr uint8_t VERSION = 1;
 constexpr uint8_t MAX_MODULOS = 16;
-constexpr uint8_t MAX_DATOS = 24;
+constexpr uint8_t MAX_DATOS = 32;
+constexpr uint8_t MAX_ANA = 8;                // entradas analógicas por módulo
 constexpr uint8_t TODOS = 0xFF;
 
 constexpr uint32_t ESCUCHA_MS = 1500;     // al arrancar, antes de decidir si es cabeza
@@ -107,9 +108,10 @@ struct Receptor {
 };
 
 struct Caps {
-  uint8_t tipo = 0;     // 1 = AP Rack 16; otros: ver AP_LINK.md
+  uint8_t tipo = 0;     // 1 = AP Rack 16, 2 = AP Rack IN16, 3 = AP Rack AI8 (ver AP_LINK.md)
   uint8_t nSal = 0, nEnt = 0;
   uint8_t ver = VERSION;
+  uint8_t nAna = 0;     // entradas analógicas (hasta MAX_ANA)
 };
 
 struct InfoMod {
@@ -121,6 +123,8 @@ struct InfoMod {
   uint32_t visto = 0;
   uint8_t fallos = 0;
   uint16_t deseadas = 0;             // lo que el cabeza pide
+  uint16_t ana[MAX_ANA] = {};        // analógicas en milésimas (mV o µA, según anaModo)
+  uint8_t anaModo = 0;               // bit i = el canal i mide corriente (µA); 0 = tensión (mV)
 };
 
 struct HAL {
@@ -155,9 +159,15 @@ class Enlace {
   uint16_t salAplicadas() const { return aplicadas_; }
   uint16_t vinLocal() const { return vin_; }
   uint16_t fallasLocales() const { return fallas_; }
+  const uint16_t* anaLocal() const { return ana_; }
+  uint8_t anaModoLocal() const { return anaModo_; }
 
   // entradas y mediciones locales: las pone el programa del equipo
   void ponerLocales(uint16_t ent, uint16_t fallas = 0, uint16_t vin_mV = 0) { ent_ = ent; fallas_ = fallas; vin_ = vin_mV; }
+  void ponerAnalogicas(const uint16_t* v, uint8_t n, uint8_t modo) {
+    for (uint8_t i = 0; i < MAX_ANA; i++) ana_[i] = i < n ? v[i] : 0;
+    anaModo_ = modo;
+  }
   // salidas que el programa debe aplicar en ESTE módulo (ya con estado seguro si se perdió el enlace)
   uint16_t salidas() const { return seguro_ ? maskSegura_ : sal_; }
   bool enSeguro() const { return seguro_; }
@@ -177,6 +187,10 @@ class Enlace {
   bool canalGlobal(uint16_t g, uint8_t* pos, uint8_t* local) const;
   uint16_t totalSalidas() const { uint16_t s = 0; for (auto& m : tabla_) if (m.presente) s += m.caps.nSal; return s; }
   uint16_t totalEntradas() const { uint16_t s = 0; for (auto& m : tabla_) if (m.presente) s += m.caps.nEnt; return s; }
+  uint16_t totalAnalogicas() const { uint16_t s = 0; for (auto& m : tabla_) if (m.presente) s += m.caps.nAna; return s; }
+  // entrada digital global g (1..): módulo y bit local (1..); analógica global igual
+  bool entradaGlobal(uint16_t g, uint8_t* pos, uint8_t* local) const { return ubicar(g, false, pos, local); }
+  bool analogicaGlobal(uint16_t g, uint8_t* pos, uint8_t* local) const { return ubicar(g, true, pos, local); }
 
  private:
   HAL& h_;
@@ -197,6 +211,8 @@ class Enlace {
   bool seguro_ = true;
   bool hubo_ = false;                 // el enlace se perdió desde el último STATE enviado (se informa una vez)
   uint16_t sal_ = 0, maskSegura_ = 0, ent_ = 0, fallas_ = 0, vin_ = 0, aplicadas_ = 0;
+  uint16_t ana_[MAX_ANA] = {};
+  uint8_t anaModo_ = 0;
   // cabeza
   InfoMod tabla_[MAX_MODULOS];
   uint32_t tBaliza_ = 0, tEnum_ = 0, tPoll_ = 0, tResp_ = 0, tInicio_ = 0;
@@ -233,6 +249,17 @@ class Enlace {
     enviar(TODOS, T_RESET, d, 4);      // el tramo anterior (si lo había) vuelve a ESPERA
     h_.senseSale(true);
     baliza(h_.ms());
+  }
+  bool ubicar(uint16_t g, bool ana, uint8_t* pos, uint8_t* local) const {
+    if (g < 1) return false;
+    uint16_t base = 0;
+    for (uint8_t i = 0; i < MAX_MODULOS; i++) {
+      if (!tabla_[i].presente) continue;
+      uint8_t n = ana ? tabla_[i].caps.nAna : tabla_[i].caps.nEnt;
+      if (g <= base + n) { *pos = i + 1; *local = g - base; return true; }
+      base += n;
+    }
+    return false;
   }
   void baliza(uint32_t ahora) {
     tBaliza_ = ahora;
@@ -293,6 +320,8 @@ inline void Enlace::tickCabeza(uint32_t ahora) {
   // el cabeza es el módulo 1: su propia fila se actualiza sin tramas
   InfoMod& yo = tabla_[0];
   yo.ent = ent_; yo.sal = aplicadas_; yo.fallas = fallas_; yo.vin_mV = vin_; yo.visto = ahora; yo.flags = 0;
+  for (uint8_t i = 0; i < MAX_ANA; i++) yo.ana[i] = ana_[i];
+  yo.anaModo = anaModo_;
   // baliza
   if (ahora - tBaliza_ >= BALIZA_MS) baliza(ahora);
   // respuesta pendiente
@@ -370,8 +399,8 @@ inline void Enlace::atender(const Trama& t) {
     case T_ENUM:
       if (rol_ == Rol::ESPERA && h_.senseEntra()) {
         // responde "hola" con su uid y capacidades
-        uint8_t d[8]; p32(d, uid_); d[4] = caps_.tipo; d[5] = caps_.nSal; d[6] = caps_.nEnt; d[7] = caps_.ver;
-        enviar(TODOS, T_HOLA, d, 8);
+        uint8_t d[9]; p32(d, uid_); d[4] = caps_.tipo; d[5] = caps_.nSal; d[6] = caps_.nEnt; d[7] = caps_.ver; d[8] = caps_.nAna;
+        enviar(TODOS, T_HOLA, d, 9);
         ultimoCabeza_ = ahora;
       }
       return;
@@ -385,6 +414,7 @@ inline void Enlace::atender(const Trama& t) {
         InfoMod& m = tabla_[total_];
         m = InfoMod();
         m.presente = true; m.uid = uid; m.caps.tipo = t.d[4]; m.caps.nSal = t.d[5]; m.caps.nEnt = t.d[6]; m.caps.ver = t.d[7];
+        m.caps.nAna = (t.n >= 9 && t.d[8] <= MAX_ANA) ? t.d[8] : 0;
         m.visto = ahora;
         total_++;
         rondasVacias_ = 0;
@@ -415,10 +445,12 @@ inline void Enlace::atender(const Trama& t) {
         sal_ = t.d[0] | (t.d[1] << 8);
         seguro_ = false;
         ultimoCabeza_ = ahora;
-        uint8_t d[9];
+        uint8_t d[MAX_DATOS];
         d[0] = ent_; d[1] = ent_ >> 8; d[2] = aplicadas_; d[3] = aplicadas_ >> 8;
         d[4] = fallas_; d[5] = fallas_ >> 8; d[6] = vin_; d[7] = vin_ >> 8; d[8] = hubo_ ? 1 : 0; hubo_ = false;
-        enviar(1, T_ESTADO, d, 9);
+        uint8_t n = 9;
+        if (caps_.nAna) { d[n++] = anaModo_; for (uint8_t i = 0; i < caps_.nAna && i < MAX_ANA; i++) { d[n++] = ana_[i]; d[n++] = ana_[i] >> 8; } }
+        enviar(1, T_ESTADO, d, n);
       }
       return;
     case T_ESTADO:
@@ -426,6 +458,10 @@ inline void Enlace::atender(const Trama& t) {
         InfoMod& m = tabla_[t.src - 1];
         m.ent = t.d[0] | (t.d[1] << 8); m.sal = t.d[2] | (t.d[3] << 8);
         m.fallas = t.d[4] | (t.d[5] << 8); m.vin_mV = t.d[6] | (t.d[7] << 8); m.flags = t.d[8];
+        if (m.caps.nAna && t.n >= 10 + 2 * m.caps.nAna) {
+          m.anaModo = t.d[9];
+          for (uint8_t i = 0; i < m.caps.nAna && i < MAX_ANA; i++) m.ana[i] = t.d[10 + 2 * i] | (t.d[11 + 2 * i] << 8);
+        }
         m.visto = ahora; m.fallos = 0; m.perdido = false;
         if (esperando_ && esperaPos_ == t.src) esperando_ = false;
       }

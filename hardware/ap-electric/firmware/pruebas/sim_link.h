@@ -13,6 +13,8 @@ struct Nodo : HAL {
   std::unique_ptr<Enlace> e;
   bool altoSale = false;
   uint16_t ent = 0;
+  uint16_t ana[8] = {};
+  uint8_t anaModo = 0;
   Nodo(Sim* s_, int i) : s(s_), idx(i) {}
   void enviar(const uint8_t* p, size_t n) override;
   bool senseEntra() override;
@@ -39,10 +41,9 @@ struct Sim {
     for (int i = 0; i < cuantos; i++) n.emplace_back(new Nodo(this, i));
     cable.assign(cuantos > 0 ? cuantos - 1 : 0, true);
   }
-  void energia(int i, bool on, bool puedeCabeza = true) {
+  void energia(int i, bool on, bool puedeCabeza = true, Caps c = Caps{1, 16, 8, VERSION, 0}) {
     if (on && !n[i]->e) {
       n[i]->altoSale = false;
-      Caps c; c.tipo = 1; c.nSal = 16; c.nEnt = 8;
       n[i]->e.reset(new Enlace(*n[i], 0x1000u + 7919u * i, c, puedeCabeza));
     } else if (!on) { n[i]->e.reset(); n[i]->altoSale = false; }
   }
@@ -67,7 +68,7 @@ struct Sim {
         if ((int)j != t.de && n[j]->e && mismoTramo(t.de, (int)j))
           for (uint8_t b : t.b) n[j]->e->recibir(b);
     }
-    for (auto& nd : n) if (nd->e) { nd->e->ponerLocales(nd->ent, 0, 24000); nd->e->aplicadas(nd->e->salidas()); nd->e->tick(); }
+    for (auto& nd : n) if (nd->e) { nd->e->ponerLocales(nd->ent, 0, 24000); nd->e->ponerAnalogicas(nd->ana, 8, nd->anaModo); nd->e->aplicadas(nd->e->salidas()); nd->e->tick(); }
   }
   void correr(uint32_t ms) { for (uint32_t i = 0; i < ms; i++) paso(); }
   Enlace* cabeza() {

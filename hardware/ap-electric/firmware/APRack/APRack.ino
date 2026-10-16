@@ -20,7 +20,13 @@
 #define VERSION "AP Rack 1.0"
 // Pines (ver rack16/gen/make.py)
 const uint8_t P_VSENSE = 0, P_TX = 1, P_SDA = 2, P_RX = 3, P_INT = 4, P_SENSE_I = 5, P_SENSE_O = 6, P_SCL = 8, P_MODO = 9, P_DE = 10;
-const uint8_t TCA_S1 = 0x20, TCA_S2 = 0x21, TCA_ENT = 0x22, TCA_LED = 0x23;
+const uint8_t TCA_S1 = 0x20, TCA_S2 = 0x21, TCA_ENT = 0x22, TCA_LED = 0x23;      // AP Rack 16
+const uint8_t TCA_E1 = 0x24, TCA_E2 = 0x25;                                      // AP Rack IN16 (entradas 1-8 y 9-16)
+const uint8_t ADS_A = 0x48, ADS_B = 0x49;                                        // AP Rack AI8 (canales 1-4 y 5-8)
+enum Tipo : uint8_t { T_RACK16 = 1, T_IN16 = 2, T_AI8 = 3 };
+uint8_t tipoMod = T_RACK16;
+uint16_t anaVal[8] = {}; uint8_t anaMascara = 0;      // anaMascara: bit i = el canal i tiene el puente de 4-20 mA (se informa mA)
+uint8_t adsCanal = 0; uint32_t tAds = 0; bool adsEsperando = false;
 const uint32_t BAUDIOS_LINK = 250000;
 const uint16_t VIN_MIN_MV = 10500, VIN_MAX_MV = 31500;     // aviso (no apaga nada): fuera de 12-30 V con margen
 const uint16_t F_I2C = 1, F_SUBTENSION = 2, F_SOBRETENSION = 4;
@@ -54,6 +60,7 @@ struct HalEsp : aplink::HAL {
   uint32_t ms() override { return millis(); }
 } hal;
 aplink::Enlace* enlace = nullptr;
+aprack::PlcRack plc;
 
 // ---------------- clave del equipo (igual que AP Control) ----------------
 String claveNueva() {
@@ -78,16 +85,24 @@ uint32_t uidModulo() { return (uint32_t)(ESP.getEfuseMac() & 0xFFFFFFFFULL); }
 // ---------------- JSON, órdenes ----------------
 String estadoJSON() {
   static char buf[4096];
-  aprack::json(buf, sizeof buf, *enlace, VERSION, mac6().c_str(), segundos);
+  aprack::json(buf, sizeof buf, *enlace, VERSION, mac6().c_str(), segundos, &plc);
   return String(buf);
 }
 void hacerFabrica() { String ck = claveAP(); pref.clear(); pref.putString("ckey", ck); delay(100); ESP.restart(); }
 bool ejecutar(String s, bool local) {
   s.trim(); if (!s.length()) return false;
-  if (s.startsWith("GUARDAR")) { pref.putUShort("seg", seguraLocal); return true; }
+  if (s.startsWith("GUARDAR")) { pref.putUShort("seg", seguraLocal); pref.putUChar("am", anaMascara); return true; }
+  if (s.startsWith("AM ")) { if (tipoMod != T_AI8) return false; long m = s.substring(3).toInt(); if (m < 0 || m > 255) return false; anaMascara = (uint8_t)m; return true; }       // AM máscara: canales con puente de 4-20 mA
   if (s.startsWith("CLAVE")) { if (!local) return false; Serial.printf("Clave del equipo: %s\n", (s.indexOf("NUEVA") > 0 ? claveNueva() : claveAP()).c_str()); return true; }
   if (s.startsWith("FABRICA")) { if (!local) return false; hacerFabrica(); }
-  return aprack::orden(*enlace, s.c_str(), &seguraLocal);
+  bool ok = aprack::orden(*enlace, s.c_str(), &seguraLocal, &plc);
+  if (ok && s.startsWith("PLC")) {                                       // el programa y su modo se recuerdan al reiniciar
+    String a = s.substring(4); a.trim(); a.toUpperCase();
+    if (a == "RUN" || a == "STOP") pref.putBool("plcrun", plc.run);
+    else if (a == "BORRAR") { pref.remove("plc"); pref.putBool("plcrun", false); }
+    else if (a.startsWith("TXT")) pref.putString("plc", plc.texto);
+  }
+  return ok;
 }
 
 // ---------------- Wi-Fi: solo en el cabeza ----------------
@@ -99,6 +114,16 @@ const char PAGINA[] PROGMEM =
   "for(const m of j.mods)h+='<tr><td>'+m.p+' ('+m.id+')</td><td>'+m.s.toString(2).padStart(m.ns,'0')+'</td><td>'+m.e.toString(2).padStart(m.ne,'0')+'</td><td>'+(m.v/1000).toFixed(1)+'</td><td>'+(m.ok?'ok':'sin respuesta')+'</td></tr>';"
   "document.getElementById('m').innerHTML=h+'</table>'}catch(e){document.getElementById('m').textContent='sin datos'}}f();setInterval(f,1500)</script>";
 void rutas() {
+  web.on("/plc", []() {
+    if (web.method() == HTTP_POST) {
+      if (!claveCorrecta(web.arg("k"))) { web.send(401, "application/json", "{\"ok\":0,\"err\":\"clave\"}"); return; }
+      String t = web.arg("plain");
+      bool ok = enlace->rol() == aplink::Rol::CABEZA && plc.cargar(t.c_str());
+      if (ok) pref.putString("plc", plc.texto);
+      web.send(200, "application/json", String("{\"ok\":") + ok + ",\"err\":\"" + plc.prog.error + "\"}"); return;
+    }
+    web.send(200, "text/plain; charset=utf-8", plc.texto);
+  });
   web.on("/", []() { web.send_P(200, "text/html; charset=utf-8", PAGINA); });
   web.on("/api", []() {
     web.sendHeader("Access-Control-Allow-Origin", "*");
@@ -121,6 +146,23 @@ void wifiSegunRol() {
 }
 
 // ---------------- hardware ----------------
+bool existe(uint8_t dir) { Wire.beginTransmission(dir); return Wire.endTransmission() == 0; }
+// ADS1115: una conversión de un solo disparo por canal, sin bloquear (el siguiente canal se pide al leer el anterior)
+void adsPaso(uint32_t t) {
+  uint8_t chip = adsCanal >> 2 ? ADS_B : ADS_A, mux = adsCanal & 3;
+  if (!adsEsperando) {
+    uint16_t cfg = 0x8000 | ((4 + mux) << 12) | 0x0200 | 0x0100 | 0x0080 | 0x0003;     // ±4.096 V, un disparo, 128 SPS
+    Wire.beginTransmission(chip); Wire.write(1); Wire.write(cfg >> 8); Wire.write(cfg & 0xFF);
+    if (Wire.endTransmission() != 0) { fallasHw |= F_I2C; adsCanal = (adsCanal + 4) & 7; return; }
+    adsEsperando = true; tAds = t; return;
+  }
+  if (t - tAds < 10) return;
+  Wire.beginTransmission(chip); Wire.write(0);
+  if (Wire.endTransmission(false) != 0 || Wire.requestFrom((int)chip, 2) != 2) { fallasHw |= F_I2C; adsEsperando = false; adsCanal = (adsCanal + 1) & 7; return; }
+  int16_t raw = (int16_t)((Wire.read() << 8) | Wire.read());
+  anaVal[adsCanal] = aprack::analogica(raw, (anaMascara >> adsCanal) & 1);
+  adsEsperando = false; adsCanal = (adsCanal + 1) & 7;
+}
 void aplicarSalidas(uint16_t s) {
   bool a = tcaEscribir(TCA_S1, 1, s & 0xFF), b = tcaEscribir(TCA_S2, 1, s >> 8);
   if (a && b) { salidasEscritas = s; fallasHw &= ~F_I2C; enlace->aplicadas(s); } else fallasHw |= F_I2C;
@@ -135,12 +177,17 @@ void ponerLeds(uint32_t t) {
   if (v != ledsEscritos && tcaEscribir(TCA_LED, 1, v)) ledsEscritos = v;
 }
 void leerEntradas() {
-  int raw = tcaLeer(TCA_ENT);
+  int raw;
+  if (tipoMod == T_IN16) { int a = tcaLeer(TCA_E1), b = tcaLeer(TCA_E2); raw = (a < 0 || b < 0) ? -1 : (a | (b << 8)); }
+  else if (tipoMod == T_AI8) raw = 0;
+  else raw = tcaLeer(TCA_ENT);
   uint16_t vin = (uint16_t)(analogReadMilliVolts(P_VSENSE) * 11UL);   // divisor 100 k / 10 k
   if (raw < 0) fallasHw |= F_I2C; else if (!(fallasHw & F_I2C)) fallasHw &= ~F_I2C;
   fallasHw &= ~(F_SUBTENSION | F_SOBRETENSION);
   if (vin < VIN_MIN_MV) fallasHw |= F_SUBTENSION; else if (vin > VIN_MAX_MV) fallasHw |= F_SOBRETENSION;
-  enlace->ponerLocales(raw < 0 ? 0 : (uint16_t)(~raw & 0xFF), fallasHw, vin);
+  uint16_t mascaraEnt = tipoMod == T_IN16 ? 0xFFFF : tipoMod == T_AI8 ? 0 : 0x00FF;
+  enlace->ponerLocales(raw < 0 ? 0 : (uint16_t)(~raw & mascaraEnt), fallasHw, vin);
+  if (tipoMod == T_AI8) enlace->ponerAnalogicas(anaVal, 8, anaMascara);
 }
 
 void setup() {
@@ -153,26 +200,35 @@ void setup() {
   analogReadResolution(12);
   Wire.begin(P_SDA, P_SCL, 400000);
   // las salidas arrancan apagadas: primero el valor, después la dirección (los pull-down de 10 k ya las mantienen apagadas)
-  tcaEscribir(TCA_S1, 1, 0); tcaEscribir(TCA_S2, 1, 0); tcaEscribir(TCA_S1, 3, 0x00); tcaEscribir(TCA_S2, 3, 0x00);
-  tcaEscribir(TCA_ENT, 3, 0xFF);
+  // el tipo de módulo se reconoce por los chips que contestan: ADS1115 = AI8, expansor 0x24 = IN16, si no AP Rack 16
+  tipoMod = existe(ADS_A) ? T_AI8 : existe(TCA_E1) ? T_IN16 : T_RACK16;
+  if (tipoMod == T_RACK16) {
+    tcaEscribir(TCA_S1, 1, 0); tcaEscribir(TCA_S2, 1, 0); tcaEscribir(TCA_S1, 3, 0x00); tcaEscribir(TCA_S2, 3, 0x00);
+    tcaEscribir(TCA_ENT, 3, 0xFF);
+  } else if (tipoMod == T_IN16) { tcaEscribir(TCA_E1, 3, 0xFF); tcaEscribir(TCA_E2, 3, 0xFF); }
+  anaMascara = pref.getUChar("am", 0);
   tcaEscribir(TCA_LED, 1, 0); tcaEscribir(TCA_LED, 3, 0x00);
   Serial1.begin(BAUDIOS_LINK, SERIAL_8N1, P_RX, P_TX);
-  aplink::Caps c; c.tipo = 1; c.nSal = 16; c.nEnt = 8;
+  aplink::Caps c; c.tipo = tipoMod; c.nSal = tipoMod == T_RACK16 ? 16 : 0; c.nEnt = tipoMod == T_RACK16 ? 8 : tipoMod == T_IN16 ? 16 : 0; c.nAna = tipoMod == T_AI8 ? 8 : 0;
   enlace = new aplink::Enlace(hal, uidModulo(), c, true);
   enlace->maskSegura(seguraLocal);
+  plc.e = enlace;
+  { String prg = pref.getString("plc", ""); if (prg.length() && plc.cargar(prg.c_str()) && pref.getBool("plcrun", false)) plc.modo(true); }
   esp_task_wdt_config_t w = {8000, 0, true};
   if (esp_task_wdt_reconfigure(&w) != ESP_OK) esp_task_wdt_init(&w);
   esp_task_wdt_add(nullptr);
-  Serial.printf("%s · id %s · escuchando la cadena…\n", VERSION, mac6().c_str());
+  Serial.printf("%s · %s · id %s · escuchando la cadena…\n", VERSION, tipoMod == T_AI8 ? "AP Rack AI8" : tipoMod == T_IN16 ? "AP Rack IN16" : "AP Rack 16", mac6().c_str());
 }
 
 void loop() {
   uint32_t t = millis();
   while (Serial1.available()) enlace->recibir((uint8_t)Serial1.read());
   enlace->tick();
+  if (tipoMod == T_AI8) adsPaso(t);
   if (t - tEnt >= 5) { tEnt = t; leerEntradas(); }
+  plc.paso(t);
   uint16_t s = enlace->salidas();
-  if (s != salidasEscritas || (fallasHw & F_I2C)) aplicarSalidas(s);
+  if (tipoMod == T_RACK16 && (s != salidasEscritas || (fallasHw & F_I2C))) aplicarSalidas(s);
   if (t - tLed >= 50) { tLed = t; ponerLeds(t); }
   if (t - tSeg >= 1000) { tSeg += 1000; segundos++; wifiSegunRol(); }
   if (wifiActivo) web.handleClient();

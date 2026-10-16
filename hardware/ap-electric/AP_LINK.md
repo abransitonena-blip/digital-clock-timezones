@@ -41,6 +41,16 @@ Trama: `A5 · destino · origen · tipo · n · datos… · CRC16 (bajo, alto)` 
 
 Cada módulo se consulta cada 50 ms (con 16 módulos, una trama cada 5 ms).
 
+## Tipos de módulo (se anuncian en la enumeración)
+
+| Tipo | Módulo | Salidas | Entradas | Analógicas |
+|---|---|---|---|---|
+| 1 | [AP Rack 16](rack16/LEEME.md) | 16 | 8 | 0 |
+| 2 | [AP Rack IN16](in16/LEEME.md) | 0 | 16 | 0 |
+| 3 | [AP Rack AI8](ai8/LEEME.md) | 0 | 0 | 8 (mV o µA, según el canal) |
+
+Los tres llevan el mismo programa (`firmware/APRack`), que **se reconoce solo** por los chips que contestan en el I2C (ADS1115 = AI8, expansor 0x24 = IN16, si no, Rack 16). Los canales se cuentan seguidos en orden de cadena: con un Rack 16, un IN16 y un AI8, las entradas son I1-I8 (Rack) e I9-I24 (IN16), las salidas Q1-Q16 y las analógicas A1-A8. Las analógicas viajan en las tramas de ESTADO (hasta 8 por módulo, 16 bits cada una, más una máscara de canales en mA).
+
 ## Roles y qué pasa cuando algo falla
 
 | Situación | Resultado (en simulación) |

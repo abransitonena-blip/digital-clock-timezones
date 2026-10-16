@@ -215,6 +215,30 @@ def soporte_sensor(d=12.0):
         L = L - tornillo_avellanado(2.15, 4.0, t, sx * 10.0, 4.0)
     return L
 
+def bandeja_rack():
+    """Bandeja para los módulos AP Rack (176 x 100 mm): 4 postes M3 en los agujeros de la placa (esquinas a 3.5 mm del borde, Y espejado) y
+    2 pares de ranuras de 4.4 mm para atornillar dos clips de riel DIN por detrás (separados 100 mm). Pruebas de banco y riel; NO es un gabinete."""
+    W, H = 176.0, 100.0
+    m = 8.0
+    P = rbox(W + 2 * m, H + 2 * m, 3.0, 5.0, W / 2, H / 2, 0)
+    pts = [(3.5, 3.5), (172.5, 3.5), (3.5, 96.5), (172.5, 96.5)]
+    for (hx, hy) in pts:
+        P = P + cyl(3.4, 8.0, hx, hy, 2.5)
+    for (hx, hy) in pts:
+        P = P - cyl(1.35, 12.0, hx, hy, 1.0)
+    for y in (H / 2 - 50.0, H / 2 + 50.0):
+        for x in (W / 2 - 25.0, W / 2 + 25.0):
+            P = P - cyl(1.7, 6.0, x, y, -1)
+    return P
+
+def clip_din_atornillable():
+    """Clip de riel DIN TS35 que se atornilla (2 x M3) a una bandeja; se imprime plano con los ganchos hacia arriba."""
+    L = 20.0
+    pieza = gancho_din(L, 0.0)
+    for sx in (-1, 1):
+        pieza = pieza - cyl(1.7, 8.0, sx * 25.0, 0, -1)
+    return pieza
+
 def riel_demo(longitud=60.0):
     """Tramo de riel TS35x7.5 de pruebas de ajuste, impreso al revés (labios sobre la cama). NO soporta carga."""
     y0, y1 = -longitud / 2, longitud / 2
@@ -262,6 +286,15 @@ def ref_cable_24v(largo=100.0):
     return {"rojo": cyl_y(1.6, largo, 0, -2.0, 1.6), "negro": cyl_y(1.6, largo, 0, 2.0, 1.6),
             "punteras": cyl_y(1.2, 8.0, -8.0, -2.0, 1.6) + cyl_y(1.2, 8.0, -8.0, 2.0, 1.6)}
 
+def ref_cable_aplink(largo=200.0):
+    """Cable AP LINK de 4 hilos con conector JST XH en cada extremo (modelo visual, 1 a 1)."""
+    z = 3.0
+    hilos = sum((cyl_y(0.6, largo, 0, x, z) for x in (-3.75, -1.25, 1.25, 3.75)), M())
+    forro = rbox(12.0, largo * 0.9, 5.0, 1.5, 0, largo / 2, z - 2.5)
+    c1 = bb(-5.5, 5.5, -12.0, 0, 0, 7.0)
+    c2 = bb(-5.5, 5.5, largo, largo + 12.0, 0, 7.0)
+    return {"hilos": hilos, "forro": forro, "conector_entra": c1, "conector_sigue": c2}
+
 def ref_borne_enchufable(polos=3):
     cuerpo = rbox(polos * KF_PASO, KF_FONDO, KF_ALTO, 0.8)
     for i in range(polos):
@@ -297,17 +330,21 @@ IMPRIMIBLES = [
     ("AP-ACC-022", "placa_pulsadores_2", "Tapa de pared de chalupa con 2 pulsadores", lambda: placa_pulsadores(2), "PETG o ABS", "para Home Switch de varios circuitos (un módulo por pulsador)"),
     ("AP-ACC-023", "placa_pulsadores_3", "Tapa de pared de chalupa con 3 pulsadores", lambda: placa_pulsadores(3), "PETG o ABS", "idem"),
     ("AP-ACC-024", "soporte_home_registro", "Base para fijar la placa AP Home dentro de una caja de registro", caja_registro_home, "PETG o ABS", "postes en los agujeros de la placa; no sustituye la caja ni la tapa certificadas"),
+    ("AP-ACC-025", "bandeja_rack", "Bandeja para un módulo AP Rack (176 x 100) con 4 postes M3 y ranuras para clips DIN", bandeja_rack, "PETG o ABS", "los postes están en los agujeros de la placa; no es un gabinete"),
+    ("AP-ACC-026", "clip_din_atornillable", "Clip de riel DIN TS35 atornillable (2 x M3)", clip_din_atornillable, "PETG o ABS", "encaje por probar con el riel real"),
     ("AP-ACC-020", "riel_demo_60", "Tramo de riel DIN TS35 de 60 mm para pruebas de ajuste", riel_demo, "PLA o PETG", "no soporta carga: solo para probar el ajuste"),
 ]
 REFERENCIAS = [
     ("AP-REF-001", "ref_cable_usbc", "Cable USB-C con conector y bota (modelo visual)", ref_cable_usbc),
     ("AP-REF-002", "ref_cable_sensor_m8", "Cable de sensor con conector M8 de 3 hilos (modelo visual)", ref_cable_sensor_m8),
     ("AP-REF-003", "ref_cable_24v", "Cable de alimentación de 24 V con punteras (modelo visual)", ref_cable_24v),
+    ("AP-REF-007", "ref_cable_aplink", "Cable AP LINK de 4 hilos con conectores JST XH (modelo visual)", ref_cable_aplink),
     ("AP-REF-004", "ref_borne_3p", "Borne enchufable de 3 polos, paso 5.08 (modelo visual)", lambda: ref_borne_enchufable(3)),
     ("AP-REF-005", "ref_borne_2p", "Borne enchufable de 2 polos, paso 5.08 (modelo visual)", lambda: ref_borne_enchufable(2)),
     ("AP-REF-006", "ref_pila_cr2032", "Pila CR2032 (modelo visual)", ref_bateria_cr2032),
 ]
 IMPRIMIBLES.sort(key=lambda x: x[0])
+REFERENCIAS.sort(key=lambda x: x[0])
 COLORES = [(232, 93, 4), (60, 60, 64), (200, 200, 205), (40, 120, 200), (30, 160, 80), (180, 40, 40)]
 
 

@@ -3,6 +3,7 @@
 // Deja JSON de ejemplo en /tmp/json_rack_*.txt para probar_rack.py y la prueba de contrato de la consola.
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include "sim_link.h"
 #include "../APRack/ap_rack.h"
@@ -69,6 +70,27 @@ int main() {
   static char b[4096];
   size_t k = aprack::json(b, sizeof b, *g.cabeza(), "1.0", "AB12CD", 1);
   CHECK(g.cabeza()->total() == 16 && k > 1000 && k < sizeof b - 1, "JSON de 16 módulos: %zu bytes", k);
+  // conversión del ADS1115: 5 V y 10 V en modo tensión; 4, 12 y 20 mA en modo corriente; negativo y fuera de escala
+  CHECK(aprack::analogica(12500, false) == 5000 && aprack::analogica(25000, false) == 10000, "5 V y 10 V");
+  {
+    auto cuenta_mA = [](double mA) { double nodo_mV = mA * 149.3; return (int16_t)(nodo_mV / 3.2 / 0.125 + 0.5); };
+    CHECK(std::abs((int)aprack::analogica(cuenta_mA(4.0), true) - 4000) < 25, "4 mA -> %u µA", aprack::analogica(cuenta_mA(4.0), true));
+    CHECK(std::abs((int)aprack::analogica(cuenta_mA(12.0), true) - 12000) < 25, "12 mA");
+    CHECK(std::abs((int)aprack::analogica(cuenta_mA(20.0), true) - 20000) < 25, "20 mA -> %u µA", aprack::analogica(cuenta_mA(20.0), true));
+  }
+  CHECK(aprack::analogica(-5, false) == 0 && aprack::analogica(32767, true) == 65535, "negativo = 0 y saturación");
+  // módulos de tres tipos en la misma cadena: el JSON del cabeza lleva los analógicos del AI8
+  {
+    Sim m(3);
+    Caps rack{1, 16, 8, VERSION, 0}, in16{2, 0, 16, VERSION, 0}, ai8{3, 0, 0, VERSION, 8};
+    m.energia(0, true, true, rack); m.energia(1, true, true, in16); m.energia(2, true, true, ai8);
+    uint32_t t2 = 0; while (t2 < 20000 && !(m.cabeza() && m.cabeza()->total() == 3)) { m.paso(); t2++; }
+    m.n[2]->ana[0] = 6200; m.n[2]->ana[7] = 20000; m.n[2]->anaModo = 0x80; m.n[1]->ent = 0x8001; m.correr(500);
+    static char jb[4096]; aprack::json(jb, sizeof jb, *m.cabeza(), "1.0", "AB12CD", 1);
+    FILE* f = fopen("/tmp/json_rack_3tipos.txt", "w"); fputs(jb, f); fputc('\n', f); fclose(f);
+    CHECK(m.cabeza()->totalEntradas() == 24 && m.cabeza()->totalAnalogicas() == 8 && m.cabeza()->totalSalidas() == 16, "totales con 3 tipos");
+    CHECK(strstr(jb, "\"tp\":3") && strstr(jb, "\"a\":[6200,") && strstr(jb, ",20000]") && strstr(jb, "\"am\":128"), "el JSON trae las analógicas del AI8: %s", jb);
+  }
   if (fallas) { printf("AP Rack: %d de %d comprobaciones fallaron\n", fallas, pruebas); return 1; }
   printf("AP Rack: todo bien (%d comprobaciones)\n", pruebas);
   return 0;

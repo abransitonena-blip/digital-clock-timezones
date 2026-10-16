@@ -47,6 +47,8 @@ las de riel DIN se imprimen con las funciones sobre la cama y los ganchos arriba
 | AP-ACC-022 | `stl/placa_pulsadores_2.stl` | Tapa de pared de chalupa con 2 pulsadores | PETG o ABS | 70.0 × 115.0 × 3.0 | para Home Switch de varios circuitos (un módulo por pulsador) |
 | AP-ACC-023 | `stl/placa_pulsadores_3.stl` | Tapa de pared de chalupa con 3 pulsadores | PETG o ABS | 70.0 × 115.0 × 3.0 | idem |
 | AP-ACC-024 | `stl/soporte_home_registro.stl` | Base para fijar la placa AP Home dentro de una caja de registro | PETG o ABS | 95.0 × 87.1 × 8.0 | postes en los agujeros de la placa; no sustituye la caja ni la tapa certificadas |
+| AP-ACC-025 | `stl/bandeja_rack.stl` | Bandeja para un módulo AP Rack (176 x 100) con 4 postes M3 y ranuras para clips DIN | PETG o ABS | 192.0 × 116.0 × 10.5 | los postes están en los agujeros de la placa; no es un gabinete |
+| AP-ACC-026 | `stl/clip_din_atornillable.stl` | Clip de riel DIN TS35 atornillable (2 x M3) | PETG o ABS | 41.5 × 20.0 × 5.7 | encaje por probar con el riel real |
 
 ## Modelos de referencia (`ref/`, solo visuales; .glb con color y .stl)
 
@@ -58,6 +60,7 @@ las de riel DIN se imprimen con las funciones sobre la cama y los ganchos arriba
 | AP-REF-004 | `ref/ref_borne_3p.glb` | Borne enchufable de 3 polos, paso 5.08 (modelo visual) |
 | AP-REF-005 | `ref/ref_borne_2p.glb` | Borne enchufable de 2 polos, paso 5.08 (modelo visual) |
 | AP-REF-006 | `ref/ref_pila_cr2032.glb` | Pila CR2032 (modelo visual) |
+| AP-REF-007 | `ref/ref_cable_aplink.glb` | Cable AP LINK de 4 hilos con conectores JST XH (modelo visual) |
 
 ## Lo que falta
 
