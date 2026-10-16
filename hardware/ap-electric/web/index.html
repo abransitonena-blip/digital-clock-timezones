@@ -1837,7 +1837,10 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
   function elegir(m) {
     actual = m; marcar(); nota.hidden = false; nota.textContent = "Cargando el modelo…";
     iniciar().then(function () {
-      return new Promise(function (ok, mal) { T.loader.load(m.f, ok, undefined, function () { mal(new Error("no cargó el modelo")); }); });
+      /* el GLB va tal cual en el repositorio; en la página publicada va como texto base64 (.glb.b64.txt), porque no se sirven archivos .glb */
+      function bytes(r) { if (!r.ok) throw new Error("no cargó el modelo"); return r.arrayBuffer(); }
+      return fetch(m.f).then(bytes).catch(function () { return fetch(m.f + ".b64.txt").then(function (r) { if (!r.ok) throw new Error("no cargó el modelo"); return r.text(); }).then(function (t) { var bin = atob(t.trim()), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }); })
+        .then(function (buf) { return new Promise(function (ok, mal) { T.loader.parse(buf, "", ok, function () { mal(new Error("el modelo no es válido")); }); }); });
     }).then(function (g) {
       if (actual !== m) return;
       if (T.obj) { T.sc.remove(T.obj); T.obj.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); }
