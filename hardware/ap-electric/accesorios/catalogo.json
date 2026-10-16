@@ -1,0 +1,352 @@
+{
+ "version": 1,
+ "estado": "PROTOTIPO DE DISEÑO: nada impreso ni probado con las piezas reales",
+ "unidades": "mm",
+ "holgura_por_lado_mm": 0.25,
+ "imprimibles": [
+  {
+   "sku": "AP-ACC-001",
+   "archivo": "stl/clip_cable_4mm.stl",
+   "nombre": "clip_cable_4mm",
+   "funcion": "Abrazadera omega a tornillo para cable de 4 mm",
+   "material": "PETG o ABS",
+   "nota": "M3 avellanada",
+   "dimensiones_mm": [
+    26.7,
+    9.0,
+    8.4
+   ],
+   "volumen_cm3": 0.72,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-002",
+   "archivo": "stl/clip_cable_6mm.stl",
+   "nombre": "clip_cable_6mm",
+   "funcion": "Abrazadera omega a tornillo para cable de 6 mm",
+   "material": "PETG o ABS",
+   "nota": "M3 avellanada",
+   "dimensiones_mm": [
+    28.7,
+    9.0,
+    10.15
+   ],
+   "volumen_cm3": 0.84,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-003",
+   "archivo": "stl/clip_cable_8mm.stl",
+   "nombre": "clip_cable_8mm",
+   "funcion": "Abrazadera omega a tornillo para cable de 8 mm",
+   "material": "PETG o ABS",
+   "nota": "M3 avellanada",
+   "dimensiones_mm": [
+    30.7,
+    9.0,
+    11.88
+   ],
+   "volumen_cm3": 0.96,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-004",
+   "archivo": "stl/base_brida.stl",
+   "nombre": "base_brida",
+   "funcion": "Base para brida de plástico de hasta 4.8 mm de ancho",
+   "material": "PETG o ABS",
+   "nota": "2 tornillos M3 o cinta de doble cara",
+   "dimensiones_mm": [
+    24.0,
+    24.0,
+    5.6
+   ],
+   "volumen_cm3": 1.66,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-005",
+   "archivo": "stl/hebilla_velcro_20.stl",
+   "nombre": "hebilla_velcro_20",
+   "funcion": "Hebilla de paso para cinta de gancho y felpa de 20 mm",
+   "material": "PETG",
+   "nota": "reusable",
+   "dimensiones_mm": [
+    28.0,
+    12.0,
+    3.0
+   ],
+   "volumen_cm3": 0.67,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-006",
+   "archivo": "stl/peine_cables_8.stl",
+   "nombre": "peine_cables_8",
+   "funcion": "Peine organizador de 8 conductores de hasta 4 mm",
+   "material": "PETG o ABS",
+   "nota": "2 tornillos M3",
+   "dimensiones_mm": [
+    54.0,
+    16.0,
+    14.0
+   ],
+   "volumen_cm3": 3.88,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-007",
+   "archivo": "stl/clip_riel_3cables.stl",
+   "nombre": "clip_riel_3cables",
+   "funcion": "Sujetacables de riel DIN TS35 para 3 cables de 6 mm",
+   "material": "PETG o ABS",
+   "nota": "encaja a presión; verificar el diente con el riel real",
+   "dimensiones_mm": [
+    41.5,
+    22.0,
+    15.24
+   ],
+   "volumen_cm3": 5.93,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-008",
+   "archivo": "stl/tope_riel_din.stl",
+   "nombre": "tope_riel_din",
+   "funcion": "Tope final de riel DIN TS35 con tornillo M4",
+   "material": "PETG o ABS",
+   "nota": "el tornillo M4 aprieta contra el riel",
+   "dimensiones_mm": [
+    41.5,
+    12.0,
+    29.7
+   ],
+   "volumen_cm3": 3.82,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-009",
+   "archivo": "stl/etiquetero_riel.stl",
+   "nombre": "etiquetero_riel",
+   "funcion": "Portaetiquetas de riel DIN (etiqueta de 30 x 12 mm)",
+   "material": "PETG",
+   "nota": "etiqueta de papel o PET en la ranura",
+   "dimensiones_mm": [
+    41.5,
+    17.0,
+    19.7
+   ],
+   "volumen_cm3": 3.43,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-010",
+   "archivo": "stl/cubierta_bornera_2p.stl",
+   "nombre": "cubierta_bornera_2p",
+   "funcion": "Cubierta para bornera KF128-5.08 de 2 polos",
+   "material": "PETG o ABS",
+   "nota": "medidas de la bornera por confirmar con la pieza",
+   "dimensiones_mm": [
+    14.26,
+    12.7,
+    14.0
+   ],
+   "volumen_cm3": 1.15,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-011",
+   "archivo": "stl/cubierta_bornera_3p.stl",
+   "nombre": "cubierta_bornera_3p",
+   "funcion": "Cubierta para bornera KF128-5.08 de 3 polos",
+   "material": "PETG o ABS",
+   "nota": "medidas de la bornera por confirmar con la pieza",
+   "dimensiones_mm": [
+    19.34,
+    12.7,
+    14.0
+   ],
+   "volumen_cm3": 1.43,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-012",
+   "archivo": "stl/alivio_usbc.stl",
+   "nombre": "alivio_usbc",
+   "funcion": "Alivio de tensión (bota) para cable USB-C",
+   "material": "TPU 95A o PETG",
+   "nota": "se pega al conector con adhesivo flexible",
+   "dimensiones_mm": [
+    14.0,
+    30.0,
+    8.0
+   ],
+   "volumen_cm3": 2.59,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-013",
+   "archivo": "stl/tapon_usbc.stl",
+   "nombre": "tapon_usbc",
+   "funcion": "Tapón antipolvo para el receptáculo USB-C",
+   "material": "TPU 95A",
+   "nota": "ajuste por fricción",
+   "dimensiones_mm": [
+    12.44,
+    6.76,
+    7.6
+   ],
+   "volumen_cm3": 0.27,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-014",
+   "archivo": "stl/portapila_cr2032.stl",
+   "nombre": "portapila_cr2032",
+   "funcion": "Portapila CR2032 con canal para el cable del conector de batería",
+   "material": "PETG",
+   "nota": "se sujeta con brida; no es un portapila con contactos",
+   "dimensiones_mm": [
+    25.4,
+    25.4,
+    7.4
+   ],
+   "volumen_cm3": 2.93,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-015",
+   "archivo": "stl/portapila_cr1220.stl",
+   "nombre": "portapila_cr1220",
+   "funcion": "Portapila CR1220 con canal para el cable del conector de batería",
+   "material": "PETG",
+   "nota": "se sujeta con brida",
+   "dimensiones_mm": [
+    17.9,
+    17.9,
+    6.2
+   ],
+   "volumen_cm3": 1.32,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-016",
+   "archivo": "stl/separador_m3_8mm.stl",
+   "nombre": "separador_m3_8mm",
+   "funcion": "Separador M3 de 8 mm con asiento hexagonal",
+   "material": "PETG o ABS",
+   "nota": "para pruebas de banco",
+   "dimensiones_mm": [
+    8.0,
+    8.0,
+    8.0
+   ],
+   "volumen_cm3": 0.29,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-017",
+   "archivo": "stl/bandeja_7r_banco.stl",
+   "nombre": "bandeja_7r_banco",
+   "funcion": "Bandeja de banco para la placa 7R Tour con 4 postes M3",
+   "material": "PETG o ABS",
+   "nota": "los 4 postes están en los agujeros reales de la placa; no es un gabinete",
+   "dimensiones_mm": [
+    204.0,
+    118.0,
+    10.5
+   ],
+   "volumen_cm3": 71.72,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-018",
+   "archivo": "stl/pasacables_pg7.stl",
+   "nombre": "pasacables_pg7",
+   "funcion": "Pasacables flexible para agujero de 12.5 mm y cable de 6 mm",
+   "material": "TPU 95A",
+   "nota": "con rendija para meter el cable",
+   "dimensiones_mm": [
+    17.3,
+    17.27,
+    4.0
+   ],
+   "volumen_cm3": 0.56,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-019",
+   "archivo": "stl/soporte_sensor_m12.stl",
+   "nombre": "soporte_sensor_m12",
+   "funcion": "Escuadra para sensor cilíndrico M12",
+   "material": "PETG o ABS",
+   "nota": "para M8 usar d = 8",
+   "dimensiones_mm": [
+    30.0,
+    22.0,
+    26.0
+   ],
+   "volumen_cm3": 4.62,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-020",
+   "archivo": "stl/riel_demo_60.stl",
+   "nombre": "riel_demo_60",
+   "funcion": "Tramo de riel DIN TS35 de 60 mm para pruebas de ajuste",
+   "material": "PLA o PETG",
+   "nota": "no soporta carga: solo para probar el ajuste",
+   "dimensiones_mm": [
+    35.0,
+    60.0,
+    7.5
+   ],
+   "volumen_cm3": 2.88,
+   "solido_valido": true
+  }
+ ],
+ "referencias": [
+  {
+   "sku": "AP-REF-001",
+   "archivo": "ref/ref_cable_usbc.glb",
+   "nombre": "ref_cable_usbc",
+   "funcion": "Cable USB-C con conector y bota (modelo visual)",
+   "imprimible": false
+  },
+  {
+   "sku": "AP-REF-002",
+   "archivo": "ref/ref_cable_sensor_m8.glb",
+   "nombre": "ref_cable_sensor_m8",
+   "funcion": "Cable de sensor con conector M8 de 3 hilos (modelo visual)",
+   "imprimible": false
+  },
+  {
+   "sku": "AP-REF-003",
+   "archivo": "ref/ref_cable_24v.glb",
+   "nombre": "ref_cable_24v",
+   "funcion": "Cable de alimentación de 24 V con punteras (modelo visual)",
+   "imprimible": false
+  },
+  {
+   "sku": "AP-REF-004",
+   "archivo": "ref/ref_borne_3p.glb",
+   "nombre": "ref_borne_3p",
+   "funcion": "Borne enchufable de 3 polos, paso 5.08 (modelo visual)",
+   "imprimible": false
+  },
+  {
+   "sku": "AP-REF-005",
+   "archivo": "ref/ref_borne_2p.glb",
+   "nombre": "ref_borne_2p",
+   "funcion": "Borne enchufable de 2 polos, paso 5.08 (modelo visual)",
+   "imprimible": false
+  },
+  {
+   "sku": "AP-REF-006",
+   "archivo": "ref/ref_pila_cr2032.glb",
+   "nombre": "ref_pila_cr2032",
+   "funcion": "Pila CR2032 (modelo visual)",
+   "imprimible": false
+  }
+ ]
+}

@@ -101,6 +101,29 @@ const stub = `(function(){const st={},subs=[];
   ok((await p.$$eval('#perfiles button', b => b.map(x => x.textContent))).every(t => !/Andon/.test(t)), 'AP Home no ofrece el perfil Andon (1 entrada)');
   await p.close();
 
+  // --- prueba de CONTRATO: la consola frente a un puerto serie falso que contesta con el JSON REAL del firmware (extraído de APControl.ino) ---
+  const fs = require('fs');
+  if (fs.existsSync('/tmp/json_7r.txt')) {
+    const real = fs.readFileSync('/tmp/json_7r.txt', 'utf8').trim();
+    const falso = `(function(){
+      const enc=new TextEncoder(),dec=new TextDecoder();let ctl,buf='';window.__rx=[];
+      const port={open:async()=>{},close:async()=>{},
+        readable:new ReadableStream({start(c){ctl=c;c.enqueue(enc.encode('ets Jun  8 2016 00:22:57\\r\\nrst:0x1 (POWERON),boot:0x8\\r\\n'))}}),
+        writable:new WritableStream({write(chunk){buf+=dec.decode(chunk);let i;while((i=buf.indexOf('\\n'))>=0){const l=buf.slice(0,i).trim();buf=buf.slice(i+1);window.__rx.push(l);
+          const ok=l==='?'||/^(C|A|T|P|X|E|MB|PK)\\b/i.test(l)||l==='GUARDAR';ctl.enqueue(enc.encode((ok?window.__json:'?')+'\\r\\n'))}}})};
+      window.__json=${JSON.stringify(real)};
+      Object.defineProperty(navigator,'serial',{value:{requestPort:async()=>port},configurable:true});})();`;
+    p = await nueva(falso);
+    await p.goto(base + 'consola.html'); await p.click('#bUsb'); await p.waitForTimeout(1500);
+    ok(await p.$$eval('#canales .canal', e => e.length) === 7, 'contrato: la consola dibuja 7 canales con el JSON real del firmware');
+    ok(await p.$$eval('#entradas .chip', e => e.length) === 8, 'contrato: 8 entradas');
+    ok((await p.innerText('#eqInfo')).includes('7R Tour'), 'contrato: reconoce la placa');
+    await p.click('#canales .canal:nth-child(1) button'); await p.waitForTimeout(500);
+    ok(await p.evaluate(() => window.__rx.includes('C 1 2')), 'contrato: la orden de alternar llega como «C 1 2»');
+    ok(await p.$eval('#cEstado', e => /USB/.test(e.textContent)), 'contrato: el chip dice USB');
+    await p.close();
+  } else console.log('  (contrato omitido: falta /tmp/json_7r.txt; corre antes tools/probar_apbus.sh)');
+
   ok(errs.length === 0, 'errores de página: ' + errs.slice(0, 3).join(' | '));
   await b.close();
   console.log(fallas ? 'Web: ' + fallas + ' fallas' : 'Web y consola: todo bien');
