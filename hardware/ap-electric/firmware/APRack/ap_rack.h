@@ -4,6 +4,7 @@
 //   C g v      canal global g (1 = salida 1 del módulo 1; el módulo 2 sigue donde acaba el 1); v = 0 apaga, 1 enciende, 2 alterna
 //   A v        todas las salidas de todos los módulos (0 o 1)
 //   M p máscara   las 16 salidas del módulo p de una vez (decimal o 0x...)
+//   D g v      brillo (0-255) de la salida global g, si es de un módulo con PWM (AP Rack LED8); 255 = pleno. C/A/M deciden si está encendida
 //   S máscara  máscara segura de ESTE módulo (qué salidas quedan encendidas si pierde el enlace; de fábrica 0 = todo apagado)
 //   ?          solo lee
 // El JSON que devuelve va en una línea (la consola USB lo lee igual que el de AP Control).
@@ -70,6 +71,10 @@ inline bool orden(aplink::Enlace& e, const char* s, uint16_t* seguraLocal, PlcRa
     bool on = b == 2 ? !((e.modulo(pos)->deseadas >> (loc - 1)) & 1) : b == 1;
     return e.mandarCanal((uint16_t)a, on);
   }
+  if (c == 'D') {
+    if (!numero(p, &a) || !numero(p, &b) || a < 1 || b < 0 || b > 255) return false;
+    return e.mandarDutyCanal((uint16_t)a, (uint8_t)b);
+  }
   if (c == 'A') {
     if (!numero(p, &a) || a < 0 || a > 1) return false;
     for (uint8_t q = 1; q <= aplink::MAX_MODULOS; q++)
@@ -116,13 +121,18 @@ inline const char* nombreRol(aplink::Rol r) {
 // Un módulo del JSON: p posición, id uid en hexadecimal, tp tipo, ns/ne salidas y entradas, s salidas aplicadas, e entradas,
 // v tensión de entrada en mV, f fallas, ok = 1 responde, seg = 1 salidas en estado seguro por pérdida del enlace.
 inline void modJson(Esc& o, uint8_t p, uint32_t uid, const aplink::Caps& c, uint16_t s, uint16_t en, uint16_t v, uint16_t f, bool ok, bool seg,
-                    const uint16_t* ana = nullptr, uint8_t anaModo = 0) {
+                    const uint16_t* ana = nullptr, uint8_t anaModo = 0, const uint8_t* duty = nullptr) {
   o.s("{\"p\":"); o.u(p); o.s(",\"id\":\""); o.h(uid); o.s("\",\"tp\":"); o.u(c.tipo); o.s(",\"ns\":"); o.u(c.nSal); o.s(",\"ne\":"); o.u(c.nEnt);
   o.s(",\"s\":"); o.u(s); o.s(",\"e\":"); o.u(en); o.s(",\"v\":"); o.u(v); o.s(",\"f\":"); o.u(f);
   o.s(",\"ok\":"); o.s(ok ? "1" : "0"); o.s(",\"seg\":"); o.s(seg ? "1" : "0");
   if (c.nAna) {
     o.s(",\"na\":"); o.u(c.nAna); o.s(",\"am\":"); o.u(anaModo); o.s(",\"a\":[");
     for (uint8_t i = 0; i < c.nAna && i < aplink::MAX_ANA; i++) { if (i) o.s(","); o.u(ana ? ana[i] : 0); }
+    o.s("]");
+  }
+  if (c.nPwm) {
+    o.s(",\"np\":"); o.u(c.nPwm); o.s(",\"d\":[");
+    for (uint8_t i = 0; i < c.nPwm && i < aplink::MAX_PWM; i++) { if (i) o.s(","); o.u(duty ? duty[i] : 255); }
     o.s("]");
   }
   o.s("}");
@@ -132,7 +142,7 @@ inline size_t json(char* buf, size_t cap, const aplink::Enlace& e, const char* v
   Esc o(buf, cap);
   bool cab = e.rol() == aplink::Rol::CABEZA;
   uint16_t ns = cab ? e.totalSalidas() : e.caps().nSal, ne = cab ? e.totalEntradas() : e.caps().nEnt;
-  o.s("{\"v\":\""); o.s(version); o.s("\",\"placa\":\""); o.s(e.caps().tipo == 3 ? "AP Rack AI8" : e.caps().tipo == 2 ? "AP Rack IN16" : "AP Rack 16"); o.s("\",\"api\":2,\"cap\":[\"salidas\",\"entradas\",\"aplink\",\"modulos\"" ); if (plc) o.s(",\"plc\""); o.s("],");
+  o.s("{\"v\":\""); o.s(version); o.s("\",\"placa\":\""); o.s(e.caps().tipo == 4 ? "AP Rack LED8" : e.caps().tipo == 3 ? "AP Rack AI8" : e.caps().tipo == 2 ? "AP Rack IN16" : "AP Rack 16"); o.s("\",\"api\":2,\"cap\":[\"salidas\",\"entradas\",\"aplink\",\"modulos\"" ); if (plc) o.s(",\"plc\""); o.s("],");
   o.s("\"rol\":\""); o.s(nombreRol(e.rol())); o.s("\",\"pos\":"); o.u(e.pos()); o.s(",\"total\":"); o.u(cab ? e.total() : (e.total() ? e.total() : (e.pos() ? e.pos() : 1)));
   o.s(",\"n\":"); o.u(ns); o.s(",\"ne\":"); o.u(ne); o.s(",\"enl\":{\"mal\":"); o.u(e.malas()); o.s("},\"mods\":[");
   if (cab) {
@@ -142,10 +152,10 @@ inline size_t json(char* buf, size_t cap, const aplink::Enlace& e, const char* v
       if (!m) continue;
       if (!primero) o.s(",");
       primero = false;
-      modJson(o, p, m->uid, m->caps, m->sal, m->ent, m->vin_mV, m->fallas, !m->perdido, (m->flags & 1) != 0, m->ana, m->anaModo);
+      modJson(o, p, m->uid, m->caps, m->sal, m->ent, m->vin_mV, m->fallas, !m->perdido, (m->flags & 1) != 0, m->ana, m->anaModo, m->duty);
     }
   } else {
-    modJson(o, e.pos(), e.uid(), e.caps(), e.salAplicadas(), e.entLocal(), e.vinLocal(), e.fallasLocales(), true, e.enSeguro(), e.anaLocal(), e.anaModoLocal());
+    modJson(o, e.pos(), e.uid(), e.caps(), e.salAplicadas(), e.entLocal(), e.vinLocal(), e.fallasLocales(), true, e.enSeguro(), e.anaLocal(), e.anaModoLocal(), e.dutyLocal());
   }
   o.s("]");
   if (plc) {                                                              // estado del PLC para el panel

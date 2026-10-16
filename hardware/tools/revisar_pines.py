@@ -60,7 +60,7 @@ for ref, cte in (("U6", "TCA_S1"), ("U7", "TCA_S2"), ("U8", "TCA_ENT"), ("U9", "
     mc = re.search(r"%s = (0x[0-9A-Fa-f]+)" % cte, rino)
     if int(mc.group(1), 16) != dirx: errores.append("Rack %s: la placa da 0x%02X y el programa %s" % (ref, dirx, mc.group(1)))
 # IN16 y AI8: mismo ESP32 que el Rack 16, y las direcciones I2C que usa el programa para reconocer el tipo de módulo
-for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8")):
+for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8"), ("led8", "LED8")):
     mk2 = open(os.path.join(R, carpeta, "gen/make.py"), encoding="utf-8").read()
     if "importlib" not in mk2 or "rack16" not in mk2: errores.append("%s: no hereda las piezas del Rack 16" % tipo)
 if True:
@@ -77,6 +77,15 @@ if True:
     if '("U6", "C15", "GND"' not in ai or '("U7", "C16", "3V3"' not in ai: errores.append("AI8: ADDR de los ADS1115 distinto de 0x48 (GND) y 0x49 (3V3)")
 if open(os.path.join(R, "firmware/APLink/ap_link.h")).read() != open(os.path.join(R, "firmware/APRack/ap_link.h")).read():
     errores.append("firmware/APRack/ap_link.h no es copia de firmware/APLink/ap_link.h")
+lk = open(os.path.join(R, "led8/gen/make.py"), encoding="utf-8").read()
+mc = re.search(r"PCA_LED = (0x[0-9A-Fa-f]+)", rino)
+if not mc or int(mc.group(1), 16) != 0x40: errores.append("LED8: el programa usa PCA_LED distinto de 0x40")
+mp = re.search(r'"U6", "PCA9685PW".*?\{(.*?)\},\s*"PWM', lk, re.S)
+if not mp: errores.append("LED8: no se encontró el PCA9685 en la placa")
+else:
+    pines = dict((a2, b2) for a2, b2 in re.findall(r'"(\d+)": ("?\w+"?)', mp.group(1)))
+    if any(pines.get(str(k)) != '"GND"' for k in (1, 2, 3, 4, 5, 24)): errores.append("LED8: A0-A5 del PCA9685 no están todos a 0 V (dirección 0x40)")
+    if any(pines.get(str(6 + k)) != '"IN%d"' % (k + 1) for k in range(8)): errores.append("LED8: las salidas LED0-LED7 no van a las compuertas IN1-IN8")
 for e in errores: print("  ERROR:", e)
-print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, IN16 y AI8) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
+print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, IN16, AI8 y LED8) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
 sys.exit(1 if errores else 0)

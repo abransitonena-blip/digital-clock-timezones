@@ -91,6 +91,24 @@ int main() {
     CHECK(m.cabeza()->totalEntradas() == 24 && m.cabeza()->totalAnalogicas() == 8 && m.cabeza()->totalSalidas() == 16, "totales con 3 tipos");
     CHECK(strstr(jb, "\"tp\":3") && strstr(jb, "\"a\":[6200,") && strstr(jb, ",20000]") && strstr(jb, "\"am\":128"), "el JSON trae las analógicas del AI8: %s", jb);
   }
+  // AP Rack LED8 en la cadena: la orden D fija el brillo y el JSON lo lleva
+  {
+    Sim m(2);
+    Caps rack{1, 16, 8, VERSION, 0}, led8{4, 8, 8, VERSION, 0, 8};
+    m.energia(0, true, true, rack); m.energia(1, true, true, led8);
+    uint32_t t3 = 0; while (t3 < 20000 && !(m.cabeza() && m.cabeza()->total() == 2)) { m.paso(); t3++; }
+    m.correr(300);
+    Enlace* hh = m.cabeza(); uint16_t sg = 0;
+    CHECK(aprack::orden(*hh, "D 17 100", &sg) && aprack::orden(*hh, "D 24 7", &sg), "D en las salidas 17 y 24 (módulo 2, salidas 1 y 8)");
+    CHECK(!aprack::orden(*hh, "D 1 100", &sg) && !aprack::orden(*hh, "D 25 100", &sg) && !aprack::orden(*hh, "D 17 256", &sg) && !aprack::orden(*hh, "D 17", &sg) && !aprack::orden(*hh, "D 17 -1", &sg), "D rechaza salidas sin PWM, canales que no existen y brillos fuera de 0-255");
+    CHECK(aprack::orden(*hh, "C 17 1", &sg), "y C la enciende");
+    m.correr(300);
+    CHECK(m.n[1]->e->dutyLocal()[0] == 100 && m.n[1]->e->dutyLocal()[7] == 7 && m.n[1]->e->salidas() == 1, "el LED8 recibe brillo 100 y 7");
+    static char jl[4096]; aprack::json(jl, sizeof jl, *hh, "1.0", "AB12CD", 1);
+    FILE* f = fopen("/tmp/json_rack_led8.txt", "w"); fputs(jl, f); fputc('\n', f); fclose(f);
+    CHECK(strstr(jl, "\"tp\":4") && strstr(jl, "\"np\":8") && strstr(jl, "\"d\":[100,255,255,255,255,255,255,7]"), "el JSON trae el brillo: %s", jl);
+    guardar("/tmp/json_led8_esclavo.txt", *m.n[1]->e, 5);
+  }
   if (fallas) { printf("AP Rack: %d de %d comprobaciones fallaron\n", fallas, pruebas); return 1; }
   printf("AP Rack: todo bien (%d comprobaciones)\n", pruebas);
   return 0;

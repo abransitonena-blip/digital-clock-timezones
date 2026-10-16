@@ -213,6 +213,32 @@ static void prueba_sin_candidato_a_cabeza() {
   CHECK(q.n[0]->e->enSeguro() && q.n[1]->e->enSeguro(), "y sus salidas quedan seguras");
 }
 
+static void prueba_brillo_pwm() {
+  Sim s(3);
+  s.energia(0, true); s.energia(1, true, true, Caps{4, 8, 8, VERSION, 0, 8}); s.energia(2, true, true, Caps{4, 8, 0, VERSION, 0, 4});
+  uint32_t t = 0; while (t < 8000 && !(s.cabeza() && s.cabeza()->total() == 3)) { s.paso(); t++; }
+  Enlace* c = s.cabeza();
+  CHECK(c && c->total() == 3, "con módulos LED8 la cadena sigue formándose");
+  s.correr(300);
+  const InfoMod* m2 = c->modulo(2); const InfoMod* m3 = c->modulo(3);
+  CHECK(m2 && m2->caps.tipo == 4 && m2->caps.nPwm == 8 && m3->caps.nPwm == 4, "el cabeza conoce cuántas salidas con brillo tiene cada módulo");
+  CHECK(s.n[1]->e->dutyLocal()[0] == 255, "el brillo por defecto es pleno");
+  CHECK(c->mandarDuty(2, 3, 64) && c->mandarDuty(3, 4, 200), "mandar brillo a las salidas con PWM");
+  CHECK(!c->mandarDuty(3, 5, 10), "una salida sin PWM rechaza el brillo");
+  CHECK(!c->mandarDuty(1, 1, 10), "un módulo sin PWM rechaza el brillo");
+  CHECK(c->mandarDutyCanal(17, 128), "brillo por canal global: 17 = módulo 2, salida 1");
+  CHECK(c->mandarCanal(17, true) && c->mandarCanal(19, true), "y encender esas salidas");
+  s.correr(300);
+  CHECK(s.n[1]->e->dutyLocal()[2] == 64 && s.n[1]->e->dutyLocal()[0] == 128, "el módulo 2 recibe los brillos 64 y 128");
+  CHECK(s.n[2]->e->dutyLocal()[3] == 200, "el módulo 3 recibe el brillo 200");
+  CHECK(s.n[1]->e->salidas() == 0x0005, "las salidas encendidas llegan junto con el brillo (0x%04X)", s.n[1]->e->salidas());
+  s.n[1]->e.reset();                                  // se apaga el módulo 2 y vuelve con energía: arranca otra vez en brillo pleno
+  s.correr(3000);
+  s.energia(1, true, true, Caps{4, 8, 8, VERSION, 0, 8});
+  s.correr(8000);
+  CHECK(s.n[1]->e && s.n[1]->e->dutyLocal()[2] == 255, "un módulo que vuelve a la cadena arranca en brillo pleno (el cabeza ya no recuerda el brillo)");
+}
+
 int main() {
   prueba_trama();
   prueba_dos_modulos();
@@ -225,6 +251,7 @@ int main() {
   prueba_ruido();
   prueba_lleno();
   prueba_sin_candidato_a_cabeza();
+  prueba_brillo_pwm();
   if (fallas) { printf("AP LINK: %d de %d comprobaciones fallaron\n", fallas, pruebas); return 1; }
   printf("AP LINK: todo bien (%d comprobaciones)\n", pruebas);
   return 0;

@@ -339,7 +339,7 @@ section.linea { scroll-margin-top: 96px; }
 .mod-btn .ic { width: 28px; height: 28px; grid-row: span 2; padding: 5px; border-radius: 10px; background: var(--sunken); }
 .mod-btn b { font: 600 1rem var(--font-display); }
 .mod-btn span { font-size: 0.78rem; color: var(--muted); }
-.mod-btn[data-t="rack"] .ic { color: var(--accent); } .mod-btn[data-t="in16"] .ic { color: var(--signal); } .mod-btn[data-t="ai8"] .ic { color: var(--info); }
+.mod-btn[data-t="rack"] .ic { color: var(--accent); } .mod-btn[data-t="in16"] .ic { color: var(--signal); } .mod-btn[data-t="led8"] .ic { color: var(--warn); } .mod-btn[data-t="ai8"] .ic { color: var(--info); }
 .paleta .btn { align-self: center; }
 .cinta { overflow-x: auto; border-radius: var(--radius); background: var(--sunken); border: 1px solid var(--line); padding: 8px; background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 18px 18px; }
 .cinta svg { display: block; height: auto; min-width: 100%; }
@@ -388,6 +388,9 @@ table.mapa th { font: 500 0.7rem var(--font-mono); text-transform: uppercase; le
 .tarj .grande { font: 600 2.4rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
 .tarj .grande small { font-size: 0.95rem; color: var(--muted); font-weight: 400; margin-left: 6px; }
 .c4 { grid-column: span 4; } .c5 { grid-column: span 5; } .c7 { grid-column: span 7; } .c8 { grid-column: span 8; } .c12 { grid-column: span 12; }
+.brillos { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 18px; }
+.brillos label { display: grid; gap: 4px; font: 500 0.82rem var(--font-mono); color: var(--muted); }
+.brillos input[type=range] { width: 100%; accent-color: var(--accent); }
 .vars { display: grid; gap: 4px; max-height: 220px; overflow: auto; }
 .var { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 12px; background: var(--sunken); font-size: 0.86rem; border: 0; color: var(--fg); text-align: left; font-family: inherit; }
 button.var { cursor: pointer; }
@@ -523,6 +526,7 @@ button.var { cursor: pointer; }
         <div class="paleta" id="cPaleta" role="group" aria-label="Agregar un módulo a la cadena">
           <button class="mod-btn" type="button" data-t="rack"><svg class="ic"><use href="#i-chip"/></svg><b>AP Rack 16</b><span>16 salidas · 8 entradas</span></button>
           <button class="mod-btn" type="button" data-t="in16"><svg class="ic"><use href="#i-inputs"/></svg><b>AP Rack IN16</b><span>16 entradas 12-30 V</span></button>
+          <button class="mod-btn" type="button" data-t="led8"><svg class="ic"><use href="#i-bulb"/></svg><b>AP Rack LED8</b><span>8 salidas con brillo · 8 entradas</span></button>
           <button class="mod-btn" type="button" data-t="ai8"><svg class="ic"><use href="#i-wave"/></svg><b>AP Rack AI8</b><span>8 analógicas 0-10 V / 4-20 mA</span></button>
           <button class="btn" type="button" id="cQuitar">Quitar el último</button>
           <button class="btn" type="button" id="cReset">Reiniciar</button>
@@ -572,10 +576,11 @@ button.var { cursor: pointer; }
           <div class="hmi-grid">
             <div class="tarj c4" data-v="resumen"><h4>Salidas activas <svg class="ic" style="color:var(--accent)"><use href="#i-bolt"/></svg></h4><div class="grande" id="hSal">0<small>de 16</small></div><span class="sub" style="font-size:.8rem;color:var(--muted)" id="hSalSub">Toca una salida para encenderla</span></div>
             <div class="tarj c8" data-v="resumen"><h4>Salidas</h4><div class="losetas" id="hTiles"></div></div>
+            <div class="tarj c12" data-v="resumen" id="hBrilT" hidden><h4>Brillo · AP Rack LED8 <svg class="ic" style="color:var(--warn)"><use href="#i-bulb"/></svg></h4><div class="brillos" id="hBril"></div></div>
             <div class="tarj c5" data-v="resumen variables" id="hVarsT"><h4>Variables del PLC</h4>
               <div class="pildoras" id="hVarTabs" role="group" aria-label="Tipo de variable"><button class="pildora" type="button" data-l="e" aria-pressed="true">Entradas</button><button class="pildora" type="button" data-l="s" aria-pressed="false">Salidas</button><button class="pildora" type="button" data-l="a" aria-pressed="false">Analógicas</button></div>
               <div class="vars" id="hVars"></div></div>
-            <div class="tarj c7" data-v="resumen"><h4>Tendencia · <span id="hChartN">A1</span></h4><canvas id="hChart" role="img" aria-label="Gráfica de tendencia de la entrada analógica A1"></canvas></div>
+            <div class="tarj c7" data-v="resumen"><h4><span>Tendencia · <span id="hChartN">A1</span></span></h4><canvas id="hChart" role="img" aria-label="Gráfica de tendencia de la entrada analógica A1"></canvas></div>
             <div class="tarj c12" data-v="resumen alarmas"><h4>Alarmas <svg class="ic" style="color:var(--warn)"><use href="#i-bell"/></svg></h4><div class="alarmas" id="hAl"></div></div>
             <div class="tarj c12" data-v="variables"><h4>Programa del PLC (ejemplo)</h4><div class="regla" id="hRegla"></div></div>
           </div>
@@ -684,6 +689,19 @@ button.var { cursor: pointer; }
             </table>
           </div>
         </article>
+        <article class="producto">
+          <figure><img src="img/led8.jpg" alt="Render de la placa AP Rack LED8" loading="lazy" width="1200" height="617"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>AP Rack LED8</h3><span class="estado dis">DISEÑO</span></div>
+            <p>8 salidas con brillo (PWM de 12 bits a 1 kHz) para tiras y luminarias LED de 12 a 30 V, más las 8 entradas de 12-30 V del Rack 16. El brillo se fija desde la consola y el panel.</p>
+            <div class="tags"><span class="tag">8 salidas PWM</span><span class="tag">8 entradas</span><span class="tag">12-30 V</span></div>
+            <table class="spec">
+              <tr><td>Regulación</td><td>PWM por voltaje fijo (tiras de 12 o 24 V); <b>no es una fuente de corriente constante</b></td></tr>
+              <tr><td>Corriente por canal</td><td><span class="pd">PD</span> · sin medir; fusible de 3 A en la placa</td></tr>
+              <tr><td>Revisión de diseño</td><td>ERC 0 · DRC 0 · 181 piezas con código LCSC</td></tr>
+            </table>
+          </div>
+        </article>
       </div>
       <div class="productos">
         <article class="producto">
@@ -736,7 +754,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
             <div><b>AP UNO</b><span>Todo en uno: potencia, cerebro, salidas y RS-485</span></div>
             <div><b>AP PRO DO8</b><span>8 salidas de 24 V protegidas</span></div>
             <div><b>AP PRO DI8 · AI4</b><span>8 entradas aisladas · 4 analógicas 0-10 V / 4-20 mA</span></div>
-            <div><b>AP Rack 16 · IN16 · AI8</b><span>Módulos de 12-30 V que se encadenan con AP LINK: 16 salidas, 16 entradas, 8 analógicas</span></div>
+            <div><b>AP Rack 16 · IN16 · AI8 · LED8</b><span>Módulos de 12-30 V que se encadenan con AP LINK: 16 salidas, 16 entradas, 8 analógicas, 8 salidas con brillo</span></div>
             <div><b>AP GATE · NODE</b><span>Modbus RTU, CAN, Home Assistant, MQTT</span></div>
           </div>
         </div>
@@ -1225,8 +1243,8 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     { id: "ap-rack-16", nombre: "AP Rack 16 (módulos encadenables)", seg: "Industrial", estado: "Diseño",
       resumen: "Placa de 12-30 V CC con 16 salidas protegidas y 8 entradas. Dos conectores AP LINK (estilo DMX) encadenan módulos que se numeran solos y aparecen juntos en el panel.",
       puntos: ["Cabeza + módulos: 32 salidas con 2 módulos, hasta 16 módulos de diseño", "Probado solo en simulación; sin fabricar ni medir", "No es una función de seguridad"] },
-    { id: "ap-rack-modulos", nombre: "AP Rack IN16 y AI8 (más módulos)", seg: "Industrial", estado: "Diseño",
-      resumen: "Módulos de la misma cadena: 16 entradas de 12-30 V (IN16) y 8 entradas analógicas 0-10 V / 4-20 mA (AI8). Se numeran solos y aparecen en el panel.",
+    { id: "ap-rack-modulos", nombre: "AP Rack IN16, AI8 y LED8 (más módulos)", seg: "Industrial", estado: "Diseño",
+      resumen: "Módulos de la misma cadena: 16 entradas de 12-30 V (IN16) 8 entradas analógicas 0-10 V / 4-20 mA (AI8) y 8 salidas con brillo PWM para tiras LED (LED8). Se numeran solos y aparecen en el panel.",
       puntos: ["Probado solo en simulación; sin fabricar ni medir", "El PLC del cabeza usa las entradas y salidas de todos los módulos"] },
     { id: "ap-panel", nombre: "Panel AP (pantalla del PLC)", seg: "Industrial", estado: "Diseño",
       resumen: "Pantalla táctil en el navegador para el PLC: botones, luces, valores, consignas, tendencias y alarmas, con diseñador. Funciona en tableta, computadora o celular.",
@@ -1477,11 +1495,12 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
   var TIPOS = {
     rack: { n: "AP Rack 16", ns: 16, ne: 8, na: 0 },
     in16: { n: "AP Rack IN16", ns: 0, ne: 16, na: 0 },
-    ai8: { n: "AP Rack AI8", ns: 0, ne: 0, na: 8 }
+    ai8: { n: "AP Rack AI8", ns: 0, ne: 0, na: 8 },
+    led8: { n: "AP Rack LED8", ns: 8, ne: 8, na: 0, pw: 8 }
   };
   var MAX = 8;
   var S = { mods: [], cortes: {}, run: false, t: 0, hist: [], vista: "resumen", lista: "e", rango: 60, maxVisto: 0, alarmas: [], activas: {}, tipoSel: "rack" };
-  function nuevoMod(t) { return { t: t, s: 0, e: 0, a: [0, 0, 0, 0, 0, 0, 0, 0] }; }
+  function nuevoMod(t) { return { t: t, s: 0, e: 0, a: [0, 0, 0, 0, 0, 0, 0, 0], d: [255, 255, 255, 255, 255, 255, 255, 255] }; }
   function reiniciar() { S.mods = [nuevoMod("rack"), nuevoMod("in16"), nuevoMod("ai8")]; S.cortes = {}; S.hist = []; S.maxVisto = S.run ? 3 : 0; }
   reiniciar();
 
@@ -1518,7 +1537,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
       g.appendChild(svg("text", { x: 14, y: 54, "font-size": 15, "font-weight": 600 }, f.T.n));
       g.appendChild(svg("text", { x: 14, y: 72, "class": "mu" }, "MÓDULO " + (f.k + 1) + (f.dentro ? "" : " · TRAMO AISLADO")));
       // bornes de salida (arriba) y de entrada o analógica (abajo)
-      for (var i = 0; i < f.T.ns; i++) g.appendChild(svg("rect", { "class": "borne q" + (f.dentro && (f.m.s >> i & 1) ? " on" : ""), x: 14 + i * 10.4, y: 14, width: 7, height: 12, rx: 1.5, opacity: f.dentro && (f.m.s >> i & 1) ? 1 : 0.4 }));
+      for (var i = 0; i < f.T.ns; i++) g.appendChild(svg("rect", { "class": "borne q" + (f.dentro && (f.m.s >> i & 1) ? " on" : ""), x: 14 + i * 10.4, y: 14, width: 7, height: 12, rx: 1.5, opacity: f.dentro && (f.m.s >> i & 1) ? (f.T.pw ? 0.35 + 0.65 * f.m.d[i] / 255 : 1) : 0.4 }));
       var nb = f.T.ne || f.T.na, cl = f.T.ne ? "i" : "a";
       for (var j = 0; j < nb; j++) g.appendChild(svg("rect", { "class": "borne " + cl, x: 14 + j * (f.T.ne === 16 ? 10.4 : 20.8), y: BH - 26, width: 7, height: 12, rx: 1.5, opacity: f.dentro && f.T.ne && (f.m.e >> j & 1) ? 1 : 0.4 }));
       // LED de posición en binario (1, 2, 4, 8)
@@ -1657,9 +1676,24 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
      ["LD S6  →  OUT Q16", "Falta un módulo"]].forEach(function (r) { var b = txt("b", r[0]); R.appendChild(b); R.appendChild(document.createTextNode("    // " + r[1] + "\n")); });
     R.appendChild(document.createTextNode(S.run ? "El programa corre: Q2, Q4 y Q16 son suyas." : "En STOP: el panel manda todas las salidas."));
     dibujarGrafica();
+    // brillo de las salidas con PWM (AP Rack LED8)
+    var hb = $("hBril"), arrastra = document.activeElement && document.activeElement.closest && document.activeElement.closest("#hBril"), hay = false;
+    if (!arrastra) hb.textContent = "";
+    M.filas.forEach(function (f) {
+      if (!f.dentro || !f.T.pw) return;
+      hay = true;
+      if (arrastra) return;
+      for (var i = 0; i < f.T.pw; i++) (function (f, i) {
+        var n = f.q[0] + i, w = txt("label"), o = txt("span", "Q" + n + " · " + Math.round(f.m.d[i] * 100 / 255) + " %" + ((f.m.s >> i & 1) ? "" : " (apagada)"));
+        var r = document.createElement("input"); r.type = "range"; r.min = 0; r.max = 255; r.value = f.m.d[i]; r.setAttribute("aria-label", "Brillo de la salida Q" + n); r.setAttribute("data-q", n);
+        r.addEventListener("input", function () { f.m.d[i] = +r.value; o.textContent = "Q" + n + " · " + Math.round(+r.value * 100 / 255) + " %" + ((f.m.s >> i & 1) ? "" : " (apagada)"); dibujarCadena(); });
+        w.appendChild(o); w.appendChild(r); hb.appendChild(w);
+      })(f, i);
+    });
     // vistas
     var cards = document.querySelectorAll("#hmi [data-v]"); for (var c = 0; c < cards.length; c++) cards[c].hidden = cards[c].getAttribute("data-v").split(" ").indexOf(S.vista) < 0;
     var nv = document.querySelectorAll(".hmi-nav button"); for (var b2 = 0; b2 < nv.length; b2++) nv[b2].setAttribute("aria-pressed", String(nv[b2].getAttribute("data-vista") === S.vista));
+    $("hBrilT").hidden = $("hBrilT").hidden || !hay;
     $("hVarsT").className = "tarj " + (S.vista === "variables" ? "c12" : "c5");
   }
   function dibujarGrafica() {

@@ -28,6 +28,7 @@ constexpr uint8_t SYNC = 0xA5;
 constexpr uint8_t VERSION = 1;
 constexpr uint8_t MAX_MODULOS = 16;
 constexpr uint8_t MAX_DATOS = 32;
+constexpr uint8_t MAX_PWM = 8;                // salidas con brillo (PWM) por módulo
 constexpr uint8_t MAX_ANA = 8;                // entradas analógicas por módulo
 constexpr uint8_t TODOS = 0xFF;
 
@@ -108,10 +109,11 @@ struct Receptor {
 };
 
 struct Caps {
-  uint8_t tipo = 0;     // 1 = AP Rack 16, 2 = AP Rack IN16, 3 = AP Rack AI8 (ver AP_LINK.md)
+  uint8_t tipo = 0;     // 1 = AP Rack 16, 2 = AP Rack IN16, 3 = AP Rack AI8, 4 = AP Rack LED8 (ver AP_LINK.md)
   uint8_t nSal = 0, nEnt = 0;
   uint8_t ver = VERSION;
   uint8_t nAna = 0;     // entradas analógicas (hasta MAX_ANA)
+  uint8_t nPwm = 0;     // salidas con brillo: las primeras nPwm salidas aceptan un duty 0-255 (hasta MAX_PWM)
 };
 
 struct InfoMod {
@@ -125,6 +127,7 @@ struct InfoMod {
   uint16_t deseadas = 0;             // lo que el cabeza pide
   uint16_t ana[MAX_ANA] = {};        // analógicas en milésimas (mV o µA, según anaModo)
   uint8_t anaModo = 0;               // bit i = el canal i mide corriente (µA); 0 = tensión (mV)
+  uint8_t duty[MAX_PWM] = {255, 255, 255, 255, 255, 255, 255, 255};   // brillo que pide el cabeza (255 = pleno)
 };
 
 struct HAL {
@@ -161,6 +164,8 @@ class Enlace {
   uint16_t fallasLocales() const { return fallas_; }
   const uint16_t* anaLocal() const { return ana_; }
   uint8_t anaModoLocal() const { return anaModo_; }
+  // brillo (0-255) de cada salida con PWM de ESTE módulo; vale lo que pidió el cabeza (la máscara de salidas decide si está encendida)
+  const uint8_t* dutyLocal() const { return duty_; }
 
   // entradas y mediciones locales: las pone el programa del equipo
   void ponerLocales(uint16_t ent, uint16_t fallas = 0, uint16_t vin_mV = 0) { ent_ = ent; fallas_ = fallas; vin_ = vin_mV; }
@@ -181,6 +186,15 @@ class Enlace {
     if (pos == 1) sal_ = mask;
     return true;
   }
+  // brillo de la salida local 1..nPwm del módulo en pos (0-255)
+  bool mandarDuty(uint8_t pos, uint8_t local, uint8_t v) {
+    if (rol_ != Rol::CABEZA || pos < 1 || pos > MAX_MODULOS || !tabla_[pos - 1].presente) return false;
+    if (local < 1 || local > tabla_[pos - 1].caps.nPwm || local > MAX_PWM) return false;
+    tabla_[pos - 1].duty[local - 1] = v;
+    if (pos == 1) duty_[local - 1] = v;
+    return true;
+  }
+  bool mandarDutyCanal(uint16_t g, uint8_t v) { uint8_t p, l; return canalGlobal(g, &p, &l) && mandarDuty(p, l, v); }
   const InfoMod* modulo(uint8_t pos) const { return (pos >= 1 && pos <= MAX_MODULOS && tabla_[pos - 1].presente) ? &tabla_[pos - 1] : nullptr; }
   // canales globales 1..N sumando las salidas de cada módulo en orden de cadena
   bool mandarCanal(uint16_t g, bool on);
@@ -213,6 +227,7 @@ class Enlace {
   uint16_t sal_ = 0, maskSegura_ = 0, ent_ = 0, fallas_ = 0, vin_ = 0, aplicadas_ = 0;
   uint16_t ana_[MAX_ANA] = {};
   uint8_t anaModo_ = 0;
+  uint8_t duty_[MAX_PWM] = {255, 255, 255, 255, 255, 255, 255, 255};
   // cabeza
   InfoMod tabla_[MAX_MODULOS];
   uint32_t tBaliza_ = 0, tEnum_ = 0, tPoll_ = 0, tResp_ = 0, tInicio_ = 0;
@@ -234,6 +249,7 @@ class Enlace {
 
   void volverEspera() {
     rol_ = Rol::ESPERA; pos_ = 0; total_ = 0; seguro_ = true; huid_ = 0; esperando_ = false;
+    for (auto& d : duty_) d = 255;
     for (auto& m : tabla_) m = InfoMod();
     h_.senseSale(false);
   }
@@ -366,8 +382,10 @@ inline void Enlace::tickCabeza(uint32_t ahora) {
     InfoMod& m = tabla_[cursor_];
     if (!m.presente) continue;
     tPoll_ = ahora;
-    uint8_t d[3] = {(uint8_t)(m.deseadas & 0xFF), (uint8_t)(m.deseadas >> 8), 0};
-    enviar(cursor_ + 1, T_POLL, d, 3);
+    uint8_t d[3 + MAX_PWM] = {(uint8_t)(m.deseadas & 0xFF), (uint8_t)(m.deseadas >> 8), 0};
+    uint8_t np = m.caps.nPwm <= MAX_PWM ? m.caps.nPwm : MAX_PWM;
+    for (uint8_t i = 0; i < np; i++) d[3 + i] = m.duty[i];
+    enviar(cursor_ + 1, T_POLL, d, 3 + np);
     esperando_ = true; esperaPos_ = cursor_ + 1; tResp_ = ahora;
     return;
   }
@@ -399,8 +417,8 @@ inline void Enlace::atender(const Trama& t) {
     case T_ENUM:
       if (rol_ == Rol::ESPERA && h_.senseEntra()) {
         // responde "hola" con su uid y capacidades
-        uint8_t d[9]; p32(d, uid_); d[4] = caps_.tipo; d[5] = caps_.nSal; d[6] = caps_.nEnt; d[7] = caps_.ver; d[8] = caps_.nAna;
-        enviar(TODOS, T_HOLA, d, 9);
+        uint8_t d[10]; p32(d, uid_); d[4] = caps_.tipo; d[5] = caps_.nSal; d[6] = caps_.nEnt; d[7] = caps_.ver; d[8] = caps_.nAna; d[9] = caps_.nPwm;
+        enviar(TODOS, T_HOLA, d, 10);
         ultimoCabeza_ = ahora;
       }
       return;
@@ -415,6 +433,7 @@ inline void Enlace::atender(const Trama& t) {
         m = InfoMod();
         m.presente = true; m.uid = uid; m.caps.tipo = t.d[4]; m.caps.nSal = t.d[5]; m.caps.nEnt = t.d[6]; m.caps.ver = t.d[7];
         m.caps.nAna = (t.n >= 9 && t.d[8] <= MAX_ANA) ? t.d[8] : 0;
+        m.caps.nPwm = (t.n >= 10 && t.d[9] <= MAX_PWM) ? t.d[9] : 0;
         m.visto = ahora;
         total_++;
         rondasVacias_ = 0;
@@ -443,6 +462,7 @@ inline void Enlace::atender(const Trama& t) {
     case T_POLL:
       if (rol_ == Rol::ESCLAVO && t.dst == pos_ && t.n >= 3) {
         sal_ = t.d[0] | (t.d[1] << 8);
+        for (uint8_t i = 0; i < caps_.nPwm && i < MAX_PWM && t.n >= 4 + i; i++) duty_[i] = t.d[3 + i];
         seguro_ = false;
         ultimoCabeza_ = ahora;
         uint8_t d[MAX_DATOS];

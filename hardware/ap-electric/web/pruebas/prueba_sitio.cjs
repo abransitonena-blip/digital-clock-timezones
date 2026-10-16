@@ -31,6 +31,16 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   // panel: loseta de salida
   await p.click('#hTiles .loseta >> nth=0'); await p.waitForTimeout(200);
   ok(await p.$eval('#hTiles .loseta >> nth=0', e => e.getAttribute('aria-pressed')) === 'true', 'panel: la loseta Q1 enciende');
+  // módulo LED8: brillo por salida
+  ok(await p.$eval('#hBrilT', e => e.hidden), 'brillo: sin LED8 la tarjeta de brillo no aparece');
+  await p.click('#cPaleta .mod-btn[data-t=led8]'); await p.waitForTimeout(300);
+  ok(await nmod() === 4 && await p.evaluate(() => window.__ap.mapa().q) === q0 + 8, 'LED8: agrega 8 salidas');
+  ok(!(await p.$eval('#hBrilT', e => e.hidden)) && await p.$$eval('#hBril input[type=range]', e => e.length) === 8, 'brillo: aparecen 8 controles');
+  const qn = q0 + 1;
+  await p.$eval('#hBril input[data-q="' + qn + '"]', e => { e.value = 128; e.dispatchEvent(new Event('input', { bubbles: true })); });
+  ok(await p.evaluate(() => window.__ap.estado.mods[3].d[0]) === 128 && (await p.innerText('#hBril')).includes('Q' + qn + ' · 50 %'), 'brillo: el control fija 128 (50 %)');
+  await p.click('#cQuitar'); await p.waitForTimeout(300);
+  ok(await nmod() === 3 && await p.$eval('#hBrilT', e => e.hidden), 'LED8: al quitarlo desaparece la tarjeta');
   // PLC en RUN
   await p.click('#hRun'); await p.waitForTimeout(800);
   ok(await p.$eval('#hRun', e => e.getAttribute('aria-pressed')) === 'true', 'panel: PLC en RUN');
