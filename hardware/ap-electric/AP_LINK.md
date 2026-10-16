@@ -49,8 +49,9 @@ Cada módulo se consulta cada 50 ms (con 16 módulos, una trama cada 5 ms).
 | 2 | [AP Rack IN16](in16/LEEME.md) | 0 | 16 | 0 |
 | 3 | [AP Rack AI8](ai8/LEEME.md) | 0 | 0 | 8 (mV o µA, según el canal) |
 | 4 | [AP Rack LED8](led8/LEEME.md) | 8 (con brillo PWM) | 8 | 0 |
+| 5 | [AP Rack RL4](rl4/LEEME.md) | 4 (relés secos de 24 V) | 8 | 0 |
 
-Los cuatro llevan el mismo programa (`firmware/APRack`), que **se reconoce solo** por los chips que contestan en el I2C (ADS1115 = AI8, expansor 0x24 = IN16, PCA9685 0x40 = LED8, si no, Rack 16). Los canales se cuentan seguidos en orden de cadena: con un Rack 16, un IN16 y un AI8, las entradas son I1-I8 (Rack) e I9-I24 (IN16), las salidas Q1-Q16 y las analógicas A1-A8. Las analógicas viajan en las tramas de ESTADO (hasta 8 por módulo, 16 bits cada una, más una máscara de canales en mA). El brillo de las salidas con PWM viaja en el POLL (hasta 8 bytes); si el cabeza o el módulo se reinician, el brillo vuelve a 255 (pleno) y la salida se enciende o apaga solo con la máscara. Orden de la consola: `D g v`.
+Los cinco llevan el mismo programa (`firmware/APRack`), que **se reconoce solo** por los chips que contestan en el I2C (ADS1115 = AI8, expansor 0x24 = IN16, PCA9685 0x40 = LED8, expansor 0x20 sin 0x21 = RL4, si no, Rack 16). Los canales se cuentan seguidos en orden de cadena: con un Rack 16, un IN16 y un AI8, las entradas son I1-I8 (Rack) e I9-I24 (IN16), las salidas Q1-Q16 y las analógicas A1-A8. Las analógicas viajan en las tramas de ESTADO (hasta 8 por módulo, 16 bits cada una, más una máscara de canales en mA). El brillo de las salidas con PWM viaja en el POLL (hasta 8 bytes); si el cabeza o el módulo se reinician, el brillo vuelve a 255 (pleno) y la salida se enciende o apaga solo con la máscara. Orden de la consola: `D g v`.
 
 ## Roles y qué pasa cuando algo falla
 

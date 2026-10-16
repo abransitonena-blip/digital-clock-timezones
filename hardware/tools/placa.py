@@ -18,7 +18,7 @@ Atributos del spec (los opcionales tienen valor por omisión en _defaults):
   5 mm al rutear), DESCONECTAR [(ref, pata)] (patas con red solo para el ruteador), RADIO_ESQUINA,
   RANURAS [(x0, y0, x1, y1)]: ranuras fresadas dentro de la placa (aislamiento entre la red y la baja tensión).
 """
-import os, sys, json, uuid
+import os, shutil, sys, json, uuid
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fuente-os-127v", "gen"))
 import comun  # noqa: E402
@@ -364,6 +364,13 @@ def finish(S, b):
         fp.Models().clear()
         for m in ms:
             fp.Add3DModel(m)
+        nombre = str(fp.GetFPID().GetLibItemName())          # huellas sin modelo en la librería de KiCad: caja propia (tools/modelos_propios)
+        propio = os.path.join(os.path.dirname(os.path.abspath(__file__)), "modelos_propios", nombre + ".wrl")
+        if os.path.exists(propio) and not any(os.path.exists(os.path.join(d3, os.path.basename(m.m_Filename))) for m in ms):
+            os.makedirs(d3, exist_ok=True); shutil.copy(propio, os.path.join(d3, nombre + ".wrl"))
+            fp.Models().clear()
+            mm3 = pcbnew.FP_3DMODEL(); mm3.m_Filename = "${KIPRJMOD}/3d/" + nombre + ".wrl"
+            fp.Add3DModel(mm3)
     for txt, x, y, h, side in S.SILK:
         t = pcbnew.PCB_TEXT(b)
         t.SetText(txt); t.SetPosition(P(x, y))

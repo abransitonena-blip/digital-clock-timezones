@@ -393,6 +393,51 @@
    ],
    "volumen_cm3": 2.93,
    "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-027",
+   "archivo": "stl/caja_rack.stl",
+   "nombre": "caja_rack",
+   "funcion": "Caja para un módulo AP Rack (176 x 100) con postes M3, bosses de tapa y ventanas de bornas, USB-C y AP LINK",
+   "material": "PETG o ABS",
+   "nota": "ventanas aproximadas; comprobar con la placa; no es un gabinete certificado",
+   "dimensiones_mm": [
+    182.4,
+    106.4,
+    40.6
+   ],
+   "volumen_cm3": 100.58,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-028",
+   "archivo": "stl/tapa_caja_rack.stl",
+   "nombre": "tapa_caja_rack",
+   "funcion": "Tapa de la caja AP Rack con 4 tornillos M3 y ventana de los LED del panel",
+   "material": "PETG o ABS",
+   "nota": "se imprime plana",
+   "dimensiones_mm": [
+    182.4,
+    106.4,
+    2.4
+   ],
+   "volumen_cm3": 45.62,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-029",
+   "archivo": "stl/union_cajas_rack.stl",
+   "nombre": "union_cajas_rack",
+   "funcion": "Puente para unir dos cajas AP Rack con canal para el cable AP LINK",
+   "material": "PETG o ABS",
+   "nota": "4 tornillos M3; posiciones por confirmar al montar las cajas",
+   "dimensiones_mm": [
+    40.0,
+    28.0,
+    3.0
+   ],
+   "volumen_cm3": 2.81,
+   "solido_valido": true
   }
  ],
  "referencias": [

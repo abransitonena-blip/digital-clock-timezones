@@ -231,6 +231,67 @@ def bandeja_rack():
             P = P - cyl(1.7, 6.0, x, y, -1)
     return P
 
+# ---- gabinete de los módulos AP Rack (176 x 100 mm): caja, tapa y unión entre dos cajas
+CAJA_PARED = 2.4
+CAJA_HOLG = 0.8                      # holgura alrededor de la placa por lado [H]
+CAJA_POSTE = 6.0                     # altura de los postes bajo la placa
+CAJA_ALTO_INT = 30.0                 # espacio sobre la placa: bornas KF128 (≈11 mm), relé G2RL (≈16 mm) [H: medir con las piezas]
+def _caja_dims():
+    W, H = 176.0, 100.0
+    return W, H, W + 2 * (CAJA_HOLG + CAJA_PARED), H + 2 * (CAJA_HOLG + CAJA_PARED)
+
+def _tornillos_tapa():
+    W, H, _, _ = _caja_dims()
+    # bosses en el interior de las paredes largas, lejos de las esquinas y de los postes de la placa
+    return [(W * f, y) for f in (0.33, 0.67) for y in (-0.3, H + 0.3)]
+
+def caja_rack():
+    """Caja de impresión para un módulo AP Rack (176 x 100 mm): placa sobre 4 postes M3 (agujeros reales), paredes de 2.4 mm, 4 bosses para atornillar la tapa
+    (tornillo autorroscante M3 en agujero de 2.6 mm), ranuras de 4.4 mm para clips de riel DIN por detrás y ventanas en las dos paredes largas para las bornas de
+    salida y las bornas de entrada, el USB-C y los dos conectores AP LINK. Las ventanas son aproximadas: comprobar con la placa real."""
+    W, H, OW, OH = _caja_dims()
+    ext = CAJA_HOLG + CAJA_PARED
+    alto = 3.0 + CAJA_POSTE + 1.6 + CAJA_ALTO_INT
+    cuerpo = rbox(OW, OH, alto, 4.0, W / 2, H / 2, 0)
+    hueco = rbox(OW - 2 * CAJA_PARED, OH - 2 * CAJA_PARED, alto, 2.5, W / 2, H / 2, 3.0)
+    P = cuerpo - hueco
+    for (hx, hy) in [(3.5, 3.5), (172.5, 3.5), (3.5, 96.5), (172.5, 96.5)]:
+        P = P + cyl(3.4, CAJA_POSTE + 0.5, hx, hy, 2.5)
+        P = P - cyl(1.35, 12.0, hx, hy, 1.0)
+    for (bx, by) in _tornillos_tapa():
+        P = P + cyl(2.9, alto - 3.0 - 3.0, bx, by, 2.5)                      # boss en la pared (entra 2.6 mm sobre el borde de la placa); llega 3 mm por debajo del borde
+        P = P - cyl(1.3, 12.0, bx, by, alto - 13.0)
+    z0 = 3.0 + CAJA_POSTE + 1.6                                             # cara superior de la placa
+    # paredes largas: y = -ext (inferior) y y = H + ext (superior)
+    for yc in (-ext + CAJA_PARED / 2, H + ext - CAJA_PARED / 2):
+        P = P - bb(28.0, 172.0, yc - CAJA_PARED, yc + CAJA_PARED, z0, z0 + 14.0)    # bornas de salida (ventana continua)
+    P = P - bb(2.0, 57.0, H + ext - CAJA_PARED - 1, H + ext + 1, z0, z0 + 14.0)      # bornas de entrada del otro lado
+    P = P - bb(58.0, 112.0, -ext - 1, -ext + CAJA_PARED + 1, z0 - 1.0, z0 + 9.0)     # AP LINK y USB-C
+    for y in (H / 2 - 50.0, H / 2 + 50.0):
+        for x in (W / 2 - 25.0, W / 2 + 25.0):
+            P = P - cyl(1.7, 6.0, x, y, -1)
+    return P
+
+def tapa_caja_rack():
+    """Tapa de la caja del módulo AP Rack: 4 agujeros avellanados M3 sobre los bosses y una ventana de 46 x 7 mm para los LED del panel (RUN, FALLA, COM, CABEZA)."""
+    W, H, OW, OH = _caja_dims()
+    t = 2.4
+    P = rbox(OW, OH, t, 4.0, W / 2, H / 2, 0)
+    for (bx, by) in _tornillos_tapa():
+        P = P - tornillo_avellanado(1.7, 3.2, t, bx, by)
+    P = P - bb(124.0, 170.0, 80.0, 87.0, -1, t + 1)
+    return P
+
+def union_cajas_rack():
+    """Puente de 2 piezas de ancho para unir dos cajas AP Rack lado a lado (las paredes cortas quedan a 12 mm) con un canal de 10 x 5 mm para el cable AP LINK
+    entre el conector SIGUE de una y el ENTRA de la siguiente. Se atornilla con 4 tornillos M3 a las paredes (tuercas en las ranuras)."""
+    P = rbox(40.0, 28.0, 3.0, 3.0)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            P = P - cyl(1.7, 6.0, sx * 14.0, sy * 9.0, -1)
+    P = P - bb(-5.0, 5.0, -14.0, 14.0, 1.5, 3.1)                      # canal de 1.5 mm de fondo para el cable
+    return P
+
 def clip_din_atornillable():
     """Clip de riel DIN TS35 que se atornilla (2 x M3) a una bandeja; se imprime plano con los ganchos hacia arriba."""
     L = 20.0
@@ -332,6 +393,9 @@ IMPRIMIBLES = [
     ("AP-ACC-024", "soporte_home_registro", "Base para fijar la placa AP Home dentro de una caja de registro", caja_registro_home, "PETG o ABS", "postes en los agujeros de la placa; no sustituye la caja ni la tapa certificadas"),
     ("AP-ACC-025", "bandeja_rack", "Bandeja para un módulo AP Rack (176 x 100) con 4 postes M3 y ranuras para clips DIN", bandeja_rack, "PETG o ABS", "los postes están en los agujeros de la placa; no es un gabinete"),
     ("AP-ACC-026", "clip_din_atornillable", "Clip de riel DIN TS35 atornillable (2 x M3)", clip_din_atornillable, "PETG o ABS", "encaje por probar con el riel real"),
+    ("AP-ACC-027", "caja_rack", "Caja para un módulo AP Rack (176 x 100) con postes M3, bosses de tapa y ventanas de bornas, USB-C y AP LINK", caja_rack, "PETG o ABS", "ventanas aproximadas; comprobar con la placa; no es un gabinete certificado"),
+    ("AP-ACC-028", "tapa_caja_rack", "Tapa de la caja AP Rack con 4 tornillos M3 y ventana de los LED del panel", tapa_caja_rack, "PETG o ABS", "se imprime plana"),
+    ("AP-ACC-029", "union_cajas_rack", "Puente para unir dos cajas AP Rack con canal para el cable AP LINK", union_cajas_rack, "PETG o ABS", "4 tornillos M3; posiciones por confirmar al montar las cajas"),
     ("AP-ACC-020", "riel_demo_60", "Tramo de riel DIN TS35 de 60 mm para pruebas de ajuste", riel_demo, "PLA o PETG", "no soporta carga: solo para probar el ajuste"),
 ]
 REFERENCIAS = [

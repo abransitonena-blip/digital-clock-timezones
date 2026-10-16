@@ -11,6 +11,7 @@ python3 tools/revisar_pedido.py ap-electric/7r-tour AP_7R_TOUR CA | grep -E "RES
 python3 tools/revisar_pedido.py ap-electric/home AP_HOME | grep -E "RESULTADO|ERROR"
 [ -d ap-electric/rack16/fabricacion/jlcpcb ] && python3 tools/revisar_pedido.py ap-electric/rack16 AP_RACK16 | grep -E "RESULTADO|ERROR"
 [ -d ap-electric/led8/fabricacion/jlcpcb ] && python3 tools/revisar_pedido.py ap-electric/led8 AP_LED8 | grep -E "RESULTADO|ERROR"
+[ -d ap-electric/rl4/fabricacion/jlcpcb ] && python3 tools/revisar_pedido.py ap-electric/rl4 AP_RL4 | grep -E "RESULTADO|ERROR"
 [ -d ap-electric/in16/fabricacion/jlcpcb ] && python3 tools/revisar_pedido.py ap-electric/in16 AP_IN16 | grep -E "RESULTADO|ERROR"
 [ -d ap-electric/ai8/fabricacion/jlcpcb ] && python3 tools/revisar_pedido.py ap-electric/ai8 AP_AI8 | grep -E "RESULTADO|ERROR"
 echo "== Complementos 3D (sólidos y medidas) =="; (cd ap-electric/accesorios && python3 validar.py)

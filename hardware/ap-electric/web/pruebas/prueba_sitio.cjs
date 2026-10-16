@@ -46,6 +46,12 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   ok(await p.$eval('#hRun', e => e.getAttribute('aria-pressed')) === 'true', 'panel: PLC en RUN');
   ok(await p.$$eval('#hTiles .loseta:disabled', e => e.length) > 0, 'panel: el PLC se queda con sus salidas');
   await p.click('#hRun'); await p.waitForTimeout(300);
+  // visor 3D: cinco placas; sin red (prueba en archivo) debe quedarse con el render fijo sin errores
+  ok(await p.$$eval('#mTabs button', e => e.length) === 6, '3D: cinco placas y la caja para elegir');
+  await p.evaluate(() => document.getElementById('modelos').scrollIntoView()); await p.waitForTimeout(1500);
+  ok((await p.innerText('#mNota')).includes('render fijo') || await p.evaluate(() => !!window.__visor), '3D: o carga el modelo o muestra el render fijo');
+  await p.click('#mTabs button[data-m=rl4]'); await p.waitForTimeout(600);
+  ok((await p.innerText('#mTitulo')).includes('AP Rack RL4'), '3D: elegir RL4 cambia el título');
   // tema
   const t0 = await p.evaluate(() => document.documentElement.getAttribute('data-theme'));
   await p.click('#tema'); await p.waitForTimeout(150);

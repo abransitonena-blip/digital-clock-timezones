@@ -49,6 +49,9 @@ las de riel DIN se imprimen con las funciones sobre la cama y los ganchos arriba
 | AP-ACC-024 | `stl/soporte_home_registro.stl` | Base para fijar la placa AP Home dentro de una caja de registro | PETG o ABS | 95.0 × 87.1 × 8.0 | postes en los agujeros de la placa; no sustituye la caja ni la tapa certificadas |
 | AP-ACC-025 | `stl/bandeja_rack.stl` | Bandeja para un módulo AP Rack (176 x 100) con 4 postes M3 y ranuras para clips DIN | PETG o ABS | 192.0 × 116.0 × 10.5 | los postes están en los agujeros de la placa; no es un gabinete |
 | AP-ACC-026 | `stl/clip_din_atornillable.stl` | Clip de riel DIN TS35 atornillable (2 x M3) | PETG o ABS | 41.5 × 20.0 × 5.7 | encaje por probar con el riel real |
+| AP-ACC-027 | `stl/caja_rack.stl` | Caja para un módulo AP Rack (176 x 100) con postes M3, bosses de tapa y ventanas de bornas, USB-C y AP LINK | PETG o ABS | 182.4 × 106.4 × 40.6 | ventanas aproximadas; comprobar con la placa; no es un gabinete certificado |
+| AP-ACC-028 | `stl/tapa_caja_rack.stl` | Tapa de la caja AP Rack con 4 tornillos M3 y ventana de los LED del panel | PETG o ABS | 182.4 × 106.4 × 2.4 | se imprime plana |
+| AP-ACC-029 | `stl/union_cajas_rack.stl` | Puente para unir dos cajas AP Rack con canal para el cable AP LINK | PETG o ABS | 40.0 × 28.0 × 3.0 | 4 tornillos M3; posiciones por confirmar al montar las cajas |
 
 ## Modelos de referencia (`ref/`, solo visuales; .glb con color y .stl)
 

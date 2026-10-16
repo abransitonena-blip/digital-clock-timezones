@@ -1,0 +1,58 @@
+AP_RL4: 47 tipos de pieza, 162 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):      16 tipos Extended  -> ~48 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):    10 tipos Extended  -> ~30 USD de cargo;
+   se sueldan a mano 15 piezas de patas: F1, J1, J3,J4,J5, J6,J7,J8,J9, JL1, JL2, K1,K2,K3,K4
+Piezas Basic/Preferred: ~0.92 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (26):
+  10uF 50V               C13585         C1,C2,C4,C7
+  100nF                  C14663         C3,C6,C11,C13,C14,C15,C17,C18,C19
+  22uF 25V               C12891         C5
+  22uF                   C45783         C8,C9
+  10uF                   C15850         C10
+  1uF                    C15849         C12
+  SS210                  C14996         D2
+  1N4148W                C81598         DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8
+  VERDE                  C72043         DL1,DL2,DL3,DL4,DP1,DP2,DP3,DP4,DP5,DP8,LI1,LI2,LI3,LI4,LI5,LI6,LI7,LI8
+  ROJO                   C2286          DP6
+  SS14                   C2480          DQ1,DQ2,DQ3,DQ4
+  LTV-217-B              C115450        OK1,OK2,OK3,OK4,OK5,OK6,OK7,OK8
+  10k                    C25804         R1,R2,R5,R7,R10,R14,R17,RB2,RD1,RD2,RD3,RD4,RQ1,RQ2,RQ3,RQ4,RQ5,RQ6,RQ7,RQ8
+  4.7k                   C23162         R3,R4
+  100k                   C25803         R6,R15
+  5.1k                   C23186         R8,R9
+  120                    C17909         R11
+  680                    C23228         R12,R13
+  1k                     C21190         R16,RP1,RP2,RP3,RP4,RP5,RP6,RP7,RP8
+  3.3k                   C26010         RA1,RA2,RA3,RA4,RA5,RA6,RA7,RA8,RC1,RC2,RC3,RC4,RC5,RC6,RC7,RC8
+  56k                    C23206         RB1
+  15k                    C22809         RL1,RL2,RL3,RL4
+  2.2k                   C4190          RS1,RS2,RS3,RS4,RS5,RS6,RS7,RS8
+  MODO                   C318884        SW1
+  RESET                  C318884        SW2
+  SP3485EN               C8963          U5
+Preferred (4):
+  SMBJ33A                C19077586      D1
+  B5819W                 C64885         D3
+  SM712                  C7420375       D4
+  AMARILLO               C89811         DP7
+Extended (17):
+  MINI 3A                C3206956       F1  [THT]
+  VIN 12-30V             C160315        J1  [THT]
+  USB-C                  C165948        J2
+  KF128-5.08-3P          C474953        J3,J4,J5  [THT]
+  KF128-5.08-2P          C474952        J6,J7,J8,J9  [THT]
+  AP LINK ENTRA          C144395        JL1  [THT]
+  AP LINK SIGUE          C144395        JL2  [THT]
+  G2RL-1A-E DC24         C231362        K1,K2,K3,K4  [THT]
+  47uH                   C167888        L1
+  4.7uH                  C167874        L2
+  NCV8406ASTT3G          C459816        Q1,Q2,Q3,Q4
+  LMR16006XDDC           C87080         U1
+  AP63203WU              C780769        U2
+  ESP32-C3-WROOM-02      C2934560       U3
+  USBLC6-2SC6            C7519          U4
+  TCA9554PWR             C477924        U6,U8,U9
+  74HCT125D              C5962          U10

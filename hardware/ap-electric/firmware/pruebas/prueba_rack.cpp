@@ -109,6 +109,25 @@ int main() {
     CHECK(strstr(jl, "\"tp\":4") && strstr(jl, "\"np\":8") && strstr(jl, "\"d\":[100,255,255,255,255,255,255,7]"), "el JSON trae el brillo: %s", jl);
     guardar("/tmp/json_led8_esclavo.txt", *m.n[1]->e, 5);
   }
+  // AP Rack RL4 (4 relés) detrás de un Rack 16: la numeración sigue (Q17-Q20) y A 1 no enciende salidas que no existen
+  {
+    Sim m(2);
+    Caps rack{1, 16, 8, VERSION, 0}, rl4{5, 4, 8, VERSION, 0, 0};
+    m.energia(0, true, true, rack); m.energia(1, true, true, rl4);
+    uint32_t t4 = 0; while (t4 < 20000 && !(m.cabeza() && m.cabeza()->total() == 2)) { m.paso(); t4++; }
+    m.correr(300);
+    Enlace* hh = m.cabeza(); uint16_t sg = 0;
+    CHECK(hh->totalSalidas() == 20 && hh->totalEntradas() == 16, "Rack 16 + RL4: 20 salidas y 16 entradas");
+    CHECK(aprack::orden(*hh, "C 20 1", &sg) && !aprack::orden(*hh, "C 21 1", &sg), "la salida 20 (relé 4) existe y la 21 no");
+    CHECK(aprack::orden(*hh, "A 1", &sg), "A 1");
+    m.correr(300);
+    CHECK(m.n[1]->e->salidas() == 0x000F && m.n[0]->e->salidas() == 0xFFFF, "A 1 enciende 4 relés y 16 salidas (0x%04X)", m.n[1]->e->salidas());
+    static char jr[4096]; aprack::json(jr, sizeof jr, *hh, "1.0", "AB12CD", 1);
+    CHECK(strstr(jr, "\"tp\":5") && strstr(jr, "\"ns\":4"), "el JSON trae el módulo RL4: %s", jr);
+    guardar("/tmp/json_rl4_esclavo.txt", *m.n[1]->e, 5);
+    static char b2[4096]; aprack::json(b2, sizeof b2, *m.n[1]->e, "1.0", "AB12CD", 1);
+    CHECK(strstr(b2, "AP Rack RL4"), "el nombre de placa del RL4");
+  }
   if (fallas) { printf("AP Rack: %d de %d comprobaciones fallaron\n", fallas, pruebas); return 1; }
   printf("AP Rack: todo bien (%d comprobaciones)\n", pruebas);
   return 0;
