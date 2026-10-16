@@ -42,6 +42,8 @@ for b in range(6):
     C_.append(("J%d" % (3 + b), "KF128-5.08-3P", "Connector:Screw_Terminal_01x03", B.KF3, {"1": _pines[3 * b], "2": _pines[3 * b + 1], "3": _pines[3 * b + 2]},
                "Entradas %s: la 1ª pata de cada trío es la entrada impar de la serie; COMI = 0 V del sensor" % "-".join(p.replace("X", "").replace("IN", "") for p in _pines[3 * b:3 * b + 3])))
 
+_refs = [c[0] for c in C_]
+assert len(_refs) == len(set(_refs)), "referencias repetidas"
 W, H = B.W, B.H
 RADIO_ESQUINA = B.RADIO_ESQUINA
 HOLES = B.HOLES

@@ -3,3 +3,4 @@
 set -e
 cd "$(dirname "$0")/../ap-electric/web/pruebas"
 NODE_PATH="$(npm root -g)" node prueba_web.cjs
+NODE_PATH="$(npm root -g)" node prueba_sitio.cjs

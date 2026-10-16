@@ -1,41 +1,54 @@
 <title>AP Electric</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: catálogo por líneas sobre un "riel" horizontal; panel de proveedores como tablero de trabajo al final */
+/* Layout: sitio oscuro de vidrio sobre grafito con trazos de placa; cadena de módulos y panel del PLC como piezas centrales.
+   Color: grafito azulado + naranja de marca (acciones) + cian de señal (datos, cable AP LINK). Tipo: Outfit (títulos), IBM Plex Sans (texto), IBM Plex Mono (datos). */
 :root {
-  --bg: #f3f4f6;
-  --surface: #ffffff;
-  --sunken: #e8eaee;
-  --fg: #1d1f24;
-  --muted: #5b606b;
-  --line: #d3d6dc;
-  --accent: #c2410c;
-  --accent-ink: #ffffff;
-  --accent-soft: #fde6d6;
-  --ok: #1f7a4a; --ok-soft: #dcf1e5;
-  --warn: #8a5a00; --warn-soft: #fbefd2;
-  --bad: #a3271c; --bad-soft: #f8dcd8;
-  --info: #2d5b9a; --info-soft: #dde7f5;
-  --font-display: "Saira Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --bg: #0a0d12;
+  --bg2: #0e131a;
+  --surface: #131922;
+  --surface-2: #19212c;
+  --sunken: #0e131a;
+  --fg: #e9eef5;
+  --muted: #94a3b6;
+  --line: #243040;
+  --accent: #ff7a1f;
+  --accent-ink: #1a0e02;
+  --accent-soft: #33200f;
+  --signal: #4fd1e8;
+  --signal-soft: #0f2f38;
+  --ok: #5fd49a; --ok-soft: #10281d;
+  --warn: #f0c060; --warn-soft: #2e2410;
+  --bad: #f28b7d; --bad-soft: #33181a;
+  --info: #8db6ee; --info-soft: #172640;
+  --glass: rgba(24, 32, 44, 0.62);
+  --glow: rgba(79, 209, 232, 0.16);
+  --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --radius: 10px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #16181c; --surface: #1f2228; --sunken: #2a2e35; --fg: #eceef1; --muted: #a2a8b3; --line: #353a42;
-    --accent: #ff7a1f; --accent-ink: #1a1206; --accent-soft: #3a2414;
-    --ok: #6fd39c; --ok-soft: #173326; --warn: #f0c060; --warn-soft: #3a2d10; --bad: #f08a7e; --bad-soft: #3d1c18; --info: #8db6ee; --info-soft: #1b2a40;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #16181c; --surface: #1f2228; --sunken: #2a2e35; --fg: #eceef1; --muted: #a2a8b3; --line: #353a42;
-  --accent: #ff7a1f; --accent-ink: #1a1206; --accent-soft: #3a2414;
-  --ok: #6fd39c; --ok-soft: #173326; --warn: #f0c060; --warn-soft: #3a2d10; --bad: #f08a7e; --bad-soft: #3d1c18; --info: #8db6ee; --info-soft: #1b2a40;
+  --radius: 16px;
+  --radius-l: 24px;
   color-scheme: dark;
 }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eef1f5; --bg2: #e4e9ef; --surface: #ffffff; --surface-2: #f4f6f9; --sunken: #e6eaf0; --fg: #131a23; --muted: #55657a; --line: #d3dae4;
+    --accent: #c2410c; --accent-ink: #ffffff; --accent-soft: #fde6d6; --signal: #0a7d93; --signal-soft: #d6eef3;
+    --ok: #1f7a4a; --ok-soft: #dcf1e5; --warn: #8a5a00; --warn-soft: #fbefd2; --bad: #a3271c; --bad-soft: #f8dcd8; --info: #2d5b9a; --info-soft: #dde7f5;
+    --glass: rgba(255, 255, 255, 0.72); --glow: rgba(10, 125, 147, 0.12);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #eef1f5; --bg2: #e4e9ef; --surface: #ffffff; --surface-2: #f4f6f9; --sunken: #e6eaf0; --fg: #131a23; --muted: #55657a; --line: #d3dae4;
+  --accent: #c2410c; --accent-ink: #ffffff; --accent-soft: #fde6d6; --signal: #0a7d93; --signal-soft: #d6eef3;
+  --ok: #1f7a4a; --ok-soft: #dcf1e5; --warn: #8a5a00; --warn-soft: #fbefd2; --bad: #a3271c; --bad-soft: #f8dcd8; --info: #2d5b9a; --info-soft: #dde7f5;
+  --glass: rgba(255, 255, 255, 0.72); --glow: rgba(10, 125, 147, 0.12);
+  color-scheme: light;
+}
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
@@ -228,7 +241,215 @@ footer .wrap { display: grid; gap: 8px; }
 @media (max-width: 520px) { nav.secciones { flex-wrap: nowrap; overflow-x: auto; width: 100%; } nav.secciones a { white-space: nowrap; } header.top .wrap { gap: 6px; } }
 html, body { max-width: 100%; overflow-x: clip; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* ===== piel nueva sobre las reglas de siempre ===== */
+body { background: var(--bg); background-image: radial-gradient(1200px 520px at 80% -120px, var(--glow), transparent 70%); background-repeat: no-repeat; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { padding-inline: 0; max-width: 1200px; }
+h1, h2, h3, .brand b, .riel .nombre, .hechos b, .pasos b, .pasos div::before, .item h3, .lista-mod b, .resumen b { font-family: var(--font-display); letter-spacing: 0; }
+h1 { font-weight: 700; line-height: 1.02; }
+h2 { font-weight: 650; font-size: clamp(1.9rem, 3.8vw, 2.7rem); line-height: 1.08; }
+h3 { font-weight: 600; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--signal); letter-spacing: 0.16em; }
+.eyebrow svg { width: 16px; height: 16px; }
+.ic { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+::selection { background: var(--accent); color: var(--accent-ink); }
+.glass { background: var(--glass); backdrop-filter: blur(16px) saturate(1.2); border: 1px solid var(--line); border-radius: var(--radius-l); box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.55); }
+
+/* barra superior: píldora de vidrio */
+header.top { background: transparent; border: 0; backdrop-filter: none; padding-top: 10px; }
+header.top .wrap { background: var(--glass); backdrop-filter: blur(16px) saturate(1.2); border: 1px solid var(--line); border-radius: 999px; padding: 8px 10px 8px 16px; flex-wrap: nowrap; gap: 8px; }
+.brand b { font-size: 1.15rem; letter-spacing: 0.14em; font-weight: 700; white-space: nowrap; }
+.brand svg { width: 30px; height: 30px; }
+nav.secciones { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-left: auto; gap: 2px; min-width: 0; }
+nav.secciones::-webkit-scrollbar { display: none; }
+nav.secciones a { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 12px; white-space: nowrap; color: var(--muted); font-size: 0.88rem; }
+nav.secciones a:hover { background: var(--sunken); color: var(--fg); }
+nav.secciones a.activo, nav.secciones a.destacado { background: var(--accent); color: var(--accent-ink); }
+nav.secciones a.panel { background: var(--surface-2); color: var(--fg); border: 1px solid var(--line); }
+#tema { flex: none; width: 38px; height: 38px; border-radius: 50%; padding: 0; display: grid; place-items: center; }
+.aviso { background: transparent; border: 0; }
+.aviso .wrap { padding-block: 12px 0; }
+.aviso .wrap > div, .aviso .wrap { color: var(--warn); }
+
+/* botones y campos */
+.btn { border-radius: 999px; padding: 10px 18px; background: var(--surface-2); border-color: var(--line); min-height: 42px; transition: border-color .15s, background .15s, transform .15s; }
+.btn:hover { border-color: var(--signal); }
+.btn.primario { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn.primario:hover { filter: brightness(1.08); }
+.btn.chico { padding: 6px 12px; min-height: 34px; }
+input, select, textarea { background: var(--sunken); border-radius: 12px; padding: 10px 12px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--signal); outline-color: var(--signal); }
+:focus-visible { outline-color: var(--signal); }
+.chk { border-radius: 999px; background: var(--surface); }
+
+/* tarjetas */
+.producto, .item, .caja, .editor, .pasos div, .carrito { border-radius: var(--radius-l); background: var(--glass); backdrop-filter: blur(10px); }
+.producto { border-color: var(--line); transition: transform .2s, border-color .2s; }
+.producto:hover { border-color: color-mix(in srgb, var(--signal) 50%, var(--line)); transform: translateY(-2px); }
+.producto figure { background: #e9edf2; }
+.lista-mod, .matriz, .tabla, .arbol li { border-radius: var(--radius); background: var(--glass); }
+.lista-mod div { border-color: var(--line); }
+.tag { border-radius: 999px; padding: 3px 10px; }
+.estado { border-radius: 999px; }
+.pd { background: var(--sunken); color: var(--warn); }
+pre.registros { background: var(--sunken); border: 1px solid var(--line); }
+.cuidado { border-radius: 0 var(--radius) var(--radius) 0; }
+.resumen button { border-radius: var(--radius); background: var(--surface); }
+.resumen button[aria-pressed="true"] { border-color: var(--signal); box-shadow: inset 0 0 0 1px var(--signal); }
+.filtros button { background: var(--surface); }
+.filtros button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.matriz th, .tabla th { background: var(--surface-2); }
+section.panel-prov, section.marca { background: transparent; }
+.panel-prov { background: var(--bg2); border-block: 1px solid var(--line); padding-block: 56px 64px; }
+section.linea { padding-block: 64px 16px; }
+.cabeza p { color: var(--muted); }
+.diagrama { background: var(--glass); border-radius: var(--radius-l); }
+footer { border-top: 1px solid var(--line); margin-top: 48px; }
+
+/* portada */
+.hero { position: relative; padding-block: 56px 40px; overflow: hidden; isolation: isolate; }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.9; }
+.hero-g { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 40px; align-items: center; }
+.hero-t { display: grid; gap: 22px; min-width: 0; }
+.hero h1 { font-size: clamp(2.5rem, 6vw, 4.9rem); }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero .lead { font-size: 1.12rem; color: var(--muted); max-width: 36em; }
+.hero-f { margin: 0; padding: 14px; position: relative; }
+.hero-f img { border-radius: 14px; width: 100%; height: auto; }
+.hero-f figcaption { font: 0.74rem var(--font-mono); color: var(--muted); padding: 10px 6px 0; letter-spacing: 0.04em; }
+.hechos { gap: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+section.linea { scroll-margin-top: 96px; }
+.hechos b { font-size: 2.3rem; font-weight: 600; color: var(--fg); }
+.hechos span { color: var(--muted); }
+
+/* riel de líneas */
+.riel { background: transparent; border: 0; margin-top: 8px; }
+.riel .wrap { gap: 12px; }
+.riel a { border: 1px solid var(--line); border-radius: var(--radius-l); background: var(--glass); padding: 18px; transition: border-color .2s, transform .2s; }
+.riel a:last-child { border-right: 1px solid var(--line); }
+.riel a:hover { background: var(--glass); border-color: var(--signal); transform: translateY(-2px); }
+.riel .ic { width: 28px; height: 28px; color: var(--signal); margin-bottom: 4px; }
+.riel .nombre i { color: var(--accent); }
+
+/* constructor de la cadena */
+.constructor { padding: 20px; display: grid; gap: 18px; }
+.paleta { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+.mod-btn { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; text-align: left; padding: 10px 16px 10px 12px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); cursor: pointer; font: inherit; min-height: 56px; }
+.mod-btn:hover { border-color: var(--signal); }
+.mod-btn .ic { width: 28px; height: 28px; grid-row: span 2; padding: 5px; border-radius: 10px; background: var(--sunken); }
+.mod-btn b { font: 600 1rem var(--font-display); }
+.mod-btn span { font-size: 0.78rem; color: var(--muted); }
+.mod-btn[data-t="rack"] .ic { color: var(--accent); } .mod-btn[data-t="in16"] .ic { color: var(--signal); } .mod-btn[data-t="ai8"] .ic { color: var(--info); }
+.paleta .btn { align-self: center; }
+.cinta { overflow-x: auto; border-radius: var(--radius); background: var(--sunken); border: 1px solid var(--line); padding: 8px; background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 18px 18px; }
+.cinta svg { display: block; height: auto; min-width: 100%; }
+.cinta text { font-family: var(--font-body); fill: var(--fg); }
+.cinta .mu { fill: var(--muted); font-size: 11px; font-family: var(--font-mono); }
+.cinta .placa { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.5; }
+.cinta .placa.fuera { opacity: 0.4; stroke-dasharray: 5 4; }
+.cinta .borne { fill: #4b8a5e; } .cinta .borne.q { fill: var(--accent); } .cinta .borne.i { fill: var(--signal); } .cinta .borne.a { fill: var(--info); }
+.cinta .led { fill: var(--line); } .cinta .led.on { fill: var(--ok); }
+.cinta .cable { fill: none; stroke: var(--signal); stroke-width: 3; stroke-linecap: round; }
+.cinta .cable.flujo { stroke-dasharray: 6 8; animation: flujo 1.2s linear infinite; }
+.cinta .cable.corte { stroke: var(--bad); stroke-dasharray: 3 7; opacity: 0.8; }
+.cinta .cable-g { cursor: pointer; }
+.cinta .cable-g:focus-visible .cable, .cinta .cable-g:hover .cable { stroke-width: 5; }
+.cinta .insignia { fill: var(--accent); } .cinta .insignia-t { fill: var(--accent-ink); font: 600 11px var(--font-body); }
+@keyframes flujo { to { stroke-dashoffset: -28; } }
+.cuenta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.cuenta div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 2px; }
+.cuenta b { font: 600 1.9rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.cuenta span { color: var(--muted); font-size: 0.8rem; }
+.cuenta .q b { color: var(--accent); } .cuenta .i b { color: var(--signal); } .cuenta .a b { color: var(--info); }
+table.mapa { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+table.mapa td, table.mapa th { padding: 8px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.mapa th { font: 500 0.7rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border-top: 0; }
+.mapa code { font-family: var(--font-mono); color: var(--signal); }
+.mapa .fuera td { color: var(--muted); text-decoration: line-through; }
+
+/* panel del PLC (vidrio, como las referencias) */
+.hmi { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 0; padding: 14px; min-height: 520px; background-image: radial-gradient(700px 320px at 80% 0, var(--glow), transparent 70%); }
+.hmi-nav { display: grid; align-content: space-between; padding: 10px 8px; border-radius: 18px; background: var(--sunken); border: 1px solid var(--line); margin-right: 14px; justify-items: center; }
+.hmi-nav div { display: grid; gap: 8px; justify-items: center; }
+.hmi-nav button { width: 48px; height: 48px; border-radius: 14px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.hmi-nav button:hover { color: var(--fg); background: var(--surface-2); }
+.hmi-nav button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.hmi-nav .ic { width: 22px; height: 22px; }
+.hmi-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.hmi-top h3 { font-size: 1.6rem; } .hmi-top h3 em { font-style: normal; color: var(--accent); }
+.hmi-top .sub { color: var(--muted); font-size: 0.86rem; }
+.pildoras { display: flex; gap: 8px; flex-wrap: wrap; }
+.pildora { border: 1px solid var(--line); background: var(--sunken); color: var(--fg); border-radius: 999px; padding: 7px 14px; font: 500 0.85rem var(--font-body); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.pildora[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.pildora.run[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: #05150c; }
+.hmi-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
+.tarj { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.tarj h4 { margin: 0; font: 500 0.88rem var(--font-body); color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tarj .grande { font: 600 2.4rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.tarj .grande small { font-size: 0.95rem; color: var(--muted); font-weight: 400; margin-left: 6px; }
+.c4 { grid-column: span 4; } .c5 { grid-column: span 5; } .c7 { grid-column: span 7; } .c8 { grid-column: span 8; } .c12 { grid-column: span 12; }
+.vars { display: grid; gap: 4px; max-height: 220px; overflow: auto; }
+.var { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 12px; background: var(--sunken); font-size: 0.86rem; border: 0; color: var(--fg); text-align: left; font-family: inherit; }
+button.var { cursor: pointer; }
+.var code { font-family: var(--font-mono); color: var(--signal); }
+.var .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.var .pt { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.var.on .pt { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.var.fuera { opacity: 0.45; }
+.losetas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.loseta { border: 1px solid var(--line); background: var(--sunken); border-radius: 16px; padding: 10px; display: grid; gap: 2px; text-align: left; color: var(--fg); cursor: pointer; font: inherit; min-height: 62px; }
+.loseta b { font: 600 1rem var(--font-mono); } .loseta span { font-size: 0.72rem; color: var(--muted); }
+.loseta[aria-pressed="true"] { border-color: var(--ok); background: var(--ok-soft); } .loseta[aria-pressed="true"] span { color: var(--ok); }
+.loseta:disabled { opacity: 0.4; cursor: not-allowed; }
+.alarmas { display: grid; gap: 6px; max-height: 190px; overflow: auto; }
+.alarmas div { padding: 8px 10px; border-radius: 12px; background: var(--sunken); font-size: 0.86rem; }
+.alarmas .bad { background: var(--bad-soft); color: var(--bad); } .alarmas .warn { background: var(--warn-soft); color: var(--warn); } .alarmas .ok { color: var(--ok); }
+.hmi canvas { width: 100%; height: 200px; display: block; }
+.regla { font: 0.8rem var(--font-mono); color: var(--muted); background: var(--sunken); border-radius: 12px; padding: 10px 12px; white-space: pre-wrap; }
+.regla b { color: var(--fg); font-weight: 500; }
+.hmi [hidden] { display: none !important; }
+
+@media (max-width: 960px) {
+  .hero-g { grid-template-columns: 1fr; }
+  .c4, .c5, .c7, .c8 { grid-column: span 12; }
+}
+@media (max-width: 640px) {
+  .hmi { grid-template-columns: 1fr; padding: 10px; }
+  .hmi-nav { grid-auto-flow: column; margin: 0 0 10px; padding: 6px; }
+  .hmi-nav div { grid-auto-flow: column; }
+  .losetas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  header.top .wrap { border-radius: 24px; flex-wrap: wrap; }
+  nav.secciones { width: 100%; margin-left: 0; order: 3; }
+}
+@media (prefers-reduced-motion: reduce) { .cinta .cable.flujo { animation: none; } .producto, .riel a { transition: none; } }
+
 </style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+    <symbol id="i-factory" viewBox="0 0 24 24"><path d="M3 21V11l6 4v-4l6 4V5h4v16H3z"/><path d="M7 18h2M12 18h2M17 18h0"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-screen" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M6 11h3l2-3 2 5 2-2h3"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol>
+    <symbol id="i-console" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 10l3 2-3 2M13 15h4"/></symbol>
+    <symbol id="i-inputs" viewBox="0 0 24 24"><path d="M3 8h8M3 16h8"/><path d="M11 5l4 3-4 3M11 13l4 3-4 3"/><rect x="17" y="4" width="4" height="16" rx="1.5"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 12c2.5-8 4.5-8 7 0s4.5 8 7 0 3-6 6-4"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L5 14h6l-1 8 8-12h-6z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  </defs>
+</svg>
 
 <header class="top">
   <div class="wrap">
@@ -237,54 +458,134 @@ html, body { max-width: 100%; overflow-x: clip; }
       <b>AP ELECTRIC</b>
     </a>
     <nav class="secciones" aria-label="Secciones">
-      <a href="#home">Home</a>
-      <a href="#industrial">Industrial</a>
-      <a href="#luz">Luz</a>
-      <a href="#software">Software</a>
-      <a href="#placa">La placa</a>
-      <a href="#catalogo">Catálogo</a>
-      <a href="#solicitud">Solicitar</a>
-      <a href="consola.html">Consola</a>
-      <a href="#elegir">¿Cuál necesito?</a>
-      <a href="#proveedores" class="panel">Proveedores</a>
-      <a href="#marca">Marca</a>
+      <a class="destacado" href="#cadena"><svg class="ic"><use href="#i-link"/></svg>Cadena</a>
+      <a href="#panel"><svg class="ic"><use href="#i-screen"/></svg>Panel</a>
+      <a href="#industrial"><svg class="ic"><use href="#i-factory"/></svg>Industrial</a>
+      <a href="#home"><svg class="ic"><use href="#i-home"/></svg>Home</a>
+      <a href="#luz"><svg class="ic"><use href="#i-bulb"/></svg>Luz</a>
+      <a href="#software"><svg class="ic"><use href="#i-code"/></svg>Software</a>
+      <a href="#elegir"><svg class="ic"><use href="#i-sliders"/></svg>Elegir</a>
+      <a href="#catalogo"><svg class="ic"><use href="#i-grid"/></svg>Catálogo</a>
+      <a href="#solicitud"><svg class="ic"><use href="#i-mail"/></svg>Solicitar</a>
+      <a href="consola.html"><svg class="ic"><use href="#i-console"/></svg>Consola</a>
+      <a href="#proveedores" class="panel"><svg class="ic"><use href="#i-box"/></svg>Proveedores</a>
+      <a href="#marca"><svg class="ic"><use href="#i-tag"/></svg>Marca</a>
     </nav>
+    <button class="btn chico" id="tema" type="button" aria-label="Cambiar entre tema claro y oscuro"><svg class="ic" id="temaIc"><use href="#i-sun"/></svg></button>
   </div>
 </header>
 <div class="aviso" role="note"><div class="wrap"><b>Prototipo de diseño (rev B).</b> Ningún producto está a la venta: no se han fabricado, medido ni certificado. Los valores marcados <span class="pd">PD</span> están por determinar.</div></div>
 
 <main id="inicio">
-  <section class="portada">
-    <div class="wrap">
-      <div class="texto">
-        <span class="eyebrow">Control eléctrico · hecho para México</span>
-        <h1>Prende, apaga y automatiza sin depender de internet.</h1>
-        <p class="lead">Dos placas dan cuatro productos con un solo programa: para la lámpara de la sala, para el apagador de la escalera y para el tablero de la nave. Se enlazan entre sí por la red local o por Modbus, sin nube. Los vínculos por red local (UDP) todavía no llevan clave ni firma: úsalos solo en redes de confianza.</p>
+  <section class="hero">
+    <canvas id="trazos" aria-hidden="true"></canvas>
+    <div class="wrap hero-g">
+      <div class="hero-t">
+        <span class="eyebrow"><svg class="ic"><use href="#i-bolt"/></svg>Automatización eléctrica · hecha para México</span>
+        <h1>Módulos que se enlazan, un solo <em>PLC</em>.</h1>
+        <p class="lead">Une un módulo con otro con un cable de cuatro hilos y se numeran solos: 16 salidas protegidas, entradas de 12 a 30 V y analógicas, todo visible en una pantalla táctil. Sin nube y sin cuentas.</p>
         <div class="botones">
-          <a class="btn primario" href="#elegir">Encuentra tu producto</a>
+          <a class="btn primario" href="#cadena"><svg class="ic"><use href="#i-link"/></svg>Armar mi cadena</a>
+          <a class="btn" href="#panel"><svg class="ic"><use href="#i-screen"/></svg>Ver el panel</a>
           <a class="btn" href="#interes">Avísame de los prototipos</a>
         </div>
-        <div class="hechos" aria-label="Cifras de la familia">
-          <div><b class="mono">2</b><span>placas</span></div>
-          <div><b class="mono">4</b><span>productos</span></div>
-          <div><b class="mono">1</b><span>programa: AP Control</span></div>
+        <div class="hechos" aria-label="Cifras de diseño">
+          <div><b class="mono">16</b><span>salidas por módulo</span></div>
+          <div><b class="mono">16</b><span>módulos por cadena (diseño)</span></div>
+          <div><b class="mono">12-30 V</b><span>alimentación CC</span></div>
           <div><b class="mono">0</b><span>cuentas o nube obligatorias</span></div>
         </div>
       </div>
-      <figure><img src="img/familia.jpg" alt="Render de la familia: 7R Tour en riel DIN, Home Plug y Home Switch" width="1200" height="1175"></figure>
+      <figure class="hero-f glass">
+        <img src="img/rack16.jpg" alt="Render de la placa AP Rack 16: 8 borneras de salida arriba, entradas, ESP32-C3 y dos conectores AP LINK abajo" width="1200" height="640">
+        <figcaption>AP RACK 16 · 176 × 100 mm · render del diseño, sin fabricar</figcaption>
+      </figure>
     </div>
   </section>
 
   <div class="riel">
     <div class="wrap">
-      <a href="#home"><span class="eyebrow">127 V CA</span><span class="nombre">AP Electric <i>Home</i></span><small>Lámparas y apagadores de la casa</small></a>
-      <a href="#industrial"><span class="eyebrow">24 V CC · Modbus</span><span class="nombre">AP Electric <i>Industrial</i></span><small>Tableros, contactores, PLC</small></a>
-      <a href="#luz"><span class="eyebrow">12-24 V · corriente constante</span><span class="nombre">AP Electric <i>Luz</i></span><small>LED, letreros y alumbrado</small></a>
-      <a href="#software"><span class="eyebrow">Local · sin nube</span><span class="nombre">AP <i>Studio</i></span><small>Programa, app y lógica tipo PLC</small></a>
+      <a href="#cadena"><svg class="ic"><use href="#i-link"/></svg><span class="eyebrow">AP LINK · 12-30 V CC</span><span class="nombre">AP Rack <i>Cadena</i></span><small>Salidas, entradas y analógicas que se suman</small></a>
+      <a href="#industrial"><svg class="ic"><use href="#i-factory"/></svg><span class="eyebrow">24 V CC · Modbus</span><span class="nombre">AP Electric <i>Industrial</i></span><small>Tableros, contactores, PLC</small></a>
+      <a href="#home"><svg class="ic"><use href="#i-home"/></svg><span class="eyebrow">127 V CA</span><span class="nombre">AP Electric <i>Home</i></span><small>Lámparas y apagadores de la casa</small></a>
+      <a href="#luz"><svg class="ic"><use href="#i-bulb"/></svg><span class="eyebrow">12-24 V · corriente constante</span><span class="nombre">AP Electric <i>Luz</i></span><small>LED, letreros y alumbrado</small></a>
     </div>
   </div>
 
-  <!-- HOME -->
+  <!-- CADENA -->
+  <section class="linea" id="cadena">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow"><svg class="ic"><use href="#i-link"/></svg>AP LINK</span><h2>Une las placas con un cable</h2></div>
+        <p>Cada módulo tiene dos conectores iguales: ENTRA y SIGUE. Un cable de cuatro hilos (dos de datos RS-485, 0 V y la línea SENSE) va de SIGUE al ENTRA del siguiente. El primero de la cadena manda; los demás se numeran solos según el cable, sin interruptores. Arma una cadena aquí y corta un cable para ver qué pasa.</p>
+      </div>
+      <div class="constructor glass">
+        <div class="paleta" id="cPaleta" role="group" aria-label="Agregar un módulo a la cadena">
+          <button class="mod-btn" type="button" data-t="rack"><svg class="ic"><use href="#i-chip"/></svg><b>AP Rack 16</b><span>16 salidas · 8 entradas</span></button>
+          <button class="mod-btn" type="button" data-t="in16"><svg class="ic"><use href="#i-inputs"/></svg><b>AP Rack IN16</b><span>16 entradas 12-30 V</span></button>
+          <button class="mod-btn" type="button" data-t="ai8"><svg class="ic"><use href="#i-wave"/></svg><b>AP Rack AI8</b><span>8 analógicas 0-10 V / 4-20 mA</span></button>
+          <button class="btn" type="button" id="cQuitar">Quitar el último</button>
+          <button class="btn" type="button" id="cReset">Reiniciar</button>
+        </div>
+        <div class="cinta" id="cinta"><svg id="cadenaSvg" role="group" aria-label="Cadena de módulos conectados por cables AP LINK"></svg></div>
+        <p class="nota" id="cNota" role="status"></p>
+        <div class="cuenta" id="cCuenta" aria-label="Totales de la cadena"></div>
+        <div class="matriz"><table class="mapa" aria-label="Direcciones del PLC por módulo"><thead><tr><th>Módulo</th><th>Salidas (Q)</th><th>Entradas (I)</th><th>Analógicas (A)</th><th>Estado</th></tr></thead><tbody id="cMapa"></tbody></table></div>
+      </div>
+      <div class="dos" style="margin-top:16px">
+        <div class="caja si"><b>Qué resuelve</b><ul>
+          <li>Más salidas y entradas sin cambiar de equipo: se agregan módulos y el PLC los ve como uno solo (Q1…Qn, I1…In, A1…An).</li>
+          <li>Si un módulo pierde al cabeza, sus salidas pasan a su estado seguro (de fábrica, apagadas) en 1 segundo.</li>
+          <li>Un cable cortado parte la cadena: cada tramo elige su cabeza y sigue funcionando; al reconectar se renumera todo.</li></ul></div>
+        <div class="caja no"><b>Qué falta</b><ul>
+          <li>Todo está probado solo en simulación en la PC; no hay placas fabricadas ni mediciones.</li>
+          <li>AP LINK no está aislado: comparte el 0 V por el cable. No conectar un cable de AP BUS.</li>
+          <li>No es una función de seguridad.</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL -->
+  <section class="linea" id="panel">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow"><svg class="ic"><use href="#i-screen"/></svg>Pantalla del PLC</span><h2>Panel AP</h2></div>
+        <p>Una pantalla táctil que corre en el navegador de una tableta, computadora o celular: salidas con un toque, luces de entradas, valores analógicos, consignas, tendencias y alarmas. Esta es una demostración simulada de la cadena de arriba; el panel completo se abre desde el botón de abajo y se conecta por USB o por la red local.</p>
+      </div>
+      <div class="hmi glass" id="hmi">
+        <aside class="hmi-nav" aria-label="Vistas del panel">
+          <div>
+            <button type="button" data-vista="resumen" aria-pressed="true" aria-label="Resumen" title="Resumen"><svg class="ic"><use href="#i-screen"/></svg></button>
+            <button type="button" data-vista="variables" aria-pressed="false" aria-label="Variables" title="Variables"><svg class="ic"><use href="#i-list"/></svg></button>
+            <button type="button" data-vista="alarmas" aria-pressed="false" aria-label="Alarmas" title="Alarmas"><svg class="ic"><use href="#i-bell"/></svg></button>
+          </div>
+          <div><svg class="ic" style="color:var(--signal)"><use href="#i-link"/></svg></div>
+        </aside>
+        <div>
+          <div class="hmi-top">
+            <div><h3>Línea de <em>prueba</em></h3><span class="sub" id="hSub">Cadena de 3 módulos</span></div>
+            <div class="pildoras">
+              <button class="pildora run" type="button" id="hRun" aria-pressed="false">PLC en STOP</button>
+              <button class="pildora" type="button" id="hRango" aria-pressed="false" title="Cambiar el tramo de la tendencia">Últimos 60 s</button>
+            </div>
+          </div>
+          <div class="hmi-grid">
+            <div class="tarj c4" data-v="resumen"><h4>Salidas activas <svg class="ic" style="color:var(--accent)"><use href="#i-bolt"/></svg></h4><div class="grande" id="hSal">0<small>de 16</small></div><span class="sub" style="font-size:.8rem;color:var(--muted)" id="hSalSub">Toca una salida para encenderla</span></div>
+            <div class="tarj c8" data-v="resumen"><h4>Salidas</h4><div class="losetas" id="hTiles"></div></div>
+            <div class="tarj c5" data-v="resumen variables" id="hVarsT"><h4>Variables del PLC</h4>
+              <div class="pildoras" id="hVarTabs" role="group" aria-label="Tipo de variable"><button class="pildora" type="button" data-l="e" aria-pressed="true">Entradas</button><button class="pildora" type="button" data-l="s" aria-pressed="false">Salidas</button><button class="pildora" type="button" data-l="a" aria-pressed="false">Analógicas</button></div>
+              <div class="vars" id="hVars"></div></div>
+            <div class="tarj c7" data-v="resumen"><h4>Tendencia · <span id="hChartN">A1</span></h4><canvas id="hChart" role="img" aria-label="Gráfica de tendencia de la entrada analógica A1"></canvas></div>
+            <div class="tarj c12" data-v="resumen alarmas"><h4>Alarmas <svg class="ic" style="color:var(--warn)"><use href="#i-bell"/></svg></h4><div class="alarmas" id="hAl"></div></div>
+            <div class="tarj c12" data-v="variables"><h4>Programa del PLC (ejemplo)</h4><div class="regla" id="hRegla"></div></div>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:16px" class="botones"><a class="btn primario" href="panel.html"><svg class="ic"><use href="#i-screen"/></svg>Abrir el Panel AP completo</a> <a class="btn" href="consola.html"><svg class="ic"><use href="#i-console"/></svg>Consola AP Base</a></p>
+    </div>
+  </section>
+
+<!-- HOME -->
   <section class="linea" id="home">
     <div class="wrap">
       <div class="cabeza">
@@ -341,6 +642,49 @@ html, body { max-width: 100%; overflow-x: clip; }
         <p><b>Estado honesto:</b> prototipo de ingeniería, todavía sin placas fabricadas, sin mediciones y sin certificación. No es una función de seguridad. En la revisión B las entradas son <b>PNP</b> (un sensor NPN no funciona directo) y no hay Ethernet. En el piloto los contactos solo manejan cargas de hasta 30 V (torre de luz, avisador, bobinas de 24 V): nada de 127/220 V. No hay fecha ni precio comprometidos: el precio de referencia que probamos es de $5,000 a $7,000 MXN por máquina y se confirmará con clientes.</p>
         <p><a class="btn primario" href="#interes">Quiero participar</a></p>
       </div>
+      <div class="cabeza" style="margin-top:36px">
+        <div><span class="eyebrow"><svg class="ic"><use href="#i-link"/></svg>Cadena AP Rack · nuevo</span><h3 style="font-size:1.9rem">Módulos que se suman</h3></div>
+        <p>Placas de 12 a 30 V CC que comparten un solo PLC y se enlazan con AP LINK. <a href="#cadena">Arma una cadena</a> y mira cómo se numeran sus entradas y salidas.</p>
+      </div>
+      <div class="productos">
+        <article class="producto">
+          <figure><img src="img/rack16.jpg" alt="Render de la placa AP Rack 16" loading="lazy" width="1200" height="617"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>AP Rack 16</h3><span class="estado dis">DISEÑO</span></div>
+            <p>16 salidas de lado bajo protegidas, 8 entradas aisladas y dos conectores AP LINK. Va al frente de la cadena y corre el PLC.</p>
+            <div class="tags"><span class="tag">16 salidas</span><span class="tag">8 entradas</span><span class="tag">12-30 V CC</span><span class="tag">AP LINK</span></div>
+            <table class="spec">
+              <tr><td>Salidas</td><td>NCV8406A (65 V; protección propia), diodo de bobina y LED por salida · límite por canal <span class="pd">PD</span></td></tr>
+              <tr><td>+V de la placa</td><td>Pistas de 0.8 mm en esta revisión: fusible de 3 A, sin medir</td></tr>
+              <tr><td>Revisión de diseño</td><td>ERC 0 · DRC 0 · reglas de fabricación 0 · 230 piezas con código LCSC</td></tr>
+            </table>
+          </div>
+        </article>
+        <article class="producto">
+          <figure><img src="img/in16.jpg" alt="Render de la placa AP Rack IN16" loading="lazy" width="1200" height="617"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>AP Rack IN16</h3><span class="estado dis">DISEÑO</span></div>
+            <p>16 entradas digitales de 12 a 30 V optoaisladas, con LED por entrada. Sus entradas se suman a las del módulo anterior en el PLC.</p>
+            <div class="tags"><span class="tag">16 entradas</span><span class="tag">12-30 V</span><span class="tag">común propio</span></div>
+            <table class="spec">
+              <tr><td>Umbral</td><td>Meta: apagada bajo ~5 V · encendida desde ~11 V <span class="origen">[C]</span>, sin medir</td></tr>
+              <tr><td>Revisión de diseño</td><td>ERC 0 · DRC 0 · 191 piezas con código LCSC</td></tr>
+            </table>
+          </div>
+        </article>
+        <article class="producto">
+          <figure><img src="img/ai8.jpg" alt="Render de la placa AP Rack AI8" loading="lazy" width="1200" height="617"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>AP Rack AI8</h3><span class="estado dis">DISEÑO</span></div>
+            <p>8 entradas analógicas de 16 bits (dos ADS1115), cada una de 0 a 10 V o de 4 a 20 mA con un puente de soldadura. Alimenta el lazo del sensor con la entrada del módulo.</p>
+            <div class="tags"><span class="tag">8 analógicas</span><span class="tag">0-10 V</span><span class="tag">4-20 mA</span></div>
+            <table class="spec">
+              <tr><td>Lazo 4-20 mA</td><td>Shunt de 150 Ω: un transmisor de 2 hilos necesita unos 15 V o más</td></tr>
+              <tr><td>Aislamiento</td><td>Ninguno: no conectar un voltaje con el puente de 4-20 mA cerrado</td></tr>
+            </table>
+          </div>
+        </article>
+      </div>
       <div class="productos">
         <article class="producto">
           <figure><img src="img/7r_tour.jpg" alt="7R Tour: gabinete DIN con 7 canales y bornes" loading="lazy"></figure>
@@ -392,6 +736,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
             <div><b>AP UNO</b><span>Todo en uno: potencia, cerebro, salidas y RS-485</span></div>
             <div><b>AP PRO DO8</b><span>8 salidas de 24 V protegidas</span></div>
             <div><b>AP PRO DI8 · AI4</b><span>8 entradas aisladas · 4 analógicas 0-10 V / 4-20 mA</span></div>
+            <div><b>AP Rack 16 · IN16 · AI8</b><span>Módulos de 12-30 V que se encadenan con AP LINK: 16 salidas, 16 entradas, 8 analógicas</span></div>
             <div><b>AP GATE · NODE</b><span>Modbus RTU, CAN, Home Assistant, MQTT</span></div>
           </div>
         </div>
@@ -443,6 +788,8 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
         <div><b>AP Control 1.0</b><span>Arranque seguro, antirrebote, minuteros, vigilante de 8 s, fallas visibles, escrituras de memoria limitadas</span></div>
         <div><b>AP Lógica</b><span>Escalera o lista de instrucciones: contactos, TON / TOF / TP, CTU / CTD, flancos, comparaciones analógicas</span></div>
         <div><b>Vínculos locales</b><span>Un botón de un equipo manda a la salida de otro por la red local</span></div>
+        <div><b>PLC en la cadena</b><span>El cabeza corre AP Lógica con las entradas, salidas y analógicas de todos los módulos (I, Q, A) y marca S6 si falta alguno</span></div>
+        <div><b>Panel AP</b><span>Pantalla táctil en el navegador: botones, luces, consignas, tendencias y alarmas, con diseñador. <a href="panel.html">Abrir</a></span></div>
         <div><b>Integraciones</b><span>Modbus RTU esclavo, API HTTP; MQTT y Home Assistant en AP GATE</span></div>
       </div>
     </div>
@@ -1067,5 +1414,294 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
       db.collection("confirmaciones").onSnapshot(function (s) { s.docs.forEach(function (x) { estados[x.id] = x.data() || {}; }); pintarEquipo(); }, function () {});
     }
   }).catch(function () {});
+})();
+</script>
+<script>
+/* ---------- Tema, trazos de la portada, constructor de la cadena y panel simulado ---------- */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = "http://www.w3.org/2000/svg";
+  function txt(tag, text, cls) { var el = document.createElement(tag); if (text != null) el.textContent = text; if (cls) el.className = cls; return el; }
+  function svg(tag, attrs, text) { var el = document.createElementNS(NS, tag); Object.keys(attrs || {}).forEach(function (k) { el.setAttribute(k, attrs[k]); }); if (text != null) el.textContent = text; return el; }
+  function icono(id) { var s = svg("svg", { "class": "ic", "aria-hidden": "true" }); var u = svg("use", {}); u.setAttribute("href", "#" + id); s.appendChild(u); return s; }
+
+  /* tema claro / oscuro (se recuerda en este navegador) */
+  var raiz = document.documentElement;
+  function esClaro() { var t = raiz.getAttribute("data-theme"); return t ? t === "light" : window.matchMedia("(prefers-color-scheme: light)").matches; }
+  function pintarTema() { var u = $("temaIc").firstElementChild; u.setAttribute("href", esClaro() ? "#i-moon" : "#i-sun"); }
+  try { var g = localStorage.getItem("apTema"); if (g === "light" || g === "dark") raiz.setAttribute("data-theme", g); } catch (e) {}
+  $("tema").addEventListener("click", function () {
+    var n = esClaro() ? "dark" : "light"; raiz.setAttribute("data-theme", n); try { localStorage.setItem("apTema", n); } catch (e) {} pintarTema(); dibujarGrafica();
+  });
+  pintarTema();
+
+  /* trazos de placa en la portada: líneas ortogonales con pulsos de señal */
+  (function () {
+    var c = $("trazos"), g = c.getContext("2d"), rutas = [], W = 0, H = 0, vivo = true, quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches, t0 = 0;
+    function color(n, a) { var v = getComputedStyle(raiz).getPropertyValue(n).trim() || "#4fd1e8"; return { v: v, a: a }; }
+    function medir() {
+      var r = c.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2); W = r.width; H = r.height; c.width = W * d; c.height = H * d; g.setTransform(d, 0, 0, d, 0, 0);
+      rutas = []; var n = Math.max(8, Math.round(W / 90)), sem = 7;
+      function azar() { sem = (sem * 16807) % 2147483647; return sem / 2147483647; }
+      for (var i = 0; i < n; i++) {
+        var x = azar() * W, y = azar() * H, p = [[x, y]], horiz = azar() < 0.5;
+        for (var k = 0; k < 6; k++) { var L = 40 + azar() * 140, s = azar() < 0.5 ? -1 : 1; if (horiz) x += s * L; else y += s * L; p.push([x, y]); horiz = !horiz; }
+        var largo = 0, seg = []; for (var j = 1; j < p.length; j++) { var l = Math.abs(p[j][0] - p[j - 1][0]) + Math.abs(p[j][1] - p[j - 1][1]); seg.push(l); largo += l; }
+        rutas.push({ p: p, seg: seg, largo: largo, fase: azar(), vel: 0.05 + azar() * 0.07 });
+      }
+      pintar(0);
+    }
+    function punto(r, f) { var d = f * r.largo; for (var j = 0; j < r.seg.length; j++) { if (d <= r.seg[j]) { var u = d / (r.seg[j] || 1); return [r.p[j][0] + (r.p[j + 1][0] - r.p[j][0]) * u, r.p[j][1] + (r.p[j + 1][1] - r.p[j][1]) * u]; } d -= r.seg[j]; } return r.p[r.p.length - 1]; }
+    function pintar(t) {
+      g.clearRect(0, 0, W, H); var col = color("--signal").v;
+      rutas.forEach(function (r) {
+        g.beginPath(); r.p.forEach(function (q, i) { i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]); });
+        g.strokeStyle = col; g.globalAlpha = 0.16; g.lineWidth = 1.5; g.stroke();
+        r.p.forEach(function (q, i) { if (i === 0 || i === r.p.length - 1) { g.beginPath(); g.arc(q[0], q[1], 2.6, 0, 6.3); g.fillStyle = col; g.globalAlpha = 0.3; g.fill(); } });
+        var f = quieto ? r.fase : (r.fase + t * r.vel / 10) % 1, q = punto(r, f);
+        var gr = g.createRadialGradient(q[0], q[1], 0, q[0], q[1], 16); gr.addColorStop(0, col); gr.addColorStop(1, "transparent");
+        g.globalAlpha = 0.55; g.fillStyle = gr; g.beginPath(); g.arc(q[0], q[1], 16, 0, 6.3); g.fill();
+      });
+      g.globalAlpha = 1;
+    }
+    function cuadro(ms) { if (!vivo) return; if (!t0) t0 = ms; pintar((ms - t0) / 1000); requestAnimationFrame(cuadro); }
+    medir(); window.addEventListener("resize", medir);
+    if (!quieto) {
+      if ("IntersectionObserver" in window) new IntersectionObserver(function (e) { var v = e[0].isIntersecting; if (v && !vivo) { vivo = true; requestAnimationFrame(cuadro); } vivo = v; }).observe(c);
+      requestAnimationFrame(cuadro);
+    }
+  })();
+
+  /* ---------- modelo de la cadena ---------- */
+  var TIPOS = {
+    rack: { n: "AP Rack 16", ns: 16, ne: 8, na: 0 },
+    in16: { n: "AP Rack IN16", ns: 0, ne: 16, na: 0 },
+    ai8: { n: "AP Rack AI8", ns: 0, ne: 0, na: 8 }
+  };
+  var MAX = 8;
+  var S = { mods: [], cortes: {}, run: false, t: 0, hist: [], vista: "resumen", lista: "e", rango: 60, maxVisto: 0, alarmas: [], activas: {}, tipoSel: "rack" };
+  function nuevoMod(t) { return { t: t, s: 0, e: 0, a: [0, 0, 0, 0, 0, 0, 0, 0] }; }
+  function reiniciar() { S.mods = [nuevoMod("rack"), nuevoMod("in16"), nuevoMod("ai8")]; S.cortes = {}; S.hist = []; S.maxVisto = S.run ? 3 : 0; }
+  reiniciar();
+
+  function largo() { for (var k = 0; k < S.mods.length - 1; k++) if (S.cortes[k]) return k + 1; return S.mods.length; }   // módulos que ve el cabeza
+  function mapa() {
+    var L = largo(), q = 0, i = 0, a = 0, filas = [];
+    S.mods.forEach(function (m, k) {
+      var T = TIPOS[m.t], f = { k: k, m: m, T: T, dentro: k < L };
+      if (f.dentro) { f.q = T.ns ? [q + 1, q + T.ns] : null; f.i = T.ne ? [i + 1, i + T.ne] : null; f.a = T.na ? [a + 1, a + T.na] : null; q += T.ns; i += T.ne; a += T.na; }
+      filas.push(f);
+    });
+    return { filas: filas, q: q, i: i, a: a, L: L };
+  }
+  function dir(m, area, n) { return m.filas.reduce(function (r, f) { return r; }, null); }
+  function locQ(M, n) { for (var j = 0; j < M.filas.length; j++) { var f = M.filas[j]; if (f.dentro && f.q && n >= f.q[0] && n <= f.q[1]) return { f: f, bit: n - f.q[0] }; } return null; }
+  function locI(M, n) { for (var j = 0; j < M.filas.length; j++) { var f = M.filas[j]; if (f.dentro && f.i && n >= f.i[0] && n <= f.i[1]) return { f: f, bit: n - f.i[0] }; } return null; }
+  function locA(M, n) { for (var j = 0; j < M.filas.length; j++) { var f = M.filas[j]; if (f.dentro && f.a && n >= f.a[0] && n <= f.a[1]) return { f: f, bit: n - f.a[0] }; } return null; }
+  function rd(x, n) { return x.f.m[n] ; }
+  function getQ(M, n) { var l = locQ(M, n); return l ? (l.f.m.s >> l.bit) & 1 : 0; }
+  function setQ(M, n, v) { var l = locQ(M, n); if (!l) return; if (v) l.f.m.s |= 1 << l.bit; else l.f.m.s &= ~(1 << l.bit); }
+  function getI(M, n) { var l = locI(M, n); return l ? (l.f.m.e >> l.bit) & 1 : 0; }
+  function getA(M, n) { var l = locA(M, n); return l ? l.f.m.a[l.bit] : null; }
+  var PLC_Q = { 2: 1, 4: 1, 16: 1 };                                  // salidas que maneja el programa de ejemplo
+
+  /* ---------- dibujo de la cadena ---------- */
+  var BW = 200, BH = 156, GAP = 96, PAD = 18;
+  function dibujarCadena() {
+    var s = $("cadenaSvg"), n = S.mods.length, M = mapa(), W = PAD * 2 + n * BW + (n - 1) * GAP, H = BH + PAD * 2 + 26;
+    s.setAttribute("viewBox", "0 0 " + W + " " + H); s.setAttribute("width", W); s.setAttribute("height", H); s.style.minWidth = Math.min(W, 640) + "px";
+    s.textContent = "";
+    M.filas.forEach(function (f) {
+      var x = PAD + f.k * (BW + GAP), y = PAD + 8, g = svg("g", { transform: "translate(" + x + "," + y + ")" });
+      g.appendChild(svg("rect", { "class": "placa" + (f.dentro ? "" : " fuera"), x: 0, y: 0, width: BW, height: BH, rx: 16 }));
+      g.appendChild(svg("text", { x: 14, y: 54, "font-size": 15, "font-weight": 600 }, f.T.n));
+      g.appendChild(svg("text", { x: 14, y: 72, "class": "mu" }, "MÓDULO " + (f.k + 1) + (f.dentro ? "" : " · TRAMO AISLADO")));
+      // bornes de salida (arriba) y de entrada o analógica (abajo)
+      for (var i = 0; i < f.T.ns; i++) g.appendChild(svg("rect", { "class": "borne q" + (f.dentro && (f.m.s >> i & 1) ? " on" : ""), x: 14 + i * 10.4, y: 14, width: 7, height: 12, rx: 1.5, opacity: f.dentro && (f.m.s >> i & 1) ? 1 : 0.4 }));
+      var nb = f.T.ne || f.T.na, cl = f.T.ne ? "i" : "a";
+      for (var j = 0; j < nb; j++) g.appendChild(svg("rect", { "class": "borne " + cl, x: 14 + j * (f.T.ne === 16 ? 10.4 : 20.8), y: BH - 26, width: 7, height: 12, rx: 1.5, opacity: f.dentro && f.T.ne && (f.m.e >> j & 1) ? 1 : 0.4 }));
+      // LED de posición en binario (1, 2, 4, 8)
+      var pos = f.dentro ? f.k + 1 : 0;
+      [0, 1, 2, 3].forEach(function (b) { g.appendChild(svg("circle", { "class": "led" + (pos >> b & 1 ? " on" : ""), cx: 20 + b * 16, cy: 98, r: 4.5 })); });
+      g.appendChild(svg("text", { x: 14, y: 118, "class": "mu", "font-size": 9 }, "1  2  4  8"));
+      if (f.k === 0) { g.appendChild(svg("rect", { "class": "insignia", x: BW - 78, y: 84, width: 64, height: 20, rx: 10 })); g.appendChild(svg("text", { "class": "insignia-t", x: BW - 46, y: 98, "text-anchor": "middle" }, "CABEZA")); }
+      g.appendChild(svg("text", { x: 14, y: BH - 4 + 0, "class": "mu", "font-size": 9, visibility: "hidden" }, ""));
+      g.appendChild(svg("text", { x: -6, y: BH / 2 + 4, "class": "mu", "text-anchor": "end", "font-size": 9, visibility: "hidden" }, "ENTRA"));
+      s.appendChild(g);
+    });
+    for (var k = 0; k < n - 1; k++) {
+      (function (k) {
+        var x1 = PAD + k * (BW + GAP) + BW, x2 = PAD + (k + 1) * (BW + GAP), y = PAD + 8 + 84, cortado = !!S.cortes[k];
+        var gr = svg("g", { "class": "cable-g", role: "button", tabindex: "0", "aria-pressed": String(cortado),
+          "aria-label": "Cable AP LINK entre el módulo " + (k + 1) + " y el " + (k + 2) + ": " + (cortado ? "cortado. Pulsa para reconectar" : "conectado. Pulsa para cortarlo") });
+        gr.appendChild(svg("rect", { x: x1 - 6, y: y - 18, width: x2 - x1 + 12, height: 36, fill: "transparent" }));
+        gr.appendChild(svg("path", { "class": "cable " + (cortado ? "corte" : "flujo"), d: "M" + x1 + " " + y + " C " + (x1 + 30) + " " + (y + 18) + ", " + (x2 - 30) + " " + (y - 18) + ", " + x2 + " " + y }));
+        gr.appendChild(svg("text", { x: (x1 + x2) / 2, y: y - 22, "text-anchor": "middle", "class": "mu" }, cortado ? "CORTADO" : "AP LINK"));
+        gr.appendChild(svg("text", { x: x1 + 6, y: y + 20, "class": "mu", "font-size": 9 }, "SIGUE"));
+        gr.appendChild(svg("text", { x: x2 - 6, y: y + 20, "class": "mu", "font-size": 9, "text-anchor": "end" }, "ENTRA"));
+        function alternar() { S.cortes[k] = !S.cortes[k]; if (!S.cortes[k]) delete S.cortes[k]; todo(); }
+        gr.addEventListener("click", alternar);
+        gr.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternar(); } });
+        s.appendChild(gr);
+      })(k);
+    }
+    $("cinta").setAttribute("aria-busy", "false");
+  }
+  function rango(r) { return r ? (r[0] === r[1] ? String(r[0]) : r[0] + "–" + r[1]) : "—"; }
+  function pintarResumen() {
+    var M = mapa(), c = $("cCuenta"); c.textContent = "";
+    [["", M.L, "módulos que ve el cabeza"], ["q", M.q, "salidas (Q)"], ["i", M.i, "entradas (I)"], ["a", M.a, "analógicas (A)"]].forEach(function (x) {
+      var d = txt("div", null, x[0]); d.appendChild(txt("b", String(x[1]))); d.appendChild(txt("span", x[2])); c.appendChild(d);
+    });
+    var tb = $("cMapa"); tb.textContent = "";
+    M.filas.forEach(function (f) {
+      var tr = txt("tr", null, f.dentro ? "" : "fuera");
+      var td = txt("td"); td.appendChild(txt("b", (f.k + 1) + " · " + f.T.n)); tr.appendChild(td);
+      [f.q, f.i, f.a].forEach(function (r, ix) { var t = txt("td"); if (r) { var cd = txt("code", (["Q", "I", "A"][ix]) + (r[0] === r[1] ? r[0] : r[0] + "–" + (["Q", "I", "A"][ix]) + r[1])); t.appendChild(cd); } else t.textContent = "—"; tr.appendChild(t); });
+      tr.appendChild(txt("td", f.dentro ? (f.k === 0 ? "Cabeza: manda y corre el PLC" : "Esclavo, posición " + (f.k + 1)) : "Sin cable: sus salidas van a estado seguro (apagadas)"));
+      tb.appendChild(tr);
+    });
+    var nota = $("cNota");
+    var cut = Object.keys(S.cortes).length;
+    nota.textContent = cut ? "Cable cortado: el cabeza deja de ver los módulos de atrás (sus salidas se apagan en 1 s) y ese tramo elige su propio cabeza después de unos 3 s." :
+      "Pulsa un cable para cortarlo. Pulsa «Agregar» para sumar módulos (máximo " + MAX + " en esta demostración; el diseño admite 16).";
+    var btns = document.querySelectorAll("#cPaleta .mod-btn"); for (var b = 0; b < btns.length; b++) btns[b].disabled = S.mods.length >= MAX;
+    $("cQuitar").disabled = S.mods.length <= 1;
+  }
+
+  /* ---------- panel simulado ---------- */
+  function programa(M) {
+    var L = largo();
+    if (S.run) {
+      if (L > S.maxVisto) S.maxVisto = L;
+      var i1 = getI(M, 1), i9 = M.i >= 9 ? getI(M, 9) : 0;
+      if (M.q >= 2) { if (M.i >= 9) setQ(M, 2, (i9 || getQ(M, 2)) && !i1); else setQ(M, 2, 0); }
+      var a1 = getA(M, 1); if (M.q >= 4) setQ(M, 4, a1 != null && a1 > 6.0 ? 1 : 0);
+      if (M.q >= 16) setQ(M, 16, L < S.maxVisto ? 1 : 0);
+    }
+  }
+  function tick() {
+    S.t++;
+    S.mods.forEach(function (m, k) { for (var i = 0; i < 8; i++) m.a[i] = 5 + 3.5 * Math.sin(S.t / 4 + i * 0.9) + (i === 0 ? 0 : 0); });
+    var M = mapa();
+    M.filas.forEach(function (f) { if (!f.dentro) { f.m.s = 0; } });
+    programa(M);
+    var a1 = getA(M, 1); S.hist.push(a1 == null ? null : a1); if (S.hist.length > 300) S.hist.shift();
+    pintarPanel();
+  }
+  function alarmas(M) {
+    var L = [], cuantos = S.mods.length;
+    if (M.L < cuantos) L.push(["bad", "falta", "Faltan módulos: el cabeza ve " + M.L + " de " + cuantos + "."]);
+    M.filas.forEach(function (f) { if (!f.dentro) L.push(["warn", "seg" + f.k, "Módulo " + (f.k + 1) + " (" + f.T.n + "): sin enlace, salidas en estado seguro."]); });
+    if (S.run && M.L < S.maxVisto) L.push(["warn", "s6", "El programa detecta S6 = 1: hay menos módulos que al pasar a RUN."]);
+    if (!M.a && S.mods.some(function (m) { return m.t === "ai8"; })) L.push(["warn", "ana", "El AI8 no está en la cadena: A1 no tiene lectura."]);
+    return L;
+  }
+  function registrarAlarmas(M) {
+    var L = alarmas(M), act = {}, hora = new Date().toLocaleTimeString();
+    L.forEach(function (x) { act[x[1]] = x; if (!S.activas[x[1]]) S.alarmas.unshift({ t: hora, c: x[0], txt: "▲ " + x[2] }); });
+    Object.keys(S.activas).forEach(function (k) { if (!act[k]) S.alarmas.unshift({ t: hora, c: "ok", txt: "▼ normal: " + S.activas[k][2] }); });
+    S.activas = act; S.alarmas = S.alarmas.slice(0, 40); return L;
+  }
+  function pintarPanel() {
+    var M = mapa(), L = registrarAlarmas(M);
+    $("hSub").textContent = "Cadena de " + M.L + " módulo" + (M.L === 1 ? "" : "s") + (S.mods.length > M.L ? " (" + (S.mods.length - M.L) + " sin cable)" : "");
+    var on = 0; for (var q = 1; q <= M.q; q++) on += getQ(M, q);
+    var sal = $("hSal"); sal.textContent = String(on); var sm = txt("small", "de " + M.q); sal.appendChild(sm);
+    $("hSalSub").textContent = M.q ? "Toca una salida para encenderla o apagarla" : "No hay módulos con salidas en la cadena";
+    var run = $("hRun"); run.setAttribute("aria-pressed", String(S.run)); run.textContent = S.run ? "PLC en RUN" : "PLC en STOP";
+    // losetas de salida (primeras 8)
+    var t = $("hTiles"); t.textContent = "";
+    var mostrar = Math.min(M.q, 8);
+    if (!M.q) t.appendChild(txt("span", "Agrega un AP Rack 16 a la cadena.", "nota"));
+    for (var n = 1; n <= mostrar; n++) {
+      (function (n) {
+        var v = getQ(M, n), dueno = S.run && PLC_Q[n], b = txt("button", null, "loseta"); b.type = "button"; b.setAttribute("aria-pressed", String(!!v)); b.disabled = !!dueno;
+        b.setAttribute("aria-label", "Salida Q" + n + (dueno ? " (la maneja el programa)" : "") + ": " + (v ? "encendida" : "apagada"));
+        b.appendChild(txt("b", "Q" + n)); b.appendChild(txt("span", dueno ? "PLC · " + (v ? "ON" : "OFF") : (v ? "ENCENDIDA" : "apagada")));
+        b.addEventListener("click", function () { var MM = mapa(); setQ(MM, n, getQ(MM, n) ? 0 : 1); pintarPanel(); dibujarCadena(); });
+        t.appendChild(b);
+      })(n);
+    }
+    if (M.q > 8) t.appendChild(txt("span", "+" + (M.q - 8) + " salidas más en el panel completo", "nota"));
+    // variables
+    var v = $("hVars"); v.textContent = "";
+    var tabs = document.querySelectorAll("#hVarTabs button"); for (var z = 0; z < tabs.length; z++) tabs[z].setAttribute("aria-pressed", String(tabs[z].getAttribute("data-l") === S.lista));
+    function fila(cod, nombre, valor, activo, click) {
+      var f = txt(click ? "button" : "div", null, "var" + (activo ? " on" : "")); if (click) f.type = "button";
+      f.appendChild(txt("span", null, "pt")); var cc = txt("span"); cc.appendChild(txt("code", cod)); cc.appendChild(document.createTextNode("  " + nombre)); f.appendChild(cc); f.appendChild(txt("span", valor, "v"));
+      if (click) { f.setAttribute("aria-label", cod + " " + nombre + ": " + valor + ". Pulsa para cambiar el estado simulado"); f.addEventListener("click", click); } v.appendChild(f);
+    }
+    var nom = { 1: "Paro", 9: "Arranque (IN16)", 10: "Nivel bajo (IN16)" };
+    if (S.lista === "e") {
+      if (!M.i) v.appendChild(txt("div", "Sin entradas en la cadena", "var"));
+      for (var i = 1; i <= Math.min(M.i, 24); i++) (function (i) { var x = getI(M, i); fila("I" + i, nom[i] || "Entrada", x ? "1" : "0", x, function () { var l = locI(mapa(), i); if (l) { l.f.m.e ^= 1 << l.bit; pintarPanel(); dibujarCadena(); } }); })(i);
+    } else if (S.lista === "s") {
+      if (!M.q) v.appendChild(txt("div", "Sin salidas en la cadena", "var"));
+      for (var q2 = 1; q2 <= Math.min(M.q, 24); q2++) { var xq = getQ(M, q2); fila("Q" + q2, S.run && PLC_Q[q2] ? "del programa" : "manual", xq ? "ON" : "OFF", xq); }
+    } else {
+      if (!M.a) v.appendChild(txt("div", "Sin analógicas: agrega un AP Rack AI8", "var"));
+      for (var a = 1; a <= M.a; a++) { var xa = getA(M, a); fila("A" + a, "0-10 V", xa == null ? "—" : xa.toFixed(2) + " V", xa != null && xa > 6); }
+    }
+    // alarmas
+    var al = $("hAl"); al.textContent = "";
+    if (!L.length) al.appendChild(txt("div", "Sin alarmas activas", "ok"));
+    L.forEach(function (x) { al.appendChild(txt("div", x[2], x[0])); });
+    S.alarmas.slice(0, 6).forEach(function (x) { al.appendChild(txt("div", x.t + "  " + x.txt)); });
+    // regla de ejemplo
+    $("hRegla").textContent = "";
+    var R = $("hRegla");
+    [["LD I9  OR Q2  ANDN I1  →  OUT Q2", "Arranque con I9 y paro con I1" + (M.i >= 9 ? "" : "  (falta el IN16: sin efecto)")],
+     ["LD A1 > 6.0  →  OUT Q4", "Presión alta" + (M.a ? "" : "  (falta el AI8: sin efecto)")],
+     ["LD S6  →  OUT Q16", "Falta un módulo"]].forEach(function (r) { var b = txt("b", r[0]); R.appendChild(b); R.appendChild(document.createTextNode("    // " + r[1] + "\n")); });
+    R.appendChild(document.createTextNode(S.run ? "El programa corre: Q2, Q4 y Q16 son suyas." : "En STOP: el panel manda todas las salidas."));
+    dibujarGrafica();
+    // vistas
+    var cards = document.querySelectorAll("#hmi [data-v]"); for (var c = 0; c < cards.length; c++) cards[c].hidden = cards[c].getAttribute("data-v").split(" ").indexOf(S.vista) < 0;
+    var nv = document.querySelectorAll(".hmi-nav button"); for (var b2 = 0; b2 < nv.length; b2++) nv[b2].setAttribute("aria-pressed", String(nv[b2].getAttribute("data-vista") === S.vista));
+    $("hVarsT").className = "tarj " + (S.vista === "variables" ? "c12" : "c5");
+  }
+  function dibujarGrafica() {
+    var c = $("hChart"); if (!c || c.offsetParent === null) return;
+    var d = Math.min(window.devicePixelRatio || 1, 2), W = c.clientWidth || 400, H = 200; c.width = W * d; c.height = H * d;
+    var g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, W, H);
+    var cs = getComputedStyle(raiz), muted = cs.getPropertyValue("--muted").trim(), line = cs.getPropertyValue("--line").trim(), sig = cs.getPropertyValue("--signal").trim(), acc = cs.getPropertyValue("--accent").trim();
+    var datos = S.hist.slice(-S.rango), pl = 34, pb = 20, pt = 8, w = W - pl - 8, h = H - pb - pt;
+    g.font = "11px " + (cs.getPropertyValue("--font-mono") || "monospace"); g.fillStyle = muted; g.strokeStyle = line; g.lineWidth = 1;
+    for (var i = 0; i <= 4; i++) { var y = pt + h * i / 4; g.beginPath(); g.moveTo(pl, y); g.lineTo(W - 8, y); g.stroke(); g.fillText((10 - 2.5 * i).toFixed(1), 2, y + 4); }
+    g.fillText("−" + S.rango + " s", pl, H - 4); g.fillText("ahora", W - 40, H - 4);
+    var sal = datos.filter(function (v) { return v != null; });
+    if (sal.length < 2) { g.fillText("Sin lectura de A1: agrega un AP Rack AI8 y conecta el cable", pl + 10, pt + h / 2); return; }
+    var N = datos.length;
+    function X(i) { return pl + w * (S.rango === datos.length ? i / (N - 1 || 1) : (i + (S.rango - N)) / (S.rango - 1)); }
+    function Y(v) { return pt + h * (1 - Math.max(0, Math.min(10, v)) / 10); }
+    g.beginPath(); var ini = false, ult = -1;
+    datos.forEach(function (v, i) { if (v == null) { ini = false; return; } if (!ini) { g.moveTo(X(i), Y(v)); ini = true; } else g.lineTo(X(i), Y(v)); ult = i; });
+    g.strokeStyle = sig; g.lineWidth = 2; g.stroke();
+    var ln = g.createLinearGradient(0, pt, 0, pt + h); ln.addColorStop(0, sig + "55"); ln.addColorStop(1, "transparent");
+    g.lineTo(X(ult), pt + h); var first = datos.findIndex(function (v) { return v != null; }); g.lineTo(X(first), pt + h); g.closePath(); g.fillStyle = ln; g.globalAlpha = 0.5; g.fill(); g.globalAlpha = 1;
+    // umbral de 6 V y último punto
+    g.setLineDash([4, 4]); g.strokeStyle = acc; g.beginPath(); g.moveTo(pl, Y(6)); g.lineTo(W - 8, Y(6)); g.stroke(); g.setLineDash([]);
+    g.fillStyle = acc; g.fillText("6 V · Q4", W - 62, Y(6) - 4);
+    g.fillStyle = sig; g.beginPath(); g.arc(X(ult), Y(datos[ult]), 4, 0, 6.3); g.fill();
+  }
+
+  function todo() { dibujarCadena(); pintarResumen(); pintarPanel(); }
+  document.querySelectorAll("#cPaleta .mod-btn").forEach(function (b) {
+    b.addEventListener("click", function () { if (S.mods.length >= MAX) return; S.mods.push(nuevoMod(b.getAttribute("data-t"))); todo(); });
+  });
+  $("cQuitar").addEventListener("click", function () { if (S.mods.length > 1) { S.mods.pop(); delete S.cortes[S.mods.length - 1]; todo(); } });
+  $("cReset").addEventListener("click", function () { reiniciar(); S.alarmas = []; S.activas = {}; todo(); });
+  $("hRun").addEventListener("click", function () { S.run = !S.run; if (S.run) S.maxVisto = largo(); else mapa().filas.forEach(function (f) { if (f.dentro) { [2, 4, 16].forEach(function (q) { }); } }); if (!S.run) { var M = mapa(); [2, 4, 16].forEach(function (q) { setQ(M, q, 0); }); } todo(); });
+  $("hRango").addEventListener("click", function () { S.rango = S.rango === 60 ? 240 : 60; this.textContent = "Últimos " + S.rango + " s"; this.setAttribute("aria-pressed", String(S.rango !== 60)); pintarPanel(); });
+  document.querySelectorAll(".hmi-nav button").forEach(function (b) { b.addEventListener("click", function () { S.vista = b.getAttribute("data-vista"); pintarPanel(); }); });
+  document.querySelectorAll("#hVarTabs button").forEach(function (b) { b.addEventListener("click", function () { S.lista = b.getAttribute("data-l"); pintarPanel(); }); });
+  window.addEventListener("resize", dibujarGrafica);
+  // arranque con datos de ejemplo en la gráfica
+  for (var h0 = 0; h0 < 60; h0++) { S.t++; S.hist.push(5 + 3.5 * Math.sin(S.t / 4)); }
+  todo();
+  setInterval(function () { if (!document.hidden) tick(); }, 1000);
+  window.__ap = { estado: S, mapa: mapa };
 })();
 </script>
