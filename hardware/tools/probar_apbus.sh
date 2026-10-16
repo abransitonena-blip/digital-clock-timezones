@@ -15,6 +15,11 @@ node ../../../ap-studio/pruebas/prueba_logica.cjs      # el mismo motor en AP St
 cd ../../../ap-electric/firmware/pruebas
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_control prueba_control.cpp
 /tmp/prueba_control
+g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_link prueba_link.cpp
+/tmp/prueba_link
+g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_rack prueba_rack.cpp
+/tmp/prueba_rack
+python3 probar_rack.py
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_packml prueba_packml.cpp
 /tmp/prueba_packml
 # JSON del equipo (API 2): se extrae del programa real y se valida
@@ -27,4 +32,5 @@ PY
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_json prueba_json.cpp
 /tmp/prueba_json
 python3 probar_json.py
+cmp ../APLink/ap_link.h ../APRack/ap_link.h && echo "ap_link.h: la copia de AP Rack es la misma"
 cmp ../APControl/logica.h ../../../ap1-prog/firmware/LetreroLabAP1/logica.h && echo "logica.h: la copia de AP Control es la misma"

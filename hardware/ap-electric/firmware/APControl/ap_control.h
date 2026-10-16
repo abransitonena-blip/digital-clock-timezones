@@ -23,7 +23,11 @@ const uint16_t VERSION_CFG = 1;
 
 enum Arranque : uint8_t { ARR_APAGADO = 0, ARR_ULTIMO = 1, ARR_ENCENDIDO = 2 };
 enum Carga : uint8_t { CARGA_ALUMBRADO = 0, CARGA_PROCESO = 1 };
-enum ModoEntrada : uint8_t { ENT_PULSADOR = 0, ENT_INTERRUPTOR = 1, ENT_CONMUTADOR = 2, ENT_DESACOPLADA = 3 };
+enum ModoEntrada : uint8_t { ENT_PULSADOR = 0, ENT_INTERRUPTOR = 1, ENT_CONMUTADOR = 2, ENT_DESACOPLADA = 3, ENT_GESTOS = 4 };
+// ENT_GESTOS (pulsador con gestos): un toque alterna el canal; dos toques seguidos (menos de 400 ms) o un toque largo (800 ms) hacen la
+// acción configurada en lugar de alternar: 0 nada, 1 encender el canal, 2 apagarlo, 3 apagar todos los de alumbrado, 4 encender todos los de alumbrado.
+enum AccionGesto : uint8_t { GES_NADA = 0, GES_ENCENDER, GES_APAGAR, GES_APAGAR_TODO, GES_ENCENDER_TODO };
+const uint32_t DOBLE_TOQUE_MS = 400, TOQUE_LARGO_MS = 800;
 enum AccionCom : uint8_t { COM_APAGAR = 0, COM_MANTENER = 1 };
 enum Origen : uint8_t { OR_NINGUNO = 0, OR_BOTON, OR_ENTRADA, OR_MODBUS, OR_RED, OR_PLC, OR_TEMPORIZADOR, OR_ARRANQUE,
                         OR_COMUNICACION };
@@ -32,7 +36,7 @@ enum Falla : uint16_t { F_CONFIG = 1, F_BOBINA = 2, F_COMUNICACION = 4, F_SIN_24
 enum Rechazo : uint8_t { OK = 0, R_CANAL, R_VALOR, R_PLC, R_PROCESO };
 
 struct ConfigCanal { uint8_t arranque, carga, accionCom, libre; uint16_t pulsoS; uint16_t libre2; };
-struct ConfigEntrada { uint8_t modo, canal, libre; uint8_t libre2; uint16_t antirreboteMs; uint16_t libre3; };
+struct ConfigEntrada { uint8_t modo, canal, dobleToque; uint8_t toqueLargo; uint16_t antirreboteMs; uint16_t libre3; };
 struct Config {
   uint32_t firma;
   uint16_t version;
@@ -89,7 +93,10 @@ inline bool validar(Config& c) {
   }
   for (int k = 0; k < MAX_ENTRADAS; k++) {
     ConfigEntrada& e = c.entrada[k];
-    if (e.modo > ENT_DESACOPLADA) { e.modo = ENT_DESACOPLADA; ok = false; }
+    if (e.modo > ENT_GESTOS) { e.modo = ENT_DESACOPLADA; ok = false; }
+    if (e.dobleToque > GES_ENCENDER_TODO) { e.dobleToque = GES_NADA; ok = false; }
+    if (e.toqueLargo > GES_ENCENDER_TODO) { e.toqueLargo = GES_NADA; ok = false; }
+    if (e.modo != ENT_GESTOS && (e.dobleToque || e.toqueLargo)) { e.dobleToque = e.toqueLargo = GES_NADA; ok = false; }
     if (e.canal > c.nCanales) { e.canal = 0; ok = false; }
     if (e.antirreboteMs < 5 || e.antirreboteMs > 2000) { e.antirreboteMs = 30; ok = false; }
   }
@@ -105,7 +112,7 @@ inline bool validar(Config& c) {
 }
 
 struct Evento { uint32_t t; uint8_t tipo, canal, valor, origen; };
-enum TipoEvento : uint8_t { EV_ARRANQUE = 1, EV_CANAL, EV_FALLA, EV_FALLA_FIN, EV_COM_PERDIDA, EV_COM_OK, EV_RECHAZO };
+enum TipoEvento : uint8_t { EV_ARRANQUE = 1, EV_CANAL, EV_FALLA, EV_FALLA_FIN, EV_COM_PERDIDA, EV_COM_OK, EV_RECHAZO, EV_GESTO };
 
 class Controlador {
  public:
@@ -183,6 +190,17 @@ class Controlador {
         aplicarEntrada(k, v, ahora);
       }
     }
+    // pulsadores con gestos: toque largo mientras sigue presionado
+    for (int k = 0; k < cfg.nEntradas; k++) {
+      const ConfigEntrada& e = cfg.entrada[k];
+      if (e.modo != ENT_GESTOS || !e.canal || !(entradas & (1 << k)) || largoHecho[k]) continue;
+      if (ahora - tPulso[k] < TOQUE_LARGO_MS) continue;
+      largoHecho[k] = true;
+      if (toques[k] == 1) ordenar(e.canal, previo[k], OR_ENTRADA, ahora);       // el toque que empezó el gesto no cuenta
+      toques[k] = 0;
+      accionGesto(e.toqueLargo, e.canal, ahora);
+      evento(ahora, EV_GESTO, k + 1, 2, OR_ENTRADA);
+    }
     // botones de canal: 30 ms, al presionar alternan su canal
     for (int k = 0; k < cfg.nCanales; k++) {
       bool v = btnCrudos & (1 << k);
@@ -232,6 +250,9 @@ class Controlador {
  private:
   uint8_t anterior = 0;
   bool crudoAnt[MAX_ENTRADAS] = {}, btnAnt[MAX_CANALES] = {};
+  uint32_t tPulso[MAX_ENTRADAS] = {}, tToque[MAX_ENTRADAS] = {};
+  uint8_t toques[MAX_ENTRADAS] = {}, previo[MAX_ENTRADAS] = {};
+  bool largoHecho[MAX_ENTRADAS] = {};
   uint32_t tCambio[MAX_ENTRADAS] = {}, tBtn[MAX_CANALES] = {}, tRetro[MAX_CANALES] = {}, tFin[MAX_CANALES] = {};
   uint32_t tModbus = 0, tEstado = 0;
 
@@ -265,6 +286,29 @@ class Controlador {
       case ENT_PULSADOR: if (activa) ordenar(e.canal, 2, OR_ENTRADA, ahora); break;
       case ENT_INTERRUPTOR: ordenar(e.canal, activa ? 1 : 0, OR_ENTRADA, ahora); break;
       case ENT_CONMUTADOR: ordenar(e.canal, 2, OR_ENTRADA, ahora); break;   // apagadores de escalera: cada cambio alterna
+      case ENT_GESTOS:
+        if (!activa) break;
+        tPulso[k] = ahora; largoHecho[k] = false;
+        if (toques[k] == 1 && ahora - tToque[k] <= DOBLE_TOQUE_MS) {
+          ordenar(e.canal, previo[k], OR_ENTRADA, ahora);                      // deshace el primer toque
+          toques[k] = 0;
+          accionGesto(e.dobleToque, e.canal, ahora);
+          evento(ahora, EV_GESTO, k + 1, 1, OR_ENTRADA);
+        } else {
+          previo[k] = (salida >> (e.canal - 1)) & 1;
+          toques[k] = 1; tToque[k] = ahora;
+          ordenar(e.canal, 2, OR_ENTRADA, ahora);
+        }
+        break;
+      default: break;
+    }
+  }
+  void accionGesto(uint8_t a, int canal, uint32_t ahora) {
+    switch (a) {
+      case GES_ENCENDER: ordenar(canal, 1, OR_ENTRADA, ahora); break;
+      case GES_APAGAR: ordenar(canal, 0, OR_ENTRADA, ahora); break;
+      case GES_APAGAR_TODO: for (int c = 1; c <= cfg.nCanales; c++) if (cfg.canal[c - 1].carga == CARGA_ALUMBRADO) ordenar(c, 0, OR_ENTRADA, ahora); break;
+      case GES_ENCENDER_TODO: for (int c = 1; c <= cfg.nCanales; c++) if (cfg.canal[c - 1].carga == CARGA_ALUMBRADO) ordenar(c, 1, OR_ENTRADA, ahora); break;
       default: break;
     }
   }

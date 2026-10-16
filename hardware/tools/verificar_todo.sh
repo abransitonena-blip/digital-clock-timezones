@@ -9,6 +9,7 @@ echo "== Pedido a JLCPCB: 7R Tour 24DC y CA, AP Home =="
 python3 tools/revisar_pedido.py ap-electric/7r-tour AP_7R_TOUR 24DC | grep -E "RESULTADO|ERROR"
 python3 tools/revisar_pedido.py ap-electric/7r-tour AP_7R_TOUR CA | grep -E "RESULTADO|ERROR"
 python3 tools/revisar_pedido.py ap-electric/home AP_HOME | grep -E "RESULTADO|ERROR"
+[ -d ap-electric/rack16/fabricacion/jlcpcb ] && python3 tools/revisar_pedido.py ap-electric/rack16 AP_RACK16 | grep -E "RESULTADO|ERROR"
 echo "== Complementos 3D (sólidos y medidas) =="; (cd ap-electric/accesorios && python3 validar.py)
 echo "== Consola y web en navegador =="; bash tools/probar_web.sh
 echo "TODO BIEN (por software)"

@@ -46,6 +46,35 @@ int main() {
     b.ent = 8; b.correr(50); REVISA(!(b.c.salida & 8));       // desacoplada: no manda
     REVISA(b.c.entradas == 0x08);
   }
+  // 2b) pulsador con gestos: un toque alterna; doble toque y toque largo hacen su acción sin dejar el primer toque puesto
+  {
+    Config c = fabrica(7, 8);
+    c.entrada[0].modo = ENT_GESTOS; c.entrada[0].canal = 1; c.entrada[0].dobleToque = GES_APAGAR_TODO; c.entrada[0].toqueLargo = GES_ENCENDER_TODO;
+    c.entrada[1].modo = ENT_GESTOS; c.entrada[1].canal = 2; c.entrada[1].dobleToque = GES_ENCENDER; c.entrada[1].toqueLargo = GES_APAGAR;
+    c.canal[6].carga = CARGA_PROCESO;
+    c.crc = crcDe(c);
+    Banco b; b.c.iniciar(c, 0, nullptr, 0, false);
+    REVISA(!(b.c.fallas & F_CONFIG));
+    auto toque = [&](int bit, int ms) { b.ent |= 1 << bit; b.correr(ms); b.ent &= ~(1 << bit); b.correr(60); };
+    toque(0, 100); b.correr(500); REVISA(b.c.salida == 0x01);                 // un toque: enciende el canal 1
+    toque(0, 100); b.correr(500); REVISA(b.c.salida == 0x00);                 // otro toque: lo apaga
+    toque(0, 100); b.correr(500); REVISA(b.c.salida == 0x01);
+    toque(1, 100); b.correr(500); REVISA(b.c.salida == 0x03);
+    toque(0, 100); toque(0, 100); b.correr(600); REVISA(b.c.salida == 0x00);  // doble toque en 1: apagar todo el alumbrado
+    toque(0, 100); b.correr(500);                                               // 1 encendido
+    toque(1, 100); toque(1, 100); b.correr(600); REVISA(b.c.salida == 0x03);  // doble toque en 2: encender el 2 (el primer toque se deshace)
+    toque(1, 100); b.correr(600); REVISA(b.c.salida == 0x01);                 // un toque lo apaga
+    b.ent |= 2; b.correr(1000); b.ent = 0; b.correr(100);                       // toque largo en 2: apagar (el toque inicial no cuenta)
+    REVISA(b.c.salida == 0x01);
+    b.ent |= 1; b.correr(1000); b.ent = 0; b.correr(100);                       // toque largo en 1: encender todo el alumbrado
+    REVISA(b.c.salida == 0x3F);                                                 // los 6 de alumbrado; el canal 7 (proceso) no
+    toque(0, 100); b.correr(500); REVISA(b.c.salida == 0x3E);                 // y un toque normal vuelve a alternar
+    // dos toques separados más de 400 ms no son doble toque
+    toque(0, 100); b.correr(450); toque(0, 100); b.correr(500); REVISA(b.c.salida == 0x3E);
+    // validación: acciones fuera de rango o en un modo que no es gestos se corrigen
+    Config m = fabrica(7, 8); m.entrada[2].modo = ENT_PULSADOR; m.entrada[2].dobleToque = 2; m.entrada[3].modo = ENT_GESTOS; m.entrada[3].toqueLargo = 9; m.crc = crcDe(m);
+    REVISA(!validar(m) && m.entrada[2].dobleToque == 0 && m.entrada[3].toqueLargo == 0);
+  }
   // 3) botones y temporizador de escalera (pulso de 2 s, se vuelve a disparar)
   {
     Config c = fabrica(7, 8); c.canal[4].pulsoS = 2; c.crc = crcDe(c);

@@ -223,6 +223,31 @@ def riel_demo(longitud=60.0):
     pieza = pieza + bb(-13.5, 13.5, y0, y1, DIN_PROF - DIN_LABIO, DIN_PROF)         # alma
     return pieza - bb(-12.5, 12.5, y0 - 1, y1 + 1, -1, 1.01)
 
+def placa_pulsadores(n=1):
+    """Tapa de pared para chalupa sencilla (caja de 2 x 4 pulgadas; tornillos a 82.55 mm [CG]) con n = 1, 2 o 3 pulsadores
+    de 16 mm y una ventana de luz de 3 mm junto a cada uno. Para los pulsadores de AP Home (entradas remotas de bajo voltaje)."""
+    W, H, t = 70.0, 115.0, 3.0
+    pieza = rbox(W, H, t, 4.0)
+    for sy in (-1, 1):
+        pieza = pieza - tornillo_avellanado(1.9, 3.6, t, 0, sy * 41.275)
+    paso = 30.0
+    for i in range(n):
+        y = (i - (n - 1) / 2) * paso
+        pieza = pieza - cyl(8.15, t + 2, 0, y, -1) - cyl(1.6, t + 2, 0, y + 12.0, -1)
+    return pieza
+
+def caja_registro_home(ancho=60.0, alto=85.0):
+    """Soporte para fijar la placa AP Home (55 x 80 mm, 2 agujeros M3) dentro de una caja de registro: base con 2 postes en los
+    agujeros reales de la placa (gen/make.py de home: (51.5, 3.5) y (3.6, 76.2), Y espejado) y 4 orejas de tornillo."""
+    P = rbox(alto + 10, ancho + 10, 2.4, 3.0, alto / 2, ancho / 2, 0)
+    for (hx, hy) in ((51.5, 3.5), (3.6, 76.2)):
+        P = P + cyl(3.4, 6.0, hx + 2.5, hy + 2.5, 2.0)
+    for (hx, hy) in ((51.5, 3.5), (3.6, 76.2)):
+        P = P - cyl(1.35, 10.0, hx + 2.5, hy + 2.5, 1.0)
+    for sx in (-1, 1):
+        P = P - tornillo_avellanado(2.15, 4.0, 2.4, alto / 2 + sx * (alto / 2 + 1.0), ancho / 2 + sx * 0)
+    return P
+
 # ---------------------------------------------------------------- modelos de referencia (no imprimibles): cables y conectores
 def ref_cable_usbc(largo=120.0):
     return {"cable": cyl_y(1.8, largo, 0.0, 0, USBC_PLUG[1] / 2),
@@ -268,6 +293,10 @@ IMPRIMIBLES = [
     ("AP-ACC-017", "bandeja_7r_banco", "Bandeja de banco para la placa 7R Tour con 4 postes M3", bandeja_7r, "PETG o ABS", "los 4 postes están en los agujeros reales de la placa; no es un gabinete"),
     ("AP-ACC-018", "pasacables_pg7", "Pasacables flexible para agujero de 12.5 mm y cable de 6 mm", pasacables, "TPU 95A", "con rendija para meter el cable"),
     ("AP-ACC-019", "soporte_sensor_m12", "Escuadra para sensor cilíndrico M12", soporte_sensor, "PETG o ABS", "para M8 usar d = 8"),
+    ("AP-ACC-021", "placa_pulsadores_1", "Tapa de pared de chalupa con 1 pulsador de 16 mm y ventana de luz", lambda: placa_pulsadores(1), "PETG o ABS", "chalupa de 2 x 4 pulgadas; tornillos a 82.55 mm por confirmar"),
+    ("AP-ACC-022", "placa_pulsadores_2", "Tapa de pared de chalupa con 2 pulsadores", lambda: placa_pulsadores(2), "PETG o ABS", "para Home Switch de varios circuitos (un módulo por pulsador)"),
+    ("AP-ACC-023", "placa_pulsadores_3", "Tapa de pared de chalupa con 3 pulsadores", lambda: placa_pulsadores(3), "PETG o ABS", "idem"),
+    ("AP-ACC-024", "soporte_home_registro", "Base para fijar la placa AP Home dentro de una caja de registro", caja_registro_home, "PETG o ABS", "postes en los agujeros de la placa; no sustituye la caja ni la tapa certificadas"),
     ("AP-ACC-020", "riel_demo_60", "Tramo de riel DIN TS35 de 60 mm para pruebas de ajuste", riel_demo, "PLA o PETG", "no soporta carga: solo para probar el ajuste"),
 ]
 REFERENCIAS = [
@@ -278,6 +307,7 @@ REFERENCIAS = [
     ("AP-REF-005", "ref_borne_2p", "Borne enchufable de 2 polos, paso 5.08 (modelo visual)", lambda: ref_borne_enchufable(2)),
     ("AP-REF-006", "ref_pila_cr2032", "Pila CR2032 (modelo visual)", ref_bateria_cr2032),
 ]
+IMPRIMIBLES.sort(key=lambda x: x[0])
 COLORES = [(232, 93, 4), (60, 60, 64), (200, 200, 205), (40, 120, 200), (30, 160, 80), (180, 40, 40)]
 
 

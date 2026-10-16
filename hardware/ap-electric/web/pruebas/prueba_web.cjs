@@ -101,6 +101,39 @@ const stub = `(function(){const st={},subs=[];
   ok((await p.$$eval('#perfiles button', b => b.map(x => x.textContent))).every(t => !/Andon/.test(t)), 'AP Home no ofrece el perfil Andon (1 entrada)');
   await p.close();
 
+  // --- gestos del pulsador (AP Home) ---
+  p = await nueva();
+  await p.goto(base + 'consola.html'); await p.click('#bDH'); await p.waitForTimeout(500);
+  await p.evaluate(() => document.querySelectorAll('details').forEach(d => d.open = true));
+  ok(await p.$eval('#eD1', e => e.disabled), 'gestos: doble toque deshabilitado mientras el modo no es gestos');
+  await p.selectOption('#eM1', '4'); await p.waitForTimeout(400);
+  ok(!(await p.$eval('#eD1', e => e.disabled)), 'gestos: con el modo 4 se habilita el doble toque');
+  await p.selectOption('#eD1', '3'); await p.selectOption('#eL1', '2'); await p.waitForTimeout(400);
+  ok(await p.$eval('#eD1', e => e.value) === '3' && await p.$eval('#eL1', e => e.value) === '2', 'gestos: doble = apagar todo, largo = apagar');
+  await p.selectOption('#eM1', '0'); await p.waitForTimeout(400);
+  ok(await p.$eval('#eD1', e => e.value) === '0', 'gestos: al salir del modo gestos las acciones se borran');
+  await p.close();
+
+  // --- consola en demostración: AP Rack, cadena de módulos ---
+  p = await nueva();
+  await p.goto(base + 'consola.html');
+  await p.click('#bDR'); await p.waitForTimeout(700);
+  ok(await p.$$eval('#mods > .card', e => e.length) === 2, 'rack demo: aparecen 2 módulos');
+  ok((await p.innerText('#cadena')).includes('Módulo 1') && (await p.innerText('#cadena')).includes('Módulo 2'), 'rack demo: la cadena nombra los 2 módulos');
+  ok(await p.$$eval('#mods .sal', e => e.length) === 32, 'rack demo: 32 salidas');
+  ok(await p.$eval('#sSalidas', e => e.classList.contains('hidden')), 'rack demo: se oculta el panel de 7 canales');
+  await p.click('#mods .sal[data-ch="17"]'); await p.waitForTimeout(400);
+  ok(await p.$eval('#mods .sal[data-ch="17"]', e => e.classList.contains('on')), 'rack demo: el canal 17 (módulo 2, salida 1) enciende');
+  ok(await p.$eval('#mods .card[data-p="1"] .sal[data-ch="1"]', e => !e.classList.contains('on')), 'rack demo: el módulo 1 no cambia');
+  await p.fill('#iCmd', 'DEMO +'); await p.click('#bCmd'); await p.waitForTimeout(500);
+  ok(await p.$$eval('#mods > .card', e => e.length) === 3, 'rack demo: al conectar otro módulo aparece el tercero');
+  ok(await p.$$eval('#mods .sal', e => e.length) === 48, 'rack demo: 48 salidas con 3 módulos');
+  await p.fill('#iCmd', 'C 99 1'); await p.click('#bCmd'); await p.waitForTimeout(400);
+  ok((await p.innerText('#mAcc')).includes('rechaz'), 'rack demo: un canal inexistente se rechaza');
+  await p.click('text=Apagar TODAS las salidas de la cadena'); await p.waitForTimeout(400);
+  ok(await p.$$eval('#mods .sal.on', e => e.length) === 0, 'rack demo: apagar todas');
+  await p.close();
+
   // --- prueba de CONTRATO: la consola frente a un puerto serie falso que contesta con el JSON REAL del firmware (extraído de APControl.ino) ---
   const fs = require('fs');
   if (fs.existsSync('/tmp/json_7r.txt')) {
@@ -123,6 +156,28 @@ const stub = `(function(){const st={},subs=[];
     ok(await p.$eval('#cEstado', e => /USB/.test(e.textContent)), 'contrato: el chip dice USB');
     await p.close();
   } else console.log('  (contrato omitido: falta /tmp/json_7r.txt; corre antes tools/probar_apbus.sh)');
+
+  // contrato del AP Rack: la consola frente a un puerto serie falso con el JSON REAL de APRack (ap_rack.h, 2 módulos)
+  if (fs.existsSync('/tmp/json_rack_2mod.txt')) {
+    const real = fs.readFileSync('/tmp/json_rack_2mod.txt', 'utf8').trim();
+    const falso = `(function(){
+      const enc=new TextEncoder(),dec=new TextDecoder();let ctl,buf='';window.__rx=[];
+      const port={open:async()=>{},close:async()=>{},
+        readable:new ReadableStream({start(c){ctl=c}}),
+        writable:new WritableStream({write(chunk){buf+=dec.decode(chunk);let i;while((i=buf.indexOf('\\n'))>=0){const l=buf.slice(0,i).trim();buf=buf.slice(i+1);window.__rx.push(l);
+          const ok=l==='?'||/^(C|A|M|S)\\b/i.test(l)||l==='GUARDAR';ctl.enqueue(enc.encode((ok?window.__json:'?')+'\\r\\n'))}}})};
+      window.__json=${JSON.stringify(real)};
+      Object.defineProperty(navigator,'serial',{value:{requestPort:async()=>port},configurable:true});})();`;
+    p = await nueva(falso);
+    await p.goto(base + 'consola.html'); await p.click('#bUsb'); await p.waitForTimeout(1500);
+    ok(await p.$$eval('#mods > .card', e => e.length) === 2, 'contrato rack: 2 módulos con el JSON real del firmware');
+    ok(await p.$$eval('#mods .sal', e => e.length) === 32, 'contrato rack: 32 salidas');
+    ok(await p.$$eval('#mods .card[data-p="2"] .sal.on', e => e.length) === 4, 'contrato rack: el módulo 2 trae 4 salidas encendidas (0x00F0)');
+    await p.click('#mods .sal[data-ch="20"]'); await p.waitForTimeout(500);
+    ok(await p.evaluate(() => window.__rx.includes('C 20 2')), 'contrato rack: la orden llega como «C 20 2»');
+    ok((await p.innerText('#eqInfo')).includes('AP Rack 16'), 'contrato rack: reconoce la placa');
+    await p.close();
+  } else console.log('  (contrato rack omitido: falta /tmp/json_rack_2mod.txt)');
 
   ok(errs.length === 0, 'errores de página: ' + errs.slice(0, 3).join(' | '));
   await b.close();

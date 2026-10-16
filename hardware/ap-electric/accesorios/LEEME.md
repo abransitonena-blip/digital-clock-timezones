@@ -43,6 +43,10 @@ las de riel DIN se imprimen con las funciones sobre la cama y los ganchos arriba
 | AP-ACC-018 | `stl/pasacables_pg7.stl` | Pasacables flexible para agujero de 12.5 mm y cable de 6 mm | TPU 95A | 17.3 × 17.27 × 4.0 | con rendija para meter el cable |
 | AP-ACC-019 | `stl/soporte_sensor_m12.stl` | Escuadra para sensor cilíndrico M12 | PETG o ABS | 30.0 × 22.0 × 26.0 | para M8 usar d = 8 |
 | AP-ACC-020 | `stl/riel_demo_60.stl` | Tramo de riel DIN TS35 de 60 mm para pruebas de ajuste | PLA o PETG | 35.0 × 60.0 × 7.5 | no soporta carga: solo para probar el ajuste |
+| AP-ACC-021 | `stl/placa_pulsadores_1.stl` | Tapa de pared de chalupa con 1 pulsador de 16 mm y ventana de luz | PETG o ABS | 70.0 × 115.0 × 3.0 | chalupa de 2 x 4 pulgadas; tornillos a 82.55 mm por confirmar |
+| AP-ACC-022 | `stl/placa_pulsadores_2.stl` | Tapa de pared de chalupa con 2 pulsadores | PETG o ABS | 70.0 × 115.0 × 3.0 | para Home Switch de varios circuitos (un módulo por pulsador) |
+| AP-ACC-023 | `stl/placa_pulsadores_3.stl` | Tapa de pared de chalupa con 3 pulsadores | PETG o ABS | 70.0 × 115.0 × 3.0 | idem |
+| AP-ACC-024 | `stl/soporte_home_registro.stl` | Base para fijar la placa AP Home dentro de una caja de registro | PETG o ABS | 95.0 × 87.1 × 8.0 | postes en los agujeros de la placa; no sustituye la caja ni la tapa certificadas |
 
 ## Modelos de referencia (`ref/`, solo visuales; .glb con color y .stl)
 

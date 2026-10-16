@@ -34,6 +34,11 @@ button,select,input{font:inherit;color:inherit}
 label.c{display:grid;gap:3px;font-size:.82rem;color:var(--muted)}label.c select,label.c input{padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
 pre{background:var(--sunken);border-radius:8px;padding:10px;max-height:240px;overflow:auto;font:12px/1.4 var(--font-mono);white-space:pre-wrap;margin:8px 0 0}
 .aviso{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:10px 14px;margin:12px 0;font-size:.9rem}
+.cadena{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}.nodo{border:2px solid var(--line);border-radius:var(--r);padding:8px 12px;background:var(--bg);font-family:var(--font-display);font-size:1.1rem}
+.nodo.cab{border-color:var(--accent)}.nodo.mal{border-color:var(--bad);background:var(--bad-soft)}.flecha{color:var(--muted)}
+.salgrid{display:grid;gap:6px;grid-template-columns:repeat(8,minmax(0,1fr))}.sal{border:1px solid var(--line);border-radius:8px;padding:6px 2px;text-align:center;cursor:pointer;background:var(--bg);font-size:.85rem;min-height:44px}
+.sal.on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}.sal:disabled{opacity:.5;cursor:not-allowed}
+@media (max-width:560px){.salgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .msg{font-size:.85rem;color:var(--muted)}.hidden{display:none!important}
 table{border-collapse:collapse;width:100%}td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:.9rem}
 @media (max-width:560px){.wrap{padding:0 12px}}
@@ -56,6 +61,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px 8px;border-bottom:1p
     <button class="btn" id="bRed">Conectar por red</button>
     <button class="btn" id="bD7">Demostración 7R Tour</button>
     <button class="btn" id="bDH">Demostración AP Home</button>
+    <button class="btn" id="bDR">Demostración AP Rack (2 módulos)</button>
   </div>
   <p class="msg" id="mConectar" role="status"></p>
   <details style="margin-top:8px"><summary>¿Cuál camino uso?</summary>
@@ -71,6 +77,10 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px 8px;border-bottom:1p
   <div class="aviso" id="aviso">Prototipo de ingeniería. Esta consola informa y manda órdenes; <b>no es una función de seguridad</b> ni sustituye paro de emergencia, guardas o relés de seguridad.</div>
 
   <section class="card" id="sEstado"><h2>Equipo</h2><div id="eqInfo"></div><div id="eqFallas" style="margin-top:6px"></div></section>
+
+  <section class="card hidden" id="sMods"><h2>Módulos en la cadena (AP LINK)</h2>
+    <p class="sub">Cada módulo se numera solo según el cable: el primero es el <b>cabeza</b> (el que tiene Wi-Fi y manda); los demás se suman detrás. Las salidas se cuentan seguidas: la salida 1 del módulo 2 es el canal 17. Si un módulo pierde al cabeza, sus salidas pasan a su máscara segura en 1 s (de fábrica, todo apagado).</p>
+    <div class="cadena" id="cadena"></div><div id="mods"></div></section>
 
   <section class="card" id="sSalidas"><h2>Salidas</h2><p class="sub">Un clic alterna el canal. En una carga de <b>proceso</b> el arranque siempre es apagado. Un canal que enciendes desde aquí <b>no se apaga solo si se cierra la página o se desconecta el cable</b>; el apagado por pérdida de comunicación solo existe para canales mandados por Modbus con la vigilancia activada (de fábrica está en 0 = sin vigilancia).</p>
     <div class="grid" id="canales"></div>
@@ -127,7 +137,7 @@ const $=id=>document.getElementById(id);
 const ESTADO_PK=["","Limpiando falla","Detenida","Arrancando","Lista","Suspendida","En producción","Deteniendo","Abortando","Abortada","Reteniendo","Retenida","Reanudando","Suspendiendo","Reanudando de suspensión","Reiniciando","Terminando","Terminada"];
 const MODO_PK=["","Producción","Mantenimiento","Manual"];
 const CAUSAS=["Sin causa","Avería","Cambio de producto","Microparo","Velocidad reducida","Defectos","Arranque","Paro planeado","Causa externa"];
-const ARRANQUE=["Apagado","Último estado","Encendido"],MODOS_ENT=["Pulsador","Interruptor","Conmutador","Desacoplada"];
+const ARRANQUE=["Apagado","Último estado","Encendido"],MODOS_ENT=["Pulsador","Interruptor","Conmutador","Desacoplada","Pulsador con gestos"],ACC_GESTO=["Nada","Encender el canal","Apagar el canal","Apagar todo el alumbrado","Encender todo el alumbrado"];
 const REMOTO_NO=["RESET","START","UNHOLD","CLEAR"];     // el equipo los rechaza desde la red
 /* Perfiles de aplicación: datos, no código. Agregar uno aquí lo muestra en el panel. */
 const PERFILES=[
@@ -163,7 +173,7 @@ function transporteRed(ip,clave){
       if(!r.ok)throw new Error("HTTP "+r.status);return{ok:true,j:await r.json()}}}}
 /* Placa simulada: misma forma de JSON que /api del firmware (api 2) */
 function transporteDemo(tipo){
-  const n7=tipo=="7r",N=n7?7:1,NE=n7?8:1,S={s:0,e:0,man:Array(N).fill(0),arr:Array(N).fill(0),carga:Array(N).fill(0),pul:Array(N).fill(0),acc:Array(N).fill(0),
+  const n7=tipo=="7r",N=n7?7:1,NE=n7?8:1,S={ges:Array.from({length:n7?8:1},()=>[0,0]),s:0,e:0,man:Array(N).fill(0),arr:Array(N).fill(0),carga:Array(N).fill(0),pul:Array(N).fill(0),acc:Array(N).fill(0),
     ent:Array.from({length:NE},()=>[3,0,30]),mon:[0,0,0,0],cic:0,pk:{e:2,m:1,r:0,n:0,d:0,rem:0},t:0,hv:0,h:0,mb:{dir:1,bps:9600,par:0,vig:0},T:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],rem:0};
   const cap=["salidas","entradas","packml","plc","modbus_esclavo"].concat(n7?["rs485","rtc","conteo_rapido","autoprueba"]:[]);
   const NEXT={1:2,3:6,7:2,8:9,10:11,12:6,15:4},P=S.pk;
@@ -175,7 +185,7 @@ function transporteDemo(tipo){
     const oee=[disp,des,cal].includes(65535)?65535:Math.round(disp*des*cal/1e6);
     return{v:"demo",placa:n7?"7R Tour":"AP Home",n:N,ne:NE,s:S.s,e:S.e,b:S.s,fz:0,f:0,fn:[],man:S.man,arr:S.arr,carga:S.carga,
       mb:{dir:S.mb.dir,bps:S.mb.bps,par:S.mb.par||0,vig:S.mb.vig,ok:0,mal:0},pk:{e:P.e,m:P.m,r:P.r,n:P.n,d:P.d,disp,des,cal,oee,mp:0,rem:S.rem,h:Math.floor(Date.now()/1000),hv:S.hv},
-      api:2,cap,cfg:{pul:S.pul,acc:S.acc,ent:S.ent,mon:S.mon,cic:S.cic},plc:{run:0,n:0,err:""},id:"DEM0"+(n7?"7R":"HM"),t:S.t}}
+      api:2,cap,cfg:{pul:S.pul,acc:S.acc,ent:S.ent,ges:S.ges,mon:S.mon,cic:S.cic},plc:{run:0,n:0,err:""},id:"DEM0"+(n7?"7R":"HM"),t:S.t}}
   const PKT={RESET:{2:15,17:15},START:{4:3},STOP:{3:7,4:7,5:7,6:7,10:7,11:7,12:7,13:7,14:7,15:7,16:7,17:7},HOLD:{6:10},UNHOLD:{11:12},CLEAR:{9:1}};
   return{nombre:"Demostración",origen:"local",async abrir(){},async cerrar(){clearInterval(iv)},
     async enviar(c){const w=c.trim().split(/\s+/),k=w[0].toUpperCase(),a=w.slice(1).map(Number);let ok=true;
@@ -184,7 +194,7 @@ function transporteDemo(tipo){
       else if(k=="T"&&a[0]>=1&&a[0]<=N){S.carga[a[0]-1]=a[1];if(a[1]){S.arr[a[0]-1]=0;S.acc[a[0]-1]=0}}
       else if(k=="P"&&a[0]>=1&&a[0]<=N)S.pul[a[0]-1]=a[1];
       else if(k=="X"&&a[0]>=1&&a[0]<=N){if(a[1]>1||(a[1]&&S.carga[a[0]-1]))ok=false;else S.acc[a[0]-1]=a[1]}
-      else if(k=="E"&&a[0]>=1&&a[0]<=NE)S.ent[a[0]-1]=[a[1],a[2],a[3]];
+      else if(k=="E"&&a[0]>=1&&a[0]<=NE){if(a[1]>4||a[2]>N||(a[1]!=4&&((a[4]||0)||(a[5]||0)))||(a[4]||0)>4||(a[5]||0)>4)ok=false;else{S.ent[a[0]-1]=[a[1],a[2],a[3]];S.ges[a[0]-1]=[a[4]||0,a[5]||0]}}
       else if(k=="MB"){S.mb={dir:a[0],bps:a[1],par:a[2],vig:a[3]}}
       else if(k=="GUARDAR"||k=="?"){}
       else if(k=="PK"){const s=(w[1]||"").toUpperCase(),a=w.slice(2).map(Number);
@@ -198,6 +208,21 @@ function transporteDemo(tipo){
       else ok=false;
       return ok?{ok:true,j:json()}:{ok:false}}}}
 
+/* Cadena AP Rack simulada: misma forma de JSON que el firmware APRack (api 2 con módulos). DEMO + / DEMO - agregan o quitan un módulo. */
+function transporteDemoRack(){
+  const mk=p=>({p,id:("D3A0"+(1000+p*37)).toUpperCase().slice(0,8),tp:1,ns:16,ne:8,s:0,e:0,v:24000+p*30,f:0,ok:1,seg:0});
+  let M=[mk(1),mk(2)],t=0;
+  const iv=setInterval(()=>{t++;M.forEach(m=>{m.v=24000+((t*37+m.p*91)%200)-100});if(M[1])M[1].e=(t%6<3)?0x05:0x04},1000);
+  function json(){return{v:"demo",placa:"AP Rack 16",api:2,cap:["salidas","entradas","aplink","modulos"],rol:"cabeza",pos:1,total:M.length,n:16*M.length,ne:8*M.length,enl:{mal:0},mods:M.map(m=>Object.assign({},m)),id:"DEMRK1",t}}
+  return{nombre:"Demostración",origen:"local",async abrir(){},async cerrar(){clearInterval(iv)},
+    async enviar(c){const w=c.trim().split(/\s+/),k=w[0].toUpperCase(),a=w.slice(1).map(x=>Number(x));let ok=true;
+      if(k=="C"){const g=a[0]-1;if(!(g>=0&&g<16*M.length)||a[1]>2||a[1]<0||isNaN(a[1]))ok=false;else{const m=M[g>>4],b=1<<(g&15);m.s=a[1]==2?m.s^b:a[1]?m.s|b:m.s&~b&0xFFFF}}
+      else if(k=="A"){if(!(a[0]==0||a[0]==1))ok=false;else M.forEach(m=>m.s=a[0]?0xFFFF:0)}
+      else if(k=="M"){if(!(a[0]>=1&&a[0]<=M.length)||!(a[1]>=0&&a[1]<=0xFFFF))ok=false;else M[a[0]-1].s=a[1]}
+      else if(k=="DEMO"){if(w[1]=="+"&&M.length<16)M.push(mk(M.length+1));else if(w[1]=="-"&&M.length>1)M.pop();else ok=false}
+      else if(k=="S"||k=="GUARDAR"||k=="?"){}
+      else ok=false;
+      return ok?{ok:true,j:json()}:{ok:false}}}}
 function mandar(c,ms){const p=cola.then(()=>T?T.enviar(c,ms):Promise.reject(new Error("Sin conexión")));cola=p.catch(()=>{});return p}
 async function orden(c,ms){
   log("> "+c);
@@ -217,7 +242,7 @@ async function conectar(tr){
     let r=null;for(let i=0;i<4&&!r;i++){try{r=await mandar("?",1800)}catch(e){await new Promise(z=>setTimeout(z,500))}}
     if(!r||!r.ok)throw new Error("La placa no contesta. Revisa el cable, los baudios (115200) y que corra AP Control.");
     J=r.j;if(!J.api){log("Firmware sin api 2: se muestran solo los datos básicos")}
-    if(!(J.n>=1&&J.n<=8&&J.ne>=0&&J.ne<=8))throw new Error("La respuesta no parece de una placa AP Control (canales o entradas fuera de rango).");
+    if(!((J.cap||[]).includes("aplink")?(J.n>=1&&J.n<=256&&J.ne>=0&&J.ne<=256&&Array.isArray(J.mods)):(J.n>=1&&J.n<=8&&J.ne>=0&&J.ne<=8)))throw new Error("La respuesta no parece de una placa AP Control (canales o entradas fuera de rango).");
     visto=Date.now();
     $("conectar").classList.add("hidden");$("panel").classList.remove("hidden");$("bSalir").hidden=false;
     estado(T.nombre+" · "+(J.placa||"placa"),"ok");$("mConectar").textContent="";
@@ -234,7 +259,7 @@ $("bUsb").onclick=async()=>{
 $("bRed").onclick=()=>{const ip=$("iIp").value.trim();if(!ip){$("mConectar").textContent="Escribe la IP de la placa.";return}
   if(location.protocol=="https:"){$("mConectar").textContent="Esta página es https:// y el navegador no permite hablar con un equipo http:// de tu red. Usa USB, o abre esta consola desde la propia placa (http://"+ip+"/) o desde un archivo local.";return}
   conectar(transporteRed(ip,$("iClave").value.trim()))};
-$("bD7").onclick=()=>conectar(transporteDemo("7r"));$("bDH").onclick=()=>conectar(transporteDemo("home"));
+$("bDR").onclick=()=>conectar(transporteDemoRack());$("bD7").onclick=()=>conectar(transporteDemo("7r"));$("bDH").onclick=()=>conectar(transporteDemo("home"));
 
 /* ---------- pintar ---------- */
 const tiene=c=>J&&(J.cap||[]).includes(c);
@@ -243,6 +268,16 @@ function limpia(e){e.textContent="";return e}
 function chip(t,cls){return txt("span",t,"chip "+(cls||""))}
 function numerado(sel,v){if(document.activeElement!==sel)sel.value=String(v)}
 function construirFijos(){
+  $("pkNueva").onclick=null;
+  if(tiene("aplink")){
+    $("bGuardar").onclick=async()=>{if(await orden("GUARDAR"))aviso("Máscara segura guardada en el módulo.")};
+    $("bFabrica").onclick=async()=>{aviso("Valores de fábrica por USB: escribe FABRICA en el módulo.",true)};
+    $("bTest").hidden=true;$("bTestR").hidden=true;
+    $("bCmd").onclick=async()=>{const c=$("iCmd").value.trim().split(/\r?\n/)[0];if(!c)return;await orden(c);$("iCmd").value=""};
+    $("iCmd").onkeydown=e=>{if(e.key=="Enter")$("bCmd").click()};
+    $("bBk").onclick=()=>aviso("AP Rack no guarda configuración de canales: solo la máscara segura de cada módulo (orden S).");
+    limpia($("perfiles")).appendChild(txt("span","Sin perfiles para AP Rack todavía.","sub"));
+    return}
   const m=limpia($("pkMot"));CAUSAS.forEach((t,i)=>m.add(new Option(t,i*100)));m.onchange=()=>orden("PK MOTIVO "+m.value);
   const pb=limpia($("pkBt"));[["RESET","Reset"],["START","Start"],["UNHOLD","Reanudar"],["HOLD","Hold"],["STOP","Stop"],["ABORT","Abort"],["CLEAR","Clear"]].forEach(([c,t])=>{
     const b=txt("button",t,"btn"+(c=="ABORT"?" d":""));b.dataset.c=c;b.onclick=()=>orden("PK "+c);pb.appendChild(b)});
@@ -291,25 +326,63 @@ function construirFijos(){
     const tdp=document.createElement("td"),ip=document.createElement("input");ip.type="number";ip.min=0;ip.max=65535;ip.id="cP"+k;ip.style.width="90px";ip.onchange=()=>orden(`P ${k} ${+ip.value||0}`);tdp.appendChild(ip);tr.appendChild(tdp);
     mk("cX"+k,[[0,"Apagar"],[1,"Mantener"]],v=>`X ${k} ${v}`);body.appendChild(tr)}
   tb.appendChild(body);cc.appendChild(tb);cc.appendChild(txt("p","Un canal de proceso siempre arranca apagado y, si lo manda Modbus con vigilancia activada, se apaga al perderse el latido de escrituras: el equipo lo impone aunque pidas otra cosa.","sub"));
-  const ce=limpia($("cfgEntradas")),te=document.createElement("table");te.innerHTML="<thead><tr><th>Entrada</th><th>Modo</th><th>Canal que manda</th><th>Antirrebote (ms)</th></tr></thead>";
+  const ce=limpia($("cfgEntradas")),te=document.createElement("table");te.innerHTML="<thead><tr><th>Entrada</th><th>Modo</th><th>Canal que manda</th><th>Antirrebote (ms)</th><th>Doble toque</th><th>Toque largo</th></tr></thead>";
   const be=document.createElement("tbody");
   for(let k=1;k<=J.ne;k++){const tr=document.createElement("tr");tr.appendChild(txt("td","I"+k));
     const sm=document.createElement("select");sm.id="eM"+k;MODOS_ENT.forEach((t,i)=>sm.add(new Option(t,i)));
     const sc=document.createElement("select");sc.id="eC"+k;for(let c=0;c<=J.n;c++)sc.add(new Option(c?"Canal "+c:"Ninguno",c));
     const ia=document.createElement("input");ia.type="number";ia.min=0;ia.max=2000;ia.id="eA"+k;ia.style.width="90px";
-    const envia=()=>orden(`E ${k} ${sm.value} ${sc.value} ${+ia.value||30}`);
-    [sm,sc,ia].forEach(x=>x.onchange=envia);
-    for(const x of[sm,sc,ia]){const td=document.createElement("td");td.appendChild(x);tr.appendChild(td)}be.appendChild(tr)}
+    const sd=document.createElement("select"),sl=document.createElement("select");sd.id="eD"+k;sl.id="eL"+k;
+    for(const x of[sd,sl])ACC_GESTO.forEach((t,i)=>x.add(new Option(t,i)));
+    const envia=()=>orden(`E ${k} ${sm.value} ${sc.value} ${+ia.value||30}`+(sm.value=="4"?` ${sd.value} ${sl.value}`:""));
+    [sm,sc,ia,sd,sl].forEach(x=>x.onchange=envia);
+    for(const x of[sm,sc,ia,sd,sl]){const td=document.createElement("td");td.appendChild(x);tr.appendChild(td)}be.appendChild(tr)}
   te.appendChild(be);ce.appendChild(te)}
 
+function pintarMods(){
+  const rack=tiene("aplink");
+  for(const id of["sSalidas","sEntradas","sProd","sCom"])if(rack)$(id).classList.add("hidden");
+  $("sMods").classList.toggle("hidden",!rack);
+  if(!rack)return;
+  const ch=limpia($("cadena"));
+  ch.appendChild(txt("span","ENTRA","sub"));
+  J.mods.forEach((m,i)=>{ch.appendChild(txt("span","▸","flecha"));
+    const n=txt("span","Módulo "+m.p+(m.p==1?" · cabeza":""),"nodo"+(m.p==1?" cab":"")+(m.ok?"":" mal"));ch.appendChild(n)});
+  ch.appendChild(txt("span","▸","flecha"));ch.appendChild(txt("span","SIGUE","sub"));
+  const cont=limpia($("mods"));let base=0;
+  J.mods.forEach(m=>{
+    const bs=base;
+    const c=txt("div",null,"card");c.dataset.p=m.p;
+    const t=txt("div",null,"fila");t.appendChild(txt("b","Módulo "+m.p,"mono"));
+    t.appendChild(chip(m.p==1?"cabeza":"esclavo",m.p==1?"info":""));
+    t.appendChild(chip("id "+m.id,""));t.appendChild(chip((m.v/1000).toFixed(1)+" V",m.v<10500||m.v>31500?"warn":"ok"));
+    t.appendChild(chip(m.ok?"responde":"SIN RESPUESTA",m.ok?"ok":"bad"));
+    if(m.seg)t.appendChild(chip("perdió el enlace (salidas seguras)","warn"));
+    if(m.f)t.appendChild(chip("falla "+m.f,"bad"));
+    c.appendChild(t);
+    const g=txt("div",null,"salgrid");g.style.margin="8px 0";
+    for(let i=0;i<m.ns;i++){const on=(m.s>>i)&1,ch=bs+i+1,b=txt("button",ch+(on?" ●":""),"sal"+(on?" on":""));b.title="Canal "+ch+" (salida "+(i+1)+" del módulo "+m.p+")";b.dataset.ch=ch;
+      b.disabled=!m.ok;b.onclick=()=>orden("C "+ch+" 2");g.appendChild(b)}
+    c.appendChild(g);
+    const e=txt("div",null,"fila");for(let i=0;i<m.ne;i++){const on=(m.e>>i)&1;const x=txt("span",null,"chip"+(on?" ok":""));x.appendChild(txt("span",null,"led"+(on?" on":"")));x.appendChild(document.createTextNode("I"+(i+1)));e.appendChild(x)}
+    c.appendChild(e);
+    const f=txt("div",null,"fila");f.style.marginTop="8px";
+    const b0=txt("button","Apagar este módulo","btn");b0.onclick=()=>orden("M "+m.p+" 0");f.appendChild(b0);
+    const b1=txt("button","Encender sus 16","btn");b1.onclick=()=>{if(confirm("Se encienden las 16 salidas del módulo "+m.p+". ¿Hay cargas que no deban encenderse a la vez?"))orden("M "+m.p+" 65535")};f.appendChild(b1);
+    c.appendChild(f);cont.appendChild(c);base+=m.ns});
+  const g2=txt("div",null,"fila");const ba=txt("button","Apagar TODAS las salidas de la cadena","btn d");ba.onclick=()=>orden("A 0");g2.appendChild(ba);cont.appendChild(g2);
+  cont.appendChild(txt("p","Un canal encendido desde aquí no se apaga solo si se cierra la página; sí se apaga si el módulo pierde al cabeza. Esta consola no es una función de seguridad.","sub"));
+}
 function pintar(){
   if(!J)return;
   if(tPrev>=0&&J.t<tPrev){aviso("La placa se reinició (el contador de tiempo volvió atrás). Revisa su estado.",true);log("(reinicio detectado)")}
   tPrev=J.t;
   const info=limpia($("eqInfo"));
+  pintarMods();
   [[J.placa,"info"],["fw "+J.v,""],["id "+J.id,""],[J.n+" salidas",""],[J.ne+" entradas",""],["encendida hace "+Math.floor(J.t/60)+" min",""],[T.origen=="local"?"origen: local (USB)":"origen: red (con clave; no reanuda la máquina)",T.origen=="local"?"ok":"warn"]].forEach(([t,c])=>info.appendChild(chip(t,c)));
   (J.cap||[]).forEach(c=>info.appendChild(chip(c,"info")));
   const fl=limpia($("eqFallas"));if(J.f)(J.fn||[]).forEach(f=>fl.appendChild(chip("Falla: "+f,"bad")));else fl.appendChild(chip("Sin fallas","ok"));
+  if(tiene("aplink")){const rk=J.rol=="cabeza"?"cabeza de la cadena":J.rol;info.appendChild(chip("módulos: "+J.total,"info"));info.appendChild(chip("rol: "+rk,J.rol=="cabeza"?"ok":"warn"));return}
   const cn=limpia($("canales"));
   for(let k=1;k<=J.n;k++){const on=(J.s>>(k-1))&1,fz=(J.fz>>(k-1))&1,bo=(J.b>>(k-1))&1;
     const d=txt("div",null,"canal"+(on?" on":""));const t=txt("b","Canal "+k);d.appendChild(t);
@@ -318,7 +391,8 @@ function pintar(){
     const b=txt("button",on?"Apagar":"Encender","btn"+(on?"":" p"));b.onclick=()=>orden(`C ${k} 2`);d.appendChild(b);cn.appendChild(d)}
   const en=limpia($("entradas"));for(let k=1;k<=J.ne;k++){const on=(J.e>>(k-1))&1;const c=txt("span",null,"chip"+(on?" ok":""));c.appendChild(txt("span",null,"led"+(on?" on":"")));c.appendChild(document.createTextNode("I"+k+(on?" activa":" reposo")));en.appendChild(c)}
   if(J.cfg){for(let k=1;k<=J.n;k++){numerado($("cT"+k),J.carga[k-1]);numerado($("cA"+k),J.arr[k-1]);numerado($("cX"+k),J.cfg.acc[k-1]);const p=$("cP"+k);if(document.activeElement!==p)p.value=J.cfg.pul[k-1]}
-    for(let k=1;k<=J.ne;k++){const e=J.cfg.ent[k-1];if(!e)continue;numerado($("eM"+k),e[0]);numerado($("eC"+k),e[1]);const a=$("eA"+k);if(document.activeElement!==a)a.value=e[2]}}
+    for(let k=1;k<=J.ne;k++){const e=J.cfg.ent[k-1];if(!e)continue;numerado($("eM"+k),e[0]);numerado($("eC"+k),e[1]);const a=$("eA"+k);if(document.activeElement!==a)a.value=e[2];
+      const g=(J.cfg.ges||[])[k-1]||[0,0];numerado($("eD"+k),g[0]);numerado($("eL"+k),g[1]);$("eD"+k).disabled=$("eL"+k).disabled=e[0]!=4}}
   else $("cfgCanales").textContent="Este firmware no informa la configuración (api 1).";
   const K=J.pk;
   if(K&&tiene("packml")){
@@ -335,9 +409,9 @@ function pintar(){
     ci.appendChild(chip(K&&K.hv?"Hora: "+new Date(K.h*1000).toLocaleString():"Hora sin ajustar",K&&K.hv?"ok":"warn"));
     numerado($("mbDir"),J.mb.dir);numerado($("mbBps"),J.mb.bps);if(J.mb.par!=null)numerado($("mbPar"),J.mb.par);numerado($("mbVig"),J.mb.vig)}
 }
-function respaldo(){const L=["# Respaldo de configuración "+J.placa+" "+J.id+" "+new Date().toISOString()];
+function respaldo(){if(tiene("aplink"))return "# AP Rack: sin configuración de canales que respaldar";const L=["# Respaldo de configuración "+J.placa+" "+J.id+" "+new Date().toISOString()];
   for(let k=1;k<=J.n;k++){L.push(`T ${k} ${J.carga[k-1]}`,`A ${k} ${J.arr[k-1]}`);if(J.cfg){L.push(`P ${k} ${J.cfg.pul[k-1]}`,`X ${k} ${J.cfg.acc[k-1]}`)}}
-  if(J.cfg){J.cfg.ent.forEach((e,i)=>L.push(`E ${i+1} ${e[0]} ${e[1]} ${e[2]}`));if(tiene("packml")){L.push("PK ENT "+J.cfg.mon.join(" "),"PK CICLO "+J.cfg.cic)}}
+  if(J.cfg){J.cfg.ent.forEach((e,i)=>{const g=(J.cfg.ges||[])[i]||[0,0];L.push(`E ${i+1} ${e[0]} ${e[1]} ${e[2]}`+(e[0]==4?` ${g[0]} ${g[1]}`:""))});if(tiene("packml")){L.push("PK ENT "+J.cfg.mon.join(" "),"PK CICLO "+J.cfg.cic)}}
   if(tiene("rs485"))L.push(`MB ${J.mb.dir} ${J.mb.bps} ${J.mb.par||0} ${J.mb.vig}`);L.push("GUARDAR");return L.join("\n")}
 </script>
 </body>

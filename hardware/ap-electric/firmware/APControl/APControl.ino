@@ -327,6 +327,7 @@ bool ejecutar(String s, bool local = false) {
     case 'X': if (k < 1 || k > cfg.nCanales) return false; cfg.canal[k - 1].accionCom = num(p); return aplicar();
     case 'E': if (k < 1 || k > cfg.nEntradas) return false;
               cfg.entrada[k - 1].modo = num(p); cfg.entrada[k - 1].canal = num(p); cfg.entrada[k - 1].antirreboteMs = num(p);
+              cfg.entrada[k - 1].dobleToque = num(p); cfg.entrada[k - 1].toqueLargo = num(p);      // opcionales (modo 4 = gestos); sin ellos quedan en 0
               return aplicar();
   }
   return false;
@@ -448,6 +449,7 @@ String estadoJSON() {
   s += ",\"cfg\":{\"pul\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].pulsoS; }
   s += "],\"acc\":["; for (int k = 0; k < ctl.cfg.nCanales; k++) { if (k) s += ','; s += ctl.cfg.canal[k].accionCom; }
   s += "],\"ent\":["; for (int k = 0; k < ctl.cfg.nEntradas; k++) { if (k) s += ','; s += '['; s += ctl.cfg.entrada[k].modo; s += ','; s += ctl.cfg.entrada[k].canal; s += ','; s += ctl.cfg.entrada[k].antirreboteMs; s += ']'; }
+  s += "],\"ges\":["; for (int k = 0; k < ctl.cfg.nEntradas; k++) { if (k) s += ','; s += '['; s += ctl.cfg.entrada[k].dobleToque; s += ','; s += ctl.cfg.entrada[k].toqueLargo; s += ']'; }
   s += "],\"mon\":["; s += pk.mon.entCiclo; s += ','; s += pk.mon.entMala; s += ','; s += pk.mon.entAndon; s += ','; s += pk.mon.entReanuda;
   s += "],\"cic\":"; s += pk.cfg.cicloNominalMs; s += "}";
   s += ",\"plc\":{\"run\":"; s += plcRun;

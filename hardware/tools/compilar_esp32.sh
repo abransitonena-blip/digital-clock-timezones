@@ -9,6 +9,7 @@ REPO=$(cd "$(dirname "$0")/../.." && pwd)
 # Programa: ap02 (por omisión) o ap1:   bash hardware/tools/compilar_esp32.sh ap1
 case "${1:-ap02}" in
   apcontrol) SKETCH=$REPO/hardware/ap-electric/firmware/APControl; OUT=$REPO/hardware/ap-electric/firmware/binarios; NOMBRE=APControl ;;
+  aprack) SKETCH=$REPO/hardware/ap-electric/firmware/APRack; OUT=$REPO/hardware/ap-electric/firmware/binarios; NOMBRE=APRack ;;
   ap1) SKETCH=$REPO/hardware/ap1-prog/firmware/LetreroLabAP1; OUT=$REPO/hardware/ap1-prog/firmware/binarios; NOMBRE=LetreroLabAP1 ;;
   *)   SKETCH=$REPO/hardware/ap02/firmware/LetreroLabAP02; OUT=$REPO/hardware/ap02/firmware/binarios; NOMBRE=LetreroLabAP02 ;;
 esac

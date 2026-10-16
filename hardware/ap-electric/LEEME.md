@@ -36,12 +36,15 @@ Las placas de LED de corriente constante son otra familia, **AP LED**, y no alim
 | [ANALISIS_ECOSISTEMA.md](ANALISIS_ECOSISTEMA.md) | Mapa del ecosistema de PLC, placas y controladores; qué conservar, congelar y descartar; producto del piloto y las tres puertas de preventa |
 | [PREVENTA_AP_MONITOR.md](PREVENTA_AP_MONITOR.md) | Ficha del programa piloto AP Monitor 24: qué es, qué no es y cómo participar |
 | [PACKML.md](PACKML.md) | Unidad PackML de AP Control: máquina de estados, tiempos por estado, OEE, causas de paro, mapa Modbus «PackTags v1» y reglas de reanudación remota |
+| [AP_LINK.md](AP_LINK.md) | Enlace en cadena entre módulos estilo DMX (RS-485 + SENSE): numeración automática, cabeza, estado seguro, qué se simuló |
+| [HOME_FAMILIA.md](HOME_FAMILIA.md) | AP Home separado por uso, gestos del pulsador (doble toque, toque largo) y tapas 3D de 1, 2 y 3 pulsadores |
 | [PLAN_VERIFICACION.md](PLAN_VERIFICACION.md) | Lo comprobado por software, el banco de prototipo y el laboratorio; pendientes concretos |
+| [rack16/](rack16/LEEME.md) | **AP Rack 16**: placa industrial de 12-30 V con 16 salidas protegidas, 8 entradas y 2 conectores AP LINK para encadenar módulos |
 | `7r-tour/`, `home/` | Proyectos KiCad 9 (generadores en `gen/`):<br>• esquema;<br>• placa;<br>• `fabricacion/jlcpcb` con Gerbers, taladros, BOM y CPL |
 | `firmware/APControl/` | Programa AP Control 1.0 (ESP32-C3, Arduino-ESP32 3.1.1): núcleo portable `ap_control.h`, esclavo Modbus `modbus_esclavo.h`, PLC `logica.h`; pruebas en `firmware/pruebas/` |
 | `identidad/` | Isotipo, logotipos AP Electric y AP Electric Industrial, marca 7R Tour y etiquetas de producto: SVG vectorial, PNG y PDF. Sin sellos de certificación |
 | `carcasas/` + `../ap1-gabinete/producto/` | Generadores de carcasa (DIN del 7R Tour; Home Plug y Home Switch) y STL de prototipo |
-| [accesorios/](accesorios/LEEME.md) | 20 complementos 3D imprimibles (clips, bridas, anclajes de riel DIN, cubiertas de bornera, bota USB-C, soportes) y 6 modelos de referencia de cables y conectores; prototipos de diseño sin imprimir |
+| [accesorios/](accesorios/LEEME.md) | 24 complementos 3D imprimibles (clips, bridas, anclajes de riel DIN, cubiertas de bornera, bota USB-C, soportes) y 6 modelos de referencia de cables y conectores; prototipos de diseño sin imprimir |
 | `renders/` | Imágenes del producto |
 | `web/` | Sitio de la familia (Home, Industrial, Luz, Studio) con lista de interés y panel interno de proveedores y nombres. Publicado como página privada en claude.ai; los proveedores y nombres viven en su base de datos |
 

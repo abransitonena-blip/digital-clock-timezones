@@ -303,6 +303,66 @@
    ],
    "volumen_cm3": 2.88,
    "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-021",
+   "archivo": "stl/placa_pulsadores_1.stl",
+   "nombre": "placa_pulsadores_1",
+   "funcion": "Tapa de pared de chalupa con 1 pulsador de 16 mm y ventana de luz",
+   "material": "PETG o ABS",
+   "nota": "chalupa de 2 x 4 pulgadas; tornillos a 82.55 mm por confirmar",
+   "dimensiones_mm": [
+    70.0,
+    115.0,
+    3.0
+   ],
+   "volumen_cm3": 23.35,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-022",
+   "archivo": "stl/placa_pulsadores_2.stl",
+   "nombre": "placa_pulsadores_2",
+   "funcion": "Tapa de pared de chalupa con 2 pulsadores",
+   "material": "PETG o ABS",
+   "nota": "para Home Switch de varios circuitos (un módulo por pulsador)",
+   "dimensiones_mm": [
+    70.0,
+    115.0,
+    3.0
+   ],
+   "volumen_cm3": 22.7,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-023",
+   "archivo": "stl/placa_pulsadores_3.stl",
+   "nombre": "placa_pulsadores_3",
+   "funcion": "Tapa de pared de chalupa con 3 pulsadores",
+   "material": "PETG o ABS",
+   "nota": "idem",
+   "dimensiones_mm": [
+    70.0,
+    115.0,
+    3.0
+   ],
+   "volumen_cm3": 22.07,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-024",
+   "archivo": "stl/soporte_home_registro.stl",
+   "nombre": "soporte_home_registro",
+   "funcion": "Base para fijar la placa AP Home dentro de una caja de registro",
+   "material": "PETG o ABS",
+   "nota": "postes en los agujeros de la placa; no sustituye la caja ni la tapa certificadas",
+   "dimensiones_mm": [
+    95.0,
+    87.1,
+    8.0
+   ],
+   "volumen_cm3": 16.16,
+   "solido_valido": true
   }
  ],
  "referencias": [
