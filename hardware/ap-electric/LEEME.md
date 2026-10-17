@@ -42,6 +42,7 @@ Las placas de LED de corriente constante son otra familia, **AP LED**, y no alim
 | [HOME_FAMILIA.md](HOME_FAMILIA.md) | AP Home separado por uso, gestos del pulsador (doble toque, toque largo) y tapas 3D de 1, 2 y 3 pulsadores |
 | [PLAN_VERIFICACION.md](PLAN_VERIFICACION.md) | Lo comprobado por software, el banco de prototipo y el laboratorio; pendientes concretos |
 | [rack16/](rack16/LEEME.md) | **AP Rack 16**: placa industrial de 12-30 V con 16 salidas protegidas, 8 entradas y 2 conectores AP LINK para encadenar módulos |
+| [formatos/](formatos/LEEME.md) | **Formatos 3D**: STEP de las placas, 3MF/OBJ/FBX de las piezas y escenas .blend |
 | [blender/](blender/LEEME.md) | **Renders con Blender** de las 29 piezas imprimibles, las placas y los ensambles caja + placa, con el script para repetirlos |
 | [web/modelos3d/](web/modelos3d/LEEME.md) | **Modelos 3D** (GLB) de las cinco placas AP Rack y de la caja imprimible, con visor en la web |
 | [in16/](in16/LEEME.md) · [ai8/](ai8/LEEME.md) · [led8/](led8/LEEME.md) · [rl4/](rl4/LEEME.md) · [ao4/](ao4/LEEME.md) | **AP Rack IN16** (16 entradas de 12-30 V), **AP Rack AI8** (8 analógicas 0-10 V / 4-20 mA), **AP Rack LED8** (8 salidas con brillo PWM), **AP Rack RL4** (4 relés secos de 24 V) y **AP Rack AO4** (4 salidas 0-10 V): módulos de la cadena AP LINK |
