@@ -60,7 +60,7 @@ for ref, cte in (("U6", "TCA_S1"), ("U7", "TCA_S2"), ("U8", "TCA_ENT"), ("U9", "
     mc = re.search(r"%s = (0x[0-9A-Fa-f]+)" % cte, rino)
     if int(mc.group(1), 16) != dirx: errores.append("Rack %s: la placa da 0x%02X y el programa %s" % (ref, dirx, mc.group(1)))
 # IN16 y AI8: mismo ESP32 que el Rack 16, y las direcciones I2C que usa el programa para reconocer el tipo de módulo
-for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8"), ("led8", "LED8"), ("rl4", "RL4")):
+for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8"), ("led8", "LED8"), ("rl4", "RL4"), ("ao4", "AO4")):
     mk2 = open(os.path.join(R, carpeta, "gen/make.py"), encoding="utf-8").read()
     if "importlib" not in mk2 or "rack16" not in mk2: errores.append("%s: no hereda las piezas del Rack 16" % tipo)
 if True:
@@ -91,6 +91,16 @@ if '"U7"' not in rl.split("_quitar =")[1].split("\n")[0]: errores.append("RL4: d
 if "TCA_S2 = 0x21" not in rino or "!existe(TCA_S2) ? T_RL4" not in rino: errores.append("RL4: el programa no lo reconoce por la ausencia del 0x21")
 if '"A1": "V24", "A2": "Q%d" % k' not in rl: errores.append("RL4: la bobina de cada relé debe ir entre V24 y la salida Qk")
 if "NREL = 4" not in rl: errores.append("RL4: el programa dice 4 salidas y la placa no")
+ao = open(os.path.join(R, "ao4/gen/make.py"), encoding="utf-8").read()
+mc = re.search(r"PCA_AO = (0x[0-9A-Fa-f]+)", rino)
+mp = re.search(r'"U6", "PCA9685PW".*?\{(.*?)\},\s*"PWM', ao, re.S)
+if not mc or not mp: errores.append("AO4: no se encontró el PCA9685 en la placa o PCA_AO en el programa")
+else:
+    pines = dict((a2, b2) for a2, b2 in re.findall(r'"(\d+)": ("?\w+"?)', mp.group(1)))
+    dirx = 0x40 + sum((1 << i) for i, k in enumerate((1, 2, 3, 4, 5)) if pines.get(str(k)) == '"3V3"') + (0x20 if pines.get("24") == '"3V3"' else 0)
+    if int(mc.group(1), 16) != dirx: errores.append("AO4: la placa da la dirección 0x%02X y el programa PCA_AO = %s" % (dirx, mc.group(1)))
+    if dirx == 0x40: errores.append("AO4: debe distinguirse del LED8 (0x40) por la dirección del PCA9685")
+    if any(pines.get(str(6 + k)) != '"PW%d"' % (k + 1) for k in range(4)): errores.append("AO4: LED0-LED3 no van a PW1-PW4")
 for e in errores: print("  ERROR:", e)
-print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, IN16, AI8, LED8 y RL4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
+print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, IN16, AI8, LED8, RL4 y AO4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
 sys.exit(1 if errores else 0)

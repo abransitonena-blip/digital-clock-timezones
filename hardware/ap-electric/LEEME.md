@@ -43,7 +43,7 @@ Las placas de LED de corriente constante son otra familia, **AP LED**, y no alim
 | [PLAN_VERIFICACION.md](PLAN_VERIFICACION.md) | Lo comprobado por software, el banco de prototipo y el laboratorio; pendientes concretos |
 | [rack16/](rack16/LEEME.md) | **AP Rack 16**: placa industrial de 12-30 V con 16 salidas protegidas, 8 entradas y 2 conectores AP LINK para encadenar módulos |
 | [web/modelos3d/](web/modelos3d/LEEME.md) | **Modelos 3D** (GLB) de las cinco placas AP Rack y de la caja imprimible, con visor en la web |
-| [in16/](in16/LEEME.md) · [ai8/](ai8/LEEME.md) · [led8/](led8/LEEME.md) · [rl4/](rl4/LEEME.md) | **AP Rack IN16** (16 entradas de 12-30 V), **AP Rack AI8** (8 analógicas 0-10 V / 4-20 mA), **AP Rack LED8** (8 salidas con brillo PWM) y **AP Rack RL4** (4 relés secos de 24 V): módulos de la cadena AP LINK |
+| [in16/](in16/LEEME.md) · [ai8/](ai8/LEEME.md) · [led8/](led8/LEEME.md) · [rl4/](rl4/LEEME.md) · [ao4/](ao4/LEEME.md) | **AP Rack IN16** (16 entradas de 12-30 V), **AP Rack AI8** (8 analógicas 0-10 V / 4-20 mA), **AP Rack LED8** (8 salidas con brillo PWM), **AP Rack RL4** (4 relés secos de 24 V) y **AP Rack AO4** (4 salidas 0-10 V): módulos de la cadena AP LINK |
 | `7r-tour/`, `home/` | Proyectos KiCad 9 (generadores en `gen/`):<br>• esquema;<br>• placa;<br>• `fabricacion/jlcpcb` con Gerbers, taladros, BOM y CPL |
 | `firmware/APControl/` | Programa AP Control 1.0 (ESP32-C3, Arduino-ESP32 3.1.1): núcleo portable `ap_control.h`, esclavo Modbus `modbus_esclavo.h`, PLC `logica.h`; pruebas en `firmware/pruebas/` |
 | `identidad/` | Isotipo, logotipos AP Electric y AP Electric Industrial, marca 7R Tour y etiquetas de producto: SVG vectorial, PNG y PDF. Sin sellos de certificación |

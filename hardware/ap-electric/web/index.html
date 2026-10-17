@@ -339,7 +339,7 @@ section.linea { scroll-margin-top: 96px; }
 .mod-btn .ic { width: 28px; height: 28px; grid-row: span 2; padding: 5px; border-radius: 10px; background: var(--sunken); }
 .mod-btn b { font: 600 1rem var(--font-display); }
 .mod-btn span { font-size: 0.78rem; color: var(--muted); }
-.mod-btn[data-t="rack"] .ic { color: var(--accent); } .mod-btn[data-t="in16"] .ic { color: var(--signal); } .mod-btn[data-t="rl4"] .ic { color: var(--ok, var(--signal)); } .mod-btn[data-t="led8"] .ic { color: var(--warn); } .mod-btn[data-t="ai8"] .ic { color: var(--info); }
+.mod-btn[data-t="rack"] .ic { color: var(--accent); } .mod-btn[data-t="in16"] .ic { color: var(--signal); } .mod-btn[data-t="ao4"] .ic { color: var(--info); } .mod-btn[data-t="rl4"] .ic { color: var(--ok, var(--signal)); } .mod-btn[data-t="led8"] .ic { color: var(--warn); } .mod-btn[data-t="ai8"] .ic { color: var(--info); }
 .paleta .btn { align-self: center; }
 .cinta { overflow-x: auto; border-radius: var(--radius); background: var(--sunken); border: 1px solid var(--line); padding: 8px; background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 18px 18px; }
 .cinta svg { display: block; height: auto; min-width: 100%; }
@@ -537,6 +537,7 @@ button.var { cursor: pointer; }
           <button class="mod-btn" type="button" data-t="in16"><svg class="ic"><use href="#i-inputs"/></svg><b>AP Rack IN16</b><span>16 entradas 12-30 V</span></button>
           <button class="mod-btn" type="button" data-t="led8"><svg class="ic"><use href="#i-bulb"/></svg><b>AP Rack LED8</b><span>8 salidas con brillo · 8 entradas</span></button>
           <button class="mod-btn" type="button" data-t="rl4"><svg class="ic"><use href="#i-bolt"/></svg><b>AP Rack RL4</b><span>4 relés secos · 8 entradas</span></button>
+          <button class="mod-btn" type="button" data-t="ao4"><svg class="ic"><use href="#i-sliders"/></svg><b>AP Rack AO4</b><span>4 salidas 0-10 V · 8 entradas</span></button>
           <button class="mod-btn" type="button" data-t="ai8"><svg class="ic"><use href="#i-wave"/></svg><b>AP Rack AI8</b><span>8 analógicas 0-10 V / 4-20 mA</span></button>
           <button class="btn" type="button" id="cQuitar">Quitar el último</button>
           <button class="btn" type="button" id="cReset">Reiniciar</button>
@@ -586,7 +587,7 @@ button.var { cursor: pointer; }
           <div class="hmi-grid">
             <div class="tarj c4" data-v="resumen"><h4>Salidas activas <svg class="ic" style="color:var(--accent)"><use href="#i-bolt"/></svg></h4><div class="grande" id="hSal">0<small>de 16</small></div><span class="sub" style="font-size:.8rem;color:var(--muted)" id="hSalSub">Toca una salida para encenderla</span></div>
             <div class="tarj c8" data-v="resumen"><h4>Salidas</h4><div class="losetas" id="hTiles"></div></div>
-            <div class="tarj c12" data-v="resumen" id="hBrilT" hidden><h4>Brillo · AP Rack LED8 <svg class="ic" style="color:var(--warn)"><use href="#i-bulb"/></svg></h4><div class="brillos" id="hBril"></div></div>
+            <div class="tarj c12" data-v="resumen" id="hBrilT" hidden><h4>Brillo y niveles · LED8 y AO4 <svg class="ic" style="color:var(--warn)"><use href="#i-bulb"/></svg></h4><div class="brillos" id="hBril"></div></div>
             <div class="tarj c5" data-v="resumen variables" id="hVarsT"><h4>Variables del PLC</h4>
               <div class="pildoras" id="hVarTabs" role="group" aria-label="Tipo de variable"><button class="pildora" type="button" data-l="e" aria-pressed="true">Entradas</button><button class="pildora" type="button" data-l="s" aria-pressed="false">Salidas</button><button class="pildora" type="button" data-l="a" aria-pressed="false">Analógicas</button></div>
               <div class="vars" id="hVars"></div></div>
@@ -605,7 +606,7 @@ button.var { cursor: pointer; }
     <div class="wrap">
       <div class="cabeza">
         <div><span class="eyebrow"><svg class="ic"><use href="#i-box"/></svg>Modelos 3D</span><h2>Las placas, en tres dimensiones</h2></div>
-        <p>Los cinco módulos de la cadena AP Rack con sus piezas, tal como salen del diseño de la placa (KiCad), y la caja imprimible en 3D con su tapa y su pieza de unión. Arrastra para girar, rueda o pellizca para acercar. Son modelos de diseño: no hay placas fabricadas.</p>
+        <p>Los seis módulos de la cadena AP Rack con sus piezas, tal como salen del diseño de la placa (KiCad), y la caja imprimible en 3D con su tapa y su pieza de unión. Arrastra para girar, rueda o pellizca para acercar. Son modelos de diseño: no hay placas fabricadas.</p>
       </div>
       <div class="modelo-barra">
         <div class="pildoras" id="mTabs" role="group" aria-label="Elegir la placa"></div>
@@ -744,6 +745,20 @@ button.var { cursor: pointer; }
             </table>
           </div>
         </article>
+        <article class="producto">
+          <figure><img src="img/ao4.jpg" alt="Render de la placa AP Rack AO4" loading="lazy" width="1200" height="617"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>AP Rack AO4</h3><span class="estado dis">DISEÑO</span></div>
+            <p>4 salidas analógicas de 0 a 10 V (PWM de 12 bits filtrado y amplificado) para atenuar luminarias con driver 0-10 V o 1-10 V y para otras entradas analógicas, más las 8 entradas de 12-30 V. El nivel se fija desde la consola y el panel.</p>
+            <div class="tags"><span class="tag">4 × 0-10 V</span><span class="tag">8 entradas</span><span class="tag">12-30 V</span></div>
+            <table class="spec">
+              <tr><td>Alimentación</td><td>12-30 V CC; <b>para llegar a 10 V se necesitan unos 15 V o más</b></td></tr>
+              <tr><td>Exactitud</td><td><span class="pd">PD</span> · depende del 3.3 V de la placa; sin medir ni calibrar</td></tr>
+              <tr><td>Aislamiento</td><td>Ninguno: salidas SELV, no conectar a tensión de red</td></tr>
+              <tr><td>Revisión de diseño</td><td>ERC 0 · DRC 0 · 191 piezas con código LCSC</td></tr>
+            </table>
+          </div>
+        </article>
       </div>
       <div class="productos">
         <article class="producto">
@@ -796,7 +811,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
             <div><b>AP UNO</b><span>Todo en uno: potencia, cerebro, salidas y RS-485</span></div>
             <div><b>AP PRO DO8</b><span>8 salidas de 24 V protegidas</span></div>
             <div><b>AP PRO DI8 · AI4</b><span>8 entradas aisladas · 4 analógicas 0-10 V / 4-20 mA</span></div>
-            <div><b>AP Rack 16 · IN16 · AI8 · LED8 · RL4</b><span>Módulos que se encadenan con AP LINK: 16 salidas, 16 entradas, 8 analógicas, 8 salidas con brillo y 4 relés secos</span></div>
+            <div><b>AP Rack 16 · IN16 · AI8 · LED8 · RL4 · AO4</b><span>Módulos que se encadenan con AP LINK: 16 salidas, 16 entradas, 8 analógicas, 8 salidas con brillo, 4 relés secos y 4 salidas 0-10 V</span></div>
             <div><b>AP GATE · NODE</b><span>Modbus RTU, CAN, Home Assistant, MQTT</span></div>
           </div>
         </div>
@@ -1285,8 +1300,8 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     { id: "ap-rack-16", nombre: "AP Rack 16 (módulos encadenables)", seg: "Industrial", estado: "Diseño",
       resumen: "Placa de 12-30 V CC con 16 salidas protegidas y 8 entradas. Dos conectores AP LINK (estilo DMX) encadenan módulos que se numeran solos y aparecen juntos en el panel.",
       puntos: ["Cabeza + módulos: 32 salidas con 2 módulos, hasta 16 módulos de diseño", "Probado solo en simulación; sin fabricar ni medir", "No es una función de seguridad"] },
-    { id: "ap-rack-modulos", nombre: "AP Rack IN16, AI8, LED8 y RL4 (más módulos)", seg: "Industrial", estado: "Diseño",
-      resumen: "Módulos de la misma cadena: 16 entradas de 12-30 V (IN16) 8 entradas analógicas 0-10 V / 4-20 mA (AI8) 8 salidas con brillo PWM para tiras LED (LED8) y 4 relés de contacto seco a 24 V (RL4). Se numeran solos y aparecen en el panel.",
+    { id: "ap-rack-modulos", nombre: "AP Rack IN16, AI8, LED8, RL4 y AO4 (más módulos)", seg: "Industrial", estado: "Diseño",
+      resumen: "Módulos de la misma cadena: 16 entradas de 12-30 V (IN16) 8 entradas analógicas 0-10 V / 4-20 mA (AI8) 8 salidas con brillo PWM para tiras LED (LED8) 4 relés de contacto seco a 24 V (RL4) y 4 salidas 0-10 V (AO4). Se numeran solos y aparecen en el panel.",
       puntos: ["Probado solo en simulación; sin fabricar ni medir", "El PLC del cabeza usa las entradas y salidas de todos los módulos"] },
     { id: "ap-panel", nombre: "Panel AP (pantalla del PLC)", seg: "Industrial", estado: "Diseño",
       resumen: "Pantalla táctil en el navegador para el PLC: botones, luces, valores, consignas, tendencias y alarmas, con diseñador. Funciona en tableta, computadora o celular.",
@@ -1539,7 +1554,8 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     in16: { n: "AP Rack IN16", ns: 0, ne: 16, na: 0 },
     ai8: { n: "AP Rack AI8", ns: 0, ne: 0, na: 8 },
     led8: { n: "AP Rack LED8", ns: 8, ne: 8, na: 0, pw: 8 },
-    rl4: { n: "AP Rack RL4", ns: 4, ne: 8, na: 0 }
+    rl4: { n: "AP Rack RL4", ns: 4, ne: 8, na: 0 },
+    ao4: { n: "AP Rack AO4", ns: 4, ne: 8, na: 0, pw: 4 }
   };
   var MAX = 8;
   var S = { mods: [], cortes: {}, run: false, t: 0, hist: [], vista: "resumen", lista: "e", rango: 60, maxVisto: 0, alarmas: [], activas: {}, tipoSel: "rack" };
@@ -1719,7 +1735,8 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
      ["LD S6  →  OUT Q16", "Falta un módulo"]].forEach(function (r) { var b = txt("b", r[0]); R.appendChild(b); R.appendChild(document.createTextNode("    // " + r[1] + "\n")); });
     R.appendChild(document.createTextNode(S.run ? "El programa corre: Q2, Q4 y Q16 son suyas." : "En STOP: el panel manda todas las salidas."));
     dibujarGrafica();
-    // brillo de las salidas con PWM (AP Rack LED8)
+    // brillo de las salidas con PWM (AP Rack LED8) o nivel 0-10 V (AP Rack AO4)
+    function etq(f, n, v, i) { var on = f.m.s >> i & 1; return "Q" + n + " · " + (f.m.t === "ao4" ? (on ? (v * 9.9 / 255).toFixed(1) : "0.0") + " V" : Math.round(v * 100 / 255) + " %" + (on ? "" : " (apagada)")); }
     var hb = $("hBril"), arrastra = document.activeElement && document.activeElement.closest && document.activeElement.closest("#hBril"), hay = false;
     if (!arrastra) hb.textContent = "";
     M.filas.forEach(function (f) {
@@ -1727,9 +1744,9 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
       hay = true;
       if (arrastra) return;
       for (var i = 0; i < f.T.pw; i++) (function (f, i) {
-        var n = f.q[0] + i, w = txt("label"), o = txt("span", "Q" + n + " · " + Math.round(f.m.d[i] * 100 / 255) + " %" + ((f.m.s >> i & 1) ? "" : " (apagada)"));
-        var r = document.createElement("input"); r.type = "range"; r.min = 0; r.max = 255; r.value = f.m.d[i]; r.setAttribute("aria-label", "Brillo de la salida Q" + n); r.setAttribute("data-q", n);
-        r.addEventListener("input", function () { f.m.d[i] = +r.value; o.textContent = "Q" + n + " · " + Math.round(+r.value * 100 / 255) + " %" + ((f.m.s >> i & 1) ? "" : " (apagada)"); dibujarCadena(); });
+        var n = f.q[0] + i, w = txt("label"), o = txt("span", etq(f, n, f.m.d[i], i));
+        var r = document.createElement("input"); r.type = "range"; r.min = 0; r.max = 255; r.value = f.m.d[i]; r.setAttribute("aria-label", (f.m.t === "ao4" ? "Nivel de la salida Q" : "Brillo de la salida Q") + n); r.setAttribute("data-q", n);
+        r.addEventListener("input", function () { f.m.d[i] = +r.value; o.textContent = etq(f, n, +r.value, i); dibujarCadena(); });
         w.appendChild(o); w.appendChild(r); hb.appendChild(w);
       })(f, i);
     });
@@ -1791,6 +1808,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     { id: "ai8", n: "AP Rack AI8", f: "modelos3d/AP_AI8.glb", img: "img/ai8.jpg", d: "176 × 100 mm · 8 analógicas" },
     { id: "led8", n: "AP Rack LED8", f: "modelos3d/AP_LED8.glb", img: "img/led8.jpg", d: "176 × 100 mm · 8 salidas con brillo" },
     { id: "rl4", n: "AP Rack RL4", f: "modelos3d/AP_RL4.glb", img: "img/rl4.jpg", d: "176 × 100 mm · 4 relés secos" },
+    { id: "ao4", n: "AP Rack AO4", f: "modelos3d/AP_RACKAO4.glb", img: "img/ao4.jpg", d: "176 × 100 mm · 4 salidas 0-10 V" },
     { id: "caja", n: "Caja AP Rack", f: "modelos3d/AP_CAJA_RACK.glb", img: "img/rack16.jpg", d: "Caja, tapa y unión · impresión 3D · diseño sin imprimir" }
   ];
   var $ = function (i) { return document.getElementById(i); };

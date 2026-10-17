@@ -24,7 +24,9 @@ const uint8_t TCA_S1 = 0x20, TCA_S2 = 0x21, TCA_ENT = 0x22, TCA_LED = 0x23;     
 const uint8_t TCA_E1 = 0x24, TCA_E2 = 0x25;                                      // AP Rack IN16 (entradas 1-8 y 9-16)
 const uint8_t ADS_A = 0x48, ADS_B = 0x49;                                        // AP Rack AI8 (canales 1-4 y 5-8)
 const uint8_t PCA_LED = 0x40;                                                    // AP Rack LED8: PCA9685 (salidas 1-8 con brillo; entradas 1-8 en el TCA 0x22)
-enum Tipo : uint8_t { T_RACK16 = 1, T_IN16 = 2, T_AI8 = 3, T_LED8 = 4, T_RL4 = 5 };   // T_RL4: 4 relés de 24 V (solo el expansor 0x20)
+const uint8_t PCA_AO = 0x41;                                                     // AP Rack AO4: PCA9685 con A0 a 3.3 V (salidas 0-10 V); el LED8 usa 0x40
+uint8_t pcaDir = PCA_LED, pcaPre = 5;                                           // dirección y prescaler del PCA9685 (5 = 1 kHz, 3 = 1.5 kHz)
+enum Tipo : uint8_t { T_RACK16 = 1, T_IN16 = 2, T_AI8 = 3, T_LED8 = 4, T_RL4 = 5, T_AO4 = 6 };   // T_RL4: 4 relés de 24 V (solo el expansor 0x20)
 uint8_t tipoMod = T_RACK16;
 uint16_t anaVal[8] = {}; uint8_t anaMascara = 0;      // anaMascara: bit i = el canal i tiene el puente de 4-20 mA (se informa mA)
 uint8_t adsCanal = 0; uint32_t tAds = 0; bool adsEsperando = false;
@@ -172,12 +174,12 @@ void aplicarSalidas(uint16_t s) {
 // PCA9685 a 1 kHz (prescaler 5 con el reloj de 25 MHz). Cada canal: apagado = «todo apagado» (bit 4 de OFF_H), pleno = «todo encendido» (bit 4 de ON_H),
 // si no, 12 bits: duty x 16 cuentas.
 bool pcaIniciar() {
-  bool ok = tcaEscribir(PCA_LED, 0x00, 0x10) && tcaEscribir(PCA_LED, 0xFE, 5) && tcaEscribir(PCA_LED, 0x01, 0x04) && tcaEscribir(PCA_LED, 0x00, 0x20);
+  bool ok = tcaEscribir(pcaDir, 0x00, 0x10) && tcaEscribir(pcaDir, 0xFE, pcaPre) && tcaEscribir(pcaDir, 0x01, 0x04) && tcaEscribir(pcaDir, 0x00, 0x20);
   delay(1);
-  return ok && tcaEscribir(PCA_LED, 0x00, 0xA0);
+  return ok && tcaEscribir(pcaDir, 0x00, 0xA0);
 }
 void aplicarPwm(uint16_t s, const uint8_t* d) {
-  Wire.beginTransmission(PCA_LED); Wire.write(0x06);
+  Wire.beginTransmission(pcaDir); Wire.write(0x06);
   for (uint8_t i = 0; i < 8; i++) {
     uint16_t on = 0, off = 0;
     if (!((s >> i) & 1) || d[i] == 0) off = 0x1000;
@@ -223,17 +225,17 @@ void setup() {
   Wire.begin(P_SDA, P_SCL, 400000);
   // las salidas arrancan apagadas: primero el valor, después la dirección (los pull-down de 10 k ya las mantienen apagadas)
   // el tipo de módulo se reconoce por los chips que contestan: ADS1115 = AI8, expansor 0x24 = IN16, si no AP Rack 16
-  tipoMod = existe(ADS_A) ? T_AI8 : existe(TCA_E1) ? T_IN16 : existe(PCA_LED) ? T_LED8 : !existe(TCA_S2) ? T_RL4 : T_RACK16;   // RL4: tiene el 0x20 pero no el 0x21
+  tipoMod = existe(ADS_A) ? T_AI8 : existe(TCA_E1) ? T_IN16 : existe(PCA_AO) ? T_AO4 : existe(PCA_LED) ? T_LED8 : !existe(TCA_S2) ? T_RL4 : T_RACK16;   // RL4: tiene el 0x20 pero no el 0x21
   if (tipoMod == T_RL4) { VIN_MIN_MV = 20000; VIN_MAX_MV = 27500; }       // bobinas de 24 V: 21.6 a 26.4 V
   if (tipoMod == T_RACK16 || tipoMod == T_RL4) {
     tcaEscribir(TCA_S1, 1, 0); tcaEscribir(TCA_S1, 3, 0x00); if (tipoMod == T_RACK16) { tcaEscribir(TCA_S2, 1, 0); tcaEscribir(TCA_S2, 3, 0x00); }
     tcaEscribir(TCA_ENT, 3, 0xFF);
-  } else if (tipoMod == T_LED8) { pcaIniciar(); aplicarPwm(0, dutyEscrito); tcaEscribir(TCA_ENT, 3, 0xFF);
+  } else if (tipoMod == T_LED8 || tipoMod == T_AO4) { if (tipoMod == T_AO4) { pcaDir = PCA_AO; pcaPre = 3; } pcaIniciar(); aplicarPwm(0, dutyEscrito); tcaEscribir(TCA_ENT, 3, 0xFF);
   } else if (tipoMod == T_IN16) { tcaEscribir(TCA_E1, 3, 0xFF); tcaEscribir(TCA_E2, 3, 0xFF); }
   anaMascara = pref.getUChar("am", 0);
   tcaEscribir(TCA_LED, 1, 0); tcaEscribir(TCA_LED, 3, 0x00);
   Serial1.begin(BAUDIOS_LINK, SERIAL_8N1, P_RX, P_TX);
-  aplink::Caps c; c.tipo = tipoMod; c.nSal = tipoMod == T_RACK16 ? 16 : tipoMod == T_LED8 ? 8 : tipoMod == T_RL4 ? 4 : 0; c.nEnt = (tipoMod == T_RACK16 || tipoMod == T_LED8 || tipoMod == T_RL4) ? 8 : tipoMod == T_IN16 ? 16 : 0; c.nAna = tipoMod == T_AI8 ? 8 : 0; c.nPwm = tipoMod == T_LED8 ? 8 : 0;
+  aplink::Caps c; c.tipo = tipoMod; c.nSal = tipoMod == T_RACK16 ? 16 : tipoMod == T_LED8 ? 8 : (tipoMod == T_RL4 || tipoMod == T_AO4) ? 4 : 0; c.nEnt = (tipoMod == T_RACK16 || tipoMod == T_LED8 || tipoMod == T_RL4 || tipoMod == T_AO4) ? 8 : tipoMod == T_IN16 ? 16 : 0; c.nAna = tipoMod == T_AI8 ? 8 : 0; c.nPwm = tipoMod == T_LED8 ? 8 : tipoMod == T_AO4 ? 4 : 0;
   enlace = new aplink::Enlace(hal, uidModulo(), c, true);
   enlace->maskSegura(seguraLocal);
   plc.e = enlace;
@@ -241,7 +243,7 @@ void setup() {
   esp_task_wdt_config_t w = {8000, 0, true};
   if (esp_task_wdt_reconfigure(&w) != ESP_OK) esp_task_wdt_init(&w);
   esp_task_wdt_add(nullptr);
-  Serial.printf("%s · %s · id %s · escuchando la cadena…\n", VERSION, tipoMod == T_RL4 ? "AP Rack RL4" : tipoMod == T_LED8 ? "AP Rack LED8" : tipoMod == T_AI8 ? "AP Rack AI8" : tipoMod == T_IN16 ? "AP Rack IN16" : "AP Rack 16", mac6().c_str());
+  Serial.printf("%s · %s · id %s · escuchando la cadena…\n", VERSION, tipoMod == T_AO4 ? "AP Rack AO4" : tipoMod == T_RL4 ? "AP Rack RL4" : tipoMod == T_LED8 ? "AP Rack LED8" : tipoMod == T_AI8 ? "AP Rack AI8" : tipoMod == T_IN16 ? "AP Rack IN16" : "AP Rack 16", mac6().c_str());
 }
 
 void loop() {
@@ -253,7 +255,7 @@ void loop() {
   plc.paso(t);
   uint16_t s = enlace->salidas();
   if ((tipoMod == T_RACK16 || tipoMod == T_RL4) && (s != salidasEscritas || (fallasHw & F_I2C))) aplicarSalidas(s);
-  if (tipoMod == T_LED8 && (!pwmValido || (s & 0xFF) != salidasEscritas || memcmp(dutyEscrito, enlace->dutyLocal(), 8) || (fallasHw & F_I2C))) aplicarPwm(s & 0xFF, enlace->dutyLocal());
+  if ((tipoMod == T_LED8 || tipoMod == T_AO4) && (!pwmValido || (s & 0xFF) != salidasEscritas || memcmp(dutyEscrito, enlace->dutyLocal(), 8) || (fallasHw & F_I2C))) aplicarPwm(s & 0xFF, enlace->dutyLocal());
   if (t - tLed >= 50) { tLed = t; ponerLeds(t); }
   if (t - tSeg >= 1000) { tSeg += 1000; segundos++; wifiSegunRol(); }
   if (wifiActivo) web.handleClient();

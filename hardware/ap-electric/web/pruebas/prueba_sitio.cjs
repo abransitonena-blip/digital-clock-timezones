@@ -41,13 +41,16 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   ok(await p.evaluate(() => window.__ap.estado.mods[3].d[0]) === 128 && (await p.innerText('#hBril')).includes('Q' + qn + ' · 50 %'), 'brillo: el control fija 128 (50 %)');
   await p.click('#cQuitar'); await p.waitForTimeout(300);
   ok(await nmod() === 3 && await p.$eval('#hBrilT', e => e.hidden), 'LED8: al quitarlo desaparece la tarjeta');
+  await p.click('#cPaleta .mod-btn[data-t=ao4]'); await p.waitForTimeout(300);
+  ok(await p.$$eval('#hBril input[type=range]', e => e.length) === 4, 'AO4: cuatro controles de nivel');
+  await p.click('#cQuitar'); await p.waitForTimeout(300);
   // PLC en RUN
   await p.click('#hRun'); await p.waitForTimeout(800);
   ok(await p.$eval('#hRun', e => e.getAttribute('aria-pressed')) === 'true', 'panel: PLC en RUN');
   ok(await p.$$eval('#hTiles .loseta:disabled', e => e.length) > 0, 'panel: el PLC se queda con sus salidas');
   await p.click('#hRun'); await p.waitForTimeout(300);
   // visor 3D: cinco placas; sin red (prueba en archivo) debe quedarse con el render fijo sin errores
-  ok(await p.$$eval('#mTabs button', e => e.length) === 6, '3D: cinco placas y la caja para elegir');
+  ok(await p.$$eval('#mTabs button', e => e.length) === 7, '3D: seis placas y la caja para elegir');
   await p.evaluate(() => document.getElementById('modelos').scrollIntoView()); await p.waitForTimeout(1500);
   ok((await p.innerText('#mNota')).includes('render fijo') || await p.evaluate(() => !!window.__visor), '3D: o carga el modelo o muestra el render fijo');
   await p.click('#mTabs button[data-m=rl4]'); await p.waitForTimeout(600);

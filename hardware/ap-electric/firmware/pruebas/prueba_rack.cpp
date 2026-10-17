@@ -128,6 +128,23 @@ int main() {
     static char b2[4096]; aprack::json(b2, sizeof b2, *m.n[1]->e, "1.0", "AB12CD", 1);
     CHECK(strstr(b2, "AP Rack RL4"), "el nombre de placa del RL4");
   }
+  // AP Rack AO4 (salidas 0-10 V): el nivel se manda con D y la salida con C; el JSON trae el nombre y los niveles
+  {
+    Sim m(2);
+    Caps rack{1, 16, 8, VERSION, 0}, ao4{6, 4, 8, VERSION, 0, 4};
+    m.energia(0, true, true, rack); m.energia(1, true, true, ao4);
+    uint32_t t5 = 0; while (t5 < 20000 && !(m.cabeza() && m.cabeza()->total() == 2)) { m.paso(); t5++; }
+    m.correr(300);
+    Enlace* hh = m.cabeza(); uint16_t sg = 0;
+    CHECK(aprack::orden(*hh, "D 18 128", &sg) && aprack::orden(*hh, "C 18 1", &sg), "AO4: nivel 128 y salida 2 habilitada (canal 18)");
+    CHECK(!aprack::orden(*hh, "D 21 10", &sg), "AO4: solo tiene 4 salidas");
+    m.correr(300);
+    CHECK(m.n[1]->e->dutyLocal()[1] == 128 && m.n[1]->e->salidas() == 0x0002, "el AO4 recibe nivel 128 y la máscara 0x0002");
+    static char ja[4096]; aprack::json(ja, sizeof ja, *hh, "1.0", "AB12CD", 1);
+    CHECK(strstr(ja, "\"tp\":6") && strstr(ja, "\"np\":4") && strstr(ja, "\"d\":[255,128,255,255]"), "el JSON del AO4: %s", ja);
+    static char jb2[4096]; aprack::json(jb2, sizeof jb2, *m.n[1]->e, "1.0", "AB12CD", 1);
+    CHECK(strstr(jb2, "AP Rack AO4"), "nombre de placa del AO4");
+  }
   if (fallas) { printf("AP Rack: %d de %d comprobaciones fallaron\n", fallas, pruebas); return 1; }
   printf("AP Rack: todo bien (%d comprobaciones)\n", pruebas);
   return 0;

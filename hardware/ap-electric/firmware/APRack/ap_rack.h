@@ -4,7 +4,7 @@
 //   C g v      canal global g (1 = salida 1 del módulo 1; el módulo 2 sigue donde acaba el 1); v = 0 apaga, 1 enciende, 2 alterna
 //   A v        todas las salidas de todos los módulos (0 o 1)
 //   M p máscara   las 16 salidas del módulo p de una vez (decimal o 0x...)
-//   D g v      brillo (0-255) de la salida global g, si es de un módulo con PWM (AP Rack LED8); 255 = pleno. C/A/M deciden si está encendida
+//   D g v      brillo (0-255) de la salida global g, si es de un módulo con PWM (AP Rack LED8) o el nivel de una salida 0-10 V (AP Rack AO4: v/255 x ~9.9 V); 255 = pleno. C/A/M deciden si está encendida
 //   S máscara  máscara segura de ESTE módulo (qué salidas quedan encendidas si pierde el enlace; de fábrica 0 = todo apagado)
 //   ?          solo lee
 // El JSON que devuelve va en una línea (la consola USB lo lee igual que el de AP Control).
@@ -142,7 +142,7 @@ inline size_t json(char* buf, size_t cap, const aplink::Enlace& e, const char* v
   Esc o(buf, cap);
   bool cab = e.rol() == aplink::Rol::CABEZA;
   uint16_t ns = cab ? e.totalSalidas() : e.caps().nSal, ne = cab ? e.totalEntradas() : e.caps().nEnt;
-  o.s("{\"v\":\""); o.s(version); o.s("\",\"placa\":\""); o.s(e.caps().tipo == 5 ? "AP Rack RL4" : e.caps().tipo == 4 ? "AP Rack LED8" : e.caps().tipo == 3 ? "AP Rack AI8" : e.caps().tipo == 2 ? "AP Rack IN16" : "AP Rack 16"); o.s("\",\"api\":2,\"cap\":[\"salidas\",\"entradas\",\"aplink\",\"modulos\"" ); if (plc) o.s(",\"plc\""); o.s("],");
+  o.s("{\"v\":\""); o.s(version); o.s("\",\"placa\":\""); o.s(e.caps().tipo == 6 ? "AP Rack AO4" : e.caps().tipo == 5 ? "AP Rack RL4" : e.caps().tipo == 4 ? "AP Rack LED8" : e.caps().tipo == 3 ? "AP Rack AI8" : e.caps().tipo == 2 ? "AP Rack IN16" : "AP Rack 16"); o.s("\",\"api\":2,\"cap\":[\"salidas\",\"entradas\",\"aplink\",\"modulos\"" ); if (plc) o.s(",\"plc\""); o.s("],");
   o.s("\"rol\":\""); o.s(nombreRol(e.rol())); o.s("\",\"pos\":"); o.u(e.pos()); o.s(",\"total\":"); o.u(cab ? e.total() : (e.total() ? e.total() : (e.pos() ? e.pos() : 1)));
   o.s(",\"n\":"); o.u(ns); o.s(",\"ne\":"); o.u(ne); o.s(",\"enl\":{\"mal\":"); o.u(e.malas()); o.s("},\"mods\":[");
   if (cab) {
