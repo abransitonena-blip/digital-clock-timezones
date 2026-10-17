@@ -388,6 +388,21 @@ table.mapa th { font: 500 0.7rem var(--font-mono); text-transform: uppercase; le
 .tarj .grande { font: 600 2.4rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
 .tarj .grande small { font-size: 0.95rem; color: var(--muted); font-weight: 400; margin-left: 6px; }
 .c4 { grid-column: span 4; } .c5 { grid-column: span 5; } .c7 { grid-column: span 7; } .c8 { grid-column: span 8; } .c12 { grid-column: span 12; }
+/* ---- acabados ---- */
+.acab-vista { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.acab-vista figure { margin: 0; border: 1px solid var(--line); border-radius: var(--radius-l); overflow: hidden; background: var(--surface-2); }
+.acab-vista figure img { display: block; width: 100%; height: auto; }
+.acab-vista figcaption { padding: 12px 16px; font-size: 0.85rem; color: var(--muted); }
+.acab-lado { display: grid; gap: 12px; }
+.acab-lado h3 { margin: 0; font: 600 1.5rem var(--font-display); }
+.acab-lado p { margin: 0; color: var(--muted); }
+.muestras { display: flex; gap: 8px; flex-wrap: wrap; }
+.muestra { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--line); }
+.formatos-img { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 22px; align-items: start; }
+.formatos-img figure { margin: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface-2); }
+.formatos-img img { display: block; width: 100%; height: auto; }
+.formatos-img figcaption { padding: 8px 12px; font: 500 0.78rem var(--font-mono); color: var(--muted); }
+@media (max-width: 820px) { .acab-vista { grid-template-columns: minmax(0, 1fr); } }
 /* ---- visor 3D ---- */
 .visor3d { position: relative; border: 1px solid var(--line); border-radius: var(--radius-l); background: radial-gradient(120% 90% at 50% 0%, var(--surface-2), var(--bg2)); overflow: hidden; }
 .visor3d canvas { display: block; width: 100%; height: min(62vh, 520px); touch-action: none; cursor: grab; }
@@ -472,6 +487,7 @@ button.var { cursor: pointer; }
       <a class="destacado" href="#cadena"><svg class="ic"><use href="#i-link"/></svg>Cadena</a>
       <a href="#panel"><svg class="ic"><use href="#i-screen"/></svg>Panel</a>
       <a href="#modelos"><svg class="ic"><use href="#i-box"/></svg>3D</a>
+      <a href="#acabados"><svg class="ic"><use href="#i-sliders"/></svg>Acabados</a>
       <a href="#industrial"><svg class="ic"><use href="#i-factory"/></svg>Industrial</a>
       <a href="#home"><svg class="ic"><use href="#i-home"/></svg>Home</a>
       <a href="#luz"><svg class="ic"><use href="#i-bulb"/></svg>Luz</a>
@@ -613,10 +629,38 @@ button.var { cursor: pointer; }
         <button class="pildora" type="button" id="mGira" aria-pressed="true">Girar solo</button>
         <button class="pildora" type="button" id="mReset">Vista inicial</button>
       </div>
+      <div class="modelo-barra" id="mAcab" hidden><span class="eyebrow" style="margin-right:6px">Acabado de la caja</span><div class="pildoras" id="mAcabTabs" role="group" aria-label="Acabado de la caja en el visor"></div></div>
       <div class="visor3d" id="visor3d">
         <canvas id="mCanvas" role="img" aria-label="Modelo 3D de la placa elegida"></canvas>
         <div class="nota-v" id="mNota">Cargando el modelo…</div>
         <div class="sobre"><span id="mTitulo"></span><span id="mDatos"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="linea" id="acabados">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow"><svg class="ic"><use href="#i-sliders"/></svg>Acabados y formatos</span><h2>La misma caja, siete acabados</h2></div>
+        <p>Colores y texturas de la caja AP Rack para imprimir en 3D o para pedir en otro material. Son renders hechos con Blender a partir del modelo de la caja con la placa dentro; las texturas son un efecto visual, no una medida de la superficie real.</p>
+      </div>
+      <div class="modelo-barra"><div class="pildoras" id="aTabs" role="group" aria-label="Elegir el acabado"></div></div>
+      <div class="acab-vista">
+        <figure><img id="aImg" src="img/acabados/acabado_petg_naranja.jpg" alt="Caja AP Rack con la placa dentro, acabado PETG con tapa naranja" width="1600" height="1000"><figcaption id="aPie"></figcaption></figure>
+        <div class="acab-lado">
+          <h3 id="aNombre"></h3>
+          <p id="aDesc"></p>
+          <div class="muestras" id="aMuestras" aria-hidden="true"></div>
+          <table class="spec"><tr><td>Material de impresión</td><td id="aMat"></td></tr><tr><td>Nota</td><td id="aNota"></td></tr></table>
+        </div>
+      </div>
+      <h3 style="margin:30px 0 0;font:600 1.4rem var(--font-display)">Formatos de imagen</h3>
+      <p class="nota">El mismo render en los tamaños de portada, redes y banner, con el acabado de siempre.</p>
+      <div class="formatos-img">
+        <figure><img src="img/acabados/formato_portada.jpg" alt="Portada 1920 por 1080" loading="lazy"><figcaption>Portada · 1920 × 1080</figcaption></figure>
+        <figure><img src="img/acabados/formato_cuadrado.jpg" alt="Cuadrado 1080 por 1080" loading="lazy"><figcaption>Cuadrado · 1080 × 1080</figcaption></figure>
+        <figure><img src="img/acabados/formato_vertical.jpg" alt="Vertical 1080 por 1350" loading="lazy"><figcaption>Vertical · 1080 × 1350</figcaption></figure>
+        <figure><img src="img/acabados/formato_banner.jpg" alt="Banner 1920 por 640" loading="lazy"><figcaption>Banner · 1920 × 640</figcaption></figure>
       </div>
     </div>
   </section>
@@ -1852,8 +1896,35 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     var box = new THREE.Box3().setFromObject(T.obj), c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3()), r = Math.max(sz.x, sz.y, sz.z);
     T.ctl.target.copy(c); T.cam.position.set(c.x + r * 0.55, c.y + r * 0.95, c.z + r * 1.05); T.cam.near = r / 100; T.cam.far = r * 20; T.cam.updateProjectionMatrix(); T.ctl.update();
   }
+  /* acabados de la caja en el visor: color, rugosidad y metal (las texturas solo están en los renders) */
+  var ACAB3D = [
+    ["PETG naranja", { caja: [0x2a2e38, 0.55, 0], tapa: [0xe85d04, 0.5, 0], union: [0xc8ccd0, 0.5, 0] }],
+    ["Grafito", { caja: [0x1a1b1f, 0.8, 0], tapa: [0x101113, 0.8, 0], union: [0x1a1b1f, 0.8, 0] }],
+    ["Blanco", { caja: [0xe0e2e5, 0.35, 0], tapa: [0xe85d04, 0.5, 0], union: [0xe0e2e5, 0.4, 0] }],
+    ["Azul", { caja: [0x0d2a60, 0.45, 0], tapa: [0xc8ccd0, 0.45, 0], union: [0xc8ccd0, 0.45, 0] }],
+    ["Carbono", { caja: [0x07070a, 0.3, 0.2], tapa: [0x0a0a0c, 0.3, 0.2], union: [0x07070a, 0.3, 0.2] }],
+    ["Aluminio", { caja: [0x9ea3aa, 0.35, 1], tapa: [0x8c9097, 0.35, 1], union: [0x9ea3aa, 0.35, 1] }],
+    ["Humo", { caja: [0x1e2026, 0.4, 0], tapa: [0x5a6068, 0.2, 0, 0.55], union: [0x1e2026, 0.4, 0] }]
+  ];
+  var acabTabs = $("mAcabTabs");
+  ACAB3D.forEach(function (a, i) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "pildora"; b.textContent = a[0]; b.setAttribute("aria-pressed", String(i === 0));
+    b.addEventListener("click", function () { Array.prototype.forEach.call(acabTabs.children, function (x) { x.setAttribute("aria-pressed", String(x === b)); }); aplicarAcabado(a[1]); });
+    acabTabs.appendChild(b);
+  });
+  function aplicarAcabado(p) {
+    if (!T || !T.obj) return;
+    T.obj.traverse(function (o) {
+      if (!o.isMesh) return;
+      var nom = (o.name + " " + (o.parent ? o.parent.name : "")).toLowerCase(), k = nom.indexOf("tapa") >= 0 ? "tapa" : nom.indexOf("union") >= 0 ? "union" : nom.indexOf("caja") >= 0 ? "caja" : null;
+      if (!k) return;
+      var v = p[k], m = new THREE.MeshStandardMaterial({ color: v[0], roughness: v[1], metalness: v[2], side: THREE.DoubleSide, flatShading: !o.geometry.attributes.normal });
+      if (v[3]) { m.transparent = true; m.opacity = v[3]; }
+      o.material = m;
+    });
+  }
   function elegir(m) {
-    actual = m; marcar(); nota.hidden = false; nota.textContent = "Cargando el modelo…";
+    actual = m; marcar(); nota.hidden = false; nota.textContent = "Cargando el modelo…"; $("mAcab").hidden = true;
     iniciar().then(function () {
       /* el GLB va tal cual en el repositorio; en la página publicada va como texto base64 (.glb.b64.txt), porque no se sirven archivos .glb */
       function bytes(r) { if (!r.ok) throw new Error("no cargó el modelo"); return r.arrayBuffer(); }
@@ -1863,6 +1934,8 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
       if (actual !== m) return;
       if (T.obj) { T.sc.remove(T.obj); T.obj.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); }
       T.obj = g.scene; T.sc.add(T.obj); vistaInicial(); nota.hidden = true;
+      $("mAcab").hidden = m.id !== "caja";
+      if (m.id === "caja") { Array.prototype.forEach.call(acabTabs.children, function (x, i) { x.setAttribute("aria-pressed", String(i === 0)); }); aplicarAcabado(ACAB3D[0][1]); }
       window.__visor = { modelo: m.id, objetos: T.obj.children.length };
     }).catch(function (e) { if (actual === m) fallback("El visor 3D no está disponible aquí (" + e.message + "). Se muestra el render fijo."); });
   }
@@ -1873,5 +1946,35 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
   var sec = $("modelos");
   if ("IntersectionObserver" in window) { var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); elegir(actual); } }, { rootMargin: "300px" }); io.observe(sec); }
   else elegir(actual);
+})();
+</script>
+<script>
+/* galería de acabados (colores y texturas de la caja AP Rack) */
+(function () {
+  var A = [
+    { id: "petg_naranja", n: "PETG grafito y naranja", d: "El acabado de siempre: caja en grafito y tapa naranja AP, con las capas de impresión apenas visibles.", c: ["#2a2e38", "#e85d04"], mat: "PETG o ABS, 0.2 mm de capa", nota: "El más fácil de imprimir; el naranja de la tapa hace visible la marca." },
+    { id: "grafito_texturizado", n: "Grafito texturizado", d: "Negro grafito mate con grano fino, para que no se noten huellas ni rayones.", c: ["#1a1b1f", "#101113"], mat: "PETG o ASA mate; cama texturizada", nota: "El grano real depende de la cama de impresión; aquí es solo una referencia visual." },
+    { id: "blanco_satinado", n: "Blanco satinado", d: "Caja blanca con tapa naranja: la versión limpia para tableros claros o laboratorio.", c: ["#e0e2e5", "#e85d04"], mat: "PETG blanco", nota: "El blanco muestra más las capas y se amarillea con el sol si es PLA." },
+    { id: "azul_industrial", n: "Azul industrial", d: "Azul oscuro con tapa gris claro, para distinguir las líneas de módulos de un tablero.", c: ["#0d2a60", "#c8ccd0"], mat: "PETG azul", nota: "Un color por tipo de módulo ayuda a identificarlos a simple vista." },
+    { id: "fibra_carbono", n: "Efecto fibra de carbono", d: "Negro con tejido diagonal. Es un efecto: la pieza real no es de fibra de carbono.", c: ["#07070a", "#0a0a0c"], mat: "PETG con fibra de carbono corta (PETG-CF) o impresión con textura", nota: "El tejido del render es procedural; el material real solo se parece si se usa PETG-CF." },
+    { id: "aluminio_cepillado", n: "Aluminio cepillado", d: "Aspecto de aluminio con vetas finas. Es un efecto visual del render.", c: ["#9ea3aa", "#8c9097"], mat: "Impresión con filamento metálico o caja de aluminio mecanizada (otro proceso)", nota: "Una caja de aluminio real cambiaría el diseño y no se ha diseñado." },
+    { id: "humo_translucido", n: "Tapa de humo translúcida", d: "Caja grafito con tapa de plástico ahumado que deja ver los LED de la placa.", c: ["#1e2026", "#5a6068"], mat: "Tapa de PETG transparente o policarbonato ahumado", nota: "Se probó solo como render; la transparencia real depende del filamento y del grosor." }
+  ];
+  var tabs = document.getElementById("aTabs"), img = document.getElementById("aImg");
+  function mostrar(a) {
+    Array.prototype.forEach.call(tabs.children, function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-a") === a.id)); });
+    img.src = "img/acabados/acabado_" + a.id + ".jpg"; img.alt = "Caja AP Rack con la placa dentro, acabado " + a.n;
+    document.getElementById("aNombre").textContent = a.n; document.getElementById("aDesc").textContent = a.d;
+    document.getElementById("aMat").textContent = a.mat; document.getElementById("aNota").textContent = a.nota;
+    document.getElementById("aPie").textContent = "Render de diseño · " + a.n;
+    var m = document.getElementById("aMuestras"); m.textContent = "";
+    a.c.forEach(function (c) { var s = document.createElement("span"); s.className = "muestra"; s.style.background = c; m.appendChild(s); });
+  }
+  A.forEach(function (a, i) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "pildora"; b.textContent = a.n; b.setAttribute("data-a", a.id); b.setAttribute("aria-pressed", String(i === 0));
+    b.addEventListener("click", function () { mostrar(a); }); tabs.appendChild(b);
+  });
+  mostrar(A[0]);
+  window.__acabados = A;
 })();
 </script>

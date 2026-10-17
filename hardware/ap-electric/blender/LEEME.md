@@ -29,6 +29,26 @@ También funciona con el módulo de Python: `pip install bpy==4.2.0` y luego `py
 
 Los STL y GLB se leen de `accesorios/stl/` y `web/modelos3d/`; si cambias el diseño, vuelve a generarlos (`python3 accesorios/accesorios.py`, `bash tools/exportar_modelos3d.sh`) y renderiza de nuevo.
 
+## Acabados y formatos de imagen
+
+`render_acabados.py` renderiza la caja AP Rack con la placa dentro en **siete acabados** (color y textura) y en **cuatro formatos de imagen**:
+
+```
+blender -b -P blender/render_acabados.py -- --salida blender/renders/acabados
+```
+
+| Acabado | Textura (relieve procedural) |
+|---|---|
+| `petg_naranja` | capas de impresión sutiles |
+| `grafito_texturizado` | grano fino mate |
+| `blanco_satinado` | liso |
+| `azul_industrial` | capas de impresión |
+| `fibra_carbono` | tejido diagonal |
+| `aluminio_cepillado` | vetas finas, metálico |
+| `humo_translucido` | tapa translúcida |
+
+Formatos: `portada` 1920×1080, `cuadrado` 1080×1080, `vertical` 1080×1350 y `banner` 1920×640. Opciones: `--solo carbono`, `--muestras 128`, `--placa AP_RL4` (otra placa dentro de la caja). Las texturas son un efecto visual: la superficie real depende del material y de la impresora.
+
 ## Límites
 
 - Son renders de diseño: nada está impreso ni fabricado. Los colores de las placas son solo de apariencia (KiCad exporta las piezas sin material).

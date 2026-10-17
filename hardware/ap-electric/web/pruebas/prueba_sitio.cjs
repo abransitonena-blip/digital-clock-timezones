@@ -55,6 +55,13 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   ok((await p.innerText('#mNota')).includes('render fijo') || await p.evaluate(() => !!window.__visor), '3D: o carga el modelo o muestra el render fijo');
   await p.click('#mTabs button[data-m=rl4]'); await p.waitForTimeout(600);
   ok((await p.innerText('#mTitulo')).includes('AP Rack RL4'), '3D: elegir RL4 cambia el título');
+  // acabados: siete, cambian la imagen y el nombre
+  ok(await p.$$eval('#aTabs button', e => e.length) === 7, 'acabados: siete para elegir');
+  await p.click('#aTabs button[data-a=fibra_carbono]'); await p.waitForTimeout(200);
+  ok((await p.getAttribute('#aImg', 'src')).includes('acabado_fibra_carbono') && (await p.innerText('#aNombre')).includes('carbono'), 'acabados: elegir carbono cambia la imagen y el nombre');
+  ok(await p.$$eval('.formatos-img figure', e => e.length) === 4, 'acabados: cuatro formatos de imagen');
+  await p.click('#mTabs button[data-m=caja]'); await p.waitForTimeout(500);
+  ok(await p.$$eval('#mAcabTabs button', e => e.length) === 7, '3D: siete acabados para la caja en el visor');
   // tema
   const t0 = await p.evaluate(() => document.documentElement.getAttribute('data-theme'));
   await p.click('#tema'); await p.waitForTimeout(150);
