@@ -76,8 +76,8 @@ struct Programa {
       renglon++;
       char* c = strstr(lin, "//"); if (c) *c = 0;
       c = strchr(lin, ';'); if (c) *c = 0;
-      char op[8] = "", opnd[16] = "", cmp[4] = "", num[24] = "";
-      int campos = sscanf(lin, " %7s %15s %3s %23s", op, opnd, cmp, num);
+      char op[8] = "", opnd[16] = "", cmp[24] = "", num[24] = "";
+      int campos = sscanf(lin, " %7s %15s %23s %23s", op, opnd, cmp, num);
       if (campos <= 0 || !op[0]) continue;
       for (char* p = op; *p; p++) *p = toupper(*p);
       for (char* p = opnd; *p; p++) *p = toupper(*p);

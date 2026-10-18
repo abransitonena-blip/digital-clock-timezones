@@ -44,6 +44,15 @@ int main() {
     e.I[3] = true; correr(p, e, 100); REVISA(e.Q[3]); correr(p, e, 200); REVISA(!e.Q[3]);   // pulso aunque siga en 1
     REVISA(p.et(1) == 0);
   }
+  // 2b) tiempos y presets de 4 o más cifras (antes se cortaban a 3: TON T1 3000 valía 300 ms)
+  {
+    logica::Programa p; Simulado e;
+    REVISA(p.compilar("LD I1\nTON T1 3000\nLD T1\nOUT Q1\nLD I2\nTON T2 12000\nLD T2\nOUT Q2\nLD I3\nCTU C1 1000\nLD C1\nOUT Q3"));
+    REVISA(p.ins[1].val == 3000.0f && p.ins[5].val == 12000.0f && p.ins[9].val == 1000.0f);
+    e.I[1] = true; correr(p, e, 2900); REVISA(!e.Q[1]); correr(p, e, 200); REVISA(e.Q[1]);
+    e.I[2] = true; correr(p, e, 11900); REVISA(!e.Q[2]); correr(p, e, 200); REVISA(e.Q[2]);
+    REVISA(!p.compilar("LD I1\nTON T1 -5"));
+  }
   // 3) contador de piezas con flanco: 3 pulsos -> Q1; RST con I2
   {
     logica::Programa p; Simulado e;

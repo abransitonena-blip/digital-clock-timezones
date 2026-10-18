@@ -12,6 +12,7 @@ const run=(p,e,ms)=>{for(let t=0;t<ms;t+=10)p.ciclo(e,10)};
 {const p=new Plc(),e=new Sim();R(p.compilar("LD I1\nOR Q1\nANDN I2\nOUT Q1"),"c1");e.I[1]=1;run(p,e,20);R(e.Q[1],"latch");e.I[1]=0;run(p,e,20);R(e.Q[1],"keep");e.I[2]=1;run(p,e,20);R(!e.Q[1],"stop")}
 {const p=new Plc(),e=new Sim();R(p.compilar("LD I1\nTON T1 500\nLD T1\nOUT Q1\nLD I2\nTOF T2 300\nLD T2\nOUT Q2\nLDP I3\nTP T3 200\nLD T3\nOUT Q3"),"c2");
  e.I[1]=1;run(p,e,490);R(!e.Q[1],"ton1");run(p,e,30);R(e.Q[1],"ton2");e.I[3]=1;run(p,e,100);R(e.Q[3],"tp1");run(p,e,200);R(!e.Q[3],"tp2")}
+{const p=new Plc(),e=new Sim();R(p.compilar("LD I1\nTON T1 3000\nLD T1\nOUT Q1"),"c3");e.I[1]=1;run(p,e,2900);R(!e.Q[1],"ton 3000 a");run(p,e,200);R(e.Q[1],"ton 3000 b")}
 {const p=new Plc(),e=new Sim();p.compilar("LDP I1\nCTU C1 3\nLD C1\nOUT Q1\nLD I2\nRST C1");for(let k=0;k<3;k++){e.I[1]=1;run(p,e,20);e.I[1]=0;run(p,e,20)}R(p.c[1].cv==3&&e.Q[1],"ctu")}
 for(const [t,ok] of [["LD I1\nOUT X3",0],["AND I1\nOUT Q1",0],["LD I1\nLD I2\nOUT Q1",0],["LD A1\nOUT Q1",0],["LD I1\nTON C1 100",0],["LD M200\nOUT Q1",0],["ld i1 ; c\nout q1",1]]){const p=new Plc();R(p.compilar(t)==!!ok,"err "+t)}
 // ida y vuelta: texto -> escalera -> texto da las mismas instrucciones
