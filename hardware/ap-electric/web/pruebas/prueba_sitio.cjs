@@ -50,7 +50,7 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   ok(await p.$$eval('#hTiles .loseta:disabled', e => e.length) > 0, 'panel: el PLC se queda con sus salidas');
   await p.click('#hRun'); await p.waitForTimeout(300);
   // visor 3D: cinco placas; sin red (prueba en archivo) debe quedarse con el render fijo sin errores
-  ok(await p.$$eval('#mTabs button', e => e.length) === 12, '3D: seis placas, la caja y cinco piezas más para elegir');
+  ok(await p.$$eval('#mTabs button', e => e.length) === 13, '3D: seis placas, la caja, la placa con su cable y cinco piezas más para elegir');
   await p.evaluate(() => document.getElementById('modelos').scrollIntoView()); await p.waitForTimeout(1500);
   ok((await p.innerText('#mNota')).includes('render fijo') || await p.evaluate(() => !!window.__visor), '3D: o carga el modelo o muestra el render fijo');
   await p.click('#mTabs button[data-m=rl4]'); await p.waitForTimeout(600);
@@ -63,7 +63,9 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   ok(await p.$$eval('#aTabs button', e => e.length) === 7, 'acabados: siete para elegir');
   await p.click('#aTabs button[data-a=fibra_carbono]'); await p.waitForTimeout(200);
   ok((await p.getAttribute('#aImg', 'src')).includes('acabado_fibra_carbono') && (await p.innerText('#aNombre')).includes('carbono'), 'acabados: elegir carbono cambia la imagen y el nombre');
-  ok(await p.$$eval('.formatos-img figure', e => e.length) === 4, 'acabados: cuatro formatos de imagen');
+  ok(await p.$$eval('#acabados .formatos-img figure', e => e.length) === 4, 'acabados: cuatro formatos de imagen');
+  ok(await p.$$eval('#rustico .rustico-gal img', e => e.length) === 4, 'rústico: cuatro fotos del taller');
+  ok(await p.$$eval('#rustico img', es => Promise.all(es.map(i => i.complete ? i.naturalWidth > 0 : new Promise(r => { i.onload = () => r(true); i.onerror = () => r(false); i.loading = 'eager'; })))).then(a => a.every(Boolean)), 'rústico: las fotos cargan');
   await p.click('#mTabs button[data-m=caja]'); await p.waitForTimeout(500);
   ok(await p.$$eval('#mAcabTabs button', e => e.length) === 7, '3D: siete acabados para la caja en el visor');
   // tema

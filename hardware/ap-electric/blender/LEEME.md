@@ -55,3 +55,12 @@ Formatos: `portada` 1920×1080, `cuadrado` 1080×1080, `vertical` 1080×1350 y `
 - El cuerpo del relé es una caja del tamaño de su contorno, no el modelo del fabricante.
 - Las ventanas de la caja son aproximadas: comprueba con la placa real antes de imprimir.
 - La caja se renderiza vacía por dentro salvo la placa; no incluye bornas enchufables ni cables.
+
+## Estilo rústico (banco de madera)
+
+`render_rustico.py` arma un taller: tablones de madera, caja negra con la placa AP Rack 16 dentro (salidas encendidas), una fuente de 24 V genérica y el cable de alimentación unido al conector J1 de la placa, con carrete, destornillador, punteras y tornillos de latón. `foto_final.py` le da viñeta, grano y tono cálido y copia los resultados a `web/img/rustico/`.
+
+    /tmp/claude-0/bpyenv/bin/python blender/render_rustico.py -- --res 1400x875 --muestras 64 --rehacer si
+    python3 blender/foto_final.py
+
+Escenas: `banco_general`, `cable_union`, `plano_cenital`, `tablero_fuente`. La fuente, el carrete y las herramientas son objetos genéricos de ambientación; las texturas son un efecto visual. Nada está fabricado ni medido. El modelo 3D de la unión está en `web/modelos3d/AP_RACK16_CABLE24V.glb` (`materiales/modelo_placa_cable.py`).

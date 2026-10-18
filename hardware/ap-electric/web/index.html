@@ -510,6 +510,7 @@ button.var { cursor: pointer; }
       <a href="#panel"><svg class="ic"><use href="#i-screen"/></svg>Panel</a>
       <a href="#modelos"><svg class="ic"><use href="#i-box"/></svg>3D</a>
       <a href="#acabados"><svg class="ic"><use href="#i-sliders"/></svg>Acabados</a>
+      <a href="#rustico"><svg class="ic"><use href="#i-sliders"/></svg>Taller</a>
       <a href="#materiales"><svg class="ic"><use href="#i-wave"/></svg>Materiales</a>
       <a href="#industrial"><svg class="ic"><use href="#i-factory"/></svg>Industrial</a>
       <a href="#home"><svg class="ic"><use href="#i-home"/></svg>Home</a>
@@ -685,6 +686,22 @@ button.var { cursor: pointer; }
         <figure><img src="img/acabados/formato_vertical.jpg" alt="Vertical 1080 por 1350" loading="lazy"><figcaption>Vertical · 1080 × 1350</figcaption></figure>
         <figure><img src="img/acabados/formato_banner.jpg" alt="Banner 1920 por 640" loading="lazy"><figcaption>Banner · 1920 × 640</figcaption></figure>
       </div>
+    </div>
+  </section>
+
+  <section class="linea" id="rustico">
+    <div class="wrap">
+      <div class="cabeza">
+        <div><span class="eyebrow"><svg class="ic"><use href="#i-sliders"/></svg>Taller rústico</span><h2>En el banco de madera</h2></div>
+        <p>El mismo PLC visto como en un taller: mesa de madera, caja negra, la placa AP Rack 16 con sus salidas encendidas y el cable de alimentación unido al conector J1 y llevado a una fuente de 24 V. Son renders de Blender con texturas visuales; la fuente, el carrete y las herramientas son objetos genéricos de ambientación, no productos nuestros. Nada de esto está fabricado ni medido.</p>
+      </div>
+      <div class="formatos-img rustico-gal">
+        <figure><img src="img/rustico/banco_general.jpg" alt="PLC AP Rack 16 en un banco de madera con el cable de 24 V hacia la fuente" loading="lazy"><figcaption>Banco de trabajo · placa, caja y fuente de 24 V</figcaption></figure>
+        <figure><img src="img/rustico/cable_union.jpg" alt="Detalle del conector del cable de alimentación unido a la placa" loading="lazy"><figcaption>El cable unido a la placa (J1)</figcaption></figure>
+        <figure><img src="img/rustico/plano_cenital.jpg" alt="Vista desde arriba del PLC sobre la mesa de madera" loading="lazy"><figcaption>Vista desde arriba</figcaption></figure>
+        <figure><img src="img/rustico/tablero_fuente.jpg" alt="Hilos con puntera entrando en la borna de la fuente" loading="lazy"><figcaption>Hilos con puntera en la borna de 24 V</figcaption></figure>
+      </div>
+      <p class="nota">Modelo 3D de la unión: elige «Placa + cable 24 V» en el visor de arriba. Medidas del conector y del hilo son de dibujo [H].</p>
     </div>
   </section>
 
@@ -1912,6 +1929,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
     { id: "rl4", n: "AP Rack RL4", f: "modelos3d/AP_RL4.glb", img: "img/rl4.jpg", d: "176 × 100 mm · 4 relés secos" },
     { id: "ao4", n: "AP Rack AO4", f: "modelos3d/AP_RACKAO4.glb", img: "img/ao4.jpg", d: "176 × 100 mm · 4 salidas 0-10 V" },
     { id: "cable", n: "Cable AP LINK", f: "modelos3d/AP_CABLE_APLINK_DETALLE.glb", img: "img/plc/cable_aplink_detalle.jpg", d: "Cobre, aislante PVC, terminales de bronce y carcasa PA66 · detalle de 70 mm" },
+    { id: "placacable", n: "Placa + cable 24 V", f: "modelos3d/AP_RACK16_CABLE24V.glb", img: "img/rustico/cable_union.jpg", d: "AP Rack 16 con el cable de alimentación unido a J1: conector tipo VH, hilos rojo y negro de 16 AWG con puntera estañada y collar" },
     { id: "conexion", n: "Borne y cable 24 V", f: "modelos3d/AP_CONEXION_24V.glb", img: "img/plc/conexion_24v.jpg", d: "Borne KF128: PA66, latón estañado, acero zincado; cables con puntera de cobre estañado" },
     { id: "contacto", n: "Contacto de relé", f: "modelos3d/AP_CONTACTO_RELE.glb", img: "img/plc/contacto_rele.jpg", d: "Cobre, bronce fosforado y botones de AgSnO2" },
     { id: "soporte", n: "Soporte generativo", f: "modelos3d/AP_SOPORTE_GENERATIVO.glb", img: "img/plc/generativo_soporte.jpg", d: "Gancho de riel (naranja) + ménsula generativa (grafito)" },
