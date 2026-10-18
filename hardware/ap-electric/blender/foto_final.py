@@ -25,5 +25,7 @@ def foto(ruta, destino, semilla=7):
 
 if __name__ == "__main__":
     os.makedirs(SALIDA, exist_ok=True)
-    for i, r in enumerate(sorted(glob.glob(os.path.join(ENTRADA, "*.jpg")))):
-        foto(r, os.path.join(SALIDA, os.path.basename(r)), 7 + i); print("foto:", os.path.basename(r))
+    lista = [(r, os.path.basename(r)) for r in sorted(glob.glob(os.path.join(ENTRADA, "*.jpg")))]
+    lista += [(r, "plc_" + os.path.basename(r)) for r in sorted(glob.glob(os.path.join(AQUI, "renders", "rustico_plc", "*.jpg")))]     # el AP PLC C24 (APPLC=1)
+    for i, (r, nombre) in enumerate(lista):
+        foto(r, os.path.join(SALIDA, nombre), 7 + i); print("foto:", nombre)

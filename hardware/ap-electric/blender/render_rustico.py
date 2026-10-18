@@ -21,6 +21,9 @@ M3D = os.path.join(RAIZ, "web", "modelos3d")
 GEN = os.path.join(RAIZ, "generativo", "salida")
 
 
+PLC = bool(os.environ.get("APPLC"))                  # APPLC=1: el AP PLC C24 con su caja en vez del AP Rack 16
+
+
 def args():
     a = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
     o = {"salida": os.path.join(AQUI, "renders", "rustico"), "solo": "", "muestras": "96", "res": "1600x1000", "rehacer": "no"}
@@ -157,11 +160,11 @@ class Taller:
         self.cable_24v()
 
     def plc(self):
-        caja = R.importar_stl(os.path.join(RAIZ, "accesorios", "stl", "caja_rack.stl")); R.pintar(caja, "caja")
+        caja = R.importar_stl(os.path.join(RAIZ, "accesorios", "stl", "caja_plc.stl" if PLC else "caja_rack.stl")); R.pintar(caja, "caja")
         caja.data.materials.clear(); caja.data.materials.append(mat_simple("caja_negra", (0.02, 0.02, 0.024), 0.6))
         bpy.context.view_layer.update()
         mnc, mxc = R.caja_limites([caja]); cx, cy = (mnc.x + mxc.x) / 2, (mnc.y + mxc.y) / 2
-        objs = R.importar_glb(os.path.join(M3D, "AP_RACK16.glb"))
+        objs = R.importar_glb(os.path.join(M3D, "AP_PLC_C24.glb" if PLC else "AP_RACK16.glb"))
         mn, mx = R.caja_limites([x for x in objs if x.type == "MESH"])
         d = Vector((cx - (mn.x + mx.x) / 2, cy - (mn.y + mx.y) / 2, 0.0090 - mn.z))
         for x in objs:
@@ -171,9 +174,9 @@ class Taller:
         pn.inputs["Base Color"].default_value = (0.2, 1, 0.35, 1); pn.inputs["Emission Color"].default_value = (0.2, 1, 0.35, 1); pn.inputs["Emission Strength"].default_value = 80
         for x in objs:
             n = x.name.split(".")[0]
-            if x.type == "MESH" and n.startswith("DL") and n[2:].isdigit() and int(n[2:]) in {1, 2, 5, 8, 9, 12, 16}:
+            if x.type == "MESH" and n.startswith("DL") and n[2:].isdigit() and int(n[2:]) in ({1, 3, 4, 7, 10, 12} if PLC else {1, 2, 5, 8, 9, 12, 16}):
                 x.data = x.data.copy(); x.data.materials.clear(); x.data.materials.append(verde)
-        j6 = [x for x in objs if x.name.split(".")[0] == "J6"][0]
+        j6 = [x for x in objs if x.name.split(".")[0] == ("J8" if PLC else "J6")][0]
         o6 = j6.matrix_world.translation.copy()                                  # J6 está en (36, 6.4) mm de la placa; J1 en (11, 9)
         j1 = o6 + Vector(((11.0 - 36.0) / 1000.0, -(9.0 - 6.4) / 1000.0, 0.0))
         self.todo_placa = objs
@@ -181,7 +184,7 @@ class Taller:
 
     def fuente(self):
         """Fuente genérica de 24 V (ilustrativa): caja de aluminio con tapa de bornas y una placa de datos."""
-        c = Vector((self.caja.location.x - 0.215, self.caja.location.y + 0.01, 0.0))
+        c = Vector((self.caja.location.x - (0.235 if PLC else 0.215), self.caja.location.y + 0.01, 0.0))
         gris = mat_metal_viejo("fuente_gris", (0.42, 0.44, 0.46), 0.35, 0.6, 0.9, 50.0)
         cuerpo = caja_prisma("fuente", 0.090, 0.100, 0.045, c + Vector((0, 0, 0.0225)), gris, bisel=0.002)
         placa = caja_prisma("placa_datos", 0.050, 0.030, 0.0006, c + Vector((0.008, -0.012, 0.0453)), mat_simple("etiqueta", (0.82, 0.78, 0.62), 0.7))
@@ -210,8 +213,8 @@ class Taller:
             lado = 1.0 - 2.0 * k
             ctrl = [inicio, inicio + Vector((0, 0, 0.012)),
                     inicio + Vector((-0.012, 0.004 * lado, 0.032)),
-                    Vector((self.caja.location.x - 0.098, inicio.y + 0.012 * lado, 0.050)),
-                    Vector((self.caja.location.x - 0.118, inicio.y + 0.020 * lado - 0.015 * k, 0.012)),
+                    Vector((self.caja.location.x - (0.110 if PLC else 0.098), inicio.y + 0.012 * lado, 0.050)),
+                    Vector((self.caja.location.x - (0.130 if PLC else 0.118), inicio.y + 0.020 * lado - 0.015 * k, 0.012)),
                     Vector((pb.x + 0.034, pb.y + 0.012 * lado, 0.0035)),
                     Vector((pb.x + 0.016, pb.y, 0.0045)), pb + Vector((0.008, 0, 0))]
             ruta = catmull(ctrl, 10)
@@ -247,7 +250,7 @@ class Taller:
         e = caja_prisma("etiqueta_kraft", 0.060, 0.034, 0.0008, base + Vector((0.22, 0.01, 0.0004)), mat_simple("kraft", (0.55, 0.40, 0.24), 0.8))
         e.rotation_euler[2] = math.radians(-12)
         bpy.ops.object.text_add(location=base + Vector((0.195, 0.012, 0.0010))); t = bpy.context.active_object; t.rotation_euler[2] = math.radians(-12)
-        t.data.body = "AP RACK 16"; t.data.size = 0.0075; t.data.extrude = 0.00005; t.data.materials.append(mat_simple("tinta2", (0.08, 0.05, 0.03), 0.7))
+        t.data.body = "AP PLC C24" if PLC else "AP RACK 16"; t.data.size = 0.0075; t.data.extrude = 0.00005; t.data.materials.append(mat_simple("tinta2", (0.08, 0.05, 0.03), 0.7))
 
     def objetos_enfoque(self):
         return [self.caja] + [x for x in self.todo_placa if x.type == "MESH"]

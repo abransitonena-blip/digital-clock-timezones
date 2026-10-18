@@ -66,6 +66,10 @@ CONOCIDOS = {
     ("ULN2003ADR", "SOIC-16_3.9x9.9mm_P1.27mm"): ("C7512", "Basic Component"),
     ("SMBJ33A", "D_SMB"): ("C19077586", "Preferred Component"),
     # 7R Tour rev B: reloj de tiempo real (verificadas en lcsc.com / jlcpcb.com por búsqueda, octubre 2026)
+    # AP PLC C24 (octubre 2026): códigos confirmados en lcsc.com; revisar existencias al pedir
+    ("W5500", "LQFP-48_7x7mm_P0.5mm"): ("C32843", "Extended"),                    # WIZnet, Ethernet por SPI
+    ("HR911105A", "RJ45_Hanrun_HR911105A_Horizontal"): ("C12074", "Extended"),    # Hanrun, RJ45 con magnéticos y LED, de patas
+    ("25MHz", "Crystal_SMD_3225-4Pin_3.2x2.5mm"): ("C331600", "Extended"),        # TXC 7V25000025, 18 pF
     ("PCF8563T/5,518", "SOIC-8_3.9x4.9mm_P1.27mm"): ("C7440", "Extended"),               # NXP, RTC I2C
     ("32.768kHz 12.5pF", "Crystal_SMD_3215-2Pin_3.2x1.5mm"): ("C32346", "Extended"),     # Epson Q13FC13500004, 12.5 pF
     ("BAT54C", "SOT-23"): ("C181200", "Extended"),                                       # Hottech, 2 Schottky cátodo común

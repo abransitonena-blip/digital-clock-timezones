@@ -76,3 +76,16 @@ Revisión de escritorio del diseño, hecha por el equipo de diseño; **no sustit
 | 8 | Capacidad de contactos y calentamiento | Todos los límites por canal están en PD | Ensayos de la sección 3 antes de declarar cualquier valor |
 | 9 | Umbral de las entradas de 24 V | El cálculo de escritorio da ≈ 7 V de encendido garantizado y poca holgura frente a «apagada < 5 V»; un sensor de 2 hilos con fuga podría leerse activo | Medir la curva corriente-tensión de cada entrada y el punto de cambio (prueba P1 de `empresa/hardware/ESTUDIO_REV_C.md`); si falla, cambiar RA/RB en la lista de piezas (misma huella) |
 | 10 | Conteo rápido a 500 Hz | El programa ignora pulsos separados menos de 2 ms; el retardo de apagado del optoacoplador (20-100 µs) es hipótesis | Probar 10⁶ pulsos a 500 Hz con generador y comparar el conteo |
+
+## AP PLC C24 rev A: qué medir antes de ofrecerlo
+
+| # | Riesgo | Por qué | Qué hacer |
+|---|---|---|---|
+| 1 | El Ethernet puede no enlazar | La terminación (4 × 49.9 Ω a un nodo con 10 nF) y las tomas centrales a 3.3 V se tomaron de memoria del diseño de referencia de WIZnet [CG] | Comparar con el esquema oficial del W5500 con magnéticos antes de fabricar; con la placa, ver el LED de enlace y hacer ping a 10 y 100 Mbit/s |
+| 2 | EXRES1 | Va 12 kΩ + 390 Ω (12.39 kΩ) en vez de 12.4 kΩ 1 % | Medir la resistencia entre EXRES y 0 V; si el chip no contesta por SPI, es lo primero que se revisa |
+| 3 | Pines compartidos | IO0 (CS del W5500) flota durante el arranque; IO20/IO21 son UART0 y sacan texto del arranque | Con osciloscopio, comprobar que CS se mantiene alto (pull-up de 10 kΩ) y que el W5500 no recibe tramas sueltas |
+| 4 | Sin medición de la tensión de entrada | No quedan pines en el ESP32-C3-WROOM-02 | Medir con multímetro; para la rev B, pasar a un módulo con más pines |
+| 5 | Modbus TCP sin autenticación | El protocolo no la trae | Red de planta aislada o cortafuegos; confirmar que el puerto 502 no queda abierto hacia internet |
+| 6 | Botón RUN/STOP | Alterna el modo y el programa lo guarda en la memoria | Probar 1000 pulsaciones y cortes de energía en cada modo; revisar el desgaste de la memoria |
+| 7 | 12 salidas y 12 entradas | Mismo circuito que AP Rack 16 | Repetir los ensayos de corriente, caída y tiempos de la sección 3 con todas las salidas encendidas a la vez (el +V es de 0.8 mm) |
+| 8 | Hora | Sin reloj con pila; NTP no implementado | Implementarlo o no ofrecer registros con hora |

@@ -339,7 +339,7 @@ section.linea { scroll-margin-top: 96px; }
 .mod-btn .ic { width: 28px; height: 28px; grid-row: span 2; padding: 5px; border-radius: 10px; background: var(--sunken); }
 .mod-btn b { font: 600 1rem var(--font-display); }
 .mod-btn span { font-size: 0.78rem; color: var(--muted); }
-.mod-btn[data-t="rack"] .ic { color: var(--accent); } .mod-btn[data-t="in16"] .ic { color: var(--signal); } .mod-btn[data-t="ao4"] .ic { color: var(--info); } .mod-btn[data-t="rl4"] .ic { color: var(--ok, var(--signal)); } .mod-btn[data-t="led8"] .ic { color: var(--warn); } .mod-btn[data-t="ai8"] .ic { color: var(--info); }
+.mod-btn[data-t="rack"] .ic, .mod-btn[data-t="plc"] .ic { color: var(--accent); } .mod-btn[data-t="in16"] .ic { color: var(--signal); } .mod-btn[data-t="ao4"] .ic { color: var(--info); } .mod-btn[data-t="rl4"] .ic { color: var(--ok, var(--signal)); } .mod-btn[data-t="led8"] .ic { color: var(--warn); } .mod-btn[data-t="ai8"] .ic { color: var(--info); }
 .paleta .btn { align-self: center; }
 .cinta { overflow-x: auto; border-radius: var(--radius); background: var(--sunken); border: 1px solid var(--line); padding: 8px; background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 18px 18px; }
 .cinta svg { display: block; height: auto; min-width: 100%; }
@@ -573,6 +573,7 @@ button.var { cursor: pointer; }
       </div>
       <div class="constructor glass">
         <div class="paleta" id="cPaleta" role="group" aria-label="Agregar un módulo a la cadena">
+          <button class="mod-btn" type="button" data-t="plc"><svg class="ic"><use href="#i-chip"/></svg><b>AP PLC C24</b><span>12 salidas · 12 entradas · Ethernet</span></button>
           <button class="mod-btn" type="button" data-t="rack"><svg class="ic"><use href="#i-chip"/></svg><b>AP Rack 16</b><span>16 salidas · 8 entradas</span></button>
           <button class="mod-btn" type="button" data-t="in16"><svg class="ic"><use href="#i-inputs"/></svg><b>AP Rack IN16</b><span>16 entradas 12-30 V</span></button>
           <button class="mod-btn" type="button" data-t="led8"><svg class="ic"><use href="#i-bulb"/></svg><b>AP Rack LED8</b><span>8 salidas con brillo · 8 entradas</span></button>
@@ -699,6 +700,8 @@ button.var { cursor: pointer; }
         <figure><img src="img/rustico/banco_general.jpg" alt="PLC AP Rack 16 en un banco de madera con el cable de 24 V hacia la fuente" loading="lazy"><figcaption>Banco de trabajo · placa, caja y fuente de 24 V</figcaption></figure>
         <figure><img src="img/rustico/cable_union.jpg" alt="Detalle del conector del cable de alimentación unido a la placa" loading="lazy"><figcaption>El cable unido a la placa (J1)</figcaption></figure>
         <figure><img src="img/rustico/plano_cenital.jpg" alt="Vista desde arriba del PLC sobre la mesa de madera" loading="lazy"><figcaption>Vista desde arriba</figcaption></figure>
+        <figure><img src="img/rustico/plc_banco_general.jpg" alt="AP PLC C24 en su caja sobre el banco de madera con el cable de 24 V hacia la fuente" loading="lazy"><figcaption>AP PLC C24 en su caja</figcaption></figure>
+        <figure><img src="img/rustico/plc_plano_cenital.jpg" alt="AP PLC C24 visto desde arriba sobre la mesa de madera" loading="lazy"><figcaption>AP PLC C24 desde arriba</figcaption></figure>
         <figure><img src="img/rustico/tablero_fuente.jpg" alt="Hilos con puntera entrando en la borna de la fuente" loading="lazy"><figcaption>Hilos con puntera en la borna de 24 V</figcaption></figure>
       </div>
       <p class="nota">Modelo 3D de la unión: elige «Placa + cable 24 V» en el visor de arriba. Medidas del conector y del hilo son de dibujo [H].</p>
@@ -801,6 +804,20 @@ button.var { cursor: pointer; }
         <p>Placas de 12 a 30 V CC que comparten un solo PLC y se enlazan con AP LINK. <a href="#cadena">Arma una cadena</a> y mira cómo se numeran sus entradas y salidas.</p>
       </div>
       <div class="productos">
+        <article class="producto">
+          <figure><img src="img/plc_c24.jpg" alt="Render de la placa AP PLC C24" loading="lazy" width="1200" height="617"></figure>
+          <div class="cuerpo">
+            <div class="fila"><h3>AP PLC C24</h3><span class="estado dis">DISEÑO</span></div>
+            <p>El PLC compacto de la familia: 12 entradas, 12 salidas protegidas, Ethernet y AP LINK en una sola placa, con bornas arriba y abajo, LED de estado y botón RUN/STOP. Corre AP Lógica, habla Modbus TCP y se amplía con los módulos AP Rack.</p>
+            <div class="tags"><span class="tag">12 entradas</span><span class="tag">12 salidas</span><span class="tag">Ethernet</span><span class="tag">AP LINK</span><span class="tag">12-30 V CC</span></div>
+            <table class="spec">
+              <tr><td>Ethernet</td><td>W5500 (10/100) con RJ45 de magnéticos integrados · Modbus TCP en el puerto 502 · <span class="pd">PD</span> sin probar con una red real</td></tr>
+              <tr><td>Expansión</td><td>AP LINK a 250 kbit/s: IN16, AI8, LED8, RL4, AO4 y Rack 16 se suman con entradas y salidas numeradas seguidas</td></tr>
+              <tr><td>Límites de esta revisión</td><td>Sin medición de la tensión de entrada (los pines se ocupan para el Ethernet), sin reloj con pila, sin certificación; <b>no es una función de seguridad</b></td></tr>
+              <tr><td>Revisión de diseño</td><td>ERC 0 · DRC 0 · reglas de fabricación 0 · 266 piezas con código LCSC</td></tr>
+            </table>
+          </div>
+        </article>
         <article class="producto">
           <figure><img src="img/rack16.jpg" alt="Render de la placa AP Rack 16" loading="lazy" width="1200" height="617"></figure>
           <div class="cuerpo">
@@ -1669,6 +1686,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
 
   /* ---------- modelo de la cadena ---------- */
   var TIPOS = {
+    plc: { n: "AP PLC C24", ns: 12, ne: 12, na: 0 },
     rack: { n: "AP Rack 16", ns: 16, ne: 8, na: 0 },
     in16: { n: "AP Rack IN16", ns: 0, ne: 16, na: 0 },
     ai8: { n: "AP Rack AI8", ns: 0, ne: 0, na: 8 },
@@ -1922,6 +1940,7 @@ pérdida de comunicación → apaga lo que manda Modbus</pre>
 /* visor 3D de las placas: three.js (jsDelivr) + GLB exportados de KiCad; si no carga, se muestra el render fijo */
 (function () {
   var MODELOS = [
+    { id: "plc", n: "AP PLC C24", f: "modelos3d/AP_PLC_C24.glb", img: "img/plc_c24.jpg", d: "200 × 100 mm · 12 entradas · 12 salidas · Ethernet · AP LINK" },
     { id: "rack16", n: "AP Rack 16", f: "modelos3d/AP_RACK16.glb", img: "img/rack16.jpg", d: "176 × 100 mm · 16 salidas · 8 entradas" },
     { id: "in16", n: "AP Rack IN16", f: "modelos3d/AP_IN16.glb", img: "img/in16.jpg", d: "176 × 100 mm · 16 entradas" },
     { id: "ai8", n: "AP Rack AI8", f: "modelos3d/AP_AI8.glb", img: "img/ai8.jpg", d: "176 × 100 mm · 8 analógicas" },

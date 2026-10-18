@@ -59,6 +59,27 @@ for ref, cte in (("U6", "TCA_S1"), ("U7", "TCA_S2"), ("U8", "TCA_ENT"), ("U9", "
     dirx = 0x20 + sum((1 << i) for i, v in enumerate(mt.groups()) if v == "3V3")
     mc = re.search(r"%s = (0x[0-9A-Fa-f]+)" % cte, rino)
     if int(mc.group(1), 16) != dirx: errores.append("Rack %s: la placa da 0x%02X y el programa %s" % (ref, dirx, mc.group(1)))
+# ---- AP PLC C24: placa plc/gen/make.py contra el mismo programa (tipo 7) ----
+pk = open(os.path.join(R, "plc/gen/make.py"), encoding="utf-8").read()
+m = re.search(r'\("U3", "ESP32-C3-WROOM-02".*?\{(".*?)\},\n', pk, re.S)
+pl = {red: MODULO[pin] for pin, red in eval("{" + m.group(1) + "}").items() if red not in ("3V3", "GND", "EN", None)}
+ESP_PLC = {"INT": "P_INT", "SENSE_I": "P_SENSE_I", "SENSE_O": "P_SENSE_O", "SCL": "P_SCL", "BOOT": "P_MODO", "RS_DE": "P_DE", "RS_RX": "P_RX",
+           "SDA": "P_SDA", "RS_TX": "P_TX", "ETH_CS": "P_ETH_CS", "ETH_SCK": "P_ETH_SCK", "ETH_MISO": "P_ETH_MISO", "ETH_MOSI": "P_ETH_MOSI"}
+for red, cte in ESP_PLC.items():
+    if red not in pl: errores.append("PLC: la red %s no está en el módulo" % red); continue
+    if cte not in cr: errores.append("PLC: el programa no define %s" % cte); continue
+    if pl[red] != cr[cte]: errores.append("PLC %s: la placa usa IO%s y el programa IO%s (%s)" % (red, pl[red], cr[cte], cte))
+for red, g in pl.items():
+    if red not in ESP_PLC and red not in ("USB_DN", "USB_DP"): errores.append("PLC: red %s (IO%s) sin constante del programa" % (red, g))
+if "VSENSE" in pl: errores.append("PLC: IO0 es el CS del W5500; no puede medir la tensión de entrada")
+for ref, cte in (("U6", "TCA_S1"), ("U7", "TCA_S2"), ("U8", "TCA_ENT"), ("U9", "TCA_LED"), ("U15", "TCA_ENT2")):
+    mt = re.search(r'tca\("%s", \("(\w+)", "(\w+)", "(\w+)"\)' % ref, pk)
+    dirx = 0x20 + sum((1 << i) for i, v in enumerate(mt.groups()) if v == "3V3")
+    mc = re.search(r"%s = (0x[0-9A-Fa-f]+)" % cte, rino)
+    if int(mc.group(1), 16) != dirx: errores.append("PLC %s: la placa da 0x%02X y el programa %s" % (ref, dirx, mc.group(1)))
+# la placa del W5500 debe usar las mismas redes SPI que el ESP32 y el RJ45 los 4 hilos del par
+for red in ("ETH_CS", "ETH_SCK", "ETH_MISO", "ETH_MOSI"):
+    if '"%s"' % red not in pk.split('("U16"')[1].split('("Y1"')[0]: errores.append("PLC: el W5500 no usa la red %s" % red)
 # IN16 y AI8: mismo ESP32 que el Rack 16, y las direcciones I2C que usa el programa para reconocer el tipo de módulo
 for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8"), ("led8", "LED8"), ("rl4", "RL4"), ("ao4", "AO4")):
     mk2 = open(os.path.join(R, carpeta, "gen/make.py"), encoding="utf-8").read()
@@ -102,5 +123,5 @@ else:
     if dirx == 0x40: errores.append("AO4: debe distinguirse del LED8 (0x40) por la dirección del PCA9685")
     if any(pines.get(str(6 + k)) != '"PW%d"' % (k + 1) for k in range(4)): errores.append("AO4: LED0-LED3 no van a PW1-PW4")
 for e in errores: print("  ERROR:", e)
-print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, IN16, AI8, LED8, RL4 y AO4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
+print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, AP PLC C24, IN16, AI8, LED8, RL4 y AO4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
 sys.exit(1 if errores else 0)

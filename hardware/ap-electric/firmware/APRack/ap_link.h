@@ -109,7 +109,7 @@ struct Receptor {
 };
 
 struct Caps {
-  uint8_t tipo = 0;     // 1 = AP Rack 16, 2 = AP Rack IN16, 3 = AP Rack AI8, 4 = AP Rack LED8 (ver AP_LINK.md)
+  uint8_t tipo = 0;     // 1 = AP Rack 16, 2 = AP Rack IN16, 3 = AP Rack AI8, 4 = AP Rack LED8, 5 = RL4, 6 = AO4, 7 = AP PLC C24 (ver AP_LINK.md)
   uint8_t nSal = 0, nEnt = 0;
   uint8_t ver = VERSION;
   uint8_t nAna = 0;     // entradas analógicas (hasta MAX_ANA)

@@ -64,3 +64,5 @@ Formatos: `portada` 1920×1080, `cuadrado` 1080×1080, `vertical` 1080×1350 y `
     python3 blender/foto_final.py
 
 Escenas: `banco_general`, `cable_union`, `plano_cenital`, `tablero_fuente`. La fuente, el carrete y las herramientas son objetos genéricos de ambientación; las texturas son un efecto visual. Nada está fabricado ni medido. El modelo 3D de la unión está en `web/modelos3d/AP_RACK16_CABLE24V.glb` (`materiales/modelo_placa_cable.py`).
+
+Con `APPLC=1` la misma escena usa el **AP PLC C24** y su caja (`caja_plc.stl`): `APPLC=1 python render_rustico.py -- --salida blender/renders/rustico_plc --solo banco_general` (también `plano_cenital`); `foto_final.py` los copia como `web/img/rustico/plc_*.jpg`.

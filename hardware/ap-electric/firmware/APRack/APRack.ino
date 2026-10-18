@@ -13,20 +13,24 @@
 #include <WebServer.h>
 #include <Preferences.h>
 #include <Wire.h>
+#include <ETH.h>
+#include <SPI.h>
 #include "esp_task_wdt.h"
 #include "bootloader_random.h"
 #include "ap_rack.h"
+#include "modbus_tcp.h"
 
-#define VERSION "AP Rack 1.0"
+#define VERSION "AP Rack 1.1"
 // Pines (ver rack16/gen/make.py)
-const uint8_t P_VSENSE = 0, P_TX = 1, P_SDA = 2, P_RX = 3, P_INT = 4, P_SENSE_I = 5, P_SENSE_O = 6, P_SCL = 8, P_MODO = 9, P_DE = 10;
+const uint8_t P_VSENSE = 0, P_ETH_CS = 0, P_ETH_SCK = 7, P_ETH_MISO = 20, P_ETH_MOSI = 21, P_TX = 1, P_SDA = 2, P_RX = 3, P_INT = 4, P_SENSE_I = 5, P_SENSE_O = 6, P_SCL = 8, P_MODO = 9, P_DE = 10;
 const uint8_t TCA_S1 = 0x20, TCA_S2 = 0x21, TCA_ENT = 0x22, TCA_LED = 0x23;      // AP Rack 16
 const uint8_t TCA_E1 = 0x24, TCA_E2 = 0x25;                                      // AP Rack IN16 (entradas 1-8 y 9-16)
+const uint8_t TCA_ENT2 = 0x24;                                                   // AP PLC C24: entradas 9-12 (P0-P3) y botón RUN/STOP (P4); el IN16 usa 0x24 y 0x25 pero NO tiene 0x20
 const uint8_t ADS_A = 0x48, ADS_B = 0x49;                                        // AP Rack AI8 (canales 1-4 y 5-8)
 const uint8_t PCA_LED = 0x40;                                                    // AP Rack LED8: PCA9685 (salidas 1-8 con brillo; entradas 1-8 en el TCA 0x22)
 const uint8_t PCA_AO = 0x41;                                                     // AP Rack AO4: PCA9685 con A0 a 3.3 V (salidas 0-10 V); el LED8 usa 0x40
 uint8_t pcaDir = PCA_LED, pcaPre = 5;                                           // dirección y prescaler del PCA9685 (5 = 1 kHz, 3 = 1.5 kHz)
-enum Tipo : uint8_t { T_RACK16 = 1, T_IN16 = 2, T_AI8 = 3, T_LED8 = 4, T_RL4 = 5, T_AO4 = 6 };   // T_RL4: 4 relés de 24 V (solo el expansor 0x20)
+enum Tipo : uint8_t { T_RACK16 = 1, T_IN16 = 2, T_AI8 = 3, T_LED8 = 4, T_RL4 = 5, T_AO4 = 6, T_PLC24 = 7 };   // T_RL4: 4 relés de 24 V (solo el expansor 0x20)
 uint8_t tipoMod = T_RACK16;
 uint16_t anaVal[8] = {}; uint8_t anaMascara = 0;      // anaMascara: bit i = el canal i tiene el puente de 4-20 mA (se informa mA)
 uint8_t adsCanal = 0; uint32_t tAds = 0; bool adsEsperando = false;
@@ -39,6 +43,8 @@ WebServer web(80);
 String claveCache;
 uint16_t seguraLocal = 0;
 uint32_t segundos = 0, tSeg = 0, tCom = 0, tLed = 0, tEnt = 0, tSerial = 0, tWifi = 0;
+bool ethArriba = false, botonPrevio = true; uint32_t tBoton = 0;   // Ethernet (W5500) y el botón RUN/STOP del AP PLC C24
+WiFiServer modbus(502); WiFiClient clienteMb; uint8_t mbBuf[300]; size_t mbN = 0; uint32_t tMb = 0;
 bool wifiActivo = false;
 uint8_t dutyEscrito[8] = {}; bool pwmValido = false;
 uint16_t salidasEscritas = 0xFFFF, ledsEscritos = 0xFFFF, fallasHw = 0;
@@ -168,7 +174,7 @@ void adsPaso(uint32_t t) {
   adsEsperando = false; adsCanal = (adsCanal + 1) & 7;
 }
 void aplicarSalidas(uint16_t s) {
-  bool a = tcaEscribir(TCA_S1, 1, s & 0xFF), b = tipoMod == T_RL4 ? true : tcaEscribir(TCA_S2, 1, s >> 8);
+  bool a = tcaEscribir(TCA_S1, 1, s & 0xFF), b = tipoMod == T_RL4 ? true : tcaEscribir(TCA_S2, 1, tipoMod == T_PLC24 ? (s >> 8) & 0x0F : s >> 8);
   if (a && b) { salidasEscritas = s; fallasHw &= ~F_I2C; enlace->aplicadas(s); } else fallasHw |= F_I2C;
 }
 // PCA9685 a 1 kHz (prescaler 5 con el reloj de 25 MHz). Cada canal: apagado = «todo apagado» (bit 4 de OFF_H), pleno = «todo encendido» (bit 4 de ON_H),
@@ -193,6 +199,16 @@ void aplicarPwm(uint16_t s, const uint8_t* d) {
 }
 void ponerLeds(uint32_t t) {
   uint8_t pos = enlace->pos();
+  if (tipoMod == T_PLC24) {                                  // P0 RUN, P1 FALLA, P2 COM, P3 NET, P4-P7 = M1-M4 del programa del PLC
+    uint8_t w = 0;
+    if (plc.run) w |= 0x01; else if ((t / 500) & 1) w |= 0x01;   // RUN fijo si el programa corre; parpadea en STOP
+    if (fallasHw || (plc.run && plc.hayFallaModulos())) w |= 0x02;
+    if (t - tCom < 120) w |= 0x04;
+    if (ethArriba && t - tMb < 250) w |= 0x08;
+    for (int i = 0; i < 4; i++) if (plc.prog.m[1 + i]) w |= (uint8_t)(0x10 << i);
+    if (w != ledsEscritos && tcaEscribir(TCA_LED, 1, w)) ledsEscritos = w;
+    return;
+  }
   uint8_t v = pos & 0x0F;                                   // posición en binario: P0 = 1, P1 = 2, P2 = 4, P3 = 8
   if ((t / 500) & 1) v |= 0x10;                              // RUN: parpadea 1 Hz
   if (fallasHw || (enlace->rol() == aplink::Rol::ESCLAVO && enlace->enSeguro()) || enlace->rol() == aplink::Rol::ESPERA) v |= 0x20;   // FALLA
@@ -200,16 +216,49 @@ void ponerLeds(uint32_t t) {
   if (enlace->rol() == aplink::Rol::CABEZA) v |= 0x80;       // CABEZA
   if (v != ledsEscritos && tcaEscribir(TCA_LED, 1, v)) ledsEscritos = v;
 }
+// Botón RUN/STOP del AP PLC C24 (TCA 0x24, P4, activo en 0): cada pulsación alterna RUN y STOP; el modo se recuerda al reiniciar
+void botonRunStop(int b, uint32_t t) {
+  bool suelto = (b >> 4) & 1;
+  if (suelto == botonPrevio || t - tBoton < 40) return;                // antirrebote
+  tBoton = t; botonPrevio = suelto;
+  if (!suelto && enlace->rol() == aplink::Rol::CABEZA) { plc.modo(!plc.run); pref.putBool("plcrun", plc.run); }
+}
+void ethIniciar() {
+  SPI.begin(P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI, P_ETH_CS);
+  // W5500 por SPI sin pin de interrupción (el programa consulta) y con el reset por RC de la placa
+  ethArriba = ETH.begin(ETH_PHY_W5500, 1, P_ETH_CS, -1, -1, SPI2_HOST, P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI);
+  if (ethArriba) modbus.begin();
+  Serial.printf("Ethernet: %s\n", ethArriba ? "W5500 iniciado (DHCP)" : "W5500 no contesta");
+}
+// Modbus TCP (puerto 502): un cliente a la vez; la trama completa va a aprack::modbusTcp. Sin respuesta = trama mala = se cierra.
+void modbusPaso(uint32_t t) {
+  if (!ethArriba) return;
+  if (!clienteMb || !clienteMb.connected()) { clienteMb = modbus.accept(); mbN = 0; if (!clienteMb) return; }
+  while (clienteMb.available() && mbN < sizeof mbBuf) mbBuf[mbN++] = (uint8_t)clienteMb.read();
+  if (mbN >= 7) {
+    size_t largo = 6 + (size_t)(mbBuf[4] << 8 | mbBuf[5]);
+    if (largo > sizeof mbBuf) { clienteMb.stop(); mbN = 0; return; }
+    if (mbN >= largo) {
+      uint8_t r[300]; bool cambio = false;
+      size_t k = aprack::modbusTcp(*enlace, plc, &seguraLocal, segundos, mbBuf, largo, r, &cambio);
+      if (!k) { clienteMb.stop(); mbN = 0; return; }
+      clienteMb.write(r, k); tMb = t;
+      if (cambio) pref.putBool("plcrun", plc.run);
+      mbN -= largo; if (mbN) memmove(mbBuf, mbBuf + largo, mbN);
+    }
+  }
+}
 void leerEntradas() {
   int raw;
   if (tipoMod == T_IN16) { int a = tcaLeer(TCA_E1), b = tcaLeer(TCA_E2); raw = (a < 0 || b < 0) ? -1 : (a | (b << 8)); }
   else if (tipoMod == T_AI8) raw = 0;
+  else if (tipoMod == T_PLC24) { int a = tcaLeer(TCA_ENT), b = tcaLeer(TCA_ENT2); raw = (a < 0 || b < 0) ? -1 : (a | ((b & 0x0F) << 8)); botonRunStop(b < 0 ? 0x10 : b, millis()); }
   else raw = tcaLeer(TCA_ENT);
-  uint16_t vin = (uint16_t)(analogReadMilliVolts(P_VSENSE) * 11UL);   // divisor 100 k / 10 k
+  uint16_t vin = tipoMod == T_PLC24 ? 0 : (uint16_t)(analogReadMilliVolts(P_VSENSE) * 11UL);   // divisor 100 k / 10 k; el AP PLC C24 no lo mide (IO0 es el CS del W5500)
   if (raw < 0) fallasHw |= F_I2C; else if (!(fallasHw & F_I2C)) fallasHw &= ~F_I2C;
   fallasHw &= ~(F_SUBTENSION | F_SOBRETENSION);
-  if (vin < VIN_MIN_MV) fallasHw |= F_SUBTENSION; else if (vin > VIN_MAX_MV) fallasHw |= F_SOBRETENSION;
-  uint16_t mascaraEnt = tipoMod == T_IN16 ? 0xFFFF : tipoMod == T_AI8 ? 0 : 0x00FF;
+  if (tipoMod != T_PLC24) { if (vin < VIN_MIN_MV) fallasHw |= F_SUBTENSION; else if (vin > VIN_MAX_MV) fallasHw |= F_SOBRETENSION; }
+  uint16_t mascaraEnt = tipoMod == T_IN16 ? 0xFFFF : tipoMod == T_AI8 ? 0 : tipoMod == T_PLC24 ? 0x0FFF : 0x00FF;
   enlace->ponerLocales(raw < 0 ? 0 : (uint16_t)(~raw & mascaraEnt), fallasHw, vin);
   if (tipoMod == T_AI8) enlace->ponerAnalogicas(anaVal, 8, anaMascara);
 }
@@ -225,25 +274,27 @@ void setup() {
   Wire.begin(P_SDA, P_SCL, 400000);
   // las salidas arrancan apagadas: primero el valor, después la dirección (los pull-down de 10 k ya las mantienen apagadas)
   // el tipo de módulo se reconoce por los chips que contestan: ADS1115 = AI8, expansor 0x24 = IN16, si no AP Rack 16
-  tipoMod = existe(ADS_A) ? T_AI8 : existe(TCA_E1) ? T_IN16 : existe(PCA_AO) ? T_AO4 : existe(PCA_LED) ? T_LED8 : !existe(TCA_S2) ? T_RL4 : T_RACK16;   // RL4: tiene el 0x20 pero no el 0x21
+  tipoMod = existe(ADS_A) ? T_AI8 : (existe(TCA_E1) && existe(TCA_S1)) ? T_PLC24 : existe(TCA_E1) ? T_IN16 : existe(PCA_AO) ? T_AO4 : existe(PCA_LED) ? T_LED8 : !existe(TCA_S2) ? T_RL4 : T_RACK16;   // RL4: tiene el 0x20 pero no el 0x21
   if (tipoMod == T_RL4) { VIN_MIN_MV = 20000; VIN_MAX_MV = 27500; }       // bobinas de 24 V: 21.6 a 26.4 V
-  if (tipoMod == T_RACK16 || tipoMod == T_RL4) {
-    tcaEscribir(TCA_S1, 1, 0); tcaEscribir(TCA_S1, 3, 0x00); if (tipoMod == T_RACK16) { tcaEscribir(TCA_S2, 1, 0); tcaEscribir(TCA_S2, 3, 0x00); }
+  if (tipoMod == T_RACK16 || tipoMod == T_RL4 || tipoMod == T_PLC24) {
+    tcaEscribir(TCA_S1, 1, 0); tcaEscribir(TCA_S1, 3, 0x00); if (tipoMod != T_RL4) { tcaEscribir(TCA_S2, 1, 0); tcaEscribir(TCA_S2, 3, tipoMod == T_PLC24 ? 0xF0 : 0x00); }
     tcaEscribir(TCA_ENT, 3, 0xFF);
   } else if (tipoMod == T_LED8 || tipoMod == T_AO4) { if (tipoMod == T_AO4) { pcaDir = PCA_AO; pcaPre = 3; } pcaIniciar(); aplicarPwm(0, dutyEscrito); tcaEscribir(TCA_ENT, 3, 0xFF);
   } else if (tipoMod == T_IN16) { tcaEscribir(TCA_E1, 3, 0xFF); tcaEscribir(TCA_E2, 3, 0xFF); }
+  if (tipoMod == T_PLC24) tcaEscribir(TCA_ENT2, 3, 0xFF);
   anaMascara = pref.getUChar("am", 0);
   tcaEscribir(TCA_LED, 1, 0); tcaEscribir(TCA_LED, 3, 0x00);
   Serial1.begin(BAUDIOS_LINK, SERIAL_8N1, P_RX, P_TX);
-  aplink::Caps c; c.tipo = tipoMod; c.nSal = tipoMod == T_RACK16 ? 16 : tipoMod == T_LED8 ? 8 : (tipoMod == T_RL4 || tipoMod == T_AO4) ? 4 : 0; c.nEnt = (tipoMod == T_RACK16 || tipoMod == T_LED8 || tipoMod == T_RL4 || tipoMod == T_AO4) ? 8 : tipoMod == T_IN16 ? 16 : 0; c.nAna = tipoMod == T_AI8 ? 8 : 0; c.nPwm = tipoMod == T_LED8 ? 8 : tipoMod == T_AO4 ? 4 : 0;
+  aplink::Caps c; c.tipo = tipoMod; c.nSal = tipoMod == T_RACK16 ? 16 : tipoMod == T_PLC24 ? 12 : tipoMod == T_LED8 ? 8 : (tipoMod == T_RL4 || tipoMod == T_AO4) ? 4 : 0; c.nEnt = tipoMod == T_PLC24 ? 12 : (tipoMod == T_RACK16 || tipoMod == T_LED8 || tipoMod == T_RL4 || tipoMod == T_AO4) ? 8 : tipoMod == T_IN16 ? 16 : 0; c.nAna = tipoMod == T_AI8 ? 8 : 0; c.nPwm = tipoMod == T_LED8 ? 8 : tipoMod == T_AO4 ? 4 : 0;
   enlace = new aplink::Enlace(hal, uidModulo(), c, true);
   enlace->maskSegura(seguraLocal);
   plc.e = enlace;
+  if (tipoMod == T_PLC24) ethIniciar();
   { String prg = pref.getString("plc", ""); if (prg.length() && plc.cargar(prg.c_str()) && pref.getBool("plcrun", false)) plc.modo(true); }
   esp_task_wdt_config_t w = {8000, 0, true};
   if (esp_task_wdt_reconfigure(&w) != ESP_OK) esp_task_wdt_init(&w);
   esp_task_wdt_add(nullptr);
-  Serial.printf("%s · %s · id %s · escuchando la cadena…\n", VERSION, tipoMod == T_AO4 ? "AP Rack AO4" : tipoMod == T_RL4 ? "AP Rack RL4" : tipoMod == T_LED8 ? "AP Rack LED8" : tipoMod == T_AI8 ? "AP Rack AI8" : tipoMod == T_IN16 ? "AP Rack IN16" : "AP Rack 16", mac6().c_str());
+  Serial.printf("%s · %s · id %s · escuchando la cadena…\n", VERSION, tipoMod == T_PLC24 ? "AP PLC C24" : tipoMod == T_AO4 ? "AP Rack AO4" : tipoMod == T_RL4 ? "AP Rack RL4" : tipoMod == T_LED8 ? "AP Rack LED8" : tipoMod == T_AI8 ? "AP Rack AI8" : tipoMod == T_IN16 ? "AP Rack IN16" : "AP Rack 16", mac6().c_str());
 }
 
 void loop() {
@@ -253,8 +304,9 @@ void loop() {
   if (tipoMod == T_AI8) adsPaso(t);
   if (t - tEnt >= 5) { tEnt = t; leerEntradas(); }
   plc.paso(t);
+  if (tipoMod == T_PLC24) modbusPaso(t);
   uint16_t s = enlace->salidas();
-  if ((tipoMod == T_RACK16 || tipoMod == T_RL4) && (s != salidasEscritas || (fallasHw & F_I2C))) aplicarSalidas(s);
+  if ((tipoMod == T_RACK16 || tipoMod == T_RL4 || tipoMod == T_PLC24) && (s != salidasEscritas || (fallasHw & F_I2C))) aplicarSalidas(s);
   if ((tipoMod == T_LED8 || tipoMod == T_AO4) && (!pwmValido || (s & 0xFF) != salidasEscritas || memcmp(dutyEscrito, enlace->dutyLocal(), 8) || (fallasHw & F_I2C))) aplicarPwm(s & 0xFF, enlace->dutyLocal());
   if (t - tLed >= 50) { tLed = t; ponerLeds(t); }
   if (t - tSeg >= 1000) { tSeg += 1000; segundos++; wifiSegunRol(); }

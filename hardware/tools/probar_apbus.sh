@@ -21,6 +21,8 @@ g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_rack prueba_rack.cpp
 /tmp/prueba_rack
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_plc_rack prueba_plc_rack.cpp
 /tmp/prueba_plc_rack
+g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_modbus_tcp prueba_modbus_tcp.cpp
+/tmp/prueba_modbus_tcp
 python3 probar_rack.py
 g++ -std=c++17 -Wall -Wextra -Werror -o /tmp/prueba_packml prueba_packml.cpp
 /tmp/prueba_packml

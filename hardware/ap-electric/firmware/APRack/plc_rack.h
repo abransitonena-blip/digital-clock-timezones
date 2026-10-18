@@ -113,6 +113,8 @@ struct PlcRack : logica::Entorno {
     if (v) q[p - 1] |= (uint16_t)(1u << (l - 1)); else q[p - 1] &= (uint16_t)~(1u << (l - 1));
   }
 
+ bool hayFallaModulos() const { return hayFalla(); }
+
  private:
   bool algunoPerdido() const { if (e->total() < maxVisto) return true; for (uint8_t p = 1; p <= aplink::MAX_MODULOS; p++) if (const aplink::InfoMod* m = e->modulo(p)) if (m->perdido) return true; return false; }
   bool hayFalla() const { for (uint8_t p = 1; p <= aplink::MAX_MODULOS; p++) if (const aplink::InfoMod* m = e->modulo(p)) if (m->perdido || m->fallas) return true; return false; }

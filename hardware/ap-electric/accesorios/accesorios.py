@@ -236,12 +236,12 @@ CAJA_PARED = 2.4
 CAJA_HOLG = 0.8                      # holgura alrededor de la placa por lado [H]
 CAJA_POSTE = 6.0                     # altura de los postes bajo la placa
 CAJA_ALTO_INT = 30.0                 # espacio sobre la placa: bornas KF128 (≈11 mm), relé G2RL (≈16 mm) [H: medir con las piezas]
-def _caja_dims():
-    W, H = 176.0, 100.0
+def _caja_dims(W=176.0):
+    H = 100.0
     return W, H, W + 2 * (CAJA_HOLG + CAJA_PARED), H + 2 * (CAJA_HOLG + CAJA_PARED)
 
-def _tornillos_tapa():
-    W, H, _, _ = _caja_dims()
+def _tornillos_tapa(W=176.0):
+    W, H, _, _ = _caja_dims(W)
     # bosses en el interior de las paredes largas, lejos de las esquinas y de los postes de la placa
     return [(W * f, y) for f in (0.33, 0.67) for y in (-0.3, H + 0.3)]
 
@@ -291,6 +291,47 @@ def union_cajas_rack():
             P = P - cyl(1.7, 6.0, sx * 14.0, sy * 9.0, -1)
     P = P - bb(-5.0, 5.0, -14.0, 14.0, 1.5, 3.1)                      # canal de 1.5 mm de fondo para el cable
     return P
+
+# ---- gabinete del AP PLC C24 (200 x 100 mm): como la caja AP Rack, con ventana de Ethernet en la pared corta derecha
+def caja_plc():
+    """Caja de impresión del AP PLC C24 (200 x 100 mm): placa sobre 4 postes M3, paredes de 2.4 mm, 4 bosses de tapa, ranuras para clips de riel DIN,
+    ventanas de las bornas de salida (pared de y bajo), de las bornas de entrada, AP LINK y USB-C (pared de y alto) y del RJ45 (pared corta derecha).
+    Ventanas aproximadas: comprobar con la placa real."""
+    W, H, OW, OH = _caja_dims(200.0)
+    ext = CAJA_HOLG + CAJA_PARED
+    alto = 3.0 + CAJA_POSTE + 1.6 + CAJA_ALTO_INT
+    cuerpo = rbox(OW, OH, alto, 4.0, W / 2, H / 2, 0)
+    hueco = rbox(OW - 2 * CAJA_PARED, OH - 2 * CAJA_PARED, alto, 2.5, W / 2, H / 2, 3.0)
+    P = cuerpo - hueco
+    for (hx, hy) in [(3.5, 3.5), (196.5, 3.5), (3.5, 96.5), (196.5, 96.5)]:
+        P = P + cyl(3.4, CAJA_POSTE + 0.5, hx, hy, 2.5)
+        P = P - cyl(1.35, 12.0, hx, hy, 1.0)
+    for (bx, by) in _tornillos_tapa(200.0):
+        P = P + cyl(2.9, alto - 3.0 - 3.0, bx, by, 2.5)
+        P = P - cyl(1.3, 12.0, bx, by, alto - 13.0)
+    z0 = 3.0 + CAJA_POSTE + 1.6
+    yb = -ext + CAJA_PARED / 2
+    P = P - bb(28.0, 142.0, yb - CAJA_PARED, yb + CAJA_PARED, z0, z0 + 14.0)           # 6 bloques de salidas
+    yt = H + ext - CAJA_PARED
+    P = P - bb(2.0, 92.0, yt - 1, yt + CAJA_PARED + 2, z0, z0 + 14.0)                 # 5 bloques de entradas y comunes
+    P = P - bb(94.0, 141.0, yt - 1, yt + CAJA_PARED + 2, z0 - 1.0, z0 + 9.0)          # AP LINK y USB-C
+    P = P - bb(W + ext - CAJA_PARED - 1, W + ext + 1, 6.0, 28.0, z0 - 1.0, z0 + 15.0)  # RJ45
+    for y in (H / 2 - 50.0, H / 2 + 50.0):
+        for x in (W / 2 - 25.0, W / 2 + 25.0):
+            P = P - cyl(1.7, 6.0, x, y, -1)
+    return P
+
+def tapa_caja_plc():
+    """Tapa de la caja del AP PLC C24: 4 agujeros avellanados M3, ventana de los LED del panel (RUN, FALLA, COM, NET, U1-U4, energía y enlace) y un agujero para el botón RUN/STOP."""
+    W, H, OW, OH = _caja_dims(200.0)
+    t = 2.4
+    P = rbox(OW, OH, t, 4.0, W / 2, H / 2, 0)
+    for (bx, by) in _tornillos_tapa(200.0):
+        P = P - tornillo_avellanado(1.7, 3.2, t, bx, by)
+    P = P - bb(132.0, 166.0, 42.0, 57.0, -1, t + 1)
+    P = P - cyl(3.2, t + 2, 153.0, 93.0, -1)
+    return P
+
 
 def clip_din_atornillable():
     """Clip de riel DIN TS35 que se atornilla (2 x M3) a una bandeja; se imprime plano con los ganchos hacia arriba."""
@@ -396,6 +437,8 @@ IMPRIMIBLES = [
     ("AP-ACC-027", "caja_rack", "Caja para un módulo AP Rack (176 x 100) con postes M3, bosses de tapa y ventanas de bornas, USB-C y AP LINK", caja_rack, "PETG o ABS", "ventanas aproximadas; comprobar con la placa; no es un gabinete certificado"),
     ("AP-ACC-028", "tapa_caja_rack", "Tapa de la caja AP Rack con 4 tornillos M3 y ventana de los LED del panel", tapa_caja_rack, "PETG o ABS", "se imprime plana"),
     ("AP-ACC-029", "union_cajas_rack", "Puente para unir dos cajas AP Rack con canal para el cable AP LINK", union_cajas_rack, "PETG o ABS", "4 tornillos M3; posiciones por confirmar al montar las cajas"),
+    ("AP-ACC-030", "caja_plc", "Caja para el AP PLC C24 (200 x 100) con postes M3, bosses de tapa y ventanas de bornas, USB-C, AP LINK y RJ45", caja_plc, "PETG o ABS", "ventanas aproximadas; comprobar con la placa; no es un gabinete certificado"),
+    ("AP-ACC-031", "tapa_caja_plc", "Tapa de la caja AP PLC C24 con 4 tornillos M3, ventana de LED y agujero del botón RUN/STOP", tapa_caja_plc, "PETG o ABS", "se imprime plana"),
     ("AP-ACC-020", "riel_demo_60", "Tramo de riel DIN TS35 de 60 mm para pruebas de ajuste", riel_demo, "PLA o PETG", "no soporta carga: solo para probar el ajuste"),
 ]
 REFERENCIAS = [

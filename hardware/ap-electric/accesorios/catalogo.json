@@ -438,6 +438,36 @@
    ],
    "volumen_cm3": 2.81,
    "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-030",
+   "archivo": "stl/caja_plc.stl",
+   "nombre": "caja_plc",
+   "funcion": "Caja para el AP PLC C24 (200 x 100) con postes M3, bosses de tapa y ventanas de bornas, USB-C, AP LINK y RJ45",
+   "material": "PETG o ABS",
+   "nota": "ventanas aproximadas; comprobar con la placa; no es un gabinete certificado",
+   "dimensiones_mm": [
+    206.4,
+    106.4,
+    40.6
+   ],
+   "volumen_cm3": 114.48,
+   "solido_valido": true
+  },
+  {
+   "sku": "AP-ACC-031",
+   "archivo": "stl/tapa_caja_plc.stl",
+   "nombre": "tapa_caja_plc",
+   "funcion": "Tapa de la caja AP PLC C24 con 4 tornillos M3, ventana de LED y agujero del botón RUN/STOP",
+   "material": "PETG o ABS",
+   "nota": "se imprime plana",
+   "dimensiones_mm": [
+    206.4,
+    106.4,
+    2.4
+   ],
+   "volumen_cm3": 51.22,
+   "solido_valido": true
   }
  ],
  "referencias": [
