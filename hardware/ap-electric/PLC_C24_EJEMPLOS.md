@@ -1,6 +1,6 @@
 # AP PLC C24: programas de ejemplo
 
-Seis programas de AP Lógica que **corren en la prueba de la PC** (`firmware/pruebas/prueba_ejemplos_plc.cpp`, 20 comprobaciones) sobre un AP PLC C24 simulado. No se han probado en una placa. Se cargan desde AP Studio (pestaña Lógica) o por la consola con `PLC TXT renglón|renglón|...` y `PLC RUN`. I1-I12 y Q1-Q12 son las del PLC; las de un módulo AP Rack siguen seguidas (I13, Q13...). Referencia del lenguaje: [PLC_RACK.md](PLC_RACK.md) y el encabezado de `firmware/APRack/logica.h`.
+Seis programas de AP Lógica (los ejemplos 2, 5 y 6 también son plantillas de AP Studio, que ya traía el 1, el 3 y el 4) que **corren en la prueba de la PC** (`firmware/pruebas/prueba_ejemplos_plc.cpp`, 20 comprobaciones) sobre un AP PLC C24 simulado. No se han probado en una placa. Se cargan desde AP Studio (pestaña Lógica) o por la consola con `PLC TXT renglón|renglón|...` y `PLC RUN`. I1-I12 y Q1-Q12 son las del PLC; las de un módulo AP Rack siguen seguidas (I13, Q13...). Referencia del lenguaje: [PLC_RACK.md](PLC_RACK.md) y el encabezado de `firmware/APRack/logica.h`.
 
 | # | Qué hace | Programa |
 |---|---|---|

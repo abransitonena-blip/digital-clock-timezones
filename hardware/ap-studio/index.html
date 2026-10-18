@@ -911,6 +911,9 @@ const PLANTILLAS=[
   {n:"Contador de piezas",d:"Cuenta pulsos en I1; al llegar a 10 enciende Q3; I2 lo pone a cero.",il:"// Contador de piezas\nLDP I1\nCTU C1 10\nLD C1\nOUT Q3\nLD I2\nRST C1"},
   {n:"Bomba por nivel (4-20 mA)",d:"Arranca con el nivel A1 abajo de 6 mA y para arriba de 18 mA.",il:"// Bomba por nivel\nLD A1 < 6\nSET Q1\nLD A1 > 18\nRST Q1"},
   {n:"Alternancia de dos bombas",d:"Cada vez que I1 pide agua arranca la otra bomba (Q1 / Q2): se desgastan parejo.",il:"// Al soltar I1 cambia de bomba (M70 se recuerda)\nLDF I1\nOUT M2\nLD M2\nAND M70\nOUT M3\nLD M2\nANDN M70\nSET M70\nLD M3\nRST M70\n// Bomba 1 o bomba 2 mientras I1 pide\nLD I1\nANDN M70\nOUT Q1\nLD I1\nAND M70\nOUT Q2"},
+  {n:"Intermitente de 1 s",d:"Q2 parpadea con el pulso del sistema (S2), por ejemplo una baliza.",il:"// Intermitente\nLD S2\nOUT Q2"},
+  {n:"Aviso de módulo perdido",d:"Q5 enciende si un módulo de la cadena AP LINK deja de contestar.",il:"// Aviso de módulo perdido\nLD S6\nOUT Q5"},
+  {n:"Entre módulos de la cadena",d:"La entrada 13 (la 1 del módulo que sigue) enciende Q1; I1 enciende Q13 (su salida 1).",il:"// Entre módulos: la numeración sigue seguida\nLD I13\nOUT Q1\nLD I1\nOUT Q13"},
   {n:"Destello de alarma",d:"Si hay falla en el equipo, Q4 destella a 1 Hz.",il:"// Destello de alarma\nLD S5\nAND S2\nOUT Q4"},
   {n:"Fachada solo de noche",d:"La luminaria L2 enciende de noche (horario solar) si la luz principal está encendida.",il:"// Fachada de noche\nLD S4\nAND P\nOUT L2"}];
 function hojaPlantillas(){
