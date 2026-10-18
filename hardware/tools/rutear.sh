@@ -10,7 +10,7 @@ FR=${FR:-/tmp/claude-0/fr/freerouting.jar}
 JAVA=${JAVA:-$(ls /usr/lib/jvm/java-1.25*/bin/java 2>/dev/null | head -1)}
 JAVA=${JAVA:-java}
 K="docker exec -w /work/hardware/$DIR kc"
-fr() { (cd "$DIR/kicad" && "$JAVA" -Dgui.enabled=false -jar "$FR" -de "$1" -do "$2" -mp 100 -mt 1 > "/tmp/fr_$2.log" 2>&1); }
+fr() { (cd "$DIR/kicad" && "$JAVA" -Dgui.enabled=false -jar "$FR" -de "$1" -do "$2" -mp ${MP:-100} -mt 1 > "/tmp/fr_$2.log" 2>&1); }
 $K python3 gen/make.py > /dev/null 2>&1
 fr $P.dsn $P.ses
 $K python3 gen/make.py --import 1 2>&1 | grep pasada

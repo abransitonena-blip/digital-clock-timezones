@@ -5,11 +5,11 @@
 //                           leer = lo que se pidió; escribir = mandar. Si el programa del PLC maneja esa salida: excepción 04
 //   Entradas discretas      0..  entrada global 1..                                                          (10001..)
 //   Registros de entrada    0 versión del mapa (1) · 1 módulos · 2 salidas · 3 entradas · 4 PLC en RUN (0/1) · 5 hay falla (0/1)   (30001..)
-//                           6-7 segundos encendido (bajo, alto) · 8 analógicas · 9-10 hora en segundos desde 1970 (bajo, alto; 0 = sin ajustar, por NTP) · 11 hora ajustada (0/1) · 100.. analógica global 1.. (mV o µA, sin signo)
+//                           6-7 segundos encendido (bajo, alto) · 8 analógicas · 9-10 hora en segundos desde 1970 (bajo, alto; 0 = sin ajustar, por NTP) · 11 hora ajustada (0/1) · 12 tensión de alimentación del cabeza en mV (0 = sin medir) · 100.. analógica global 1.. (mV o µA, sin signo)
 //   Registros (4x)          0 modo del PLC: leer 0 = STOP, 1 = RUN; escribir 1 = RUN, 0 = STOP (excepción 04 si no hay programa) (40001)
 //                           1..16 R1..R16: consignas que lee el programa del PLC (enteros de 16 bits con signo)             (40002..40017)
 // El cabeza informa cambios de modo en *modoCambio para que el programa de la placa los guarde. Solo el cabeza contesta; un módulo esclavo, excepción 04.
-// Esto NO es una función de seguridad: Modbus TCP no tiene autenticación ni cifrado; usar en una red de planta aislada o detrás de un cortafuegos.
+// También por RS-485 (Modbus RTU) con modbusRtu(). Esto NO es una función de seguridad: Modbus TCP no tiene autenticación ni cifrado; usar en una red de planta aislada o detrás de un cortafuegos.
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
@@ -57,6 +57,7 @@ inline size_t modbusTcp(aplink::Enlace& e, PlcRack& plc, uint16_t* segura, uint3
       switch (reg) {
         case 0: return mbVersion(); case 1: return e.total(); case 2: return nSal; case 3: return nEnt; case 4: return plc.run ? 1 : 0;
         case 5: return hayFalla(); case 6: return (int32_t)(segundos & 0xFFFF); case 7: return (int32_t)(segundos >> 16); case 8: return nAna; case 9: return (int32_t)(epoch & 0xFFFF); case 10: return (int32_t)(epoch >> 16); case 11: return epoch ? 1 : 0;
+        case 12: { const aplink::InfoMod* h = e.modulo(1); return h ? h->vin_mV : 0; }
       }
       if (reg >= 100 && reg < 100u + nAna) return analogica(reg - 99);
       return -1;
@@ -131,6 +132,29 @@ inline size_t modbusTcp(aplink::Enlace& e, PlcRack& plc, uint16_t* segura, uint3
   if (ex) { m = 0; d[m++] = fn | 0x80; d[m++] = ex; }
   r[4] = (uint8_t)((m + 1) >> 8); r[5] = (uint8_t)(m + 1);
   return 7 + m;
+}
+
+
+inline uint16_t crc16Modbus(const uint8_t* d, size_t n) {
+  uint16_t c = 0xFFFF;
+  for (size_t i = 0; i < n; i++) { c ^= d[i]; for (int k = 0; k < 8; k++) c = (c & 1) ? (c >> 1) ^ 0xA001 : c >> 1; }
+  return c;
+}
+
+// Modbus RTU (RS-485) sobre el mismo mapa: q = trama con dirección y CRC (el programa la separa por el silencio de 3.5 caracteres).
+// Contesta solo si la dirección es la del equipo (`dir`); la difusión (0) ejecuta pero no contesta. Devuelve el largo de la respuesta o 0.
+inline size_t modbusRtu(aplink::Enlace& e, PlcRack& plc, uint16_t* segura, uint32_t segundos, uint8_t dir, const uint8_t* q, size_t n, uint8_t* r, bool* modoCambio, uint32_t epoch = 0) {
+  if (n < 4 || n > 256 || crc16Modbus(q, n - 2) != (uint16_t)(q[n - 2] | q[n - 1] << 8)) return 0;
+  if (q[0] != dir && q[0] != 0) return 0;
+  uint8_t t[300], u[300];
+  size_t pdu = n - 3;                                                    // sin dirección ni CRC
+  t[0] = 0; t[1] = 0; t[2] = 0; t[3] = 0; t[4] = (uint8_t)((pdu + 1) >> 8); t[5] = (uint8_t)(pdu + 1); t[6] = q[0];
+  for (size_t i = 0; i < pdu; i++) t[7 + i] = q[1 + i];
+  size_t k = modbusTcp(e, plc, segura, segundos, t, 7 + pdu, u, modoCambio, epoch);
+  if (!k || q[0] == 0) return 0;
+  r[0] = q[0]; for (size_t i = 0; i < k - 7; i++) r[1 + i] = u[7 + i];
+  size_t m = 1 + (k - 7); uint16_t c = crc16Modbus(r, m); r[m++] = (uint8_t)c; r[m++] = (uint8_t)(c >> 8);
+  return m;
 }
 
 }  // namespace aprack

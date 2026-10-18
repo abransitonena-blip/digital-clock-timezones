@@ -51,6 +51,8 @@ Modbus TCP **no tiene autenticación ni cifrado**: usar en una red de planta ais
 
 Programas de ejemplo (arranque con sello, intermitente, retardos, contador, aviso de módulo perdido): [PLC_C24_EJEMPLOS.md](PLC_C24_EJEMPLOS.md).
 
+**Rev B en curso** (ESP32-S3: mide la tensión, reloj con pila, segundo RS-485 para Modbus RTU): placa colocada y programa compilado, **sin rutear todavía**; ver [plcb/LEEME.md](plcb/LEEME.md).
+
 ## Qué falta antes de ofrecerlo
 
 Fabricar y medir (corriente por salida, tiempos de entrada y salida, caída de tensión, enlace Ethernet a 100 Mbit/s, EMC), confirmar la terminación del Ethernet con la referencia de WIZnet, revisar a mano la orientación de las piezas polarizadas en JLCPCB, probar el AP LINK con un módulo real y completar NTP, reloj con pila y la medición de tensión (rev B con un ESP32-S3). Ver [PLAN_VERIFICACION.md](PLAN_VERIFICACION.md).

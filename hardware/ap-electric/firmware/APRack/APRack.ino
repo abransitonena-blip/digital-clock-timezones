@@ -19,12 +19,22 @@
 #include "bootloader_random.h"
 #include "ap_rack.h"
 #include "modbus_tcp.h"
+#include "rtc_pcf8563.h"
 
 #define VERSION "AP Rack 1.1"
 // Pines (ver rack16/gen/make.py)
+#if CONFIG_IDF_TARGET_ESP32S3                          // AP PLC C24 rev B (plcb/gen/make.py): ESP32-S3-WROOM-1
+#define PLC_REV_B 1
+const uint8_t P_VSENSE = 7, P_ETH_CS = 39, P_ETH_SCK = 42, P_ETH_MISO = 41, P_ETH_MOSI = 40, P_ETH_INT = 38, P_ETH_RST = 2, P_TX = 17, P_SDA = 8, P_RX = 18, P_INT = 10,
+              P_SENSE_I = 11, P_SENSE_O = 12, P_SCL = 9, P_MODO = 0, P_DE = 16, P_MB_RX = 4, P_MB_TX = 5, P_MB_DE = 6;
+#else                                                   // ESP32-C3: AP Rack 16 y compañía y AP PLC C24 rev A
+#define PLC_REV_B 0
+const uint8_t P_ETH_INT = 255, P_ETH_RST = 255;
 const uint8_t P_VSENSE = 0, P_ETH_CS = 0, P_ETH_SCK = 7, P_ETH_MISO = 20, P_ETH_MOSI = 21, P_TX = 1, P_SDA = 2, P_RX = 3, P_INT = 4, P_SENSE_I = 5, P_SENSE_O = 6, P_SCL = 8, P_MODO = 9, P_DE = 10;
+#endif
 const uint8_t TCA_S1 = 0x20, TCA_S2 = 0x21, TCA_ENT = 0x22, TCA_LED = 0x23;      // AP Rack 16
 const uint8_t TCA_E1 = 0x24, TCA_E2 = 0x25;                                      // AP Rack IN16 (entradas 1-8 y 9-16)
+const uint8_t PCF_RTC = 0x51;                                                     // AP PLC C24 rev B: reloj de tiempo real PCF8563
 const uint8_t TCA_ENT2 = 0x24;                                                   // AP PLC C24: entradas 9-12 (P0-P3) y botón RUN/STOP (P4); el IN16 usa 0x24 y 0x25 pero NO tiene 0x20
 const uint8_t ADS_A = 0x48, ADS_B = 0x49;                                        // AP Rack AI8 (canales 1-4 y 5-8)
 const uint8_t PCA_LED = 0x40;                                                    // AP Rack LED8: PCA9685 (salidas 1-8 con brillo; entradas 1-8 en el TCA 0x22)
@@ -43,7 +53,7 @@ WebServer web(80);
 String claveCache;
 uint16_t seguraLocal = 0;
 uint32_t segundos = 0, tSeg = 0, tCom = 0, tLed = 0, tEnt = 0, tSerial = 0, tWifi = 0;
-bool ethArriba = false, botonPrevio = true; uint32_t tBoton = 0;   // Ethernet (W5500) y el botón RUN/STOP del AP PLC C24
+bool ethArriba = false, botonPrevio = true, rtcHay = false; uint32_t tBoton = 0, tRtc = 0, tMbRtu = 0; uint8_t rtuBuf[256]; size_t rtuN = 0; uint8_t mbDir = 1;   // Ethernet (W5500) y el botón RUN/STOP del AP PLC C24
 WiFiServer modbus(502); WiFiClient clienteMb; uint8_t mbBuf[300]; size_t mbN = 0; uint32_t tMb = 0;
 bool wifiActivo = false;
 uint8_t dutyEscrito[8] = {}; bool pwmValido = false;
@@ -226,7 +236,12 @@ void botonRunStop(int b, uint32_t t) {
 void ethIniciar() {
   SPI.begin(P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI, P_ETH_CS);
   // W5500 por SPI sin pin de interrupción (el programa consulta) y con el reset por RC de la placa
-  ethArriba = ETH.begin(ETH_PHY_W5500, 1, P_ETH_CS, -1, -1, SPI2_HOST, P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI);
+  #if PLC_REV_B
+  pinMode(P_ETH_RST, OUTPUT); digitalWrite(P_ETH_RST, LOW); delay(5); digitalWrite(P_ETH_RST, HIGH); delay(60);   // reset del W5500 por el programa
+  ethArriba = ETH.begin(ETH_PHY_W5500, 1, P_ETH_CS, P_ETH_INT, P_ETH_RST, SPI2_HOST, P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI);
+#else
+  ethArriba = ETH.begin(ETH_PHY_W5500, 1, P_ETH_CS, -1, -1, SPI2_HOST, P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI);   // rev A: sin INT y con el reset por RC
+#endif
   if (ethArriba) { modbus.begin(); configTime(0, 0, "pool.ntp.org", "time.google.com"); }     // hora por NTP (UTC) en cuanto haya red
   Serial.printf("Ethernet: %s\n", ethArriba ? "W5500 iniciado (DHCP)" : "W5500 no contesta");
 }
@@ -249,16 +264,48 @@ void modbusPaso(uint32_t t) {
     }
   }
 }
+// Reloj PCF8563 (rev B): al arrancar fija la hora del sistema con la del reloj; cuando llega la hora de NTP la escribe al reloj (cada hora)
+bool rtcLeerRegs(uint8_t* r) {
+  Wire.beginTransmission(PCF_RTC); Wire.write(0x02);
+  if (Wire.endTransmission(false) != 0 || Wire.requestFrom((int)PCF_RTC, 7) != 7) return false;
+  for (int i = 0; i < 7; i++) r[i] = Wire.read();
+  return true;
+}
+void rtcPaso(uint32_t t) {
+#if PLC_REV_B
+  if (!rtcHay || (tRtc && t - tRtc < 3600000UL)) return;
+  time_t ahora = time(nullptr);
+  if (ahora < 1735689600) return;                                      // todavía sin hora de NTP: el reloj ya fijó la del sistema al arrancar, si era de fiar
+  uint8_t b[7];
+  if (!rtc::aRegistros((uint32_t)ahora, b)) return;
+  Wire.beginTransmission(PCF_RTC); Wire.write(0x02); for (int i = 0; i < 7; i++) Wire.write(b[i]);
+  if (Wire.endTransmission() == 0) tRtc = t;
+#endif
+}
+// Modbus RTU por el segundo RS-485 (Serial2): la trama termina con un silencio de 5 ms (más de 3.5 caracteres a 9600 baudios o más)
+void rtuPaso(uint32_t t) {
+#if PLC_REV_B
+  while (Serial2.available() && rtuN < sizeof rtuBuf) { rtuBuf[rtuN++] = (uint8_t)Serial2.read(); tMbRtu = t; }
+  if (rtuN && t - tMbRtu >= 5) {
+    time_t ahora = time(nullptr); uint32_t epoch = ahora > 1735689600 ? (uint32_t)ahora : 0;
+    uint8_t r[300]; bool cambio = false;
+    size_t k = aprack::modbusRtu(*enlace, plc, &seguraLocal, segundos, mbDir, rtuBuf, rtuN, r, &cambio, epoch);
+    if (k) { digitalWrite(P_MB_DE, HIGH); delayMicroseconds(100); Serial2.write(r, k); Serial2.flush(); delayMicroseconds(100); digitalWrite(P_MB_DE, LOW); tMb = t; }
+    if (cambio) pref.putBool("plcrun", plc.run);
+    rtuN = 0;
+  }
+#endif
+}
 void leerEntradas() {
   int raw;
   if (tipoMod == T_IN16) { int a = tcaLeer(TCA_E1), b = tcaLeer(TCA_E2); raw = (a < 0 || b < 0) ? -1 : (a | (b << 8)); }
   else if (tipoMod == T_AI8) raw = 0;
   else if (tipoMod == T_PLC24) { int a = tcaLeer(TCA_ENT), b = tcaLeer(TCA_ENT2); raw = (a < 0 || b < 0) ? -1 : (a | ((b & 0x0F) << 8)); botonRunStop(b < 0 ? 0x10 : b, millis()); }
   else raw = tcaLeer(TCA_ENT);
-  uint16_t vin = tipoMod == T_PLC24 ? 0 : (uint16_t)(analogReadMilliVolts(P_VSENSE) * 11UL);   // divisor 100 k / 10 k; el AP PLC C24 no lo mide (IO0 es el CS del W5500)
+  uint16_t vin = (tipoMod == T_PLC24 && !PLC_REV_B) ? 0 : (uint16_t)(analogReadMilliVolts(P_VSENSE) * 11UL);   // divisor 100 k / 10 k; el AP PLC C24 no lo mide (IO0 es el CS del W5500)
   if (raw < 0) fallasHw |= F_I2C; else if (!(fallasHw & F_I2C)) fallasHw &= ~F_I2C;
   fallasHw &= ~(F_SUBTENSION | F_SOBRETENSION);
-  if (tipoMod != T_PLC24) { if (vin < VIN_MIN_MV) fallasHw |= F_SUBTENSION; else if (vin > VIN_MAX_MV) fallasHw |= F_SOBRETENSION; }
+  if (tipoMod != T_PLC24 || PLC_REV_B) { if (vin < VIN_MIN_MV) fallasHw |= F_SUBTENSION; else if (vin > VIN_MAX_MV) fallasHw |= F_SOBRETENSION; }
   uint16_t mascaraEnt = tipoMod == T_IN16 ? 0xFFFF : tipoMod == T_AI8 ? 0 : tipoMod == T_PLC24 ? 0x0FFF : 0x00FF;
   enlace->ponerLocales(raw < 0 ? 0 : (uint16_t)(~raw & mascaraEnt), fallasHw, vin);
   if (tipoMod == T_AI8) enlace->ponerAnalogicas(anaVal, 8, anaMascara);
@@ -291,6 +338,16 @@ void setup() {
   enlace->maskSegura(seguraLocal);
   plc.e = enlace;
   if (tipoMod == T_PLC24) ethIniciar();
+#if PLC_REV_B
+  if (tipoMod == T_PLC24) {
+    rtcHay = existe(PCF_RTC);
+    uint8_t b[7]; uint32_t e = 0;
+    if (rtcHay && rtcLeerRegs(b) && rtc::deRegistros(b, &e) && e > 1735689600UL) { struct timeval tv = {(time_t)e, 0}; settimeofday(&tv, nullptr); }
+    mbDir = pref.getUChar("mbdir", 1); if (mbDir < 1 || mbDir > 247) mbDir = 1;
+    pinMode(P_MB_DE, OUTPUT); digitalWrite(P_MB_DE, LOW);
+    Serial2.begin(pref.getUInt("mbbaud", 19200), SERIAL_8N1, P_MB_RX, P_MB_TX);
+  }
+#endif
   { String prg = pref.getString("plc", ""); if (prg.length() && plc.cargar(prg.c_str()) && pref.getBool("plcrun", false)) plc.modo(true); }
   esp_task_wdt_config_t w = {8000, 0, true};
   if (esp_task_wdt_reconfigure(&w) != ESP_OK) esp_task_wdt_init(&w);
@@ -305,7 +362,7 @@ void loop() {
   if (tipoMod == T_AI8) adsPaso(t);
   if (t - tEnt >= 5) { tEnt = t; leerEntradas(); }
   plc.paso(t);
-  if (tipoMod == T_PLC24) modbusPaso(t);
+  if (tipoMod == T_PLC24) { modbusPaso(t); rtuPaso(t); rtcPaso(t); }
   uint16_t s = enlace->salidas();
   if ((tipoMod == T_RACK16 || tipoMod == T_RL4 || tipoMod == T_PLC24) && (s != salidasEscritas || (fallasHw & F_I2C))) aplicarSalidas(s);
   if ((tipoMod == T_LED8 || tipoMod == T_AO4) && (!pwmValido || (s & 0xFF) != salidasEscritas || memcmp(dutyEscrito, enlace->dutyLocal(), 8) || (fallasHw & F_I2C))) aplicarPwm(s & 0xFF, enlace->dutyLocal());

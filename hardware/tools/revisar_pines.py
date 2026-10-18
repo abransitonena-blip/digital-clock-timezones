@@ -39,6 +39,8 @@ rk = open(os.path.join(R, "rack16/gen/make.py"), encoding="utf-8").read()
 m = re.search(r'\("U3", "ESP32-C3-WROOM-02".*?\{(".*?)\},\n', rk, re.S)
 rojo = eval("{" + m.group(1) + "}")
 rino = open(os.path.join(R, "firmware/APRack/APRack.ino"), encoding="utf-8").read()
+bloque_s3 = re.search(r"#if CONFIG_IDF_TARGET_ESP32S3(.*?)\n#else", rino, re.S).group(1)       # pines del AP PLC C24 rev B (ESP32-S3)
+rino = rino.replace(bloque_s3, "")                                                           # lo demás de las comprobaciones es del ESP32-C3
 cr = {}
 for mm in re.finditer(r"const uint8_t ([^;]+);", rino):
     for a in re.finditer(r"(P_\w+)\s*=\s*(\d+)", mm.group(1)):
@@ -80,6 +82,26 @@ for ref, cte in (("U6", "TCA_S1"), ("U7", "TCA_S2"), ("U8", "TCA_ENT"), ("U9", "
 # la placa del W5500 debe usar las mismas redes SPI que el ESP32 y el RJ45 los 4 hilos del par
 for red in ("ETH_CS", "ETH_SCK", "ETH_MISO", "ETH_MOSI"):
     if '"%s"' % red not in pk.split('("U16"')[1].split('("Y1"')[0]: errores.append("PLC: el W5500 no usa la red %s" % red)
+# ---- AP PLC C24 rev B: placa plcb/gen/make.py (ESP32-S3-WROOM-1) contra los pines del bloque ESP32-S3 del programa ----
+S3 = {"1": "GND", "2": "3V3", "3": "EN", "4": 4, "5": 5, "6": 6, "7": 7, "8": 15, "9": 16, "10": 17, "11": 18, "12": 8, "13": 19, "14": 20, "15": 3, "16": 46, "17": 9, "18": 10,
+      "19": 11, "20": 12, "21": 13, "22": 14, "23": 21, "24": 47, "25": 48, "26": 45, "27": 0, "28": 35, "29": 36, "30": 37, "31": 38, "32": 39, "33": 40, "34": 41, "35": 42,
+      "36": "RXD0", "37": "TXD0", "38": 2, "39": 1, "40": "GND", "41": "GND"}
+pb = open(os.path.join(R, "plcb/gen/make.py"), encoding="utf-8").read()
+m = re.search(r'\("U3", "ESP32-S3-WROOM-1".*?\{(".*?)\},\n', pb, re.S)
+rb = {red: S3[pin] for pin, red in eval("{" + m.group(1) + "}").items() if red not in ("3V3", "GND", "EN", None)}
+c3 = {a.group(1): int(a.group(2)) for a in re.finditer(r"(P_\w+)\s*=\s*(\d+)", bloque_s3)}
+ESP_B = {"INT": "P_INT", "SENSE_I": "P_SENSE_I", "SENSE_O": "P_SENSE_O", "SCL": "P_SCL", "SDA": "P_SDA", "BOOT": "P_MODO", "RS_DE": "P_DE", "RS_RX": "P_RX", "RS_TX": "P_TX",
+         "VSENSE": "P_VSENSE", "ETH_CS": "P_ETH_CS", "ETH_SCK": "P_ETH_SCK", "ETH_MISO": "P_ETH_MISO", "ETH_MOSI": "P_ETH_MOSI", "ETH_INT": "P_ETH_INT", "ETH_RST": "P_ETH_RST",
+         "MB_RX": "P_MB_RX", "MB_TX": "P_MB_TX", "MB_DE": "P_MB_DE"}
+for red, cte in ESP_B.items():
+    if red not in rb: errores.append("PLC rev B: la red %s no está en el módulo" % red); continue
+    if cte not in c3: errores.append("PLC rev B: el programa no define %s" % cte); continue
+    if rb[red] != c3[cte]: errores.append("PLC rev B %s: la placa usa IO%s y el programa IO%s (%s)" % (red, rb[red], c3[cte], cte))
+for red, g in rb.items():
+    if red not in ESP_B and red not in ("USB_DN", "USB_DP"): errores.append("PLC rev B: red %s (IO%s) sin constante del programa" % (red, g))
+if rb.get("USB_DN") != 19 or rb.get("USB_DP") != 20: errores.append("PLC rev B: el USB debe ir a IO19/IO20")
+bad = [g for g in rb.values() if g in (3, 45, 46) or (isinstance(g, int) and 26 <= g <= 37)]
+if bad: errores.append("PLC rev B: usa pines de arranque o de memoria: %s" % bad)
 # IN16 y AI8: mismo ESP32 que el Rack 16, y las direcciones I2C que usa el programa para reconocer el tipo de módulo
 for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8"), ("led8", "LED8"), ("rl4", "RL4"), ("ao4", "AO4")):
     mk2 = open(os.path.join(R, carpeta, "gen/make.py"), encoding="utf-8").read()
@@ -123,5 +145,5 @@ else:
     if dirx == 0x40: errores.append("AO4: debe distinguirse del LED8 (0x40) por la dirección del PCA9685")
     if any(pines.get(str(6 + k)) != '"PW%d"' % (k + 1) for k in range(4)): errores.append("AO4: LED0-LED3 no van a PW1-PW4")
 for e in errores: print("  ERROR:", e)
-print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, AP PLC C24, IN16, AI8, LED8, RL4 y AO4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
+print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, AP PLC C24 rev A y rev B, IN16, AI8, LED8, RL4 y AO4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
 sys.exit(1 if errores else 0)
