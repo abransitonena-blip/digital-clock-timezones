@@ -227,7 +227,7 @@ void ethIniciar() {
   SPI.begin(P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI, P_ETH_CS);
   // W5500 por SPI sin pin de interrupción (el programa consulta) y con el reset por RC de la placa
   ethArriba = ETH.begin(ETH_PHY_W5500, 1, P_ETH_CS, -1, -1, SPI2_HOST, P_ETH_SCK, P_ETH_MISO, P_ETH_MOSI);
-  if (ethArriba) modbus.begin();
+  if (ethArriba) { modbus.begin(); configTime(0, 0, "pool.ntp.org", "time.google.com"); }     // hora por NTP (UTC) en cuanto haya red
   Serial.printf("Ethernet: %s\n", ethArriba ? "W5500 iniciado (DHCP)" : "W5500 no contesta");
 }
 // Modbus TCP (puerto 502): un cliente a la vez; la trama completa va a aprack::modbusTcp. Sin respuesta = trama mala = se cierra.
@@ -240,7 +240,8 @@ void modbusPaso(uint32_t t) {
     if (largo > sizeof mbBuf) { clienteMb.stop(); mbN = 0; return; }
     if (mbN >= largo) {
       uint8_t r[300]; bool cambio = false;
-      size_t k = aprack::modbusTcp(*enlace, plc, &seguraLocal, segundos, mbBuf, largo, r, &cambio);
+      time_t ahora = time(nullptr); uint32_t epoch = ahora > 1735689600 ? (uint32_t)ahora : 0;      // antes de 2025 = sin ajustar
+      size_t k = aprack::modbusTcp(*enlace, plc, &seguraLocal, segundos, mbBuf, largo, r, &cambio, epoch);
       if (!k) { clienteMb.stop(); mbN = 0; return; }
       clienteMb.write(r, k); tMb = t;
       if (cambio) pref.putBool("plcrun", plc.run);

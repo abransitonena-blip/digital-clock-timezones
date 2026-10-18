@@ -58,6 +58,10 @@ int main() {
     CHECK(n == 7 + 2 + 3 && r[9] == 0x01 && r[10] == 0x00 && r[11] == 0x01, "FC2 20 entradas: %02X %02X %02X", r[9], r[10], r[11]);
     // analógica 1 del AI8
     c.s.n[2]->ana[0] = 6200; c.correr(300);
+    n = c.tcp({0x04, 0x00, 0x09, 0x00, 0x03}, r);
+    CHECK(n == 7 + 2 + 6 && (r[9] << 8 | r[10]) == 0 && (r[13] << 8 | r[14]) == 0, "sin NTP: hora 0 y no ajustada");
+    { uint8_t q[] = {0, 7, 0, 0, 0, 6, 1, 4, 0, 9, 0, 3}; bool cb = false; uint16_t sg = 0; size_t m = aprack::modbusTcp(*c.s.cabeza(), c.plc, &sg, 0, q, sizeof q, r, &cb, 1760000000u);
+      CHECK(m == 15 && ((uint32_t)(r[11] << 8 | r[12]) << 16 | (r[9] << 8 | r[10])) == 1760000000u && (r[13] << 8 | r[14]) == 1, "con NTP: la hora llega partida en dos registros"); }
     n = c.tcp({0x04, 0x00, 0x64, 0x00, 0x01}, r);
     CHECK(n == 11 && (r[9] << 8 | r[10]) == 6200, "FC4 analógica 1 = 6200 mV (%d)", r[9] << 8 | r[10]);
   }

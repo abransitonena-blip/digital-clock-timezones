@@ -88,4 +88,4 @@ Revisión de escritorio del diseño, hecha por el equipo de diseño; **no sustit
 | 5 | Modbus TCP sin autenticación | El protocolo no la trae | Red de planta aislada o cortafuegos; confirmar que el puerto 502 no queda abierto hacia internet |
 | 6 | Botón RUN/STOP | Alterna el modo y el programa lo guarda en la memoria | Probar 1000 pulsaciones y cortes de energía en cada modo; revisar el desgaste de la memoria |
 | 7 | 12 salidas y 12 entradas | Mismo circuito que AP Rack 16 | Repetir los ensayos de corriente, caída y tiempos de la sección 3 con todas las salidas encendidas a la vez (el +V es de 0.8 mm) |
-| 8 | Hora | Sin reloj con pila; NTP no implementado | Implementarlo o no ofrecer registros con hora |
+| 8 | Hora | Sin reloj con pila; la hora viene de NTP (pool.ntp.org) y no se conserva al apagar | Probar con y sin Internet; si la planta no tiene salida, poner un servidor NTP local; no ofrecer registros con hora sin reloj con pila |

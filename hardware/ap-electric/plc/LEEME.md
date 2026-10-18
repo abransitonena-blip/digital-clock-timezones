@@ -33,7 +33,7 @@ Expansores TCA9554: 0x20 salidas 1-8 · 0x21 salidas 9-12 (P4-P7 sin uso con pul
 2. **EXRES1 del W5500** va con 12 kΩ + 390 Ω en serie (12.39 kΩ) porque no se confirmó un código LCSC de 12.4 kΩ en 0603 con existencias. La referencia pide 12.4 kΩ 1 %.
 3. **Terminación del Ethernet** (4 × 49.9 Ω a un nodo con 10 nF a 0 V y tomas centrales a 3.3 V) según la referencia de WIZnet recordada de memoria [CG]: **confirmar con el esquema oficial antes de fabricar**.
 4. **+V en pistas de 0.8 mm** (igual que AP Rack 16): fusible de 3 A; la corriente total y por salida se mide.
-5. Sin reloj con pila; la hora debe venir de NTP (no implementado todavía).
+5. Sin reloj con pila; la hora llega por NTP (registros 9-11 de Modbus). Programado y compilado, sin probar con una red real.
 6. AP LINK sin aislar; Modbus TCP sin autenticación ni cifrado (red de planta aislada).
 7. El RJ45 tiene un modelo 3D propio de cajita (`tools/modelos_propios`): apariencia solamente. Falta revisar a mano la orientación de las piezas polarizadas en JLCPCB.
 8. No es una función de seguridad: no sustituye paro de emergencia, guardas ni relés de seguridad.

@@ -39,7 +39,7 @@ Tamaño 200 × 100 mm, 2 capas, 2 oz, 4 agujeros M3. Caja imprimible `caja_plc` 
 
 1. **Sin medición de la tensión de entrada.** El ESP32-C3-WROOM-02 no tiene pines libres: IO0 pasó a ser el CS del W5500, y el SPI usa IO7, IO20 e IO21. El programa informa 0 V y no avisa de baja o alta tensión.
 2. **El W5500 no usa INT** (el programa consulta) y su reset es un RC (10 kΩ y 100 nF).
-3. **Sin reloj con pila** en esta revisión: la hora debe venir de NTP por Ethernet (aún no implementado en el programa).
+3. **Sin reloj con pila** en esta revisión: la hora llega por NTP (UTC) en cuanto hay Ethernet y se lee en los registros de entrada 9-11 por Modbus. Sin red al encender, la hora queda sin ajustar. Programado y compilado, sin probar con una red real.
 4. El programa detecta la placa por los chips que contestan por I2C: TCA 0x24 **y** 0x20 = AP PLC C24 (el AP Rack IN16 tiene 0x24 pero no 0x20).
 5. UART0 (IO20/IO21) ya no sirve para depurar: se usa el USB-C.
 

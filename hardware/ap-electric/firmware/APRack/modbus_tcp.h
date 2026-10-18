@@ -5,7 +5,7 @@
 //                           leer = lo que se pidió; escribir = mandar. Si el programa del PLC maneja esa salida: excepción 04
 //   Entradas discretas      0..  entrada global 1..                                                          (10001..)
 //   Registros de entrada    0 versión del mapa (1) · 1 módulos · 2 salidas · 3 entradas · 4 PLC en RUN (0/1) · 5 hay falla (0/1)   (30001..)
-//                           6-7 segundos encendido (bajo, alto) · 8 analógicas · 100.. analógica global 1.. (mV o µA, sin signo)
+//                           6-7 segundos encendido (bajo, alto) · 8 analógicas · 9-10 hora en segundos desde 1970 (bajo, alto; 0 = sin ajustar, por NTP) · 11 hora ajustada (0/1) · 100.. analógica global 1.. (mV o µA, sin signo)
 //   Registros (4x)          0 modo del PLC: leer 0 = STOP, 1 = RUN; escribir 1 = RUN, 0 = STOP (excepción 04 si no hay programa) (40001)
 //                           1..16 R1..R16: consignas que lee el programa del PLC (enteros de 16 bits con signo)             (40002..40017)
 // El cabeza informa cambios de modo en *modoCambio para que el programa de la placa los guarde. Solo el cabeza contesta; un módulo esclavo, excepción 04.
@@ -21,7 +21,7 @@ namespace aprack {
 inline uint16_t mbVersion() { return 1; }
 
 // q = trama TCP completa (MBAP de 7 bytes + función + datos); r = respuesta. Devuelve su largo, o 0 si la trama no es Modbus TCP (conviene cerrar la conexión).
-inline size_t modbusTcp(aplink::Enlace& e, PlcRack& plc, uint16_t* segura, uint32_t segundos, const uint8_t* q, size_t n, uint8_t* r, bool* modoCambio) {
+inline size_t modbusTcp(aplink::Enlace& e, PlcRack& plc, uint16_t* segura, uint32_t segundos, const uint8_t* q, size_t n, uint8_t* r, bool* modoCambio, uint32_t epoch = 0) {
   if (n < 8 || q[2] || q[3]) return 0;                                    // el identificador de protocolo es 0
   size_t largo = (size_t)(q[4] << 8 | q[5]);
   if (largo != n - 6 || largo < 2) return 0;
@@ -56,7 +56,7 @@ inline size_t modbusTcp(aplink::Enlace& e, PlcRack& plc, uint16_t* segura, uint3
     if (entrada4x) {
       switch (reg) {
         case 0: return mbVersion(); case 1: return e.total(); case 2: return nSal; case 3: return nEnt; case 4: return plc.run ? 1 : 0;
-        case 5: return hayFalla(); case 6: return (int32_t)(segundos & 0xFFFF); case 7: return (int32_t)(segundos >> 16); case 8: return nAna;
+        case 5: return hayFalla(); case 6: return (int32_t)(segundos & 0xFFFF); case 7: return (int32_t)(segundos >> 16); case 8: return nAna; case 9: return (int32_t)(epoch & 0xFFFF); case 10: return (int32_t)(epoch >> 16); case 11: return epoch ? 1 : 0;
       }
       if (reg >= 100 && reg < 100u + nAna) return analogica(reg - 99);
       return -1;
