@@ -90,7 +90,7 @@ pb = open(os.path.join(R, "plcb/gen/make.py"), encoding="utf-8").read()
 m = re.search(r'\("U3", "ESP32-S3-WROOM-1".*?\{(".*?)\},\n', pb, re.S)
 rb = {red: S3[pin] for pin, red in eval("{" + m.group(1) + "}").items() if red not in ("3V3", "GND", "EN", None)}
 c3 = {a.group(1): int(a.group(2)) for a in re.finditer(r"(P_\w+)\s*=\s*(\d+)", bloque_s3)}
-ESP_B = {"INT": "P_INT", "SENSE_I": "P_SENSE_I", "SENSE_O": "P_SENSE_O", "SCL": "P_SCL", "SDA": "P_SDA", "BOOT": "P_MODO", "RS_DE": "P_DE", "RS_RX": "P_RX", "RS_TX": "P_TX",
+ESP_B = {"SENSE_I": "P_SENSE_I", "SENSE_O": "P_SENSE_O", "SCL": "P_SCL", "SDA": "P_SDA", "BOOT": "P_MODO", "RS_DE": "P_DE", "RS_RX": "P_RX", "RS_TX": "P_TX",
          "VSENSE": "P_VSENSE", "ETH_CS": "P_ETH_CS", "ETH_SCK": "P_ETH_SCK", "ETH_MISO": "P_ETH_MISO", "ETH_MOSI": "P_ETH_MOSI", "ETH_INT": "P_ETH_INT", "ETH_RST": "P_ETH_RST",
          "MB_RX": "P_MB_RX", "MB_TX": "P_MB_TX", "MB_DE": "P_MB_DE"}
 for red, cte in ESP_B.items():

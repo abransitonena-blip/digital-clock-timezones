@@ -84,11 +84,11 @@ C_ = [
     # --- cerebro ---
     ("U3", "ESP32-S3-WROOM-1", "RF_Module:ESP32-S3-WROOM-1", "RF_Module:ESP32-S3-WROOM-1",
      {"1": "GND", "2": "3V3", "3": "EN", "4": "MB_RX", "5": "MB_TX", "6": "MB_DE", "7": "VSENSE", "8": None, "9": "RS_DE", "10": "RS_TX",
-      "11": "RS_RX", "12": "SDA", "13": "USB_DN", "14": "USB_DP", "15": None, "16": None, "17": "SCL", "18": "INT", "19": "SENSE_I",
+      "11": "RS_RX", "12": "SDA", "13": "USB_DN", "14": "USB_DP", "15": None, "16": None, "17": "SCL", "18": None, "19": "SENSE_I",
       "20": "SENSE_O", "21": None, "22": None, "23": None, "24": None, "25": None, "26": None, "27": "BOOT", "28": None, "29": None,
       "30": None, "31": "ETH_INT", "32": "ETH_CS", "33": "ETH_MOSI", "34": "ETH_MISO", "35": "ETH_SCK", "36": None, "37": None,
       "38": "ETH_RST", "39": None, "40": "GND", "41": "GND"},
-     "IO4/IO5/IO6 = RS-485 de Modbus, IO7 = tensión de entrada, IO8/IO9 = I2C, IO10 = interrupción de entradas, IO11/IO12 = SENSE, IO16/IO17/IO18 = AP LINK, IO38-IO42 = W5500, IO2 = reset del W5500, IO0 = MODO"),
+     "IO4/IO5/IO6 = RS-485 de Modbus, IO7 = tensión de entrada, IO8/IO9 = I2C, IO10 sin uso (la interrupción de los expansores no se cablea: el programa consulta cada 5 ms), IO11/IO12 = SENSE, IO16/IO17/IO18 = AP LINK, IO38-IO42 = W5500, IO2 = reset del W5500, IO0 = MODO"),
     ("C10", "10uF", C, C08, {"1": "3V3", "2": "GND"}, "Desacoplo del módulo"),
     ("C11", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo del módulo"),
     ("R1", "10k", R, R06, {"1": "3V3", "2": "EN"}, "Pull-up EN"),
@@ -98,7 +98,6 @@ C_ = [
     ("SW2", "RESET", "Switch:SW_Push", BTN, {"1": "EN", "2": "GND"}, "Reinicio"),
     ("R3", "4.7k", R, R06, {"1": "3V3", "2": "SDA"}, "Pull-up I2C"),
     ("R4", "4.7k", R, R06, {"1": "3V3", "2": "SCL"}, "Pull-up I2C"),
-    ("R5", "10k", R, R06, {"1": "3V3", "2": "INT"}, "Pull-up de la interrupción de entradas"),
     ("R6", "100k", R, R06, {"1": "V24", "2": "VSENSE"}, "Divisor de la tensión de entrada: 30 V -> 2.7 V"),
     ("R7", "10k", R, R06, {"1": "VSENSE", "2": "GND"}, "Divisor de la tensión de entrada"),
     ("C13", "100nF", C, C06, {"1": "VSENSE", "2": "GND"}, "Filtro del ADC"),
@@ -157,13 +156,13 @@ C_ = [
     tca("U7", ("3V3", "GND", "GND"), ["IN%d" % k for k in range(9, 13)] + ["UN"] * 4,
         "0x21: P0-P3 = compuertas de las salidas 9-12; P4-P7 sin uso (con pull-up)"),
     ("C16", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo U7"),
-    tca("U8", ("GND", "3V3", "GND"), ["E%d" % k for k in range(1, 9)], "0x22: P0-P7 = entradas 1-8 (0 = activa)", int_net="INT"),
+    tca("U8", ("GND", "3V3", "GND"), ["E%d" % k for k in range(1, 9)], "0x22: P0-P7 = entradas 1-8 (0 = activa)"),
     ("C17", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo U8"),
     tca("U9", ("3V3", "3V3", "GND"), ["LRUN", "LFAL", "LCOM", "LNET", "LU1", "LU2", "LU3", "LU4"],
         "0x23: P0 RUN, P1 FALLA, P2 COM (AP LINK), P3 NET (Ethernet), P4-P7 = LED de usuario del programa del PLC"),
     ("C18", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo U9"),
     tca("U15", ("GND", "GND", "3V3"), ["E9", "E10", "E11", "E12", "BRS", "UN", "UN", "UN"],
-        "0x24: P0-P3 = entradas 9-12 (0 = activa), P4 = botón RUN/STOP (0 = pulsado), P5-P7 sin uso (con pull-up)", int_net="INT"),
+        "0x24: P0-P3 = entradas 9-12 (0 = activa), P4 = botón RUN/STOP (0 = pulsado), P5-P7 sin uso (con pull-up)"),
     ("C22", "100nF", C, C06, {"1": "3V3", "2": "GND"}, "Desacoplo U15"),
     ("R27", "10k", R, R06, {"1": "3V3", "2": "BRS"}, "Pull-up del botón RUN/STOP"),
     ("R28", "10k", R, R06, {"1": "3V3", "2": "UN"}, "Pull-up de los pines sin uso de los TCA9554"),
@@ -281,7 +280,7 @@ POS = {
     # cerebro
     "U3": (187.0, 68.0, 270), "C10": (171.0, 68.0, 90), "C11": (171.0, 72.0, 90), "R1": (168.0, 76.4, 90), "C12": (171.0, 76.0, 90),
     "R2": (168.0, 81.0, 90), "SW1": (165.5, 66.0, 0), "SW2": (165.5, 72.0, 0),
-    "R3": (140.0, 70.0, 90), "R4": (142.5, 70.0, 90), "R5": (145.0, 70.0, 90),
+    "R3": (140.0, 70.0, 90), "R4": (142.5, 70.0, 90),
     "J2": (132.0, 94.5, 0), "R8": (140.0, 90.0, 90), "R9": (140.0, 86.0, 90), "U4": (147.0, 84.0, 0),
     "SW3": (153.0, 93.0, 0), "C34": (161.5, 93.0, 0), "R27": (160.5, 87.0, 0), "R28": (155.0, 87.0, 0),
     # AP LINK
@@ -293,7 +292,7 @@ POS = {
     # expansores
     "U6": (40.0, 54.0, 0), "C15": (45.0, 54.0, 90), "U7": (90.0, 54.0, 0), "C16": (95.0, 54.0, 90),
     "U8": (24.0, 55.0, 0), "C17": (29.0, 55.0, 90), "U15": (62.0, 54.0, 0), "C22": (67.0, 54.0, 90),
-    "U9": (108.0, 54.0, 0), "C18": (113.0, 54.0, 90),
+    "U9": (128.0, 52.0, 0), "C18": (121.5, 52.0, 90),
     # Ethernet
     "U16": (165.0, 28.0, 180), "Y1": (150.0, 30.0, 0), "C24": (146.5, 34.0, 0), "C25": (153.5, 34.0, 0),
     "R19": (160.0, 38.5, 0), "R30": (160.0, 41.5, 0), "C23": (165.0, 38.5, 0), "C26": (169.5, 38.5, 0),
@@ -328,7 +327,7 @@ for b in range(1, 7):
 for k in range(1, 9):
     POS["RP%d" % k] = (135.0 + 3.6 * (k - 1), 54.0, 90)
     POS["DP%d" % k] = (135.0 + 3.6 * (k - 1), 50.0, 90)
-_tp = [(142.0, 98.0), (147.0, 98.0), (152.0, 98.0), (157.0, 98.0), (162.0, 98.0), (167.0, 98.0), (127.0, 47.5), (131.0, 47.5), (127.0, 44.0), (131.0, 44.0)]
+_tp = [(142.0, 98.0), (147.0, 98.0), (152.0, 98.0), (157.0, 98.0), (162.0, 98.0), (167.0, 98.0), (172.0, 98.0), (177.0, 98.0), (182.0, 98.0), (187.0, 98.0)]
 for i, (ref, red, txt) in enumerate(TPS):
     POS[ref] = (_tp[i][0], _tp[i][1], 0)
 

@@ -25,7 +25,7 @@
 // Pines (ver rack16/gen/make.py)
 #if CONFIG_IDF_TARGET_ESP32S3                          // AP PLC C24 rev B (plcb/gen/make.py): ESP32-S3-WROOM-1
 #define PLC_REV_B 1
-const uint8_t P_VSENSE = 7, P_ETH_CS = 39, P_ETH_SCK = 42, P_ETH_MISO = 41, P_ETH_MOSI = 40, P_ETH_INT = 38, P_ETH_RST = 2, P_TX = 17, P_SDA = 8, P_RX = 18, P_INT = 10,
+const uint8_t P_VSENSE = 7, P_ETH_CS = 39, P_ETH_SCK = 42, P_ETH_MISO = 41, P_ETH_MOSI = 40, P_ETH_INT = 38, P_ETH_RST = 2, P_TX = 17, P_SDA = 8, P_RX = 18,
               P_SENSE_I = 11, P_SENSE_O = 12, P_SCL = 9, P_MODO = 0, P_DE = 16, P_MB_RX = 4, P_MB_TX = 5, P_MB_DE = 6;
 #else                                                   // ESP32-C3: AP Rack 16 y compañía y AP PLC C24 rev A
 #define PLC_REV_B 0
@@ -317,7 +317,9 @@ void setup() {
   seguraLocal = pref.getUShort("seg", 0);
   pinMode(P_DE, OUTPUT); digitalWrite(P_DE, LOW);
   pinMode(P_SENSE_I, INPUT); pinMode(P_SENSE_O, OUTPUT); digitalWrite(P_SENSE_O, LOW);
-  pinMode(P_INT, INPUT_PULLUP);
+#if !PLC_REV_B
+  pinMode(P_INT, INPUT_PULLUP);                           // (la rev B no cablea la interrupción: el programa consulta cada 5 ms)
+#endif
   analogReadResolution(12);
   Wire.begin(P_SDA, P_SCL, 400000);
   // las salidas arrancan apagadas: primero el valor, después la dirección (los pull-down de 10 k ya las mantienen apagadas)
