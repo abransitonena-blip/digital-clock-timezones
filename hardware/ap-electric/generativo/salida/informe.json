@@ -1,0 +1,45 @@
+{
+ "soporte_riel_generativo": {
+  "pieza": "soporte_riel_generativo",
+  "dominio_mm": [
+   60.0,
+   30.0,
+   8.0
+  ],
+  "elementos": [
+   120,
+   60
+  ],
+  "carga_N": 30.0,
+  "E_MPa_supuesto": 1500.0,
+  "fraccion_volumen": 0.38,
+  "flexibilidad_optimizada": 1723.147,
+  "flexibilidad_placa_llena": 1012.002,
+  "flexibilidad_misma_masa_uniforme": 2663.164,
+  "mejora_rigidez_vs_uniforme": 1.55,
+  "desplazamiento_maximo_mm_modelo": 0.005,
+  "iteraciones": 110,
+  "volumen_cm3": 9.84,
+  "solido_valido": true,
+  "dimensiones_mm": [
+   59.9,
+   30.0,
+   33.5
+  ],
+  "volumen_placa_llena_cm3": 14.4
+ },
+ "tapa_ventilada_generativa": {
+  "pieza": "tapa_ventilada_generativa",
+  "ventanas": 38,
+  "area_ventilada_cm2": 44.2,
+  "fuentes_de_calor_modeladas": 22,
+  "semilla": 7,
+  "volumen_cm3": 35.01,
+  "solido_valido": true,
+  "dimensiones_mm": [
+   182.4,
+   106.4,
+   2.4
+  ]
+ }
+}

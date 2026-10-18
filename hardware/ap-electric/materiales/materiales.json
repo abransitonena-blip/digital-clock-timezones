@@ -1,0 +1,79 @@
+[
+ {
+  "parte": "Hilos del cable AP LINK y de 24 V",
+  "material_recomendado": "Cobre electrolítico ETP C11000 estañado, trenzado fino (clase 5)",
+  "alternativas": "Cobre desnudo; CCA (aluminio recubierto de cobre) NO recomendado",
+  "por_que": "Mejor conductividad (100 % IACS) y el estañado evita la corrosión en bornas y soldadura; el trenzado fino aguanta flexión y vibración",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Aislante del cable",
+  "material_recomendado": "PVC 70-80 °C (tableros) o XLPE 90-125 °C (cerca de calor)",
+  "alternativas": "Silicona o TPE para temperatura alta o cables que se mueven",
+  "por_que": "PVC: barato y autoextinguible; XLPE: más temperatura y menos deformación; confirmar la clase de ignifugación de la hoja del fabricante",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Punta del cable de 24 V (puntera)",
+  "material_recomendado": "Tubo de cobre electrolítico estañado, collar de PA o PP",
+  "alternativas": "Latón estañado (más barato, peor conductividad)",
+  "por_que": "Cobre estañado: baja resistencia de contacto y no se oxida; la puntera evita que los hilos se abran bajo el tornillo",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Terminales de crimp del conector XH (contactos a presión)",
+  "material_recomendado": "Bronce fosforado CuSn5 (C51000) estañado",
+  "alternativas": "Latón CuZn30 (menos resorte, más barato); CuBe C17200 (resorte premium, trato especial por el berilio)",
+  "por_que": "Un contacto a presión necesita elasticidad: el bronce fosforado conserva la fuerza de contacto con los ciclos de conexión (conductividad 15-20 % IACS, suficiente para pocos mA del AP LINK)",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Cuerpo plástico del conector XH y del borne",
+  "material_recomendado": "PA66 con fibra de vidrio (V-0, 105-125 °C)",
+  "alternativas": "PBT-GF; PA46 si se suelda con reflujo sin plomo",
+  "por_que": "Resiste la temperatura de soldadura y es autoextinguible (UL 94 V-0); el PA absorbe humedad y cambia medidas: tolerancias abiertas en el prototipo",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Abrazadera del borne de tornillo",
+  "material_recomendado": "Latón CuZn39Pb3 (C38500) estañado o niquelado",
+  "alternativas": "Cobre estañado para más corriente; CuCrZr (C18150) para bornes de 30 A o más",
+  "por_que": "El latón se mecaniza fácil y aguanta el apriete del tornillo; el cobre y el CuCrZr bajan la resistencia y el calentamiento cuando la corriente sube",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Tornillo del borne",
+  "material_recomendado": "Acero zincado pasivado (o acero inoxidable A2)",
+  "alternativas": "Latón niquelado (menos par, más conductividad)",
+  "por_que": "Resistencia mecánica al apriete; la corriente va por la abrazadera, no por el tornillo",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Contactos del relé (los de la placa RL4 y del 7R Tour)",
+  "material_recomendado": "AgSnO2 (plata-óxido de estaño) sobre lámina de bronce o CuSn6",
+  "alternativas": "AgNi 90/10 para cargas resistivas pequeñas; AgCdO ya no se usa (cadmio)",
+  "por_que": "AgSnO2 resiste el desgaste y la soldadura del arco en cargas con motor o lámparas; es el que traen los relés de potencia (confirmar con la hoja del relé elegido)",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Pistas y planos de la placa",
+  "material_recomendado": "Cobre 2 oz (70 µm) con acabado HASL sin plomo o ENIG",
+  "alternativas": "Cobre 3-4 oz para 10 A o más (placa especial)",
+  "por_que": "El diseño actual usa pistas de +V de 0.8 mm con fusible de 3 A: no se ha medido el calentamiento",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Caja y tapa (prototipo impreso)",
+  "material_recomendado": "PETG (interior) o ASA (exterior, resiste la luz del sol)",
+  "alternativas": "PA12 por sinterizado (MJF) para series cortas; PC/ABS inyectado en producción",
+  "por_que": "PETG: fácil de imprimir y tenaz; ASA no amarillea; en producción la caja se inyecta (PC/ABS V-0) y se necesita molde",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ },
+ {
+  "parte": "Soporte de riel generativo",
+  "material_recomendado": "PETG o PA12-CF (fibra de carbono corta) impreso",
+  "alternativas": "Aluminio mecanizado o fundido si la carga lo exige",
+  "por_que": "Forma optimizada por topología; la rigidez real de una pieza impresa depende de la orientación de las capas: hay que probarla",
+  "origen": "[CG] conocimiento general de ingeniería; confirmar con la hoja del fabricante de cada pieza"
+ }
+]

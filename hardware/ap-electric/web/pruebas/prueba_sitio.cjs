@@ -50,11 +50,15 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   ok(await p.$$eval('#hTiles .loseta:disabled', e => e.length) > 0, 'panel: el PLC se queda con sus salidas');
   await p.click('#hRun'); await p.waitForTimeout(300);
   // visor 3D: cinco placas; sin red (prueba en archivo) debe quedarse con el render fijo sin errores
-  ok(await p.$$eval('#mTabs button', e => e.length) === 7, '3D: seis placas y la caja para elegir');
+  ok(await p.$$eval('#mTabs button', e => e.length) === 12, '3D: seis placas, la caja y cinco piezas más para elegir');
   await p.evaluate(() => document.getElementById('modelos').scrollIntoView()); await p.waitForTimeout(1500);
   ok((await p.innerText('#mNota')).includes('render fijo') || await p.evaluate(() => !!window.__visor), '3D: o carga el modelo o muestra el render fijo');
   await p.click('#mTabs button[data-m=rl4]'); await p.waitForTimeout(600);
   ok((await p.innerText('#mTitulo')).includes('AP Rack RL4'), '3D: elegir RL4 cambia el título');
+  // materiales y diseño generativo
+  ok(await p.$$eval('#materiales .tabla-mat tbody tr', e => e.length) === 11, 'materiales: once filas en la tabla');
+  ok((await p.innerText('#materiales .tabla-mat')).includes('AgSnO2') && (await p.innerText('#materiales .tabla-mat')).includes('CuCrZr'), 'materiales: contactos de plata y cobre de alta resistencia en la tabla');
+  ok((await p.innerText('#materiales')).includes('Límites') && (await p.innerText('#materiales')).includes('Nada está impreso'), 'materiales: dice los límites');
   // acabados: siete, cambian la imagen y el nombre
   ok(await p.$$eval('#aTabs button', e => e.length) === 7, 'acabados: siete para elegir');
   await p.click('#aTabs button[data-a=fibra_carbono]'); await p.waitForTimeout(200);

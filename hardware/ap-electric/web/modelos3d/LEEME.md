@@ -10,6 +10,8 @@ Archivos GLB (glTF binario, en metros) de las seis placas de la cadena AP Rack t
 | `AP_LED8.glb` | AP Rack LED8 (8 salidas con brillo) |
 | `AP_RL4.glb` | AP Rack RL4 (4 relés de contacto seco) |
 | `AP_RACKAO4.glb` | AP Rack AO4 (4 salidas 0-10 V) |
+| `AP_CABLE_APLINK.glb`, `AP_CABLE_APLINK_DETALLE.glb`, `AP_CABLE_24V.glb`, `AP_BORNE_KF128.glb`, `AP_CONTACTO_RELE.glb`, `AP_CONEXION_24V.glb` | Cables, borne y contacto con materiales por parte ([materiales](../../materiales/MATERIALES.md)) |
+| `AP_SOPORTE_GENERATIVO.glb`, `AP_TAPA_VENTILADA.glb` | Piezas de [diseño generativo](../../generativo/LEEME.md) |
 | `AP_CAJA_RACK.glb` | Caja, tapa y unión impresas en 3D ([accesorios](../../accesorios/LEEME.md), piezas AP-ACC-027 a 029) |
 
 Se ven con el visor de la web (`../index.html`, sección «Modelos 3D»), con Blender o con cualquier visor de glTF.
