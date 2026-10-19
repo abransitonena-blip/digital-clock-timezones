@@ -102,6 +102,17 @@ for red, g in rb.items():
 if rb.get("USB_DN") != 19 or rb.get("USB_DP") != 20: errores.append("PLC rev B: el USB debe ir a IO19/IO20")
 bad = [g for g in rb.values() if g in (3, 45, 46) or (isinstance(g, int) and 26 <= g <= 37)]
 if bad: errores.append("PLC rev B: usa pines de arranque o de memoria: %s" % bad)
+# ---- AP Home en dos piezas: el cable de baja tensión (JST XH4 1 a 1) y el módulo ESP32 contra la placa AP Home original ----
+hc = open(os.path.join(R, "home_cerebro/gen/make.py"), encoding="utf-8").read()
+hp = open(os.path.join(R, "home_potencia/gen/make.py"), encoding="utf-8").read()
+ho = open(os.path.join(R, "home/gen/make.py"), encoding="utf-8").read()
+def _cab(txt, ref, nom):
+    return eval(re.search(r'\(["\']%s["\'], ["\']%s["\'].*?(\{[^}]*\})' % (ref, nom), txt, re.S).group(1))
+cab_c, cab_p = _cab(hc, "J1", "A POTENCIA"), _cab(hp, "J4", "A CEREBRO")
+if cab_c != cab_p or sorted(cab_c.values()) != sorted(["V5", "GND", "RELE", "SWO"]): errores.append("Home: el cable cerebro-potencia no coincide pata a pata: %s / %s" % (cab_c, cab_p))
+mo = eval("{" + re.search(r'\("U1", "ESP32-C3-WROOM-02".*?\{(".*?)\},\n', ho, re.S).group(1) + "}")
+mc = eval("{" + re.search(r"\('U1', 'ESP32-C3-WROOM-02'.*?\{(.*?)\},\n", hc, re.S).group(1) + "}")
+if mo != mc: errores.append("Home cerebro: las patas del ESP32 no son las de la placa AP Home original (el programa AP Control Home usaría otros pines)")
 # IN16 y AI8: mismo ESP32 que el Rack 16, y las direcciones I2C que usa el programa para reconocer el tipo de módulo
 for carpeta, tipo in (("in16", "IN16"), ("ai8", "AI8"), ("led8", "LED8"), ("rl4", "RL4"), ("ao4", "AO4")):
     mk2 = open(os.path.join(R, carpeta, "gen/make.py"), encoding="utf-8").read()
@@ -145,5 +156,5 @@ else:
     if dirx == 0x40: errores.append("AO4: debe distinguirse del LED8 (0x40) por la dirección del PCA9685")
     if any(pines.get(str(6 + k)) != '"PW%d"' % (k + 1) for k in range(4)): errores.append("AO4: LED0-LED3 no van a PW1-PW4")
 for e in errores: print("  ERROR:", e)
-print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, AP PLC C24 rev A y rev B, IN16, AI8, LED8, RL4 y AO4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
+print("Pines ESP32-C3 y direcciones I2C: placas (7R Tour, AP Rack 16, AP PLC C24 rev A y rev B, AP Home cerebro y potencia, IN16, AI8, LED8, RL4 y AO4) y programas coinciden" if not errores else "Pines: %d errores" % len(errores))
 sys.exit(1 if errores else 0)

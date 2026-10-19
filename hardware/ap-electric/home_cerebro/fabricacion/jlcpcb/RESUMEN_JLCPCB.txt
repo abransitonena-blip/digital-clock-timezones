@@ -1,0 +1,28 @@
+AP_HOME_CEREBRO: 17 tipos de pieza, 23 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       5 tipos Extended  -> ~15 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     3 tipos Extended  -> ~9 USD de cargo;
+   se sueldan a mano 2 piezas de patas: J1, J3
+Piezas Basic/Preferred: ~0.18 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (11):
+  100nF                  C14663         C2,C7
+  10uF 25V               C13585         C3
+  22uF                   C45783         C4,C5
+  10uF                   C15850         C6
+  1uF                    C15849         C8
+  VERDE                  C72043         D2
+  ROJO                   C2286          D3
+  10k                    C25804         R2,R3,R4,R5
+  100k                   C25803         R6
+  1k                     C21190         R7,R8
+  BOTON                  C318884        SW1
+Preferred (1):
+  B5819W                 C64885         D4
+Extended (5):
+  A POTENCIA             C144395        J1  [THT]
+  PROG                   C5116483       J3  [THT]
+  4.7uH                  C167874        L1
+  ESP32-C3-WROOM-02      C2934560       U1
+  AP63203WU              C780769        U2

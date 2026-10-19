@@ -1,0 +1,22 @@
+AP_HOME_POTENCIA: 12 tipos de pieza, 14 piezas por placa.
+Basic y Preferred no pagan montaje por tipo; cada tipo Extended paga ~3 USD por pedido (no por placa).
+
+Pedido completo (BOM/CPL normales):       7 tipos Extended  -> ~21 USD de cargo
+Pedido económico (BOM/CPL _solo_SMD):     2 tipos Extended  -> ~6 USD de cargo;
+   se sueldan a mano 6 piezas de patas: J1,J2, J4, K1, PS1, RV1
+Piezas Basic/Preferred: ~0.15 USD por placa (precio de catálogo, sin las Extended).
+
+Basic (5):
+  22uF 25V               C12891         C1
+  SS14                   C2480          D1
+  AO3400A                C20917         Q1
+  10k                    C25804         R1
+  100k                   C17900         RW1,RW2
+Extended (7):
+  T2A 250VCA             C2838939       F1
+  KF128-5.08-2P          C474952        J1,J2  [THT]
+  A CEREBRO              C144395        J4  [THT]
+  G2RL-1A-E-HA DC5       C1139035       K1  [THT]
+  LTV-814S               C108051        OK1
+  IRM-03-5               C6969425       PS1  [THT]
+  10D471K                C317795        RV1  [THT]

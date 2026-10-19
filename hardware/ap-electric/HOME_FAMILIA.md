@@ -13,6 +13,17 @@
 
 No se ofrece un Home Switch sin neutro ni un atenuador de red: sin evaluación de fugas y parpadeo con lámparas LED no son seguros de prometer.
 
+## Home en dos piezas: cerebro chico + potencia (nuevo)
+
+Para que Home sea **fácil y no se vea monstruoso**, la placa de una pieza se separa en dos, unidas por un cable de baja tensión de 4 hilos (JST XH):
+
+| Pieza | Qué lleva | Tamaño | Estado |
+|---|---|---|---|
+| [AP Home CEREBRO](home_cerebro/LEEME.md) | ESP32-C3 (Wi-Fi/BLE), 3.3 V, botón, LED. **Solo baja tensión**: puede ir fuera de la caja metálica | 42 × 56 mm | ERC 0 · DRC 0 · pedido sin errores |
+| [AP Home POTENCIA](home_potencia/LEEME.md) | Los 127 V: relé, fuente aislada, fusible, varistor, entrada de apagador | 55 × 68 mm | ERC 0 · DRC 0 · pedido sin errores |
+
+La placa de una pieza (55 × 80 mm) se queda como referencia. **Aviso honesto:** la suma de las dos placas es mayor que la original; lo que se gana es que el cerebro (lo que se ve) va aparte y la parte de red baja de 80 a 68 mm. Para una pieza que de verdad quepa en la chalupa hace falta otra fuente y otro relé más chicos (no hecho). Industrial (AP Rack, AP PLC) **no cambia**.
+
 ## Qué se mejoró en el programa
 
 Modo de entrada nuevo **4 = pulsador con gestos** (disponible en la consola y por la orden `E k 4 canal antirrebote doble largo`):
