@@ -67,6 +67,7 @@ const ok = (c, m) => { if (!c) { console.log('  falla: ' + m); fallas++; } };
   await p.click('#aTabs button[data-a=fibra_carbono]'); await p.waitForTimeout(200);
   ok((await p.getAttribute('#aImg', 'src')).includes('acabado_fibra_carbono') && (await p.innerText('#aNombre')).includes('carbono'), 'acabados: elegir carbono cambia la imagen y el nombre');
   ok(await p.$$eval('#acabados .formatos-img figure', e => e.length) === 4, 'acabados: cuatro formatos de imagen');
+  ok(await p.$$eval('#home .producto', e => e.length) === 3, 'home: Plug, Switch y la versión en dos piezas');
   ok(await p.$$eval('#rustico .rustico-gal img', e => e.length) === 6, 'rústico: seis fotos del taller');
   ok(await p.$$eval('#rustico img', es => Promise.all(es.map(i => i.complete ? i.naturalWidth > 0 : new Promise(r => { i.onload = () => r(true); i.onerror = () => r(false); i.loading = 'eager'; })))).then(a => a.every(Boolean)), 'rústico: las fotos cargan');
   await p.click('#mTabs button[data-m=caja]'); await p.waitForTimeout(500);
