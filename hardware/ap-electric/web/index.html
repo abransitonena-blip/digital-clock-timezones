@@ -112,6 +112,9 @@ section.linea { padding-block: 56px 24px; scroll-margin-top: 70px; }
 .producto { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
 .producto figure { margin: 0; background: #f2f3f5; aspect-ratio: 16 / 10; overflow: hidden; }
 .producto figure img { width: 100%; height: 100%; object-fit: contain; }
+.producto .cuerpo figure.ambiente { aspect-ratio: auto; margin: 14px 0 0; border-radius: var(--radius); overflow: hidden; }
+.producto .cuerpo figure.ambiente img { height: auto; display: block; }
+.producto .cuerpo figure.ambiente figcaption { font-size: 12px; color: var(--muted); padding: 6px 2px 0; }
 .producto .cuerpo { padding: 18px; display: grid; gap: 12px; align-content: start; }
 .producto .fila { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 .estado { font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.04em; white-space: nowrap; }
@@ -990,6 +993,7 @@ nav.secciones .mas-p { position: fixed; z-index: 40; top: 84px; left: max(16px, 
               <tr><td>Honesto</td><td>La suma de las dos placas es mayor que la de una sola (55 × 80 mm): lo que se gana es sacar el cerebro de la caja y bajar la parte de red a 68 mm. Para caber en una chalupa faltan una fuente y un relé más chicos (no hay piezas verificadas todavía)</td></tr>
               <tr><td>Estado</td><td>Sin fabricar ni medir · sin certificación · instalación por persona competente</td></tr>
             </table>
+            <figure class="ambiente"><img src="img/casa_ambiente.jpg" alt="Escena ilustrativa: lámpara encendida y una caja AP Home pequeña junto al muro" loading="lazy" width="1600" height="1000"><figcaption>Escena ilustrativa generada en Blender; no es una foto de un equipo fabricado.</figcaption></figure>
           </div>
         </article>
       </div>
