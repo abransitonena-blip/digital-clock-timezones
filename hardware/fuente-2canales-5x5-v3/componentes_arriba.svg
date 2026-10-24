@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50mm" height="50mm" viewBox="0 0 50 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="50" height="50" fill="#fff" stroke="#000" stroke-width="0.3"/>
+<path d="M3.00 4.00 L3.00 12.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.00 4.00 L18.00 12.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.00 12.00 L21.00 12.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M25.60 10.00 L30.00 10.05" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 19.00 L25.90 19.00 L25.90 13.95 L30.00 13.95" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M30.00 6.15 L38.50 6.15 L38.50 3.50" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M38.50 6.15 L38.50 16.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M43.50 3.50 L43.50 16.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M30.00 17.85 L32.75 20.60 L43.50 20.60 L43.50 16.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.40 6.15 L34.40 8.60" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.40 11.90 L34.40 13.60" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.40 16.90 L34.40 20.60" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.00 46.00 L3.00 38.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.00 46.00 L18.00 38.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.00 38.00 L21.00 38.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M25.60 40.00 L30.00 39.95" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 31.00 L25.90 31.00 L25.90 36.05 L30.00 36.05" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M30.00 43.85 L38.50 43.85 L38.50 46.50" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M38.50 43.85 L38.50 34.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M43.50 46.50 L43.50 34.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M30.00 32.15 L32.75 29.40 L43.50 29.40 L43.50 34.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.40 43.85 L34.40 41.40" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.40 38.10 L34.40 36.40" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.40 33.10 L34.40 29.40" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.00 12.00 L3.00 38.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 19.00 L8.00 31.00" fill="none" stroke="#efdcc6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="33.40" y="7.80" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="33.40" y="11.10" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="33.40" y="12.80" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="33.40" y="16.10" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="33.40" y="40.60" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="33.40" y="37.30" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="33.40" y="35.60" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="33.40" y="32.30" width="2.0" height="1.6" rx="0.8" fill="#e6e6e6"/>
+<rect x="1.0" y="21.3" width="9" height="7.4" fill="none" stroke="#000" stroke-width="0.35"/><text x="13.50" y="25.60" font-size="1.4" text-anchor="start" font-weight="700" fill="#000">J0 127V</text>
+<rect x="1.5" y="7.00" width="18" height="10" rx="1" fill="none" stroke="#000" stroke-width="0.35"/><text x="10.50" y="12.60" font-size="1.7" text-anchor="middle" font-weight="700" fill="#000">C1 X2</text>
+<rect x="8" y="2.75" width="5" height="2.5" rx="1" fill="none" stroke="#000" stroke-width="0.35"/><text x="10.50" y="2.20" font-size="1.2" text-anchor="middle" font-weight="400" fill="#000">RD 1M</text>
+<circle cx="21" cy="12" r="1.7" fill="none" stroke="#000" stroke-width="0.35"/><text x="23.30" y="13.60" font-size="1.2" text-anchor="middle" font-weight="700" fill="#000">RS</text>
+<rect x="28" y="4.50" width="4" height="15" rx="0.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M28 4.5 L29.4 5.9" stroke="#000" stroke-width="0.35"/>
+<text x="30.00" y="2.90" font-size="1.3" text-anchor="middle" font-weight="700" fill="#000">BR1</text><text x="30.00" y="6.75" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="30.00" y="18.45" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<circle cx="41" cy="16" r="8.5" fill="none" stroke="#000" stroke-width="0.35"/><path d="M43.5 8.4 A8.5 8.5 0 0 1 43.5 23.6" stroke="#000" stroke-width="2" fill="none" opacity="0.3"/>
+<text x="41.00" y="20.50" font-size="1.7" text-anchor="middle" font-weight="700" fill="#000">CE1</text><text x="36.70" y="16.70" font-size="2.2" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="45.60" y="16.70" font-size="2.2" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<rect x="35.5" y="0.00" width="10" height="7.4" fill="none" stroke="#000" stroke-width="0.35"/><text x="48.60" y="4.00" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">S1</text><text x="38.00" y="6.10" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="43.00" y="6.10" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<rect x="1.5" y="33.00" width="18" height="10" rx="1" fill="none" stroke="#000" stroke-width="0.35"/><text x="10.50" y="38.60" font-size="1.7" text-anchor="middle" font-weight="700" fill="#000">C2 X2</text>
+<rect x="8" y="44.75" width="5" height="2.5" rx="1" fill="none" stroke="#000" stroke-width="0.35"/><text x="10.50" y="48.90" font-size="1.2" text-anchor="middle" font-weight="400" fill="#000">RD 1M</text>
+<circle cx="21" cy="38" r="1.7" fill="none" stroke="#000" stroke-width="0.35"/><text x="23.30" y="37.60" font-size="1.2" text-anchor="middle" font-weight="700" fill="#000">RS</text>
+<rect x="28" y="30.50" width="4" height="15" rx="0.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M28 45.5 L29.4 44.1" stroke="#000" stroke-width="0.35"/>
+<text x="30.00" y="48.10" font-size="1.3" text-anchor="middle" font-weight="700" fill="#000">BR2</text><text x="30.00" y="44.45" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="30.00" y="32.75" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<circle cx="41" cy="34" r="8.5" fill="none" stroke="#000" stroke-width="0.35"/><path d="M43.5 26.4 A8.5 8.5 0 0 1 43.5 41.6" stroke="#000" stroke-width="2" fill="none" opacity="0.3"/>
+<text x="41.00" y="30.50" font-size="1.7" text-anchor="middle" font-weight="700" fill="#000">CE2</text><text x="36.70" y="34.70" font-size="2.2" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="45.60" y="34.70" font-size="2.2" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<rect x="35.5" y="42.60" width="10" height="7.4" fill="none" stroke="#000" stroke-width="0.35"/><text x="48.60" y="47.00" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">S2</text><text x="38.00" y="44.90" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="43.00" y="44.90" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<circle cx="3.0" cy="4" r="0.55" fill="#000"/>
+<circle cx="18" cy="4" r="0.55" fill="#000"/>
+<circle cx="3.0" cy="12" r="0.55" fill="#000"/>
+<circle cx="18" cy="12" r="0.55" fill="#000"/>
+<circle cx="21" cy="12" r="0.55" fill="#000"/>
+<circle cx="25.6" cy="10" r="0.55" fill="#000"/>
+<circle cx="30" cy="6.15" r="0.55" fill="#000"/>
+<circle cx="30" cy="10.05" r="0.55" fill="#000"/>
+<circle cx="30" cy="13.95" r="0.55" fill="#000"/>
+<circle cx="30" cy="17.85" r="0.55" fill="#000"/>
+<circle cx="38.5" cy="3.5" r="0.55" fill="#000"/>
+<circle cx="43.5" cy="3.5" r="0.55" fill="#000"/>
+<circle cx="38.5" cy="16" r="0.55" fill="#000"/>
+<circle cx="43.5" cy="16" r="0.55" fill="#000"/>
+<circle cx="3.0" cy="46" r="0.55" fill="#000"/>
+<circle cx="18" cy="46" r="0.55" fill="#000"/>
+<circle cx="3.0" cy="38" r="0.55" fill="#000"/>
+<circle cx="18" cy="38" r="0.55" fill="#000"/>
+<circle cx="21" cy="38" r="0.55" fill="#000"/>
+<circle cx="25.6" cy="40" r="0.55" fill="#000"/>
+<circle cx="30" cy="43.85" r="0.55" fill="#000"/>
+<circle cx="30" cy="39.95" r="0.55" fill="#000"/>
+<circle cx="30" cy="36.05" r="0.55" fill="#000"/>
+<circle cx="30" cy="32.15" r="0.55" fill="#000"/>
+<circle cx="38.5" cy="46.5" r="0.55" fill="#000"/>
+<circle cx="43.5" cy="46.5" r="0.55" fill="#000"/>
+<circle cx="38.5" cy="34" r="0.55" fill="#000"/>
+<circle cx="43.5" cy="34" r="0.55" fill="#000"/>
+<circle cx="3.0" cy="25" r="0.55" fill="#000"/>
+<circle cx="8.0" cy="25" r="0.55" fill="#000"/>
+</svg>

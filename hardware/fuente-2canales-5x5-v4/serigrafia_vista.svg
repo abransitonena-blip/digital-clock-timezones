@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50mm" height="50mm" viewBox="0 0 50 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="50" height="50" fill="#fff"/>
+<g>
+<rect x="0.6" y="0.6" width="48.8" height="48.8" rx="1.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="8.5" cy="4.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="13.5" cy="4.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="3.0" cy="12" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="18" cy="12" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="21" cy="12" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="25.6" cy="10" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="6.15" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="10.05" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="13.95" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="17.85" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="38.5" cy="3.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="43.5" cy="3.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="38.5" cy="16" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="43.5" cy="16" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="8.5" cy="45.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="13.5" cy="45.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="3.0" cy="38" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="18" cy="38" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="21" cy="38" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="25.6" cy="40" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="43.85" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="39.95" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="36.05" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="30" cy="32.15" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="38.5" cy="46.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="43.5" cy="46.5" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="38.5" cy="34" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="43.5" cy="34" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="3.0" cy="31.2" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="12.2" cy="25" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="3.0" cy="21.3" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="8.0" cy="26.8" r="0.9" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="3.4" cy="3.4" r="1.8" fill="none" stroke="#000" stroke-width="0.35"/>
+<circle cx="3.4" cy="46.6" r="1.8" fill="none" stroke="#000" stroke-width="0.35"/>
+<rect x="1.5" y="7.00" width="18" height="10" rx="1" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="10.50" y="11.80" font-size="1.7" text-anchor="middle" font-weight="700" fill="#000">C1 X2</text><text x="10.50" y="13.90" font-size="1.15" text-anchor="middle" font-weight="400" fill="#000">474J 275VAC</text>
+<circle cx="8.5" cy="4.5" r="1.7" fill="none" stroke="#000" stroke-width="0.35"/><text x="16.00" y="4.95" font-size="1.1" text-anchor="start" font-weight="400" fill="#000">1MΩ</text>
+<circle cx="21" cy="12" r="1.8" fill="none" stroke="#000" stroke-width="0.35"/><text x="21.00" y="15.60" font-size="1.1" text-anchor="middle" font-weight="400" fill="#000">150Ω 1W</text>
+<path d="M28 4.50 h4 v15 h-4 z" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M28 6.10 L29.6 4.50" stroke="#000" stroke-width="0.35"/>
+<text x="25.20" y="6.75" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="25.20" y="18.45" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<circle cx="41" cy="16" r="8.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M44.5 8.25 A8.5 8.5 0 0 1 44.5 23.75" stroke="#000" stroke-width="1.6" fill="none"/>
+<text x="36.40" y="16.80" font-size="2.4" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="41.00" y="21.30" font-size="1.25" text-anchor="middle" font-weight="400" fill="#000">47µF 250V</text>
+<rect x="36" y="0.40" width="10" height="7" rx="0.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="38.50" y="6.40" font-size="1.6" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="43.50" y="6.40" font-size="1.6" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<text x="47.90" y="4.00" font-size="1.5" text-anchor="middle" font-weight="700" fill="#000">S1</text>
+<rect x="1.5" y="33.00" width="18" height="10" rx="1" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="10.50" y="37.80" font-size="1.7" text-anchor="middle" font-weight="700" fill="#000">C2 X2</text><text x="10.50" y="39.90" font-size="1.15" text-anchor="middle" font-weight="400" fill="#000">474J 275VAC</text>
+<circle cx="8.5" cy="45.5" r="1.7" fill="none" stroke="#000" stroke-width="0.35"/><text x="16.00" y="45.95" font-size="1.1" text-anchor="start" font-weight="400" fill="#000">1MΩ</text>
+<circle cx="21" cy="38" r="1.8" fill="none" stroke="#000" stroke-width="0.35"/><text x="21.00" y="35.40" font-size="1.1" text-anchor="middle" font-weight="400" fill="#000">150Ω 1W</text>
+<path d="M28 30.50 h4 v15 h-4 z" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M28 43.90 L29.6 45.50" stroke="#000" stroke-width="0.35"/>
+<text x="25.20" y="44.45" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="25.20" y="32.75" font-size="1.8" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<circle cx="41" cy="34" r="8.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M44.5 26.25 A8.5 8.5 0 0 1 44.5 41.75" stroke="#000" stroke-width="1.6" fill="none"/>
+<text x="36.40" y="34.80" font-size="2.4" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="41.00" y="29.70" font-size="1.25" text-anchor="middle" font-weight="400" fill="#000">47µF 250V</text>
+<rect x="36" y="42.60" width="10" height="7" rx="0.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="38.50" y="44.60" font-size="1.6" text-anchor="middle" font-weight="700" fill="#000">+</text><text x="43.50" y="44.60" font-size="1.6" text-anchor="middle" font-weight="700" fill="#000">−</text>
+<text x="47.90" y="47.00" font-size="1.5" text-anchor="middle" font-weight="700" fill="#000">S2</text>
+<path d="M1.8 19.6 L10.4 27.0 L9.0 28.6 L0.3999999999999999 21.0 Z" fill="none" stroke="#000" stroke-width="0.35"/><text x="5.90" y="24.60" font-size="1.0" text-anchor="middle" font-weight="700" fill="#000" transform="rotate(47.7 5.9 24.6)">RV1</text>
+<text x="3.00" y="28.90" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">L</text><text x="12.20" y="28.90" font-size="1.4" text-anchor="middle" font-weight="700" fill="#000">N</text><text x="5.60" y="32.00" font-size="1.0" text-anchor="start" font-weight="400" fill="#000">127V~</text>
+<text x="21.00" y="20.00" font-size="1.2" text-anchor="middle" font-weight="700" fill="#000">127 V · NO TOCAR</text><text x="21.00" y="31.00" font-size="1.1" text-anchor="middle" font-weight="700" fill="#000">FUENTE LED 2 CANALES</text>
+<path d="M14.4 18.4 l-0.9 1.6 h0.8 l-0.5 1.3 l1.4 -1.9 h-0.8 l0.6 -1.0 z" fill="#000"/>
+<rect x="15" y="21.4" width="11.8" height="7.6" rx="0.8" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="15.70" y="23.40" font-size="1.0" text-anchor="start" font-weight="400" fill="#000">Nombre:</text><path d="M15.7 26.0 H26.2" stroke="#000" stroke-width="0.2"/>
+<text x="15.70" y="28.20" font-size="1.0" text-anchor="start" font-weight="400" fill="#000">Fecha:</text><path d="M19.6 28.3 H26.2" stroke="#000" stroke-width="0.2"/>
+</g></svg>
