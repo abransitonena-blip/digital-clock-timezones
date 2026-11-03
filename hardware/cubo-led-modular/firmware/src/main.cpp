@@ -8,19 +8,19 @@
 #include "nucleo.h"
 
 // ---------------- Pines (ver README: tabla de pines) ----------------
-static const int P_TARJETA = 0;   // ADC: R_ID de la tarjeta (pull-up 10k)
+static const int P_TARJETA = 0;   // ADC: R_ID de la tarjeta (pull-up 47k)
 static const int P_VIN     = 1;   // ADC: Vin / 11 (100k / 10k)
 static const int P_BOTON   = 2;   // botón a GND (pull-up 10k; strap: libre al arrancar)
 static const int P_NTC     = 3;   // ADC: NTC 10k B3950 a GND, 10k a 3.3 V
-static const int P_PWM[4]  = {4, 5, 6, 7};  // R G B W -> compuertas MOSFET
+static const int P_PWM[4]  = {21, 5, 6, 7}; // R G B W -> drivers UCC27524 -> MOSFET
 static const int P_SDA = 8, P_SCL = 9;      // I2C con pull-up 4.7k (mantienen altos los straps)
 static const int P_DATOS   = 10;  // WS2812 vía 74AHCT1G125 (5 V)
 static const int P_LED     = 20;  // LED de estado (luz por el tubo de la tapa)
-static const int P_EN      = 21;  // EN del reductor (10k serie; ALERT del INA226 lo tira a GND)
+static const int P_EN      = 4;   // EN del reductor (4.7k serie, 10k a GND; ALERT del INA226 lo tira a GND)
 
 static const uint8_t INA = 0x40, DAC = 0x60;
 static const float R_SHUNT = 0.005f, I_LSB = 0.0002f;   // 5 mΩ, 0.2 mA/bit
-static const ap::RedFB RED_BASE = {0.8f, 0.f, 1000.f, 20000.f, 3.3f};  // rt viene del perfil
+static const ap::RedFB RED_BASE = {0.8f, 29400.f, 0.f, 47000.f, 3.3f};  // rb viene de la tarjeta
 
 static const char* UUID_SVC = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";  // Nordic UART
 static const char* UUID_RX  = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
@@ -182,7 +182,7 @@ void setup() {
 
   int perfil = ap::decodificarTarjeta(adc_mv(P_TARJETA, 32));
   ap::RedFB red = RED_BASE;
-  if (perfil >= 0) red.rt = ap::PERFILES[perfil].r_fb;
+  if (perfil >= 0) red.rb = ap::PERFILES[perfil].r_b;
   ctl.configurar(perfil, red);
   if (perfil >= 0) ina_configurar(ap::PERFILES[perfil].imax);
   Serial.printf("Tarjeta: %s\n", perfil >= 0 ? ap::PERFILES[perfil].nombre : "NO DETECTADA");

@@ -7,24 +7,26 @@
 namespace ap {
 
 // ---------- Tarjeta de configuración ----------
-// La tarjeta lleva 2 resistencias:
-//   R_FB  -> fija por HARDWARE el voltaje máximo del reductor (techo físico).
-//   R_ID  -> a GND, con pull-up de 10k a 3.3 V en la placa: el ADC lee un código
-//            que le dice al firmware qué perfil es (corriente máxima, nombre).
+// La tarjeta (conector de 3 pines: 1 FB, 2 GND, 3 ID) lleva 2 resistencias:
+//   R_B   (pin 1-2) -> resistencia INFERIOR del divisor de realimentación; la superior (29.4k)
+//            está en la placa. Fija por HARDWARE el voltaje máximo. Sin tarjeta, FB = Vout
+//            y la salida se cae a ~0.8 V (falla segura).
+//   R_ID  (pin 3-2) -> 10k…150k, con pull-up de 47k a 3.3 V: el ADC lee qué perfil es.
+//   Tarjeta al revés: FB ve R_ID (≥10k => Vout ≤ 3.2 V) e ID ve R_B (<6k => inválido). Seguro.
 struct Perfil {
   const char* nombre;
-  uint16_t r_id;      // ohm, valor E24 en la tarjeta
+  uint32_t r_id;      // ohm, valor E12 en la tarjeta
   float vmax;         // V  (debe coincidir con R_FB)
   float imax;         // A  límite continuo
-  float r_fb;         // ohm, resistencia superior de realimentación (Rb = 1k)
+  float r_b;          // ohm, resistencia inferior de realimentación (en la tarjeta)
 };
 extern const Perfil PERFILES[];
 extern const size_t N_PERFILES;
 // Devuelve índice del perfil o -1 si no hay tarjeta / valor fuera de ventana.
-int decodificarTarjeta(float adc_mv, float vcc_mv = 3300.f, float r_pullup = 10000.f);
+int decodificarTarjeta(float adc_mv, float vcc_mv = 3300.f, float r_pullup = 47000.f);
 
 // ---------- Ajuste de voltaje por DAC (solo puede BAJAR del máximo) ----------
-// Red: Vout -- Rt -- FB -- Rb -- GND ;  DAC -- Rinj -- FB.  Vref del reductor = 0.8 V (TPS54560-like / XL4016 1.25 V configurable)
+// Red: Vout -- Rt(29.4k) -- FB -- Rb(tarjeta) -- GND ;  DAC -- BAT54 -- Rinj(47k) -- FB.  Vref TPS54560 = 0.8 V
 struct RedFB { float vref, rt, rb, rinj, vdac_max; };
 float vmaxDeRed(const RedFB& r);                 // voltaje con DAC = Vref (sin inyección)
 float vminDeRed(const RedFB& r);                 // voltaje con DAC al máximo

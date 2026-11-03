@@ -9,8 +9,8 @@ static int fallos = 0, total = 0;
 #define CHECK(c) do { ++total; if (!(c)) { ++fallos; printf("FALLO %s:%d  %s\n", __FILE__, __LINE__, #c); } } while (0)
 static bool cerca(float a, float b, float tol) { return fabsf(a - b) <= tol; }
 
-static float mvDe(float r) { return 3300.f * r / (r + 10000.f); }
-static RedFB redPara(int p) { return {0.8f, PERFILES[p].r_fb, 1000.f, 20000.f, 3.3f}; }
+static float mvDe(float r) { return 3300.f * r / (r + 47000.f); }
+static RedFB redPara(int p) { return {0.8f, 29400.f, PERFILES[p].r_b, 47000.f, 3.3f}; }
 
 int main() {
   // --- Tarjeta: cada perfil se reconoce con resistencias al ±5 % y error ADC ±25 mV ---
@@ -21,6 +21,12 @@ int main() {
   CHECK(decodificarTarjeta(3300.f) == -1);   // sin tarjeta
   CHECK(decodificarTarjeta(10.f) == -1);     // corto
   CHECK(decodificarTarjeta(mvDe(4700)) == -1); // valor no válido entre perfiles
+  for (size_t i = 0; i < N_PERFILES; ++i)        // tarjeta al revés: ID ve R_B -> inválida
+    CHECK(decodificarTarjeta(mvDe(PERFILES[i].r_b)) == -1);
+  for (size_t i = 0; i < N_PERFILES; ++i) {       // ... y FB ve R_ID -> voltaje bajo (seguro)
+    RedFB rev{0.8f, 29400.f, (float)PERFILES[i].r_id, 47000.f, 3.3f};
+    CHECK(vmaxDeRed(rev) < 3.3f);
+  }
 
   // --- Red de realimentación: R_FB da el voltaje del perfil ---
   for (size_t i = 0; i < N_PERFILES; ++i) CHECK(cerca(vmaxDeRed(redPara(i)), PERFILES[i].vmax, 0.06f));

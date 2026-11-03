@@ -75,10 +75,11 @@ booleana(ranura, dentro); booleana(cuerpo, ranura)
 booleana(cuerpo, cilindro("g1", GLAND, 12, (-L/2, 0, 22), (0, math.pi/2, 0)))
 booleana(cuerpo, cilindro("g2", GLAND, 12, (L/2, 0, 22), (0, math.pi/2, 0)))
 booleana(cuerpo, cilindro("v", VENT, 12, (0, L/2, 48), (math.pi/2, 0, 0)))
-for sx in (1, -1):                                   # postes para la placa (M3, 60 × 60)
+Z_PLACA = 36.0                                       # cara inferior de la placa de control (arriba del cartucho)
+for sx in (1, -1):                                   # postes para la placa de control (M3) en (±30.5, ±24)
     for sy in (1, -1):
-        p = cilindro("pp", 7, 6, (sx*30, sy*30, FLOOR + 3)); booleana(cuerpo, p, 'UNION')
-        booleana(cuerpo, cilindro("ph", 2.8, 6, (sx*30, sy*30, FLOOR + 3.6)))
+        p = cilindro("pp", 7, Z_PLACA - FLOOR + 0.5, (sx*30.5, sy*24, FLOOR + (Z_PLACA - FLOOR)/2 - 0.25)); booleana(cuerpo, p, 'UNION')
+        booleana(cuerpo, cilindro("ph", 4.2, 7, (sx*30.5, sy*24, Z_PLACA - 3.4)))
 for sy in (1, -1):                                   # orejas de montaje con ranura
     t = caja_redondeada("oreja", TAB_L, TAB_W + 4, TAB_T, 4)
     t.location = (0, sy*(L/2 + TAB_W/2 - 2), 0); bpy.ops.object.select_all(action='DESELECT'); t.select_set(True)
@@ -99,8 +100,8 @@ for sx in (1, -1):
         p = cilindro("tposte", BOSS_D, HL - 3.0, (c[0], c[1], HB + (HL - 3.0)/2)); booleana(tapa, p, 'UNION')
         booleana(tapa, cilindro("tb", 3.4, HL + 2, (c[0], c[1], HB + HL/2)))
         booleana(tapa, cilindro("tc", 6.5, 3.2, (c[0], c[1], HB + HL - 1.5)))       # cabeza del tornillo
-booleana(tapa, cilindro("guia_luz", 3.2, HL + 2, (0, 22, HB + HL/2)))              # guía de luz del LED de estado
-ventana = caja_redondeada("ventana", 36, 14, 1.2, 3, z0=HB + HL - 1.0); ventana.location = (0, -22, 0)
+booleana(tapa, cilindro("guia_luz", 3.2, HL + 2, (13.6, -17, HB + HL/2)))          # guía de luz sobre LED1 de la placa
+ventana = caja_redondeada("ventana", 30, 10, 1.2, 3, z0=HB + HL - 1.0); ventana.location = (0, -29, 0)
 bpy.ops.object.select_all(action='DESELECT'); ventana.select_set(True); bpy.context.view_layer.objects.active = ventana; bpy.ops.object.transform_apply(location=True)
 booleana(tapa, ventana)                                                              # zona delgada: ventana de antena Bluetooth
 biselar(tapa, 1.2)
@@ -110,9 +111,28 @@ emp_in = caja_redondeada("emp_in", L - WALL - 2.2, L - WALL - 2.2, 3.0, R - WALL
 booleana(emp, emp_in)
 # INTERIOR de referencia (no se imprime): placa de potencia, placa de control y prensaestopas
 fuente = cubo_("Ref_fuente_ACDC", (52, 44, 24), (0, -4, FLOOR + 6 + 12))
-control = cubo_("Ref_placa_control", (60, 60, 1.6), (0, 0, FLOOR + 6 + 30))
-esp = cubo_("Ref_ESP32C3", (18, 25, 3), (0, -14, FLOOR + 6 + 32.3))
-borne = cubo_("Ref_borneras", (10, 30, 10), (28, 0, FLOOR + 6 + 36))
+# placa de control real (68 × 64 mm, contorno y textura de placa-control/)
+sys.path.insert(0, os.path.join(OUT, "placa-control"))
+import diseno as PD, geom as PG
+borde = PG.contorno(16)
+bm = bmesh.new(); pts = list(borde.exterior.coords)[:-1]
+vb = [bm.verts.new((x, y, Z_PLACA)) for x, y in pts]; vt = [bm.verts.new((x, y, Z_PLACA + 1.6)) for x, y in pts]
+bm.faces.new(vb[::-1]); ftop = bm.faces.new(vt)
+for i in range(len(pts)): bm.faces.new((vb[i], vb[(i+1) % len(pts)], vt[(i+1) % len(pts)], vt[i]))
+uv = bm.loops.layers.uv.new()
+for f in bm.faces:
+    for lp in f.loops:
+        x, y, _ = lp.vert.co; lp[uv].uv = ((x + PD.W/2 + 2) / (PD.W + 4), (y + PD.H/2 + 2) / (PD.H + 4))
+me = bpy.data.meshes.new("Ref_placa_control"); bm.to_mesh(me); bm.free()
+placa = bpy.data.objects.new("Ref_placa_control", me); bpy.context.collection.objects.link(placa)
+ZT = Z_PLACA + 1.6
+cubo_("Ref_L1", (12.5, 12.5, 6.5), (11.8, 23.2, ZT + 3.25))
+cubo_("Ref_borne_J1", (8, 10.16, 9), (-29.5, 10.0, ZT + 4.5)); cubo_("Ref_borne_J2", (8, 35.56, 9), (29.5, 0.0, ZT + 4.5))
+cilindro("Ref_C1", 8, 10, (-18.5, 3.0, ZT + 5)); cilindro("Ref_C12", 6.3, 7.7, (12.2, 12.8, ZT + 3.85))
+cubo_("Ref_D2", (5.6, 7.0, 2.3), (1.8, 26.0, ZT + 1.15))
+for sx in (-1, 1): cubo_(f"Ref_tira_{sx}", (2.54, 20.3, 8.5), (sx * 7.62, -21.5, ZT + 4.25))
+cubo_("Ref_ESP32C3", (18, 22.5, 1.0), (0, -22.5, ZT + 9.0)); cubo_("Ref_ESP_chip", (7, 7, 0.9), (0, -18.5, ZT + 9.95))
+cubo_("Ref_tira_J3", (7.62, 2.54, 8.5), (-3.8, 11.5, ZT + 4.25)); cubo_("Ref_tarjeta", (12, 1.6, 14), (-3.8, 11.5, ZT + 8.5 + 7))
 for i, x in enumerate((-L/2 - 6, L/2 + 6)):
     pg = cilindro(f"Prensaestopas_{i+1}", 22, 8, (x, 0, 22), (0, math.pi/2, 0), seg=6)   # tuerca hexagonal
     cb = cilindro(f"Cable_{i+1}", 7, 30, (x + (-16 if x < 0 else 16), 0, 22), (0, math.pi/2, 0))
@@ -120,12 +140,19 @@ vent = cilindro("Membrana_ventila", 16, 3, (0, L/2 + 1.5, 48), (math.pi/2, 0, 0)
 # materiales
 mats = {"Cuerpo": material("ASA_gris", (0.16, 0.17, 0.19), 0.55), "Tapa": material("ASA_tapa", (0.85, 0.86, 0.88), 0.4),
         "Empaque": material("Silicon", (0.9, 0.35, 0.1), 0.6), "Ref_fuente_ACDC": material("Fuente", (0.12, 0.12, 0.12), 0.7),
-        "Ref_placa_control": material("PCB", (0.05, 0.35, 0.15), 0.4), "Ref_ESP32C3": material("Metal", (0.7, 0.7, 0.72), 0.3, 1.0),
-        "Ref_borneras": material("Borne", (0.1, 0.4, 0.85), 0.5)}
+        "Ref_ESP32C3": material("ESP", (0.02, 0.02, 0.04), 0.4), "Ref_ESP_chip": material("Metal", (0.7, 0.7, 0.72), 0.3, 1.0),
+        "Ref_borne_J1": material("Borne", (0.1, 0.55, 0.25), 0.5), "Ref_borne_J2": material("Borne2", (0.1, 0.55, 0.25), 0.5),
+        "Ref_L1": material("Ferrita", (0.08, 0.08, 0.09), 0.6), "Ref_C1": material("Elec", (0.75, 0.75, 0.78), 0.35, 0.8),
+        "Ref_C12": material("Elec2", (0.75, 0.75, 0.78), 0.35, 0.8), "Ref_tarjeta": material("PCB_tarjeta", (0.05, 0.2, 0.55), 0.4)}
+tex = bpy.data.materials.new("PCB_textura"); tex.use_nodes = True; nt = tex.node_tree
+im = nt.nodes.new("ShaderNodeTexImage"); im.image = bpy.data.images.load(os.path.join(OUT, "placa-control", "vista_placa_arriba.png"))
+nt.links.new(im.outputs["Color"], nt.nodes["Principled BSDF"].inputs["Base Color"]); nt.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.45
+mats["Ref_placa_control"] = tex
 neg = material("Negro", (0.03, 0.03, 0.03), 0.6)
 for ob in bpy.data.objects:
     if ob.type == 'MESH':
         ob.data.materials.clear(); ob.data.materials.append(mats.get(ob.name, neg))
+        if ob.name == 'Ref_placa_control': continue
         for f in ob.data.polygons: f.use_smooth = False
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cubo_ap.blend"))
 # STL para imprimir (unidades: mm); se triangula antes para que la malla salga cerrada
