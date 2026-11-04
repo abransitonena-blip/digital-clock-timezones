@@ -17,7 +17,7 @@ Regenerar: `python3 cubo.py && python3 render.py && python3 hacer_documento.py &
   - calcula el voltaje y el DAC;
   - aplica el arranque suave, la limitación suave de corriente, el recorte térmico, las fallas con reintento y los efectos;
   - interpreta el protocolo de texto.
-- `firmware/test/test_nucleo.cpp`: **192 pruebas** que corren en PC. Comando:
+- `firmware/test/test_nucleo.cpp`: **215 pruebas** que corren en PC. Comando:
   `cd firmware/test && g++ -std=c++17 -I../src test_nucleo.cpp ../src/nucleo.cpp -o t && ./t`
 - `firmware/src/main.cpp`: código del ESP32-C3. Usa Arduino-ESP32 3.x, NimBLE-Arduino 2.x y Adafruit NeoPixel. Compila con `pio run`.
   Usa Espalexa para Alexa. Solo se verificó la sintaxis contra cabeceras simuladas (`test/stubs`). `gen_pagina.py` mete `app/index.html` en `src/pagina.h`; PlatformIO lo corre solo al compilar. **Falta compilarlo con el toolchain real y probarlo en placa.**
@@ -75,11 +75,20 @@ Placa de 2 capas, 68 × 64 mm, hecha para fabricarse y ensamblarse (JLCPCB o sim
   - Alexa local con Espalexa.
 
   Home Assistant lo usa con la integración WLED. Solo se implementó un subconjunto (encendido, brillo y color); **falta probarlo con las apps reales**.
+- **DMX por red** (`DMX ARTNET universo dirección`, `DMX SACN universo dirección`, `DMX OFF`). Es el control profesional que usan las consolas, xLights, QLC+, Resolume y MadMapper.
+  - **Tiras analógicas:** 5 canales (atenuador, R, G, B, W).
+  - **Tiras direccionables:** 3 o 4 canales por LED.
+  - Si dejan de llegar paquetes durante 2.5 s, el cubo vuelve a su modo normal. Las protecciones siguen activas.
+  - sACN se recibe por multicast (239.255.x.x) y por unicast.
+  - Los paquetes se probaron armados según la norma y con datos basura; **falta probarlo con una consola real**.
+- **Escenas:** 8 escenas guardadas en memoria (`ESCENA GUARDAR n`, `ESCENA n`). Cada una guarda color, brillo, efecto y temperatura de blanco.
+- **Actualización OTA:** se sube el `.bin` desde la página del cubo, que pide el PIN. Mientras se escribe la memoria, la salida se apaga.
 - **Bluetooth:** las respuestas se mandan en trozos de 180 bytes terminados en salto de línea, así no se cortan con MTU chicos.
 
 ### Protocolo (BLE, Nordic UART, o USB a 115200 baudios)
 - **Luz:** `ON`, `OFF`, `BRILLO 0-100`, `RGBW r g b w`, `V 11.5`, `MODO FIJO|RESPIRA|ARCOIRIS|FUEGO|COMETA`, `RESET`.
 - **Tira:** `TIRA RGBW|RGB|CCT|MONO|WS2812B|SK6812|WS2811|WS2815`, `CCT 2700-6500`, `LEDS n`.
 - **Horario:** `HORA epoch_local`, `PROG 18:30 01:00` (o `PROG OFF`), `ZONA -6`.
+- **Escenas y DMX:** `ESCENA n`, `ESCENA GUARDAR n`, `DMX ARTNET|SACN universo dirección`, `DMX OFF`.
 - **Tarjeta y red:** `LIMITES v i`, `WIFI red clave` (o `WIFI OFF`), `NOMBRE x`, `INTEGRACIONES ON|OFF`.
 - **Consulta:** `RED` y `ESTADO` responden en JSON.

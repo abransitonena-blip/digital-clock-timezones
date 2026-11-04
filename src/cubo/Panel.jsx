@@ -19,6 +19,7 @@ export default function Panel() {
   const [brillo, setBrillo] = useState(60), [volt, setVolt] = useState(12), [cct, setCct] = useState(4000)
   const [color, setColor] = useState('#ffffff'), [w, setW] = useState(0)
   const [hon, setHon] = useState('18:30'), [hoff, setHoff] = useState('01:00')
+  const [esc, setEsc] = useState(1), [dmxp, setDmxp] = useState('ARTNET'), [dmxu, setDmxu] = useState(1), [dmxd, setDmxd] = useState(1)
   const [pv, setPv] = useState(13), [pi, setPi] = useState(2), [ssid, setSsid] = useState(''), [clave, setClave] = useState('')
   const editando = useRef(false)
   useEffect(() => {
@@ -134,6 +135,32 @@ export default function Panel() {
               <span className="mut peq">WLED · Home Assistant · Alexa {red ? (red.integraciones ? '(activas)' : '(apagadas)') : ''}</span>
               <div className="fila" style={{ flexWrap: "nowrap" }}><button className="boton" onClick={() => enviar("INTEGRACIONES OFF")}>Apagar</button><button className="boton" onClick={() => enviar('INTEGRACIONES ON')}>Activar</button></div>
             </div>
+          </div>
+
+          <div className="tarjeta">
+            <h3>Escenas</h3>
+            <div className="chips" style={{ marginTop: 6 }}>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(i => { const ok = (s?.escenas >> (i - 1)) & 1; return <button key={i} className={'chip' + (ok ? ' sel' : '')} disabled={!ok} onClick={() => enviar('ESCENA ' + i)}>Escena {i}</button> })}
+            </div>
+            <div className="entre" style={{ marginTop: 10 }}>
+              <span className="mut peq">Guardar la luz actual en</span>
+              <div className="fila" style={{ flexWrap: 'nowrap' }}><select value={esc} onChange={e => setEsc(e.target.value)} style={{ width: 'auto' }}>{[1, 2, 3, 4, 5, 6, 7, 8].map(i => <option key={i} value={i}>Escena {i}</option>)}</select>
+                <button className="boton" onClick={() => enviar('ESCENA GUARDAR ' + esc)}>Guardar</button></div>
+            </div>
+          </div>
+
+          <div className="tarjeta">
+            <h3>DMX por red</h3>
+            <div className="rejilla" style={{ gridTemplateColumns: '1.3fr 1fr 1fr', gap: 8 }}>
+              <div><label className="campo">Protocolo</label><select value={dmxp} onChange={e => setDmxp(e.target.value)}><option value="ARTNET">Art-Net</option><option value="SACN">sACN (E1.31)</option></select></div>
+              <div><label className="campo">Universo</label><input type="number" min="0" value={dmxu} onChange={e => setDmxu(e.target.value)} /></div>
+              <div><label className="campo">Dirección</label><input type="number" min="1" max="512" value={dmxd} onChange={e => setDmxd(e.target.value)} /></div>
+            </div>
+            <div className="entre" style={{ marginTop: 8 }}>
+              <span className="mut peq">{!s?.dmx || s.dmx === 'off' ? 'Sin DMX' : `${s.dmx === 'artnet' ? 'Art-Net' : 'sACN'} U${s.univ} @${s.dir} · ${s.dmx_vivo ? 'recibiendo' : 'sin señal'}`}</span>
+              <div className="fila" style={{ flexWrap: 'nowrap' }}><button className="boton" onClick={() => enviar('DMX OFF')}>Apagar</button><button className="boton pri" onClick={() => enviar(`DMX ${dmxp} ${dmxu} ${dmxd}`)}>Aplicar</button></div>
+            </div>
+            <p className="mut peq" style={{ marginTop: 6 }}>Analógicas: 5 canales (atenuador, R, G, B, W). Direccionables: 3 o 4 canales por LED. Para consolas, xLights, QLC+, Resolume o MadMapper.</p>
           </div>
 
           {s?.perfil === 'PERSONAL' && <div className="tarjeta">

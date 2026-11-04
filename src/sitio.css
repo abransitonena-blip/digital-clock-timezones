@@ -6,13 +6,13 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-tema="claro"]) {
+  :root:not([data-tema="claro"]):not([data-theme="light"]) {
     --bg: #0c1210; --bg2: #121a17; --card: #141d19; --tx: #e5ede9; --mut: #93a29b; --ln: #24302b;
     --ac: #2fc28f; --ac-tx: #06261a; --ac2: #11312a; --bad: #ff6b5b; --warn: #f0b44c; --ok: #4ad49b;
     --sombra: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); color-scheme: dark;
   }
 }
-:root[data-tema="oscuro"] {
+:root[data-tema="oscuro"], :root[data-theme="dark"]:not([data-tema="claro"]) {
   --bg: #0c1210; --bg2: #121a17; --card: #141d19; --tx: #e5ede9; --mut: #93a29b; --ln: #24302b;
   --ac: #2fc28f; --ac-tx: #06261a; --ac2: #11312a; --bad: #ff6b5b; --warn: #f0b44c; --ok: #4ad49b;
   --sombra: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); color-scheme: dark;

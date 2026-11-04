@@ -3,6 +3,8 @@
 // Conectividad:
 //   · Bluetooth LE (Nordic UART) con PIN de 6 dígitos  -> app web / celular
 //   · Wi-Fi: página de control en http://<nombre>.local, API /api/cmd (pide PIN en cabecera X-PIN)
+//   · DMX por red: Art-Net (UDP 6454) y sACN/E1.31 (UDP 5568, multicast) para consolas, xLights, QLC+, Resolume
+//   · Actualización OTA en /update (pide PIN; apaga la salida mientras escribe)
 //   · Integraciones (se activan con "INTEGRACIONES ON" por Bluetooth): API JSON tipo WLED (/json/state),
 //     anuncio mDNS _wled._tcp y Alexa local (emulación Hue con Espalexa). Home Assistant las usa vía WLED/Hue.
 #include <Arduino.h>
@@ -11,6 +13,8 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#include <Update.h>
 #include <NimBLEDevice.h>
 #include <Adafruit_NeoPixel.h>
 #include <Espalexa.h>
@@ -44,6 +48,8 @@ static Adafruit_NeoPixel tira(60, P_DATOS, NEO_GRB + NEO_KHZ800);
 static NimBLECharacteristic* tx = nullptr;
 static WebServer web(80);
 static Espalexa alexa;
+static WiFiUDP udp_art, udp_sacn;
+static bool reiniciar_udp = true, ota_negada = false, ota_activa = false;
 static volatile bool conectado = false;
 static bool en_previo = false, guardar_pendiente = false, integraciones = false, wifi_ok = false;
 static uint32_t t_cambio = 0, t_notif = 0, t_ntp = 0;
@@ -102,6 +108,8 @@ static void cargar() {
   ctl.fijarModo((ap::Modo)nvs.getUChar("modo", 0));
   ctl.fijarTira((ap::Tira)nvs.getUChar("tira", 0));       // si no corresponde a la tarjeta, se queda en RGBW
   ctl.fijarCCT(nvs.getUShort("cct", 4000));
+  ctl.configurarDmx((ap::ProtoDmx)nvs.getUChar("dmxp", 0), nvs.getUShort("dmxu", 1), nvs.getUShort("dmxd", 1));
+  { ap::Escena e[ap::N_ESCENAS] = {}; if (nvs.getBytes("esc", e, sizeof e) == sizeof e) ctl.cargarEscenas(e); }
   if (nvs.getBool("prog", false)) ctl.programar(true, nvs.getUShort("pon", 0), nvs.getUShort("poff", 0));
   tira.updateLength(nvs.getUShort("leds", 60));
   zona_h = nvs.getChar("zona", -6);
@@ -121,6 +129,8 @@ static void guardar() {
   nvs.putUChar("tira", (uint8_t)ctl.tira()); nvs.putUShort("cct", ctl.cct());
   nvs.putBool("prog", ctl.horarioActivo()); nvs.putUShort("pon", ctl.minEncender()); nvs.putUShort("poff", ctl.minApagar());
   nvs.putUShort("leds", tira.numPixels());
+  nvs.putUChar("dmxp", (uint8_t)ctl.protoDmx()); nvs.putUShort("dmxu", ctl.universoDmx()); nvs.putUShort("dmxd", ctl.direccionDmx());
+  nvs.putBytes("esc", ctl.escenas(), sizeof(ap::Escena) * ap::N_ESCENAS);
   if (ctl.perfil() == ap::PERFIL_PERSONAL) { nvs.putFloat("vp", ctl.vmaxPerfil()); nvs.putFloat("ip", ctl.limiteCorriente()); }
   nvs.end();
 }
@@ -163,8 +173,10 @@ static void ejecutar(const char* l, char* r, size_t n) {
     return;
   }
   ap::Tira antes = ctl.tira();
+  ap::ProtoDmx p0 = ctl.protoDmx(); uint16_t u0 = ctl.universoDmx();
   ap::procesarComando(ctl, l, med, r, n);
   if (ctl.tira() != antes) tipo_neopixel();
+  if (ctl.protoDmx() != p0 || ctl.universoDmx() != u0) reiniciar_udp = true;
   if (strncasecmp(l, "ESTADO", 6)) marcar();
 }
 
@@ -229,10 +241,25 @@ static void web_iniciar() {
   const char* cabeceras[] = {"X-PIN"};
   web.collectHeaders(cabeceras, 1);
   web.on("/", HTTP_GET, [] { web.send_P(200, "text/html", PAGINA_HTML); });
-  web.on("/api/estado", HTTP_GET, [] { char b[420]; ctl.estadoJson(b, sizeof b, med); cuerpo_json(b); });
+  web.on("/api/estado", HTTP_GET, [] { char b[640]; ctl.estadoJson(b, sizeof b, med); cuerpo_json(b); });
+  web.on("/update", HTTP_POST, [] {                       // OTA: el archivo .bin de "pio run"
+    if (ota_negada) { web.send(401, "text/plain", "ERR PIN"); return; }
+    bool ok = !Update.hasError();
+    web.send(ok ? 200 : 500, "text/plain", ok ? "OK reiniciando" : "ERR actualizacion");
+    if (ok) { delay(300); ESP.restart(); }
+    ota_activa = false;
+  }, [] {
+    HTTPUpload& u = web.upload();
+    if (u.status == UPLOAD_FILE_START) {
+      ota_negada = !pin_ok(); if (ota_negada) return;
+      ota_activa = true; ctl.encender(false); digitalWrite(P_EN, LOW);   // sin salida mientras se escribe la flash
+      Update.begin(UPDATE_SIZE_UNKNOWN);
+    } else if (u.status == UPLOAD_FILE_WRITE && !ota_negada) Update.write(u.buf, u.currentSize);
+    else if (u.status == UPLOAD_FILE_END && !ota_negada) Update.end(true);
+  });
   web.on("/api/cmd", HTTP_POST, [] {
     if (!pin_ok()) { web.send(401, "text/plain", "ERR PIN"); return; }
-    char r[420]; String c = web.arg("plain"); c.trim();
+    char r[640]; String c = web.arg("plain"); c.trim();
     ejecutar(c.c_str(), r, sizeof r); web.send(200, r[0] == '{' ? "application/json" : "text/plain", r);
   });
   if (integraciones) {
@@ -273,12 +300,31 @@ static void wifi_atender(uint32_t t) {
     if (!web_listo) { web_iniciar(); web_listo = true; }
     Serial.printf("Wi-Fi %s  http://%s.local\n", WiFi.localIP().toString().c_str(), host);
   }
+  if (!ahora && wifi_ok) reiniciar_udp = true;
   if (!ahora) wifi_ok = false;
   if (wifi_ok && (t_ntp == 0 || t - t_ntp > 3600000UL)) {   // hora local para el horario, cada hora
     time_t u = time(nullptr);
     if (u > 1700000000) { ctl.fijarHora((uint32_t)(u + zona_h * 3600L), t); t_ntp = t; }
   }
   if (wifi_ok) { web.handleClient(); if (integraciones) alexa.loop(); }
+  if (wifi_ok && reiniciar_udp) {                          // DMX por red
+    udp_art.stop(); udp_sacn.stop();
+    if (ctl.protoDmx() == ap::ProtoDmx::ARTNET) udp_art.begin(6454);
+    if (ctl.protoDmx() == ap::ProtoDmx::SACN) {
+      uint16_t u = ctl.universoDmx();
+      udp_sacn.beginMulticast(IPAddress(239, 255, u >> 8, u & 0xFF), 5568);   // también recibe unicast
+    }
+    reiniciar_udp = false;
+  }
+  if (wifi_ok && ctl.protoDmx() != ap::ProtoDmx::OFF) {
+    static uint8_t pq[640];
+    WiFiUDP& udp = ctl.protoDmx() == ap::ProtoDmx::ARTNET ? udp_art : udp_sacn;
+    for (int k = 0; k < 4; ++k) {                          // hasta 4 paquetes por vuelta
+      int len = udp.parsePacket(); if (len <= 0) break;
+      int leidos = udp.read(pq, sizeof pq);
+      if (leidos > 0) ctl.paqueteRed(pq, (size_t)leidos, t);
+    }
+  }
 }
 
 // ---------------- LED de estado y botón ----------------
@@ -335,7 +381,7 @@ void setup() {
 void loop() {
   static uint32_t t_paso = 0, t_tira = 0;
   uint32_t t = millis();
-  char r[420];
+  char r[640];
   if (hay_linea) { ejecutar(linea_pendiente, r, sizeof r); notificar(r); Serial.println(r); hay_linea = false; }
   while (Serial.available()) {                          // mismo protocolo por USB
     static char b[96]; static size_t n = 0;
@@ -347,6 +393,7 @@ void loop() {
   led_estado(t);
   wifi_atender(t);
 
+  if (ota_activa) return;                              // actualizando: salida apagada
   if (t - t_paso >= 10) {                               // ciclo de control 100 Hz
     t_paso = t;
     medir();

@@ -124,6 +124,23 @@ footer{color:var(--mut);font-size:12px;text-align:center;margin:16px 0}
     <div class="lim">Al guardar se envía también la hora de este teléfono. Con Wi-Fi el cubo la toma de internet.</div>
   </section>
 
+  <section class="card">
+    <h2>Escenas</h2>
+    <div class="chips" id="escenas"></div>
+    <div class="row" style="margin-top:10px"><span class="sub">Toca para aplicar; guarda la luz actual en:</span>
+      <div class="row"><select id="escSel"></select><button id="escGuardar">Guardar</button></div></div>
+  </section>
+
+  <section class="card">
+    <h2>DMX por red</h2>
+    <div class="grid2">
+      <div><label>Protocolo</label><select id="dmxp" style="width:100%"><option value="OFF">Apagado</option><option value="ARTNET">Art-Net</option><option value="SACN">sACN (E1.31)</option></select></div>
+      <div class="grid2"><div><label>Universo</label><input id="dmxu" type="number" min="0" value="1" style="width:100%"></div><div><label>Dirección</label><input id="dmxd" type="number" min="1" max="512" value="1" style="width:100%"></div></div>
+    </div>
+    <div class="row" style="margin-top:8px"><span class="sub" id="dmxtxt">—</span><button id="dmxok">Aplicar</button></div>
+    <div class="lim">Tiras analógicas: 5 canales (atenuador, R, G, B, W). Direccionables: 3 o 4 canales por LED. Requiere Wi-Fi.</div>
+  </section>
+
   <section class="card" id="cardPersonal">
     <h2>Tarjeta personalizada</h2>
     <div class="grid2">
@@ -146,6 +163,10 @@ footer{color:var(--mut);font-size:12px;text-align:center;margin:16px 0}
       <div class="row"><button id="intoff">Desactivar</button><button id="inton">Activar</button></div>
     </div>
     <div class="row" style="margin-top:10px"><span class="sub">Reconocer falla</span><button id="reset">Reiniciar falla</button></div>
+    <div id="ota" class="hide" style="margin-top:10px">
+      <div class="row"><input id="bin" type="file" accept=".bin" style="width:60%"><button id="otaok">Actualizar firmware</button></div>
+      <div class="lim" id="otatxt">Archivo .bin de PlatformIO. La salida se apaga mientras se actualiza.</div>
+    </div>
   </section>
 
   <footer>Bluetooth seguro con PIN de 6 dígitos (en la etiqueta). Por Wi-Fi abre http://cuboap-xxxx.local en la misma red.</footer>
@@ -211,6 +232,8 @@ function pintar(s){
   if(s.cct&&document.activeElement!==$('cct')){$('cct').value=s.cct;$('cctv').textContent=s.cct+' K'}
   $('progtxt').textContent=s.prog?`Enciende ${hhmm(s.on_min)} · apaga ${hhmm(s.off_min)}`+(s.hora<0?' (falta la hora)':''):'Sin horario';
   $('cardPersonal').classList.toggle('hide',s.perfil!=='PERSONAL');
+  if('escenas' in s)document.querySelectorAll('#escenas button').forEach((b,i)=>{const ok=s.escenas>>i&1;b.disabled=!ok;b.classList.toggle('sel',!!ok)});
+  if(s.dmx){if(document.activeElement!==$('dmxp'))$('dmxp').value=s.dmx.toUpperCase();$('dmxtxt').textContent=s.dmx==='off'?'Sin DMX':`${s.dmx==='artnet'?'Art-Net':'sACN'} U${s.univ} @${s.dir} · `+(s.dmx_vivo?'recibiendo':'sin señal')}
   if(s.falla!=='ninguna')msg(FALLAS[s.falla]||s.falla,true);else msg(s.on?`Encendido · entrada ${s.vin.toFixed(1)} V`:'Apagado');
 }
 function recibir(t){
@@ -241,16 +264,26 @@ $('lim').onclick=()=>enviar(`LIMITES ${$('pv').value} ${$('pi').value}`);
 $('wifi').onclick=()=>{const s=$('ssid').value.trim(),c=$('clave').value;if(!s||/\s/.test(s)){msg('Escribe la red sin espacios',true);return}enviar(`WIFI ${s} ${c}`)};
 $('inton').onclick=()=>enviar('INTEGRACIONES ON');$('intoff').onclick=()=>enviar('INTEGRACIONES OFF');
 $('reset').onclick=()=>enviar('RESET');
+for(let i=1;i<=8;i++){const b=document.createElement('button');b.textContent=i;b.disabled=true;b.onclick=()=>enviar('ESCENA '+i);$('escenas').appendChild(b);$('escSel').add(new Option('Escena '+i,i))}
+$('escGuardar').onclick=()=>enviar('ESCENA GUARDAR '+$('escSel').value);
+$('dmxok').onclick=()=>{const p=$('dmxp').value;enviar(p==='OFF'?'DMX OFF':`DMX ${p} ${$('dmxu').value} ${$('dmxd').value}`)};
+if(location.protocol==='http:'&&location.hostname){$('ota').classList.remove('hide');$('otaok').onclick=async()=>{
+  const f=$('bin').files[0];if(!f){msg('Elige el archivo .bin',true);return}
+  if(!confirm('¿Actualizar el firmware? La salida se apagará unos segundos.'))return;
+  const d=new FormData();d.append('firmware',f,f.name);$('otatxt').textContent='Subiendo…';
+  try{const r=await fetch('/update',{method:'POST',headers:{'X-PIN':localStorage.getItem('cuboPin')||''},body:d});$('otatxt').textContent=await r.text()}catch(e){$('otatxt').textContent='Error: '+e.message}}}
 
 // ---------- demo: simula un cubo 12 V 5 A ----------
 $('demo').onclick=()=>{
-  const s={on:1,perfil:'12V 5A',vmax:12,vmin:10.62,imax:5,vset:12,v:12,i:0,w:0,vin:24.1,t:38,brillo:60,rgbw:[255,255,255,0],modo:'fijo',falla:'ninguna',tira:'RGBW',cct:4000,prog:false,on_min:0,off_min:0,hora:-1};
+  const s={on:1,perfil:'12V 5A',vmax:12,vmin:10.62,imax:5,vset:12,v:12,i:0,w:0,vin:24.1,t:38,brillo:60,rgbw:[255,255,255,0],modo:'fijo',falla:'ninguna',tira:'RGBW',cct:4000,prog:false,on_min:0,off_min:0,hora:-1,dmx:'off',univ:1,dir:1,dmx_vivo:false,escenas:0};const esc={};
   demo={cmd(c){const [k,...a]=c.trim().split(/\s+/);const K=k.toUpperCase();
     if(K==='ON')s.on=1;else if(K==='OFF')s.on=0;else if(K==='BRILLO')s.brillo=+a[0];else if(K==='V')s.vset=Math.max(s.vmin,Math.min(s.vmax,+a[0]));
     else if(K==='RGBW')s.rgbw=a.map(Number);else if(K==='MODO')s.modo=a[0].toLowerCase();else if(K==='RESET')s.falla='ninguna';
     else if(K==='TIRA'){if(['WS2812B','SK6812'].includes(a[0]))return 'ERR '+a[0]+' necesita tarjeta de 5 V';s.tira=a[0]}
     else if(K==='CCT')s.cct=+a[0];else if(K==='PROG'){if(a[0]==='OFF')s.prog=false;else{const f=x=>{const[h,m]=x.split(':');return h*60+ +m};s.prog=true;s.on_min=f(a[0]);s.off_min=f(a[1])}}
-    else if(K==='HORA')s.hora=Math.floor(+a[0]/60)%1440;else if(K==='RED')return JSON.stringify({wifi:false,ip:'',nombre:'CuboAP-DEMO',integraciones:false});
+    else if(K==='HORA')s.hora=Math.floor(+a[0]/60)%1440;
+    else if(K==='ESCENA'){if(a[0]==='GUARDAR'){esc[a[1]]={rgbw:[...s.rgbw],brillo:s.brillo,modo:s.modo};s.escenas|=1<<(a[1]-1)}else if(esc[a[0]])Object.assign(s,esc[a[0]]);else return 'ERR escena vacía'}
+    else if(K==='DMX'){if(a[0]==='OFF')s.dmx='off';else{s.dmx=a[0].toLowerCase();s.univ=+a[1];s.dir=+a[2]}}else if(K==='RED')return JSON.stringify({wifi:false,ip:'',nombre:'CuboAP-DEMO',integraciones:false});
     tick();return 'OK'}};
   function tick(){const c=s.rgbw.reduce((x,y)=>x+y,0)/(3*255);s.v=s.on?s.vset-0.02:0;s.i=s.on?+(4.2*s.brillo/100*Math.min(1,c||1)*(s.vset/12)**2).toFixed(2):0;s.w=+(s.v*s.i).toFixed(1);s.t=+(30+s.w*0.35).toFixed(1);pintar({...s})}
   enlace=null;$('dev').textContent='CuboAP-DEMO (simulado)';tick();clearInterval(window._d);window._d=setInterval(tick,1000);red({wifi:false});

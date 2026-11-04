@@ -10,7 +10,8 @@ export const FALLAS = {
 export const DIRECCIONABLES = ['WS2812B', 'SK6812', 'WS2811', 'WS2815']
 
 function simulador() {
-  const s = { on: 1, perfil: '12V 5A', vmax: 12, vmin: 10.62, imax: 5, vset: 12, v: 12, i: 0, w: 0, vin: 24.1, t: 38, brillo: 60, rgbw: [255, 180, 90, 0], modo: 'fijo', falla: 'ninguna', tira: 'RGBW', cct: 4000, prog: false, on_min: 0, off_min: 0, hora: -1 }
+  const s = { on: 1, perfil: '12V 5A', vmax: 12, vmin: 10.62, imax: 5, vset: 12, v: 12, i: 0, w: 0, vin: 24.1, t: 38, brillo: 60, rgbw: [255, 180, 90, 0], modo: 'fijo', falla: 'ninguna', tira: 'RGBW', cct: 4000, prog: false, on_min: 0, off_min: 0, hora: -1, dmx: 'off', univ: 1, dir: 1, dmx_vivo: false, escenas: 0 }
+  const esc = {}
   const paso = () => {
     const c = s.tira === 'CCT' || s.tira === 'MONO' ? 1 : Math.min(1, s.rgbw.reduce((x, y) => x + y, 0) / (3 * 255) || 1)
     s.v = s.on ? +(s.vset - 0.02).toFixed(2) : 0
@@ -31,6 +32,8 @@ function simulador() {
     else if (K === 'HORA') s.hora = 0
     else if (K === 'PROG') { if (a[0] === 'OFF') s.prog = false; else { const f = x => { const [h, m] = x.split(':'); return h * 60 + +m }; s.prog = true; s.on_min = f(a[0]); s.off_min = f(a[1]) } }
     else if (K === 'RESET') s.falla = 'ninguna'
+    else if (K === 'ESCENA') { if (a[0] === 'GUARDAR') { esc[a[1]] = { rgbw: [...s.rgbw], brillo: s.brillo, modo: s.modo, cct: s.cct }; s.escenas |= 1 << (a[1] - 1) } else if (esc[a[0]]) Object.assign(s, esc[a[0]]); else return 'ERR escena vacía' }
+    else if (K === 'DMX') { if (a[0] === 'OFF') s.dmx = 'off'; else { s.dmx = a[0].toLowerCase(); s.univ = +a[1]; s.dir = +a[2] } }
     else if (K === 'RED') return JSON.stringify({ wifi: false, ip: '', nombre: 'CuboAP-DEMO', integraciones: false, zona: -6 })
     else if (K === 'ESTADO') return JSON.stringify(paso())
     return 'OK'

@@ -10,9 +10,9 @@ export default function Inicio() {
         <p className="mut" style={{ fontSize: 18 }}>Cambias una tarjeta de dos resistencias y el mismo cubo impermeable entrega 5, 12, 15 o 24 V hasta 5 A.
           Se controla desde el celular por Bluetooth, por Wi-Fi, con Alexa o Home Assistant, y funciona con las tiras más vendidas: RGB, RGBW, CCT, WS2812B, SK6812, WS2811 y WS2815.</p>
         <div className="fila" style={{ marginTop: 18 }}>
-          <a className="boton pri" href="#/configurador">Armar un pedido</a>
-          <a className="boton" href="#/cubo">Probar el panel</a>
-          <a className="boton" href="#/calculadora">Calcular mi tira</a>
+          <a className="boton pri" href="#configurador">Armar un pedido</a>
+          <a className="boton" href="#cubo">Probar el panel</a>
+          <a className="boton" href="#calculadora">Calcular mi tira</a>
         </div>
       </div>
       <img src={B + 'img/cubo_render_explotado.jpg'} alt="Cubo AP abierto: tapa, empaque y placa de control dentro de la caja" />
@@ -29,17 +29,17 @@ export default function Inicio() {
     </section>
 
     <section className="seccion">
-      <div className="cab"><div><h2>Líneas de producto</h2><p className="mut">Una configuración probada para cada mercado.</p></div><a className="boton" href="#/lineas">Ver todas</a></div>
+      <div className="cab"><div><h2>Líneas de producto</h2><p className="mut">Una configuración probada para cada mercado.</p></div><a className="boton" href="#lineas">Ver todas</a></div>
       <div className="rejilla">
-        {LINEAS.slice(0, 6).map(l => <a key={l.id} href={'#/lineas'} className="tarjeta" style={{ textDecoration: 'none', color: 'inherit' }}>
+        {LINEAS.slice(0, 6).map(l => <a key={l.id} href={'#lineas'} className="tarjeta" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div style={{ fontSize: 24 }}>{l.icono}</div><h3 style={{ marginTop: 6 }}>{l.nombre}</h3><p className="mut peq">{l.resumen}</p></a>)}
       </div>
     </section>
 
     <section className="seccion">
-      <div className="cab"><div><h2>Proyectos abiertos</h2><p className="mut">Esquemas, placas, manuales y archivos de fabricación.</p></div><a className="boton" href="#/proyectos">Ver proyectos</a></div>
+      <div className="cab"><div><h2>Proyectos abiertos</h2><p className="mut">Esquemas, placas, manuales y archivos de fabricación.</p></div><a className="boton" href="#proyectos">Ver proyectos</a></div>
       <div className="rejilla">
-        {PROYECTOS.slice(0, 3).map(p => <a key={p.id} href="#/proyectos" className="tarjeta" style={{ textDecoration: 'none', color: 'inherit' }}>
+        {PROYECTOS.slice(0, 3).map(p => <a key={p.id} href="#proyectos" className="tarjeta" style={{ textDecoration: 'none', color: 'inherit' }}>
           <img className="foto" src={B + p.img} alt={p.nombre} loading="lazy" /><h3 style={{ marginTop: 10 }}>{p.nombre}</h3><p className="mut peq">{p.estado}</p></a>)}
       </div>
     </section>

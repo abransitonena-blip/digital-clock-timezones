@@ -30,7 +30,7 @@ export default function Cubo() {
         <h2>Así se configura</h2>
         <ol className="lista">
           <li><b>Cartucho</b> según la potencia: S 25 W, M 40 W o L 75 W.</li>
-          <li><b>Tarjeta</b> de dos resistencias: R_B fija el voltaje máximo y R_ID dice el perfil. Para cualquier otro voltaje, la tarjeta PERSONAL (R_ID 220k) con R_B calculada en el <a href="#/configurador">configurador</a>.</li>
+          <li><b>Tarjeta</b> de dos resistencias: R_B fija el voltaje máximo y R_ID dice el perfil. Para cualquier otro voltaje, la tarjeta PERSONAL (R_ID 220k) con R_B calculada en el <a href="#configurador">configurador</a>.</li>
           <li><b>Tipo de tira y efectos</b> desde la app; el cubo rechaza conectar una tira de 5 V con tarjeta de 12 V.</li>
           <li><b>Wi-Fi opcional</b>: página propia en <code>cuboap-xxxx.local</code>, horario por internet y, si los activas, WLED y Alexa.</li>
         </ol>

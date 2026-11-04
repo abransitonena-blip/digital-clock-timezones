@@ -12,6 +12,18 @@ static bool cerca(float a, float b, float tol) { return fabsf(a - b) <= tol; }
 static float mvDe(float r) { return 3300.f * r / (r + 47000.f); }
 static RedFB redPara(int p) { return {0.8f, 29400.f, PERFILES[p].r_b, 47000.f, 3.3f}; }
 
+
+static size_t artnet(uint8_t* b, uint16_t univ, const uint8_t* d, uint16_t n) {
+  memcpy(b, "Art-Net\0", 8); b[8] = 0x00; b[9] = 0x50; b[10] = 0; b[11] = 14; b[12] = 1; b[13] = 0;
+  b[14] = univ & 0xFF; b[15] = (univ >> 8) & 0x7F; b[16] = n >> 8; b[17] = n & 0xFF; memcpy(b + 18, d, n); return 18 + n;
+}
+static size_t sacn(uint8_t* b, uint16_t univ, const uint8_t* d, uint16_t n) {
+  memset(b, 0, 126 + n);
+  b[1] = 0x10; memcpy(b + 4, "ASC-E1.17\0\0\0", 12); b[21] = 0x04; b[43] = 0x02; b[108] = 100;
+  b[113] = univ >> 8; b[114] = univ & 0xFF; b[117] = 0x02; b[118] = 0xA1; b[122] = 1;
+  b[123] = (n + 1) >> 8; b[124] = (n + 1) & 0xFF; b[125] = 0; memcpy(b + 126, d, n); return 126 + n;
+}
+
 int main() {
   // --- Tarjeta: cada perfil se reconoce con resistencias al ±5 % y error ADC ±25 mV ---
   for (size_t i = 0; i < N_PERFILES; ++i)
@@ -211,6 +223,50 @@ int main() {
   procesarComando(p, "LIMITES 12 1", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));   // tarjeta normal: no
   procesarComando(p, "MODO fuego", ok, rr, sizeof rr); CHECK(p.modo() == Modo::FUEGO);
   procesarComando(p, "CCT 9000", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+
+  // ================= DMX por red y escenas =================
+  uint8_t pk[700], dm[512] = {};
+  uint16_t uu, nn; const uint8_t* dd;
+  dm[0] = 200; dm[1] = 10; dm[2] = 20; dm[3] = 30; dm[4] = 40;
+  size_t L1 = artnet(pk, 3, dm, 512);
+  CHECK(leerArtNet(pk, L1, uu, dd, nn) && uu == 3 && nn == 512 && dd[0] == 200);
+  CHECK(!leerArtNet(pk, 17, uu, dd, nn) && !leerArtNet(pk, L1 - 1, uu, dd, nn));      // truncado
+  pk[0] = 'X'; CHECK(!leerArtNet(pk, L1, uu, dd, nn));
+  size_t L2 = sacn(pk, 7, dm, 512);
+  CHECK(leerE131(pk, L2, uu, dd, nn) && uu == 7 && nn == 512 && dd[4] == 40);
+  CHECK(!leerE131(pk, 125, uu, dd, nn) && !leerE131(pk, L2 - 10, uu, dd, nn));
+  pk[112] = 0x40; CHECK(!leerE131(pk, L2, uu, dd, nn));                               // fin de stream
+  for (size_t k = 0; k < 2000; ++k) { uint8_t basura[64]; for (auto& x : basura) x = (uint8_t)(k * 31 + (&x - basura) * 7); leerArtNet(basura, sizeof basura, uu, dd, nn); leerE131(basura, sizeof basura, uu, dd, nn); }
+
+  Controlador dx; dx.configurar(3, redPara(3)); dx.fijarTira(Tira::RGBW);
+  CHECK(!dx.configurarDmx(ProtoDmx::SACN, 0, 1) && !dx.configurarDmx(ProtoDmx::ARTNET, 1, 600));
+  CHECK(dx.configurarDmx(ProtoDmx::ARTNET, 3, 1));
+  CHECK(!dx.paqueteRed(pk, artnet(pk, 4, dm, 512), 10));                 // otro universo: se ignora
+  CHECK(dx.paqueteRed(pk, artnet(pk, 3, dm, 512), 10) && dx.encendido() && dx.dmxActivo(10));
+  dx.paso(ok12, 10); s = dx.paso(ok12, 700);
+  CHECK(cerca(s.brillo_efectivo, 200 / 255.f, 0.01f) && s.pwm[0] == (uint16_t)lroundf(gamma12(10) * s.brillo_efectivo) && s.pwm[3] == (uint16_t)lroundf(gamma12(40) * s.brillo_efectivo));
+  CHECK(!dx.dmxActivo(3600));                                            // sin paquetes 2.5 s: vuelve a normal
+  dx.fijarBrillo(1.f); s = dx.paso(ok12, 3600); CHECK(s.brillo_efectivo > 0.99f);
+  // direccionable WS2815: 3 canales por LED desde la dirección 10
+  for (int k = 0; k < 512; ++k) dm[k] = (uint8_t)k;
+  dx.fijarTira(Tira::WS2815); dx.configurarDmx(ProtoDmx::SACN, 1, 10); dx.paqueteRed(pk, sacn(pk, 1, dm, 510), 4000);
+  RGBW px0 = dx.colorPixel(0, 200, 4000), px2 = dx.colorPixel(2, 200, 4000), pxf = dx.colorPixel(199, 200, 4000);
+  CHECK(px0.r == 9 && px0.g == 10 && px0.b == 11 && px2.r == 15 && pxf.r == 0 && pxf.g == 0);   // fuera del universo: negro
+  procesarComando(dx, "ESTADO", ok, rr, sizeof rr);
+  char grande[700]; dx.estadoJson(grande, sizeof grande, ok); CHECK(strstr(grande, "\"dmx\":\"sacn\"") && strstr(grande, "\"dir\":10"));
+  procesarComando(dx, "DMX ARTNET 0 1", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK") && dx.protoDmx() == ProtoDmx::ARTNET);
+  procesarComando(dx, "DMX SACN 0 1", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  procesarComando(dx, "DMX OFF", ok, rr, sizeof rr); CHECK(dx.protoDmx() == ProtoDmx::OFF && !dx.paqueteRed(pk, artnet(pk, 0, dm, 512), 5000));
+
+  // escenas
+  Controlador es; es.configurar(1, redPara(1));
+  es.fijarColor({1, 2, 3, 4}); es.fijarBrillo(0.3f); es.fijarModo(Modo::FUEGO);
+  procesarComando(es, "ESCENA GUARDAR 2", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK") && es.mascaraEscenas() == 2u);
+  es.fijarColor({9, 9, 9, 9}); es.fijarBrillo(1.f); es.fijarModo(Modo::FIJO);
+  procesarComando(es, "ESCENA 2", ok, rr, sizeof rr); CHECK(es.color().r == 1 && cerca(es.brillo(), 0.3f, 1e-6f) && es.modo() == Modo::FUEGO);
+  procesarComando(es, "ESCENA 5", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  procesarComando(es, "ESCENA GUARDAR 9", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  Controlador es2; es2.cargarEscenas(es.escenas()); CHECK(es2.aplicarEscena(2) && es2.color().b == 3);
 
   printf("%d/%d pruebas OK\n", total - fallos, total);
   return fallos ? 1 : 0;

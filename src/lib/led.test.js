@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { e96, rbParaVoltaje, vDeRb, elegirTarjeta, elegirCartucho, caidaCable, awgMinimo, consumo, planificar, resumenLote, vMinApp, PERFILES } from './led.js'
+import { cotizar, COSTOS_EJEMPLO, e96, rbParaVoltaje, vDeRb, elegirTarjeta, elegirCartucho, caidaCable, awgMinimo, consumo, planificar, resumenLote, vMinApp, PERFILES } from './led.js'
 
 test('E96', () => {
   assert.equal(e96(29400), 29400); assert.equal(e96(1927.9), 1910); assert.equal(e96(2099), 2100); assert.equal(e96(5600), 5620)
@@ -43,4 +43,13 @@ test('planificar y lote', () => {
   const r = resumenLote([{ v: 12, a: 5, cantidad: 20 }, { v: 12, a: 1, cantidad: 3 }, { v: 15, a: 1, cantidad: 2 }])
   assert.equal(r.total, 25); assert.equal(r.cubos.L, 20); assert.equal(r.cubos.S, 5)
   assert.equal(r.tarjetas['12V 5A (R_B 2100 Ω, R_ID 33k)'], 20)
+})
+
+test('cotización', () => {
+  const c = { ...COSTOS_EJEMPLO }
+  const q = cotizar([{ v: 12, a: 5, cantidad: 2 }, { v: 12, a: 1, cantidad: 1 }, { v: 40, a: 1, cantidad: 3 }], c, { margen: 0.5, iva: 0.16 })
+  const L = c.L + c.placa + c.caja100 + c.tarjeta + c.accesorios + c.manoObra
+  const S = c.S + c.placa + c.caja80 + c.tarjeta + c.accesorios + c.manoObra
+  assert.equal(q.detalle[0].costoCubo, L); assert.equal(q.detalle[1].costoCubo, S); assert.equal(q.detalle[2].costo, 0)   // 40 V: inválido, no suma
+  assert.equal(q.costo, 2 * L + S); assert.ok(Math.abs(q.total - (2 * L + S) * 1.5 * 1.16) < 1e-9); assert.ok(Math.abs(q.ganancia - (2 * L + S) * 0.5) < 1e-9)
 })

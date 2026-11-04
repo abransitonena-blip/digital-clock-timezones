@@ -211,16 +211,26 @@ Salida Controlador::paso(const Medicion& m, uint32_t ahora) {
   // --- Efectos (tiras analógicas: toda la tira igual) ---
   float b = brillo_;
   t_efecto_ = ahora;
-  if (modo_ == Modo::RESPIRA || modo_ == Modo::COMETA) b *= respiro(ahora);
-  RGBW c = colorPixel(0, 1, ahora);
+  bool dmx = dmxActivo(ahora);
+  RGBW c;
+  if (dmx) {                                       // DMX manda: atenuador + 4 canales
+    const uint8_t* d = dmx_ + (dmx_dir_ - 1);
+    int disp = dmx_n_ - (dmx_dir_ - 1);
+    auto canal = [&](int k) -> uint8_t { return k < disp ? d[k] : 0; };
+    b = direccionable(tira_) ? 1.f : canal(0) / 255.f;
+    c = {canal(1), canal(2), canal(3), canal(4)};
+  } else {
+    if (modo_ == Modo::RESPIRA || modo_ == Modo::COMETA) b *= respiro(ahora);
+    c = colorPixel(0, 1, ahora);
+  }
 
   float k = b * rampa_ * factorTermico(m.temp_c) * recorte_i_;
   s.brillo_efectivo = k;
   if (!direccionable(tira_)) {
     uint8_t ch[4] = {c.r, c.g, c.b, c.w};
     if (tira_ == Tira::RGB) ch[3] = 0;
-    else if (tira_ == Tira::CCT) { RGBW w = mezclaCCT(cct_); ch[0] = w.r; ch[1] = w.g; ch[2] = 0; ch[3] = 0; }
-    else if (tira_ == Tira::MONO) { ch[3] = 255; ch[0] = ch[1] = ch[2] = 0; }
+    else if (tira_ == Tira::CCT) { RGBW w = dmx ? RGBW{c.r, c.g, 0, 0} : mezclaCCT(cct_); ch[0] = w.r; ch[1] = w.g; ch[2] = 0; ch[3] = 0; }
+    else if (tira_ == Tira::MONO) { ch[3] = dmx ? c.r : 255; ch[0] = ch[1] = ch[2] = 0; }
     for (int i = 0; i < 4; ++i) s.pwm[i] = (uint16_t)lroundf(gamma12(ch[i]) * k);
   }
   return s;
@@ -265,6 +275,12 @@ static uint32_t mezclar(uint32_t x) { x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 
 
 RGBW Controlador::colorPixel(uint16_t i, uint16_t n, uint32_t t) const {
   if (n == 0) n = 1;
+  if (direccionable(tira_) && dmxActivo(t)) {      // un LED por cada 3 (o 4) canales
+    uint8_t bpp = bytesPorLed(tira_);
+    uint32_t k = (uint32_t)(dmx_dir_ - 1) + (uint32_t)i * bpp;
+    if (k + bpp > dmx_n_) return {0, 0, 0, 0};
+    return {dmx_[k], dmx_[k + 1], dmx_[k + 2], bpp == 4 ? dmx_[k + 3] : (uint8_t)0};
+  }
   switch (modo_) {
     case Modo::ARCOIRIS: return rueda((uint8_t)((i * 256u / n + t / 40) & 0xFF));
     case Modo::FUEGO: {
@@ -346,18 +362,74 @@ size_t Controlador::estadoWled(char* buf, size_t n) const {
   return w < 0 ? 0 : ((size_t)w < n ? (size_t)w : n - 1);
 }
 
+// ---------------- DMX por red ----------------
+static uint16_t be16(const uint8_t* p) { return (uint16_t)(p[0] << 8 | p[1]); }
+bool leerArtNet(const uint8_t* p, size_t len, uint16_t& u, const uint8_t*& d, uint16_t& n) {
+  if (len < 18 || memcmp(p, "Art-Net\0", 8) != 0) return false;
+  if ((p[8] | p[9] << 8) != 0x5000 || p[11] < 14) return false;      // OpDmx, versión ≥ 14
+  u = (uint16_t)((p[15] & 0x7F) << 8 | p[14]);
+  n = be16(p + 16);
+  if (n < 2 || n > 512 || 18u + n > len) return false;
+  d = p + 18; return true;
+}
+bool leerE131(const uint8_t* p, size_t len, uint16_t& u, const uint8_t*& d, uint16_t& n) {
+  static const uint8_t ID[12] = {'A', 'S', 'C', '-', 'E', '1', '.', '1', '7', 0, 0, 0};
+  if (len < 126 || be16(p) != 0x0010 || memcmp(p + 4, ID, 12) != 0) return false;
+  if (p[18] || p[19] || p[20] || p[21] != 0x04) return false;          // raíz: datos
+  if (p[40] || p[41] || p[42] || p[43] != 0x02) return false;          // trama: DMP
+  if (p[112] & 0x40) return false;                                      // stream_terminated
+  if (p[117] != 0x02 || p[118] != 0xA1 || p[125] != 0x00) return false; // DMP, código de inicio 0
+  u = be16(p + 113);
+  uint16_t cuenta = be16(p + 123);
+  if (cuenta < 1 || cuenta > 513 || 125u + cuenta > len) return false;
+  n = cuenta - 1; d = p + 126; return true;
+}
+bool Controlador::configurarDmx(ProtoDmx p, uint16_t u, uint16_t dir) {
+  if (dir < 1 || dir > 512 || (p == ProtoDmx::SACN && (u < 1 || u > 63999)) || (p == ProtoDmx::ARTNET && u > 32767)) return false;
+  dmx_proto_ = p; dmx_univ_ = u; dmx_dir_ = dir; t_dmx_ = 0; return true;
+}
+bool Controlador::paqueteRed(const uint8_t* p, size_t len, uint32_t ahora) {
+  uint16_t u, n; const uint8_t* d;
+  bool ok = dmx_proto_ == ProtoDmx::ARTNET ? leerArtNet(p, len, u, d, n) :
+            dmx_proto_ == ProtoDmx::SACN ? leerE131(p, len, u, d, n) : false;
+  if (!ok || u != dmx_univ_) return false;
+  memcpy(dmx_, d, n); dmx_n_ = n; t_dmx_ = ahora ? ahora : 1;
+  if (!on_) encender(true);
+  return true;
+}
+bool Controlador::dmxActivo(uint32_t ahora) const {
+  return dmx_proto_ != ProtoDmx::OFF && t_dmx_ && ahora - t_dmx_ < 2500;
+}
+
+// ---------------- Escenas ----------------
+bool Controlador::guardarEscena(int i) {
+  if (i < 1 || i > N_ESCENAS) return false;
+  escenas_[i - 1] = {true, color_, (uint8_t)lroundf(brillo_ * 100), modo_, cct_}; return true;
+}
+bool Controlador::aplicarEscena(int i) {
+  if (i < 1 || i > N_ESCENAS || !escenas_[i - 1].ok) return false;
+  const Escena& e = escenas_[i - 1];
+  color_ = e.color; brillo_ = e.brillo / 100.f; modo_ = e.modo; cct_ = e.cct; return true;
+}
+
+unsigned Controlador::mascaraEscenas() const {
+  unsigned m = 0; for (int i = 0; i < N_ESCENAS; ++i) if (escenas_[i].ok) m |= 1u << i; return m;
+}
 size_t Controlador::estadoJson(char* buf, size_t n, const Medicion& m) const {
   float vmax = vmaxPerfil();
   int w = snprintf(buf, n,
     "{\"on\":%d,\"perfil\":\"%s\",\"vmax\":%.2f,\"vmin\":%.2f,\"imax\":%.2f,\"vset\":%.2f,"
     "\"v\":%.2f,\"i\":%.3f,\"w\":%.1f,\"vin\":%.1f,\"t\":%.1f,\"brillo\":%d,"
     "\"rgbw\":[%u,%u,%u,%u],\"modo\":\"%s\",\"falla\":\"%s\",\"tira\":\"%s\",\"cct\":%u,"
-    "\"prog\":%s,\"on_min\":%u,\"off_min\":%u,\"hora\":%d}",
+    "\"prog\":%s,\"on_min\":%u,\"off_min\":%u,\"hora\":%d,\"dmx\":\"%s\",\"univ\":%u,\"dir\":%u,"
+    "\"dmx_vivo\":%s,\"escenas\":%u}",
     on_ ? 1 : 0, perfil_ < 0 ? "-" : PERFILES[perfil_].nombre, vmax,
     perfil_ < 0 ? 0.f : vminDeRed(red_), limiteCorriente(), vset_,
     m.vout, m.iout, m.vout * m.iout, m.vin, m.temp_c, (int)lroundf(brillo_ * 100),
     color_.r, color_.g, color_.b, color_.w, nombreModo(modo_), nombreFalla(falla_), nombreTira(tira_), cct_,
-    prog_on_ ? "true" : "false", min_on_, min_off_, minutoDelDia(t_ultimo_));
+    prog_on_ ? "true" : "false", min_on_, min_off_, minutoDelDia(t_ultimo_),
+    dmx_proto_ == ProtoDmx::ARTNET ? "artnet" : dmx_proto_ == ProtoDmx::SACN ? "sacn" : "off", dmx_univ_, dmx_dir_,
+    dmxActivo(t_ultimo_) ? "true" : "false", mascaraEscenas());
   return w < 0 ? 0 : ((size_t)w < n ? (size_t)w : n - 1);
 }
 
@@ -421,6 +493,19 @@ size_t procesarComando(Controlador& c, const char* linea, const Medicion& m, cha
     if (na == 3 && sscanf(arg[1], "%u:%u", &h1, &m1) == 2 && sscanf(arg[2], "%u:%u", &h2, &m2) == 2 &&
         h1 < 24 && m1 < 60 && h2 < 24 && m2 < 60 && c.programar(true, h1 * 60 + m1, h2 * 60 + m2)) return resp(r, n, "OK");
     return resp(r, n, "ERR usa PROG hh:mm hh:mm o PROG OFF");
+  }
+  if (igual(arg[0], "ESCENA")) {
+    if (na == 3 && igual(arg[1], "GUARDAR")) { int i = atoi(arg[2]); return resp(r, n, c.guardarEscena(i) ? "OK" : "ERR escena 1-8"); }
+    if (na == 2) { int i = atoi(arg[1]); return resp(r, n, c.aplicarEscena(i) ? "OK" : "ERR escena vacía o fuera de 1-8"); }
+    return resp(r, n, "ERR usa ESCENA n o ESCENA GUARDAR n");
+  }
+  if (igual(arg[0], "DMX")) {
+    if (na == 2 && igual(arg[1], "OFF")) { c.configurarDmx(ProtoDmx::OFF, 0, 1); return resp(r, n, "OK"); }
+    if (na == 4 && (igual(arg[1], "ARTNET") || igual(arg[1], "SACN"))) {
+      ProtoDmx p = igual(arg[1], "ARTNET") ? ProtoDmx::ARTNET : ProtoDmx::SACN;
+      if (c.configurarDmx(p, (uint16_t)atoi(arg[2]), (uint16_t)atoi(arg[3]))) return resp(r, n, "OK");
+    }
+    return resp(r, n, "ERR usa DMX ARTNET|SACN universo direccion o DMX OFF");
   }
   if (igual(arg[0], "LIMITES") && na == 3) {
     float v, i; if (!num(arg[1], v) || !num(arg[2], i) || !c.fijarLimitesPersonal(v, i)) return resp(r, n, "ERR solo tarjeta PERSONAL, 3-24.4 V y 0.2-5 A");

@@ -57,7 +57,7 @@ export const LINEAS = [
     resumen: 'Barras, cabinas de DJ y backdrops con efectos direccionables listos para usar.',
     tiras: ['WS2812B 5 V', 'SK6812 RGBW', 'WS2815 12 V'],
     config: 'Tarjeta 5V 3A o 12V 5A · varios cubos sincronizados por Wi-Fi (WLED)',
-    funciones: ['Efectos arcoíris, fuego y cometa', 'Compatible con la app WLED (básico)', 'Montaje rápido con borneras enchufables'],
+    funciones: ['Art-Net y sACN para consolas y xLights', 'Efectos arcoíris, fuego y cometa', '8 escenas guardadas'],
     ejemplo: { v: 5, a: 3, cantidad: 4, nombre: 'Barra 2 m' },
   },
   {
@@ -102,8 +102,10 @@ export const COMPAT = [
     ['Home Assistant', 'parcial', 'Con la integración WLED (descubrimiento mDNS)'],
     ['Amazon Alexa', 'parcial', 'Local, sin skill (emulación Hue): encender, apagar y brillo'],
     ['Google Home / Apple Home', 'parcial', 'A través de Home Assistant (Nabu Casa o HomeKit Bridge)'],
-    ['Matter / Thread', 'plan', 'El ESP32-C3 lo permite; se agrega en firmware v2'],
-    ['DMX / Art-Net', 'plan', 'Para escenarios; firmware v2'],
+    ['Matter (Wi-Fi)', 'plan', 'El ESP32-C3 lo permite; requiere migrar el firmware a ESP-IDF'],
+    ['Actualización por Wi-Fi (OTA)', 'si', 'Desde la página del cubo, con PIN'],
+    ['DMX por red: Art-Net y sACN / E1.31', 'parcial', 'Consolas, xLights, QLC+, Resolume, MadMapper; probado con paquetes de prueba, falta con consola real'],
+    ['DMX512 por cable (XLR)', 'plan', 'Necesita transceptor RS-485 en la placa v2'],
     ['Tuya / Smart Life', 'no', 'Ecosistema cerrado en la nube'],
   ] },
   { grupo: 'Energía', items: [

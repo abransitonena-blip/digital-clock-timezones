@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { planificar, resumenLote } from '../lib/led'
+import { planificar, resumenLote, cotizar, COSTOS_EJEMPLO } from '../lib/led'
 
 const EJEMPLO = [
   { nombre: 'Cliente A · letreros', cantidad: 20, v: 12, a: 5, cable: 2 },
@@ -11,8 +11,46 @@ const leer = () => { try { return JSON.parse(localStorage.getItem('pedidosAP')) 
 function desdeEnlace(lista) {        // #/configurador?v=12&a=1&n=20&nombre=...
   const q = new URLSearchParams(location.hash.split('?')[1] || '')
   if (!q.get('v')) return lista
-  history.replaceState(null, '', '#/configurador')
+  history.replaceState(null, '', '#configurador')
   return [...lista, { nombre: q.get('nombre') || 'Nuevo', cantidad: +q.get('n') || 1, v: +q.get('v'), a: +q.get('a') || 1, cable: 2 }]
+}
+
+const NOMBRES_COSTO = [['S', 'Cartucho S'], ['M', 'Cartucho M'], ['L', 'Cartucho L'], ['placa', 'Placa ensamblada + ESP32'], ['caja80', 'Caja 80 mm impresa'],
+  ['caja100', 'Caja 100 mm aluminio'], ['tarjeta', 'Tarjeta (2 resistencias)'], ['accesorios', 'Prensaestopas, membrana, tornillos'], ['manoObra', 'Mano de obra por cubo']]
+const leerJson = (k, def) => { try { return { ...def, ...JSON.parse(localStorage.getItem(k)) } } catch { return def } }
+const mxn = v => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
+
+function Cotizador({ pedidos }) {
+  const [costos, setCostos] = useState(() => leerJson('costosAP', COSTOS_EJEMPLO))
+  const [cfg, setCfg] = useState(() => leerJson('cotizaAP', { margen: 35, iva: 16 }))
+  useEffect(() => { try { localStorage.setItem('costosAP', JSON.stringify(costos)); localStorage.setItem('cotizaAP', JSON.stringify(cfg)) } catch { /* privado */ } }, [costos, cfg])
+  const q = cotizar(pedidos.map(p => ({ ...p, v: +p.v, a: +p.a, cantidad: +p.cantidad, metrosCable: +p.cable })), costos, { margen: cfg.margen / 100, iva: cfg.iva / 100 })
+  const ejemplo = NOMBRES_COSTO.every(([k]) => costos[k] === COSTOS_EJEMPLO[k])
+  return (
+    <section className="seccion rejilla dos">
+      <div className="tarjeta">
+        <h2>Cotización</h2>
+        {ejemplo && <div className="aviso" style={{ margin: '8px 0' }}>Los costos son de ejemplo: cámbialos por los tuyos (se guardan en este navegador).</div>}
+        <table className="tabla" style={{ marginTop: 8 }}>
+          <thead><tr><th>Pedido</th><th>Cubos</th><th>Costo</th><th>Precio sin IVA</th></tr></thead>
+          <tbody>{q.detalle.map((d, i) => <tr key={i}><td>{d.nombre}</td><td>{d.plan.errores.length ? '—' : d.plan.cubos}</td><td>{mxn(d.costo)}</td><td>{mxn(d.precio)}</td></tr>)}</tbody>
+        </table>
+        <div className="datos" style={{ marginTop: 12 }}>
+          <div className="dato"><b>{mxn(q.costo)}</b><span>costo</span></div>
+          <div className="dato"><b>{mxn(q.ganancia)}</b><span>ganancia</span></div>
+          <div className="dato"><b>{mxn(q.total)}</b><span>total con IVA</span></div>
+        </div>
+      </div>
+      <div className="tarjeta no-imprimir">
+        <h2>Tus costos por pieza (MXN)</h2>
+        <div className="rejilla" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {NOMBRES_COSTO.map(([k, t]) => <div key={k}><label className="campo">{t}</label><input type="number" min="0" value={costos[k]} onChange={e => setCostos(c => ({ ...c, [k]: +e.target.value }))} /></div>)}
+          <div><label className="campo">Margen %</label><input type="number" min="0" value={cfg.margen} onChange={e => setCfg(c => ({ ...c, margen: +e.target.value }))} /></div>
+          <div><label className="campo">IVA %</label><input type="number" min="0" value={cfg.iva} onChange={e => setCfg(c => ({ ...c, iva: +e.target.value }))} /></div>
+        </div>
+        <button className="boton" style={{ marginTop: 10 }} onClick={() => setCostos(COSTOS_EJEMPLO)}>Restaurar ejemplo</button>
+      </div>
+    </section>)
 }
 
 export default function Configurador() {
@@ -82,5 +120,6 @@ export default function Configurador() {
         </ul>
       </div>
     </div>
+    <Cotizador pedidos={pedidos} />
   </>)
 }

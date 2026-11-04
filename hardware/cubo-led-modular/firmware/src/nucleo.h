@@ -79,6 +79,15 @@ struct Salida {          // lo que el firmware aplica al hardware en cada ciclo
   float brillo_efectivo; // 0..1 tras limitaciones
 };
 
+// ---------- DMX por red: Art-Net (UDP 6454) y sACN / E1.31 (UDP 5568) ----------
+enum class ProtoDmx : uint8_t { OFF, ARTNET, SACN };
+// Devuelven true si el paquete es DMX válido; dan universo, puntero a los canales y cuántos son.
+bool leerArtNet(const uint8_t* p, size_t len, uint16_t& universo, const uint8_t*& datos, uint16_t& n);
+bool leerE131(const uint8_t* p, size_t len, uint16_t& universo, const uint8_t*& datos, uint16_t& n);
+
+struct Escena { bool ok; RGBW color; uint8_t brillo; Modo modo; uint16_t cct; };
+const int N_ESCENAS = 8;
+
 class Controlador {
 public:
   void configurar(int perfil, const RedFB& red);
@@ -123,8 +132,22 @@ public:
   // API JSON compatible con WLED (subconjunto: on, bri, col). bri 0–255.
   size_t estadoWled(char* buf, size_t n) const;
   bool aplicarWled(const char* json);
+  // DMX por red. Analógicas: canal dir = atenuador, dir+1..dir+4 = R G B W (CCT: cálido, frío; MONO: nivel).
+  // Direccionables: 3 o 4 canales por LED desde dir. Si dejan de llegar paquetes 2.5 s, vuelve al modo normal.
+  bool configurarDmx(ProtoDmx p, uint16_t universo, uint16_t direccion);
+  bool paqueteRed(const uint8_t* p, size_t len, uint32_t ahora_ms);
+  bool dmxActivo(uint32_t ahora_ms) const;
+  ProtoDmx protoDmx() const { return dmx_proto_; }
+  uint16_t universoDmx() const { return dmx_univ_; }
+  uint16_t direccionDmx() const { return dmx_dir_; }
+  // Escenas (1..8): guardan color, brillo, efecto y temperatura de blanco
+  bool guardarEscena(int i);
+  bool aplicarEscena(int i);
+  const Escena* escenas() const { return escenas_; }
+  void cargarEscenas(const Escena* e) { for (int i = 0; i < N_ESCENAS; ++i) escenas_[i] = e[i]; }
   // Respuesta de estado en JSON compacto para la app
   size_t estadoJson(char* buf, size_t n, const Medicion& m) const;
+  unsigned mascaraEscenas() const;
 
 private:
   void disparar(Falla f, uint32_t ahora);
@@ -145,6 +168,11 @@ private:
   uint16_t min_on_ = 0, min_off_ = 0;
   int ultimo_min_ = -1;
   float vmax_personal_ = 0.f, imax_personal_ = 0.f;
+  ProtoDmx dmx_proto_ = ProtoDmx::OFF;
+  uint16_t dmx_univ_ = 0, dmx_dir_ = 1, dmx_n_ = 0;
+  uint32_t t_dmx_ = 0;
+  uint8_t dmx_[512] = {};
+  Escena escenas_[N_ESCENAS] = {};
 };
 
 // ---------- Protocolo de texto (BLE UART / USB serie) ----------

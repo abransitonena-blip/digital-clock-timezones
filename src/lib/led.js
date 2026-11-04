@@ -130,3 +130,24 @@ export function resumenLote(pedidos) {
   }
   return { cubos, tarjetas, total, w }
 }
+
+/** Costos de ejemplo en MXN (cámbialos por los tuyos en el configurador). */
+export const COSTOS_EJEMPLO = { S: 180, M: 260, L: 450, placa: 420, caja80: 90, caja100: 350, tarjeta: 15, accesorios: 60, manoObra: 80 }
+
+/**
+ * Cotiza un lote. costos por pieza; margen 0–1 sobre el costo; iva 0–1.
+ * Devuelve el detalle por pedido y totales (costo, precio sin IVA, IVA, total).
+ */
+export function cotizar(pedidos, costos = COSTOS_EJEMPLO, { margen = 0.35, iva = 0.16 } = {}) {
+  const detalle = pedidos.map(p => {
+    const pl = planificar(p)
+    if (pl.errores.length) return { ...p, plan: pl, costoCubo: 0, costo: 0, precio: 0 }
+    const caja = pl.cartucho.id === 'L' ? costos.caja100 : costos.caja80
+    const costoCubo = costos[pl.cartucho.id] + costos.placa + caja + costos.tarjeta + costos.accesorios + costos.manoObra
+    const costo = costoCubo * pl.cubos
+    return { ...p, plan: pl, costoCubo, costo, precio: costo * (1 + margen) }
+  })
+  const costo = detalle.reduce((s, d) => s + d.costo, 0)
+  const subtotal = costo * (1 + margen)
+  return { detalle, costo, subtotal, iva: subtotal * iva, total: subtotal * (1 + iva), ganancia: subtotal - costo }
+}

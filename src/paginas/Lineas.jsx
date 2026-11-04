@@ -24,7 +24,7 @@ export default function Lineas() {
                   <>{p.cubos} cubo(s) · cartucho {p.cartucho.id} ({p.cartucho.w} W) · tarjeta {p.tarjeta.nombre}{p.tarjeta.personal ? ` (R_B ${p.tarjeta.rb} Ω)` : ''} · cable {p.awg} AWG</>}
               </div>
             </div>
-            <a className="boton" style={{ marginTop: 12 }} href={`#/configurador?v=${l.ejemplo.v}&a=${l.ejemplo.a}&n=${l.ejemplo.cantidad}&nombre=${encodeURIComponent(l.ejemplo.nombre)}`}>Usar en un pedido</a>
+            <a className="boton" style={{ marginTop: 12 }} href={`#configurador?v=${l.ejemplo.v}&a=${l.ejemplo.a}&n=${l.ejemplo.cantidad}&nombre=${encodeURIComponent(l.ejemplo.nombre)}`}>Usar en un pedido</a>
           </article>)
       })}
     </div>

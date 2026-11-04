@@ -20,9 +20,9 @@ export const RUTAS = [
   ['reloj', 'Reloj', Reloj],
 ]
 
-const rutaActual = () => (location.hash.replace(/^#\/?/, '').split('?')[0] || '')
+const rutaActual = () => (location.hash.replace(/^#\/?/, '').split('?')[0] || '')   // acepta #cubo y #/cubo
 
-export function ir(ruta) { location.hash = '/' + ruta }
+export function ir(ruta) { location.hash = ruta }
 
 export default function App() {
   const [ruta, setRuta] = useState(rutaActual())
@@ -42,9 +42,9 @@ export default function App() {
     <div className="sitio">
       <header className="barra">
         <div className="barra-in">
-          <a className="marca" href="#/"><i>AP</i>AP</a>
+          <a className="marca" href="#"><i>AP</i>AP</a>
           <nav className="menu" aria-label="Secciones">
-            {RUTAS.map(([r, t]) => <a key={r} href={'#/' + r} className={r === ruta ? 'activo' : ''}>{t}</a>)}
+            {RUTAS.map(([r, t]) => <a key={r} href={'#' + r} className={r === ruta ? 'activo' : ''}>{t}</a>)}
           </nav>
           <button className="tema" onClick={() => setTema(oscuro ? 'claro' : 'oscuro')} title="Cambiar tema" aria-label="Cambiar tema">{oscuro ? '☀️' : '🌙'}</button>
         </div>
@@ -52,7 +52,7 @@ export default function App() {
       <main className="contenido"><Pagina /></main>
       <footer className="pie"><div>
         <span>AP · Iluminación LED inteligente · diseños abiertos, sin fabricar ni certificar todavía</span>
-        <span><a href="#/compatibilidad">Compatibilidad</a> · <a href="#/proyectos">Documentos</a> · <a href="#/reloj">Reloj</a></span>
+        <span><a href="#compatibilidad">Compatibilidad</a> · <a href="#proyectos">Documentos</a> · <a href="#reloj">Reloj</a></span>
       </div></footer>
     </div>
   )
