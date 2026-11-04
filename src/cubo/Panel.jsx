@@ -15,7 +15,8 @@ function useRetardo(fn, ms) {                     // evita inundar el Bluetooth 
 }
 
 export default function Panel() {
-  const { estado: s, red, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo } = useCubo()
+  const { estado: s, red, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo, todos, setTodos } = useCubo()
+  const [gnom, setGnom] = useState(''), [gclave, setGclave] = useState('')
   const [brillo, setBrillo] = useState(60), [volt, setVolt] = useState(12), [cct, setCct] = useState(4000)
   const [color, setColor] = useState('#ffffff'), [w, setW] = useState(0)
   const [hon, setHon] = useState('18:30'), [hoff, setHoff] = useState('01:00')
@@ -71,7 +72,7 @@ export default function Panel() {
       <fieldset disabled={!conectado} style={{ border: 0, opacity: conectado ? 1 : 0.55 }}>
         <div className="rejilla dos" style={{ marginTop: 14 }}>
           <div className="tarjeta">
-            <h3>Luz</h3>
+            <div className="entre"><h3>Luz</h3><label className="mut peq fila" style={{ gap: 6, flexWrap: 'nowrap' }}><input type="checkbox" checked={todos} onChange={e => setTodos(e.target.checked)} style={{ width: 'auto' }} /> Aplicar a todo el grupo</label></div>
             <div className="entre"><label className="campo">Brillo</label><b>{brillo} %</b></div>
             <input type="range" min="0" max="100" value={brillo} onChange={e => { tocar(); setBrillo(+e.target.value); enviarBrillo(e.target.value) }} />
             <label className="campo">Efecto</label>
@@ -131,6 +132,15 @@ export default function Panel() {
             <div className="entre" style={{ marginTop: 8 }}>
               <span className="mut peq">{red ? (red.wifi ? `Conectado · ${red.ip}` : 'Sin Wi-Fi') : '—'}</span>
               <button className="boton" onClick={() => { if (!ssid.trim() || /\s/.test(ssid.trim())) { setMensaje({ tipo: 'error', texto: 'Escribe la red sin espacios' }); return } enviar(`WIFI ${ssid.trim()} ${clave}`) }}>Conectar Wi-Fi</button>
+            </div>
+            <div className="rejilla" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
+              <input placeholder="Grupo (p. ej. tienda-centro)" value={gnom} onChange={e => setGnom(e.target.value)} />
+              <input placeholder="Clave del grupo (8+)" type="password" value={gclave} onChange={e => setGclave(e.target.value)} />
+            </div>
+            <div className="entre" style={{ marginTop: 8 }}>
+              <span className="mut peq">{red?.grupo ? `Grupo: ${red.grupo}` : 'Sin grupo'}</span>
+              <div className="fila" style={{ flexWrap: 'nowrap' }}><button className="boton" onClick={() => { enviar('GRUPO OFF'); setTimeout(() => enviar('RED'), 300) }}>Quitar</button>
+                <button className="boton" onClick={() => { if (!/^[\w-]{1,24}$/.test(gnom.trim()) || gclave.length < 8 || /\s/.test(gclave)) { setMensaje({ tipo: 'error', texto: 'Grupo: letras, números, - o _; clave de 8+ caracteres sin espacios' }); return } enviar(`GRUPO ${gnom.trim()} ${gclave}`); setTimeout(() => enviar('RED'), 300) }}>Guardar grupo</button></div>
             </div>
             <div className="entre" style={{ marginTop: 10 }}>
               <span className="mut peq">WLED · Home Assistant · Alexa {red ? (red.integraciones ? '(activas)' : '(apagadas)') : ''}</span>

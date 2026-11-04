@@ -76,7 +76,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;margin:16px 0}
   </section>
 
   <section class="card">
-    <h2>Luz</h2>
+    <div class="row"><h2 style="margin:0">Luz</h2><label style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="todos"> Aplicar a todo el grupo</label></div>
     <div class="row"><label style="margin:0">Brillo</label><span class="val" id="bv">60 %</span></div>
     <input type="range" id="brillo" min="0" max="100" value="60">
     <label>Efecto</label>
@@ -162,6 +162,11 @@ footer{color:var(--mut);font-size:12px;text-align:center;margin:16px 0}
       <span class="sub">WLED, Home Assistant y Alexa en tu red</span>
       <div class="row"><button id="intoff">Desactivar</button><button id="inton">Activar</button></div>
     </div>
+    <div class="grid2" style="margin-top:10px">
+      <input id="gnom" type="text" placeholder="Grupo (p. ej. tienda-centro)">
+      <input id="gclave" type="password" placeholder="Clave del grupo (8+)">
+    </div>
+    <div class="row" style="margin-top:8px"><span class="sub" id="gtxt">Sin grupo</span><div class="row"><button id="goff">Quitar</button><button id="gok">Guardar grupo</button></div></div>
     <div class="row" style="margin-top:10px"><span class="sub">Reconocer falla</span><button id="reset">Reiniciar falla</button></div>
     <div id="ota" class="hide" style="margin-top:10px">
       <div class="row"><input id="bin" type="file" accept=".bin" style="width:60%"><button id="otaok">Actualizar firmware</button></div>
@@ -181,7 +186,9 @@ const enc=new TextEncoder(), dec=new TextDecoder();
 const DIREC=['WS2812B','SK6812','WS2811','WS2815'];
 
 // ---------- enlaces: Bluetooth, Wi-Fi (página servida por el cubo) o demo ----------
+const DE_GRUPO=/^(ON|OFF|BRILLO|RGBW|MODO|CCT|ESCENA \d)\b/i;
 function enviar(cmd){
+  if($('todos')&&$('todos').checked&&DE_GRUPO.test(cmd))cmd='TODOS '+cmd;
   if(demo) return Promise.resolve(recibir(demo.cmd(cmd)));
   if(!enlace) return Promise.resolve();
   cola=cola.then(()=>enlace.enviar(cmd)).catch(e=>msg('Error: '+e.message,true));
@@ -242,7 +249,7 @@ function recibir(t){
   else if(t.startsWith('ERR'))msg(t.replace('ERR','Rechazado:'),true);
   else if(t.startsWith('OK')&&!demo)setTimeout(()=>enviar('ESTADO'),60);
 }
-function red(j){$('redtxt').textContent=j.wifi?`Conectado · ${j.ip}`:'Sin Wi-Fi';}
+function red(j){$('redtxt').textContent=j.wifi?`Conectado · ${j.ip}`:'Sin Wi-Fi';$('gtxt').textContent=j.grupo?`Grupo: ${j.grupo}`:'Sin grupo';}
 
 // ---------- controles ----------
 $('pwr').onclick=()=>enviar(est&&est.on?'OFF':'ON');
@@ -264,6 +271,8 @@ $('lim').onclick=()=>enviar(`LIMITES ${$('pv').value} ${$('pi').value}`);
 $('wifi').onclick=()=>{const s=$('ssid').value.trim(),c=$('clave').value;if(!s||/\s/.test(s)){msg('Escribe la red sin espacios',true);return}enviar(`WIFI ${s} ${c}`)};
 $('inton').onclick=()=>enviar('INTEGRACIONES ON');$('intoff').onclick=()=>enviar('INTEGRACIONES OFF');
 $('reset').onclick=()=>enviar('RESET');
+$('gok').onclick=()=>{const g=$('gnom').value.trim(),k=$('gclave').value;if(!/^[\w-]{1,24}$/.test(g)||k.length<8||/\s/.test(k)){msg('Grupo: letras, números, - o _; clave de 8+ caracteres sin espacios',true);return}enviar(`GRUPO ${g} ${k}`);setTimeout(()=>enviar('RED'),300)};
+$('goff').onclick=()=>{enviar('GRUPO OFF');setTimeout(()=>enviar('RED'),300)};
 for(let i=1;i<=8;i++){const b=document.createElement('button');b.textContent=i;b.disabled=true;b.onclick=()=>enviar('ESCENA '+i);$('escenas').appendChild(b);$('escSel').add(new Option('Escena '+i,i))}
 $('escGuardar').onclick=()=>enviar('ESCENA GUARDAR '+$('escSel').value);
 $('dmxok').onclick=()=>{const p=$('dmxp').value;enviar(p==='OFF'?'DMX OFF':p==='CABLE'?`DMX CABLE ${$('dmxd').value}`:`DMX ${p} ${$('dmxu').value} ${$('dmxd').value}`)};
@@ -283,7 +292,9 @@ $('demo').onclick=()=>{
     else if(K==='CCT')s.cct=+a[0];else if(K==='PROG'){if(a[0]==='OFF')s.prog=false;else{const f=x=>{const[h,m]=x.split(':');return h*60+ +m};s.prog=true;s.on_min=f(a[0]);s.off_min=f(a[1])}}
     else if(K==='HORA')s.hora=Math.floor(+a[0]/60)%1440;
     else if(K==='ESCENA'){if(a[0]==='GUARDAR'){esc[a[1]]={rgbw:[...s.rgbw],brillo:s.brillo,modo:s.modo};s.escenas|=1<<(a[1]-1)}else if(esc[a[0]])Object.assign(s,esc[a[0]]);else return 'ERR escena vacía'}
-    else if(K==='DMX'){if(a[0]==='OFF')s.dmx='off';else if(a[0]==='CABLE'){s.dmx='cable';s.univ=0;s.dir=+a[1]}else{s.dmx=a[0].toLowerCase();s.univ=+a[1];s.dir=+a[2]}}else if(K==='RED')return JSON.stringify({wifi:false,ip:'',nombre:'CuboAP-DEMO',integraciones:false});
+    else if(K==='DMX'){if(a[0]==='OFF')s.dmx='off';else if(a[0]==='CABLE'){s.dmx='cable';s.univ=0;s.dir=+a[1]}else{s.dmx=a[0].toLowerCase();s.univ=+a[1];s.dir=+a[2]}}else if(K==='RED')return JSON.stringify({wifi:false,ip:'',nombre:'CuboAP-DEMO',integraciones:false,grupo:s.grupo||''});
+    else if(K==='GRUPO'){s.grupo=a[0]==='OFF'?'':a[0]}
+    else if(K==='TODOS'){if(!s.grupo)return 'ERR configura GRUPO nombre clave';return demo.cmd(a.join(' '))}
     tick();return 'OK'}};
   function tick(){const c=s.rgbw.reduce((x,y)=>x+y,0)/(3*255);s.v=s.on?s.vset-0.02:0;s.i=s.on?+(4.2*s.brillo/100*Math.min(1,c||1)*(s.vset/12)**2).toFixed(2):0;s.w=+(s.v*s.i).toFixed(1);s.t=+(30+s.w*0.35).toFixed(1);pintar({...s})}
   enlace=null;$('dev').textContent='CuboAP-DEMO (simulado)';tick();clearInterval(window._d);window._d=setInterval(tick,1000);red({wifi:false});

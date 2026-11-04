@@ -26,7 +26,7 @@ export const LINEAS = [
     resumen: 'Cajas de luz, letras 3D y neón flex para comercios. Un cubo por letrero, encendido por horario.',
     tiras: ['SMD2835 12 V', 'Neón flex 12 V', 'WS2812B para animación'],
     config: 'Cartucho S o M · tarjeta 12V 1A–5A · horario 18:30–01:00',
-    funciones: ['Horario diario sin internet', 'Bajar a 11.5 V para alargar la vida de la tira', 'Vuelve encendido tras un apagón'],
+    funciones: ['Todos los letreros de un cliente a la vez (grupos)', 'Horario diario sin internet', 'Bajar a 11.5 V para alargar la vida de la tira', 'Vuelve encendido tras un apagón'],
     ejemplo: { v: 12, a: 1, cantidad: 20, nombre: 'Letrero 60 × 40 cm' },
   },
   {
@@ -105,6 +105,8 @@ export const COMPAT = [
     ['Google Home / Apple Home', 'parcial', 'A través de Home Assistant (Nabu Casa o HomeKit Bridge)'],
     ['Matter (Wi-Fi)', 'plan', 'El ESP32-C3 lo permite; requiere migrar el firmware a ESP-IDF'],
     ['Actualización por Wi-Fi (OTA)', 'si', 'Desde la página del cubo, con PIN'],
+    ['Instalación por USB desde el navegador', 'si', 'Sección Instalar: Chrome o Edge de computadora (Web Serial)'],
+    ['Grupos de cubos (varios letreros a la vez)', 'si', 'Órdenes firmadas con HMAC-SHA256 por la red local; falta probar con equipos reales'],
     ['DMX por red: Art-Net y sACN / E1.31', 'parcial', 'Consolas, xLights, QLC+, Resolume, MadMapper; probado con paquetes de prueba, falta con consola real'],
     ['DMX512 por cable', 'parcial', 'Placa v2: RS-485 con protección y terminación; bornera GND·D−·D+. Falta probar con consola'],
     ['Tuya / Smart Life', 'no', 'Ecosistema cerrado en la nube'],

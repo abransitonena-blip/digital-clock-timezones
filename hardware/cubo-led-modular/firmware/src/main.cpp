@@ -5,6 +5,7 @@
 //   · Wi-Fi: página de control en http://<nombre>.local, API /api/cmd (pide PIN en cabecera X-PIN)
 //   · DMX por red: Art-Net (UDP 6454) y sACN/E1.31 (UDP 5568, multicast) para consolas, xLights, QLC+, Resolume
 //   · DMX512 por cable (placa v2): transceptor RS-485 en GPIO2, 250 kbit/s
+//   · Grupos: TODOS <orden> se reenvía por UDP firmado (HMAC-SHA256) a los cubos del mismo grupo
 //   · Actualización OTA en /update (pide PIN; apaga la salida mientras escribe)
 //   · Integraciones (se activan con "INTEGRACIONES ON" por Bluetooth): API JSON tipo WLED (/json/state),
 //     anuncio mDNS _wled._tcp y Alexa local (emulación Hue con Espalexa). Home Assistant las usa vía WLED/Hue.
@@ -21,6 +22,7 @@
 #include <Espalexa.h>
 #include <time.h>
 #include "nucleo.h"
+#include "grupo.h"
 #include "pagina.h"     // generada desde ../app/index.html con gen_pagina.py
 
 // ---------------- Pines (ver README: tabla de pines) ----------------
@@ -55,6 +57,10 @@ static WebServer web(80);
 static Espalexa alexa;
 static WiFiUDP udp_art, udp_sacn;
 static ap::ReceptorDmx rx_dmx;
+static WiFiUDP udp_grupo;
+static char grupo_nom[25] = "", grupo_clave[41] = "";
+static uint64_t grupo_ultimo = 0, grupo_enviado = 0;
+static bool grupo_udp = false;
 static bool uart_dmx = false;
 static bool reiniciar_udp = true, ota_negada = false, ota_activa = false;
 static volatile bool conectado = false;
@@ -125,6 +131,7 @@ static void cargar() {
   tira.updateLength(nvs.getUShort("leds", 60));
   zona_h = nvs.getChar("zona", -6);
   integraciones = nvs.getBool("integ", false);
+  nvs.getString("gnom", grupo_nom, sizeof grupo_nom); nvs.getString("gclave", grupo_clave, sizeof grupo_clave);
   nvs.getString("nombre", nombre, sizeof nombre);
   bool on = nvs.getBool("on", true);   // letreros: vuelve encendido tras un corte de luz
   nvs.end();
@@ -152,7 +159,47 @@ static uint32_t passkey() {   // 6 dígitos únicos por equipo; se imprime en la
   uint64_t mac = ESP.getEfuseMac(); return 100000 + (uint32_t)(mac % 900000ULL);
 }
 static void wifi_iniciar();
+static uint64_t ms_utc() {                          // 0 si aún no hay hora de internet
+  time_t u = time(nullptr); return u > 1700000000 ? (uint64_t)u * 1000ULL + millis() % 1000 : 0;
+}
+static void ejecutar(const char* l, char* r, size_t n);
+static void grupo_enviar(const char* cmd, char* r, size_t n) {     // TODOS <orden>: aquí y en todo el grupo
+  if (!grupo_nom[0]) { snprintf(r, n, "ERR configura GRUPO nombre clave"); return; }
+  uint64_t c = ms_utc(); if (c <= grupo_enviado) c = grupo_enviado + 1;
+  char msg[160];
+  size_t L = ap::firmarGrupo(grupo_nom, grupo_clave, c, cmd, msg, sizeof msg);
+  if (!L) { snprintf(r, n, "ERR orden no permitida para el grupo"); return; }
+  grupo_enviado = c; if (c > grupo_ultimo) grupo_ultimo = c;    // el eco propio se descarta como repetido
+  if (wifi_ok) for (int k = 0; k < 3; ++k) {                       // 3 copias: UDP puede perder paquetes
+    udp_grupo.beginPacket(WiFi.broadcastIP(), ap::PUERTO_GRUPO); udp_grupo.write((const uint8_t*)msg, L); udp_grupo.endPacket();
+  }
+  ejecutar(cmd, r, n);
+}
+static void grupo_atender() {
+  if (!wifi_ok || !grupo_nom[0]) return;
+  if (!grupo_udp) { udp_grupo.begin(ap::PUERTO_GRUPO); grupo_udp = true; }
+  for (int k = 0; k < 4; ++k) {
+    int len = udp_grupo.parsePacket(); if (len <= 0) break;
+    char b[161]; int n = udp_grupo.read((uint8_t*)b, sizeof b - 1); if (n <= 0) continue; b[n] = 0;
+    char cmd[64], r[640];
+    if (ap::verificarGrupo(b, grupo_nom, grupo_clave, grupo_ultimo, ms_utc(), cmd, sizeof cmd) == ap::Rechazo::NINGUNO) {
+      ap::procesarComando(ctl, cmd, med, r, sizeof r); marcar();
+    }
+  }
+}
 static void ejecutar(const char* l, char* r, size_t n) {
+  if (!strncasecmp(l, "TODOS ", 6)) { grupo_enviar(l + 6, r, n); return; }
+  if (!strncasecmp(l, "GRUPO", 5) && (l[5] == ' ' || !l[5])) {   // GRUPO nombre clave | GRUPO OFF
+    char g[25] = "", k[41] = "";
+    int c = sscanf(l + 5, "%24s %40s", g, k);
+    if (c == 1 && !strcasecmp(g, "OFF")) g[0] = k[0] = 0;
+    else { char prueba[160];
+      if (c != 2 || !ap::firmarGrupo(g, k, 1, "ON", prueba, sizeof prueba)) { snprintf(r, n, "ERR nombre (letras, números, - _) y clave de 8+ caracteres"); return; } }
+    strlcpy(grupo_nom, g, sizeof grupo_nom); strlcpy(grupo_clave, k, sizeof grupo_clave); grupo_ultimo = 0;
+    nvs.begin("cubo", false); nvs.putString("gnom", grupo_nom); nvs.putString("gclave", grupo_clave); nvs.end();
+    if (!grupo_nom[0] && grupo_udp) { udp_grupo.stop(); grupo_udp = false; }
+    snprintf(r, n, "OK"); return;
+  }
   if (!strncasecmp(l, "LEDS ", 5)) {
     int k = atoi(l + 5);
     if (k < 1 || k > 600) { snprintf(r, n, "ERR rango 1-600"); return; }
@@ -179,8 +226,8 @@ static void ejecutar(const char* l, char* r, size_t n) {
     snprintf(r, n, "OK reinicia para aplicar"); return;
   }
   if (!strcasecmp(l, "RED")) {
-    snprintf(r, n, "{\"wifi\":%s,\"ip\":\"%s\",\"nombre\":\"%s\",\"integraciones\":%s,\"zona\":%d}", wifi_ok ? "true" : "false",
-             wifi_ok ? WiFi.localIP().toString().c_str() : "", nombre, integraciones ? "true" : "false", zona_h);
+    snprintf(r, n, "{\"wifi\":%s,\"ip\":\"%s\",\"nombre\":\"%s\",\"integraciones\":%s,\"zona\":%d,\"grupo\":\"%s\"}", wifi_ok ? "true" : "false",
+             wifi_ok ? WiFi.localIP().toString().c_str() : "", nombre, integraciones ? "true" : "false", zona_h, grupo_nom);
     return;
   }
   ap::Tira antes = ctl.tira();
@@ -427,6 +474,7 @@ void loop() {
   }
   boton(t);
   uart_dmx_atender();
+  grupo_atender();
   led_estado(t);
   wifi_atender(t);
 

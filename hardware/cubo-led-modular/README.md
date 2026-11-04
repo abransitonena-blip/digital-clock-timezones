@@ -102,6 +102,13 @@ Placa de 2 capas, 68 × 64 mm, hecha para fabricarse y ensamblarse (JLCPCB o sim
   - Los paquetes se probaron armados según la norma y con datos basura; **falta probarlo con una consola real**.
 - **Escenas:** 8 escenas guardadas en memoria (`ESCENA GUARDAR n`, `ESCENA n`). Cada una guarda color, brillo, efecto y temperatura de blanco.
 - **Actualización OTA:** se sube el `.bin` desde la página del cubo, que pide el PIN. Mientras se escribe la memoria, la salida se apaga.
+- **Grupos de cubos:** pensados, por ejemplo, para los 20 letreros de un cliente.
+  - Se configura con `GRUPO nombre clave` y la orden se manda con `TODOS orden`: se ejecuta en ese cubo y se reenvía por UDP (puerto 21330) a los demás del grupo.
+  - Cada mensaje va firmado con HMAC-SHA256 y la clave del grupo, con un contador que solo crece y, si hay hora, a ±2 min del reloj. Así nadie en la red puede inventar ni repetir órdenes.
+  - Solo pasan órdenes de luz: ON, OFF, BRILLO, RGBW, MODO, CCT y ESCENA n.
+  - En la app: el interruptor "Aplicar a todo el grupo".
+  - Pruebas: `test/test_grupo.cpp`, 29 en total, con los vectores oficiales FIPS 180 y RFC 4231.
+- **Instalador web:** en la sección *Instalar* del sitio se graba el firmware por USB desde Chrome o Edge (ESP Web Tools), sin programas.
 - **Bluetooth:** las respuestas se mandan en trozos de 180 bytes terminados en salto de línea, así no se cortan con MTU chicos.
 
 ### Protocolo (BLE, Nordic UART, o USB a 115200 baudios)
@@ -109,6 +116,7 @@ Placa de 2 capas, 68 × 64 mm, hecha para fabricarse y ensamblarse (JLCPCB o sim
 - **Tira:** `TIRA RGBW|RGB|CCT|MONO|WS2812B|SK6812|WS2811|WS2815`, `CCT 2700-6500`, `LEDS n`.
 - **Horario:** `HORA epoch_local`, `PROG 18:30 01:00` (o `PROG OFF`), `ZONA -6`.
 - **Escenas y DMX:** `ESCENA n`, `ESCENA GUARDAR n`, `DMX ARTNET|SACN universo dirección`, `DMX CABLE dirección` (v2), `DMX OFF`. Tira `RGBCCT` en la v2.
+- **Grupos:** `GRUPO nombre clave`, `GRUPO OFF`, `TODOS orden`.
 - **Solo por USB:** `OLVIDAR` borra los vínculos Bluetooth.
 - **Tarjeta y red:** `LIMITES v i`, `WIFI red clave` (o `WIFI OFF`), `NOMBRE x`, `INTEGRACIONES ON|OFF`.
 - **Consulta:** `RED` y `ESTADO` responden en JSON.

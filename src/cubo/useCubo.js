@@ -34,7 +34,9 @@ function simulador() {
     else if (K === 'RESET') s.falla = 'ninguna'
     else if (K === 'ESCENA') { if (a[0] === 'GUARDAR') { esc[a[1]] = { rgbw: [...s.rgbw], brillo: s.brillo, modo: s.modo, cct: s.cct }; s.escenas |= 1 << (a[1] - 1) } else if (esc[a[0]]) Object.assign(s, esc[a[0]]); else return 'ERR escena vacía' }
     else if (K === 'DMX') { if (a[0] === 'OFF') s.dmx = 'off'; else if (a[0] === 'CABLE') { s.dmx = 'cable'; s.univ = 0; s.dir = +a[1] } else { s.dmx = a[0].toLowerCase(); s.univ = +a[1]; s.dir = +a[2] } }
-    else if (K === 'RED') return JSON.stringify({ wifi: false, ip: '', nombre: 'CuboAP-DEMO', integraciones: false, zona: -6 })
+    else if (K === 'RED') return JSON.stringify({ wifi: false, ip: '', nombre: 'CuboAP-DEMO', integraciones: false, zona: -6, grupo: s.grupo || '' })
+    else if (K === 'GRUPO') s.grupo = a[0] === 'OFF' ? '' : a[0]
+    else if (K === 'TODOS') { if (!s.grupo) return 'ERR configura GRUPO nombre clave'; return cmd(a.join(' ')) }
     else if (K === 'ESTADO') return JSON.stringify(paso())
     return 'OK'
   }
@@ -55,14 +57,16 @@ export default function useCubo() {
     else if (t.startsWith('ERR')) setMensaje({ tipo: 'error', texto: t.replace(/^ERR\s*/, 'Rechazado: ') })
   }, [])
 
+  const [todos, setTodos] = useState(false)
   const enviar = useCallback(c => {
+    if (todos && /^(ON|OFF|BRILLO|RGBW|MODO|CCT|ESCENA \d)\b/i.test(c)) c = 'TODOS ' + c
     if (sim.current) { const r = sim.current.cmd(c); recibir(r); if (r.startsWith('OK')) recibir(JSON.stringify(sim.current.paso())); return Promise.resolve() }
     if (!enlace.current) return Promise.resolve()
     cola.current = cola.current.then(() => enlace.current.enviar(c)).then(() => {
       if (!/^ESTADO|^RED/i.test(c)) return enlace.current?.enviar('ESTADO')
     }).catch(e => setMensaje({ tipo: 'error', texto: 'Error: ' + e.message }))
     return cola.current
-  }, [recibir])
+  }, [recibir, todos])
 
   const conectarBle = useCallback(async () => {
     if (!navigator.bluetooth) { setMensaje({ tipo: 'error', texto: 'Este navegador no tiene Bluetooth web. Usa Chrome o Edge en Android, Windows o macOS, o prueba la demo.' }); return }
@@ -91,5 +95,5 @@ export default function useCubo() {
   }, [recibir])
 
   useEffect(() => () => clearInterval(reloj.current), [])
-  return { estado, red, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo }
+  return { estado, red, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo, todos, setTodos }
 }

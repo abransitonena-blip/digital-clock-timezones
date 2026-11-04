@@ -11,6 +11,7 @@ Sitio web (React + Vite) y diseños abiertos de electrónica para iluminación L
 | `#configurador` | Pedidos por cliente (V, A, cantidad), con exportación a CSV e impresión. Calcula: cubos, cartucho, tarjeta con R_B/R_ID, cable, lista de compra y **cotización** (tus costos, margen e IVA) |
 | `#calculadora` | Consumo, reinyección, cubos y caída en cable para 15 tiras del mercado. Incluye la tarjeta a la medida (R_B E96) |
 | `#compatibilidad` | Compatibilidad con tiras, apps, asistentes de voz y fuentes de energía |
+| `#instalar` | Graba el firmware del Cubo AP por USB desde Chrome o Edge (ESP Web Tools empaquetado, sin CDN) |
 | `#proyectos` | Todos los proyectos de `hardware/`, con manuales, esquemas, Gerber y BOM |
 | `#reloj` | El reloj mundial original (zonas horarias, alarmas, temas) |
 

@@ -24,3 +24,6 @@ build/
 
 # OS
 Thumbs.db
+
+# generados al compilar el sitio desde hardware/cubo-led-modular/firmware/binarios
+public/firmware/*.bin
