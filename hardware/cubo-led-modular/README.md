@@ -17,10 +17,10 @@ Regenerar: `python3 cubo.py && python3 render.py && python3 hacer_documento.py &
   - calcula el voltaje y el DAC;
   - aplica el arranque suave, la limitación suave de corriente, el recorte térmico, las fallas con reintento y los efectos;
   - interpreta el protocolo de texto.
-- `firmware/test/test_nucleo.cpp`: **124 pruebas** que corren en PC. Comando:
+- `firmware/test/test_nucleo.cpp`: **192 pruebas** que corren en PC. Comando:
   `cd firmware/test && g++ -std=c++17 -I../src test_nucleo.cpp ../src/nucleo.cpp -o t && ./t`
 - `firmware/src/main.cpp`: código del ESP32-C3. Usa Arduino-ESP32 3.x, NimBLE-Arduino 2.x y Adafruit NeoPixel. Compila con `pio run`.
-  Solo se verificó la sintaxis contra cabeceras simuladas (`test/stubs`). **Falta compilarlo con el toolchain real y probarlo en placa.**
+  Usa Espalexa para Alexa. Solo se verificó la sintaxis contra cabeceras simuladas (`test/stubs`). `gen_pagina.py` mete `app/index.html` en `src/pagina.h`; PlatformIO lo corre solo al compilar. **Falta compilarlo con el toolchain real y probarlo en placa.**
 - `app/index.html`: app web con Bluetooth seguro (Chrome/Edge en Android o PC), servida por HTTPS (p. ej., GitHub Pages).
   Tiene un botón **Demo** para probarla sin hardware.
 
@@ -57,5 +57,29 @@ El cartucho debe dar al menos Vout + 1.2 V. Para 12 V y 15 V se usa el de 24 V; 
 ## Placa de control (`placa-control/`)
 Placa de 2 capas, 68 × 64 mm, hecha para fabricarse y ensamblarse (JLCPCB o similar). Detalles en `placa-control/README.md`.
 
+### Tiras, efectos e integraciones (firmware)
+- **Tiras:**
+  - analógicas: RGBW, RGB, CCT (cálido en R, frío en G) y MONO (salida W);
+  - direccionables: WS2812B y SK6812 a 5 V; WS2811 y WS2815 a 12 V.
+
+  El cubo **rechaza una tira direccionable si la tarjeta no da su voltaje** (por ejemplo, WS2812B con tarjeta de 12 V).
+- **Efectos:** fijo, respira, arcoíris, fuego y cometa. En las tiras direccionables son por pixel.
+- **Horario diario:** enciende y apaga solo. La hora la manda la app, o la toma de internet (NTP) con Wi-Fi, en la zona `ZONA` (UTC-6 por defecto).
+- **Tarjeta PERSONAL** (R_ID 220k): sirve para cualquier voltaje de 3 a 24.4 V. La R_B se calcula en la web; después se mandan los límites con `LIMITES v i`. Sin límites no enciende.
+- **Wi-Fi** (`WIFI red clave`):
+  - página de control propia en `http://cuboap-xxxx.local`;
+  - API `/api/cmd` que pide el PIN en la cabecera `X-PIN`;
+  - `/api/estado`.
+- **Integraciones** (`INTEGRACIONES ON`, apagadas de fábrica porque no llevan contraseña):
+  - API JSON tipo WLED (`/json/state`, `/json/info`) con anuncio mDNS `_wled._tcp`;
+  - Alexa local con Espalexa.
+
+  Home Assistant lo usa con la integración WLED. Solo se implementó un subconjunto (encendido, brillo y color); **falta probarlo con las apps reales**.
+- **Bluetooth:** las respuestas se mandan en trozos de 180 bytes terminados en salto de línea, así no se cortan con MTU chicos.
+
 ### Protocolo (BLE, Nordic UART, o USB a 115200 baudios)
-`ON`, `OFF`, `BRILLO 0-100`, `RGBW r g b w`, `V 11.5`, `MODO FIJO|RESPIRA|ARCOIRIS|DIREC`, `LEDS n`, `RESET`, `ESTADO` (responde en JSON).
+- **Luz:** `ON`, `OFF`, `BRILLO 0-100`, `RGBW r g b w`, `V 11.5`, `MODO FIJO|RESPIRA|ARCOIRIS|FUEGO|COMETA`, `RESET`.
+- **Tira:** `TIRA RGBW|RGB|CCT|MONO|WS2812B|SK6812|WS2811|WS2815`, `CCT 2700-6500`, `LEDS n`.
+- **Horario:** `HORA epoch_local`, `PROG 18:30 01:00` (o `PROG OFF`), `ZONA -6`.
+- **Tarjeta y red:** `LIMITES v i`, `WIFI red clave` (o `WIFI OFF`), `NOMBRE x`, `INTEGRACIONES ON|OFF`.
+- **Consulta:** `RED` y `ESTADO` responden en JSON.

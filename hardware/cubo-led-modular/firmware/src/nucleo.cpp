@@ -17,6 +17,7 @@ const Perfil PERFILES[] = {
   {"15V 3A",  68000, 15.05f, 3.0f, 1650.f},
   {"24V 2A", 100000, 24.32f, 2.0f, 1000.f},
   {"24V 3A", 150000, 24.32f, 3.0f, 1000.f},
+  {"PERSONAL", 220000, 0.f, 0.f, 0.f},    // R_B a la medida; límites desde la app
 };
 const size_t N_PERFILES = sizeof(PERFILES) / sizeof(PERFILES[0]);
 
@@ -87,6 +88,8 @@ const char* nombreFalla(Falla f) {
   return "?";
 }
 
+static float respiro(uint32_t t);
+
 // ---------------- Controlador ----------------
 static const uint32_t T_RAMPA = 600, T_REINTENTO = 5000, T_DISPARO_OC = 50;
 static const uint8_t MAX_REINTENTOS = 3;
@@ -94,14 +97,28 @@ static const uint8_t MAX_REINTENTOS = 3;
 void Controlador::configurar(int perfil, const RedFB& red) {
   perfil_ = perfil; red_ = red;
   falla_ = perfil < 0 ? Falla::SIN_TARJETA : Falla::NINGUNA;
-  vset_ = perfil < 0 ? 0.f : PERFILES[perfil].vmax;
+  vset_ = vmaxPerfil();
   if (perfil >= 0 && vset_ > vmaxRed(red_)) vset_ = vmaxRed(red_);
 }
 
-float Controlador::limiteCorriente() const { return perfil_ < 0 ? 0.f : PERFILES[perfil_].imax; }
+float Controlador::limiteCorriente() const {
+  if (perfil_ < 0) return 0.f;
+  return perfil_ == PERFIL_PERSONAL ? imax_personal_ : PERFILES[perfil_].imax;
+}
+float Controlador::vmaxPerfil() const {
+  if (perfil_ < 0) return 0.f;
+  return perfil_ == PERFIL_PERSONAL ? vmax_personal_ : PERFILES[perfil_].vmax;
+}
+bool Controlador::fijarLimitesPersonal(float vmax, float imax) {
+  if (perfil_ != PERFIL_PERSONAL || !(vmax >= 3.f && vmax <= 24.4f) || !(imax >= 0.2f && imax <= 5.f)) return false;
+  vmax_personal_ = vmax; imax_personal_ = imax;
+  red_.rb = red_.rt / (vmax / red_.vref - 1.f);      // R_B que el usuario puso en la tarjeta (calculada por la web)
+  if (vset_ <= 0.f || vset_ > vmax) vset_ = vmax;
+  return true;
+}
 
 bool Controlador::encender(bool on) {
-  if (on && perfil_ < 0) return false;
+  if (on && (perfil_ < 0 || limiteCorriente() <= 0.f)) return false;
   if (on && !on_) { rampa_ = 0.f; recorte_i_ = 1.f; }
   if (!on && falla_ != Falla::SIN_TARJETA) { falla_ = Falla::NINGUNA; reintentos_ = 0; }
   on_ = on;
@@ -114,7 +131,8 @@ bool Controlador::fijarBrillo(float b) {
 }
 bool Controlador::fijarVoltaje(float v) {
   if (perfil_ < 0 || !(v > 0.f)) return false;
-  float vmax = PERFILES[perfil_].vmax, vmin = vminDeRed(red_);
+  float vmax = vmaxPerfil(), vmin = vminDeRed(red_);
+  if (vmax <= 0.f) return false;
   if (v > vmax) v = vmax;          // nunca por encima de la tarjeta
   if (v < vmin) v = vmin;
   vset_ = v; return true;
@@ -132,6 +150,16 @@ void Controlador::disparar(Falla f, uint32_t ahora) {
 Salida Controlador::paso(const Medicion& m, uint32_t ahora) {
   uint32_t dt = t_ultimo_ ? ahora - t_ultimo_ : 0;
   t_ultimo_ = ahora;
+  if (prog_on_ && hora_ok_) {                      // horario diario: actúa al cruzar el minuto programado
+    int mm = minutoDelDia(ahora);
+    if (mm != ultimo_min_) {
+      if (ultimo_min_ >= 0) {
+        if (mm == min_on_) encender(true);
+        else if (mm == min_off_) encender(false);
+      }
+      ultimo_min_ = mm;
+    }
+  }
   Salida s{};
   s.vdac = dacParaVoltaje(red_, vset_);
 
@@ -180,42 +208,162 @@ Salida Controlador::paso(const Medicion& m, uint32_t ahora) {
   // --- Arranque suave ---
   if (rampa_ < 1.f) rampa_ = fminf(1.f, rampa_ + (float)dt / T_RAMPA);
 
-  // --- Efectos ---
+  // --- Efectos (tiras analógicas: toda la tira igual) ---
   float b = brillo_;
-  RGBW c = color_;
   t_efecto_ = ahora;
-  if (modo_ == Modo::RESPIRA) {
-    float f = 0.5f - 0.5f * cosf(2.f * 3.14159265f * (ahora % 4000) / 4000.f);
-    b *= 0.15f + 0.85f * f;
-  } else if (modo_ == Modo::ARCOIRIS) {
-    c = rueda((uint8_t)((ahora / 40) & 0xFF));
-  }
+  if (modo_ == Modo::RESPIRA || modo_ == Modo::COMETA) b *= respiro(ahora);
+  RGBW c = colorPixel(0, 1, ahora);
 
   float k = b * rampa_ * factorTermico(m.temp_c) * recorte_i_;
   s.brillo_efectivo = k;
-  if (modo_ != Modo::DIRECCIONABLE) {
-    const uint8_t ch[4] = {c.r, c.g, c.b, c.w};
+  if (!direccionable(tira_)) {
+    uint8_t ch[4] = {c.r, c.g, c.b, c.w};
+    if (tira_ == Tira::RGB) ch[3] = 0;
+    else if (tira_ == Tira::CCT) { RGBW w = mezclaCCT(cct_); ch[0] = w.r; ch[1] = w.g; ch[2] = 0; ch[3] = 0; }
+    else if (tira_ == Tira::MONO) { ch[3] = 255; ch[0] = ch[1] = ch[2] = 0; }
     for (int i = 0; i < 4; ++i) s.pwm[i] = (uint16_t)lroundf(gamma12(ch[i]) * k);
   }
   return s;
 }
 
+// ---------------- Tiras ----------------
+const char* nombreTira(Tira t) {
+  static const char* n[] = {"RGBW", "RGB", "CCT", "MONO", "WS2812B", "SK6812", "WS2811", "WS2815"};
+  return n[(int)t];
+}
+bool igual(const char* a, const char* b);
+bool tiraDeTexto(const char* s, Tira& t) {
+  for (int i = 0; i <= (int)Tira::WS2815; ++i) if (igual(s, nombreTira((Tira)i))) { t = (Tira)i; return true; }
+  if (igual(s, "WS2812")) { t = Tira::WS2812B; return true; }
+  return false;
+}
+bool direccionable(Tira t) { return t >= Tira::WS2812B; }
+uint8_t bytesPorLed(Tira t) { return t == Tira::SK6812 ? 4 : 3; }
+float tensionTira(Tira t) {
+  switch (t) { case Tira::WS2812B: case Tira::SK6812: return 5.f; case Tira::WS2811: case Tira::WS2815: return 12.f; default: return 0.f; }
+}
+RGBW mezclaCCT(uint16_t k) {
+  float m = (k - 2700.f) / (6500.f - 2700.f);
+  if (m < 0) m = 0;
+  if (m > 1) m = 1;
+  float ww = 1.f - m, cw = m, mx = ww > cw ? ww : cw;      // a 4600 K ambos al 100 %
+  return {(uint8_t)lroundf(255 * ww / mx), (uint8_t)lroundf(255 * cw / mx), 0, 0};
+}
+uint8_t ordenarBytes(Tira t, RGBW c, uint8_t* o) {
+  switch (t) {
+    case Tira::WS2811: o[0] = c.r; o[1] = c.g; o[2] = c.b; return 3;
+    case Tira::SK6812: o[0] = c.g; o[1] = c.r; o[2] = c.b; o[3] = c.w; return 4;
+    default:           o[0] = c.g; o[1] = c.r; o[2] = c.b; return 3;   // WS2812B, WS2815
+  }
+}
+const char* nombreModo(Modo m) {
+  static const char* n[] = {"fijo", "respira", "arcoiris", "fuego", "cometa"};
+  return n[(int)m];
+}
+static float respiro(uint32_t t) { return 0.15f + 0.85f * (0.5f - 0.5f * cosf(2.f * 3.14159265f * (t % 4000) / 4000.f)); }
+static uint32_t mezclar(uint32_t x) { x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16; return x; }
+
+RGBW Controlador::colorPixel(uint16_t i, uint16_t n, uint32_t t) const {
+  if (n == 0) n = 1;
+  switch (modo_) {
+    case Modo::ARCOIRIS: return rueda((uint8_t)((i * 256u / n + t / 40) & 0xFF));
+    case Modo::FUEGO: {
+      uint32_t h = mezclar(i * 7919u + (t / 70) * 104729u);
+      float f = 0.45f + 0.55f * (h & 0xFF) / 255.f;           // parpadeo cálido
+      return {(uint8_t)(255 * f), (uint8_t)((70 + (h >> 8 & 0x3F)) * f), 0, (uint8_t)(color_.w * f)};
+    }
+    case Modo::COMETA: {
+      if (n == 1) return color_;
+      uint16_t cabeza = (uint16_t)((t / 25) % n);
+      uint16_t d = (uint16_t)((cabeza + n - i) % n);
+      float f = d > 12 ? 0.f : 1.f - d / 12.f;
+      return {(uint8_t)(color_.r * f), (uint8_t)(color_.g * f), (uint8_t)(color_.b * f), (uint8_t)(color_.w * f)};
+    }
+    case Modo::RESPIRA: case Modo::FIJO: default: return color_;
+  }
+}
+
+bool Controlador::fijarTira(Tira t) {
+  float vt = tensionTira(t);
+  if (vt > 0.f) {                                   // direccionable: la tarjeta debe dar su voltaje (±10 %)
+    float vm = vmaxPerfil();
+    if (vm <= 0.f || vm < vt * 0.9f || vm > vt * 1.1f) return false;
+  }
+  tira_ = t; return true;
+}
+bool Controlador::fijarCCT(uint16_t k) {
+  if (k < 2700 || k > 6500) return false;
+  cct_ = k; return true;
+}
+void Controlador::fijarHora(uint32_t epoch, uint32_t ahora) { epoch_ref_ = epoch; ms_ref_ = ahora; hora_ok_ = true; ultimo_min_ = -1; }
+int Controlador::minutoDelDia(uint32_t ahora) const {
+  if (!hora_ok_) return -1;
+  uint32_t s = epoch_ref_ + (ahora - ms_ref_) / 1000;
+  return (int)((s / 60) % 1440);
+}
+bool Controlador::programar(bool activo, uint16_t a, uint16_t b) {
+  if (activo && (a >= 1440 || b >= 1440 || a == b)) return false;
+  prog_on_ = activo; min_on_ = a; min_off_ = b; ultimo_min_ = -1; return true;
+}
+
+static const char* tras(const char* json, const char* clave) {   // apunta al valor de "clave":
+  char k[16]; snprintf(k, sizeof k, "\"%s\"", clave);
+  const char* p = strstr(json, k);
+  if (!p) return nullptr;
+  p += strlen(k);
+  while (*p == ' ') ++p;
+  if (*p != ':') return nullptr;
+  ++p; while (*p == ' ') ++p;
+  return p;
+}
+bool Controlador::aplicarWled(const char* js) {
+  bool hubo = false;
+  if (const char* p = tras(js, "on")) {
+    if (!strncmp(p, "true", 4)) { encender(true); hubo = true; }
+    else if (!strncmp(p, "false", 5)) { encender(false); hubo = true; }
+    else if (!strncmp(p, "\"t\"", 3)) { encender(!on_); hubo = true; }
+  }
+  if (const char* p = tras(js, "bri")) {
+    char* e; long v = strtol(p, &e, 10);
+    if (e != p && v >= 0 && v <= 255) { if (v == 0) encender(false); else brillo_ = v / 255.f; hubo = true; }
+  }
+  if (const char* p = tras(js, "col")) {
+    while (*p == '[' || *p == ' ') ++p;
+    long v[4] = {0, 0, 0, color_.w}; int k = 0;
+    while (k < 4) {
+      char* e; long x = strtol(p, &e, 10);
+      if (e == p || x < 0 || x > 255) break;
+      v[k++] = x; p = e; while (*p == ' ' || *p == ',') ++p;
+      if (*p == ']') break;
+    }
+    if (k >= 3) { color_ = {(uint8_t)v[0], (uint8_t)v[1], (uint8_t)v[2], (uint8_t)v[3]}; hubo = true; }
+  }
+  return hubo;
+}
+size_t Controlador::estadoWled(char* buf, size_t n) const {
+  int w = snprintf(buf, n, "{\"on\":%s,\"bri\":%d,\"seg\":[{\"id\":0,\"col\":[[%u,%u,%u,%u]],\"fx\":%d}]}",
+                   on_ ? "true" : "false", (int)lroundf(brillo_ * 255), color_.r, color_.g, color_.b, color_.w, (int)modo_);
+  return w < 0 ? 0 : ((size_t)w < n ? (size_t)w : n - 1);
+}
+
 size_t Controlador::estadoJson(char* buf, size_t n, const Medicion& m) const {
-  const char* modos[] = {"fijo", "respira", "arcoiris", "direc"};
-  float vmax = perfil_ < 0 ? 0.f : PERFILES[perfil_].vmax;
+  float vmax = vmaxPerfil();
   int w = snprintf(buf, n,
     "{\"on\":%d,\"perfil\":\"%s\",\"vmax\":%.2f,\"vmin\":%.2f,\"imax\":%.2f,\"vset\":%.2f,"
     "\"v\":%.2f,\"i\":%.3f,\"w\":%.1f,\"vin\":%.1f,\"t\":%.1f,\"brillo\":%d,"
-    "\"rgbw\":[%u,%u,%u,%u],\"modo\":\"%s\",\"falla\":\"%s\"}",
+    "\"rgbw\":[%u,%u,%u,%u],\"modo\":\"%s\",\"falla\":\"%s\",\"tira\":\"%s\",\"cct\":%u,"
+    "\"prog\":%s,\"on_min\":%u,\"off_min\":%u,\"hora\":%d}",
     on_ ? 1 : 0, perfil_ < 0 ? "-" : PERFILES[perfil_].nombre, vmax,
     perfil_ < 0 ? 0.f : vminDeRed(red_), limiteCorriente(), vset_,
     m.vout, m.iout, m.vout * m.iout, m.vin, m.temp_c, (int)lroundf(brillo_ * 100),
-    color_.r, color_.g, color_.b, color_.w, modos[(int)modo_], nombreFalla(falla_));
+    color_.r, color_.g, color_.b, color_.w, nombreModo(modo_), nombreFalla(falla_), nombreTira(tira_), cct_,
+    prog_on_ ? "true" : "false", min_on_, min_off_, minutoDelDia(t_ultimo_));
   return w < 0 ? 0 : ((size_t)w < n ? (size_t)w : n - 1);
 }
 
 // ---------------- Protocolo ----------------
-static bool igual(const char* a, const char* b) {
+bool igual(const char* a, const char* b);
+bool igual(const char* a, const char* b) {
   while (*a && *b) { if (toupper((unsigned char)*a) != toupper((unsigned char)*b)) return false; ++a; ++b; }
   return *a == 0 && *b == 0;
 }
@@ -249,11 +397,33 @@ size_t procesarComando(Controlador& c, const char* linea, const Medicion& m, cha
     c.fijarColor({(uint8_t)v[0], (uint8_t)v[1], (uint8_t)v[2], (uint8_t)v[3]}); return resp(r, n, "OK");
   }
   if (igual(arg[0], "MODO") && na == 2) {
-    if (igual(arg[1], "FIJO")) c.fijarModo(Modo::FIJO);
-    else if (igual(arg[1], "RESPIRA")) c.fijarModo(Modo::RESPIRA);
-    else if (igual(arg[1], "ARCOIRIS")) c.fijarModo(Modo::ARCOIRIS);
-    else if (igual(arg[1], "DIREC")) c.fijarModo(Modo::DIRECCIONABLE);
-    else return resp(r, n, "ERR modo");
+    for (int i = 0; i <= (int)Modo::COMETA; ++i)
+      if (igual(arg[1], nombreModo((Modo)i))) { c.fijarModo((Modo)i); return resp(r, n, "OK"); }
+    return resp(r, n, "ERR modo");
+  }
+  if (igual(arg[0], "TIRA") && na == 2) {
+    Tira t; if (!tiraDeTexto(arg[1], t)) return resp(r, n, "ERR tira");
+    if (!c.fijarTira(t)) { snprintf(r, n, "ERR %s necesita tarjeta de %.0f V", nombreTira(t), tensionTira(t)); return strlen(r); }
+    return resp(r, n, "OK");
+  }
+  if (igual(arg[0], "CCT") && na == 2) {
+    float k; if (!num(arg[1], k) || !c.fijarCCT((uint16_t)k)) return resp(r, n, "ERR rango 2700-6500");
+    return resp(r, n, "OK");
+  }
+  if (igual(arg[0], "HORA") && na == 2) {
+    char* e; unsigned long v = strtoul(arg[1], &e, 10);
+    if (e == arg[1] || *e) return resp(r, n, "ERR hora");
+    c.fijarHora((uint32_t)v, c.ahora()); return resp(r, n, "OK");
+  }
+  if (igual(arg[0], "PROG")) {
+    if (na == 2 && igual(arg[1], "OFF")) { c.programar(false, 0, 0); return resp(r, n, "OK"); }
+    unsigned h1, m1, h2, m2;
+    if (na == 3 && sscanf(arg[1], "%u:%u", &h1, &m1) == 2 && sscanf(arg[2], "%u:%u", &h2, &m2) == 2 &&
+        h1 < 24 && m1 < 60 && h2 < 24 && m2 < 60 && c.programar(true, h1 * 60 + m1, h2 * 60 + m2)) return resp(r, n, "OK");
+    return resp(r, n, "ERR usa PROG hh:mm hh:mm o PROG OFF");
+  }
+  if (igual(arg[0], "LIMITES") && na == 3) {
+    float v, i; if (!num(arg[1], v) || !num(arg[2], i) || !c.fijarLimitesPersonal(v, i)) return resp(r, n, "ERR solo tarjeta PERSONAL, 3-24.4 V y 0.2-5 A");
     return resp(r, n, "OK");
   }
   return resp(r, n, "ERR comando");

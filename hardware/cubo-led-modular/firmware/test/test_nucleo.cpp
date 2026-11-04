@@ -21,7 +21,7 @@ int main() {
   CHECK(decodificarTarjeta(3300.f) == -1);   // sin tarjeta
   CHECK(decodificarTarjeta(10.f) == -1);     // corto
   CHECK(decodificarTarjeta(mvDe(4700)) == -1); // valor no válido entre perfiles
-  for (size_t i = 0; i < N_PERFILES; ++i)        // tarjeta al revés: ID ve R_B -> inválida
+  for (size_t i = 0; i < (size_t)PERFIL_PERSONAL; ++i)        // tarjeta al revés: ID ve R_B -> inválida
     CHECK(decodificarTarjeta(mvDe(PERFILES[i].r_b)) == -1);
   for (size_t i = 0; i < N_PERFILES; ++i) {       // ... y FB ve R_ID -> voltaje bajo (seguro)
     RedFB rev{0.8f, 29400.f, (float)PERFILES[i].r_id, 47000.f, 3.3f};
@@ -29,7 +29,7 @@ int main() {
   }
 
   // --- Red de realimentación: R_FB da el voltaje del perfil ---
-  for (size_t i = 0; i < N_PERFILES; ++i) CHECK(cerca(vmaxDeRed(redPara(i)), PERFILES[i].vmax, 0.06f));
+  for (size_t i = 0; i < (size_t)PERFIL_PERSONAL; ++i) CHECK(cerca(vmaxDeRed(redPara(i)), PERFILES[i].vmax, 0.06f));
   RedFB r12 = redPara(3);
   CHECK(dacParaVoltaje(r12, 12.5f) == 0.f);      // pedir más que el máximo: sin inyección
   CHECK(vminDeRed(r12) > 10.f && vminDeRed(r12) < 11.f);
@@ -125,6 +125,92 @@ int main() {
   printf("%s\n", r);
   char largo[200]; memset(largo, 'A', sizeof largo); largo[199] = 0;
   procesarComando(p, largo, ok, r, sizeof r);             CHECK(!strncmp(r, "ERR", 3));   // no desborda
+
+  // ================= Nuevas funciones =================
+  // --- Tipos de tira ---
+  Tira tt;
+  CHECK(tiraDeTexto("ws2812", tt) && tt == Tira::WS2812B && direccionable(tt) && bytesPorLed(tt) == 3);
+  CHECK(tiraDeTexto("SK6812", tt) && bytesPorLed(tt) == 4 && tensionTira(tt) == 5.f);
+  CHECK(tiraDeTexto("cct", tt) && !direccionable(tt) && tensionTira(tt) == 0.f);
+  CHECK(!tiraDeTexto("APA102", tt));
+  uint8_t ob[4];
+  CHECK(ordenarBytes(Tira::WS2812B, {10, 20, 30, 40}, ob) == 3 && ob[0] == 20 && ob[1] == 10 && ob[2] == 30);
+  CHECK(ordenarBytes(Tira::SK6812, {10, 20, 30, 40}, ob) == 4 && ob[0] == 20 && ob[3] == 40);
+  CHECK(ordenarBytes(Tira::WS2811, {10, 20, 30, 40}, ob) == 3 && ob[0] == 10);
+  RGBW k27 = mezclaCCT(2700), k65 = mezclaCCT(6500), k46 = mezclaCCT(4600);
+  CHECK(k27.r == 255 && k27.g == 0 && k65.r == 0 && k65.g == 255 && k46.r == 255 && k46.g == 255);
+
+  // --- Direccionable de 5 V rechazada con tarjeta de 12 V; aceptada con la de 5 V ---
+  Controlador t12; t12.configurar(3, redPara(3));
+  CHECK(!t12.fijarTira(Tira::WS2812B) && t12.fijarTira(Tira::WS2815) && t12.fijarTira(Tira::CCT));
+  Controlador t5; t5.configurar(0, redPara(0));
+  CHECK(t5.fijarTira(Tira::WS2812B) && !t5.fijarTira(Tira::WS2811));
+  char rr[300];
+  procesarComando(t12, "TIRA WS2812B", ok, rr, sizeof rr); CHECK(strstr(rr, "necesita tarjeta de 5 V") != nullptr);
+
+  // --- Mapeo de canales en tiras analógicas ---
+  Medicion ok12{12.f, 1.f, 24.f, 30.f};
+  Controlador a; a.configurar(3, redPara(3)); a.encender(true); a.fijarBrillo(1.f); a.fijarColor({255, 128, 0, 200});
+  a.fijarTira(Tira::RGB); a.paso(ok12, 10); s = a.paso(ok12, 700);
+  CHECK(s.pwm[0] == 4095 && s.pwm[2] == 0 && s.pwm[3] == 0);
+  a.fijarTira(Tira::CCT); a.fijarCCT(2700); s = a.paso(ok12, 710);
+  CHECK(s.pwm[0] == 4095 && s.pwm[1] == 0 && s.pwm[2] == 0 && s.pwm[3] == 0);
+  a.fijarTira(Tira::MONO); s = a.paso(ok12, 720);
+  CHECK(s.pwm[3] == 4095 && s.pwm[0] == 0);
+  a.fijarTira(Tira::WS2815); s = a.paso(ok12, 730);
+  CHECK(s.pwm[0] == 0 && s.pwm[3] == 0 && s.brillo_efectivo > 0.9f && s.habilitar_reductor);
+
+  // --- Efectos por pixel ---
+  a.fijarColor({200, 100, 50, 0}); a.fijarModo(Modo::FIJO);
+  CHECK(a.colorPixel(5, 60, 1234).r == 200);
+  a.fijarModo(Modo::ARCOIRIS);
+  CHECK(a.colorPixel(0, 60, 0).r != a.colorPixel(30, 60, 0).r);
+  a.fijarModo(Modo::COMETA);
+  RGBW cab = a.colorPixel(4, 60, 100), lejos = a.colorPixel(40, 60, 100);   // cabeza en 100/25 = 4
+  CHECK(cab.r == 200 && lejos.r == 0);
+  a.fijarModo(Modo::FUEGO);
+  RGBW f1 = a.colorPixel(3, 60, 0), f2 = a.colorPixel(3, 60, 700);
+  CHECK(f1.b == 0 && f1.r > f1.g && (f1.r != f2.r || f1.g != f2.g));
+
+  // --- Horario diario 18:30 a 01:00 ---
+  Controlador hz; hz.configurar(1, redPara(1)); hz.encender(false);
+  CHECK(!hz.programar(true, 600, 600) && hz.programar(true, 18 * 60 + 30, 60));
+  uint32_t base = 1767225600u + 18 * 3600 + 29 * 60 + 50;      // 18:29:50
+  hz.fijarHora(base, 0);
+  Medicion ok1b{12.f, 0.5f, 24.f, 30.f};
+  hz.paso(ok1b, 1000); CHECK(!hz.encendido() && hz.minutoDelDia(1000) == 18 * 60 + 29);
+  hz.paso(ok1b, 11000); CHECK(hz.encendido());                    // 18:30:00
+  hz.paso(ok1b, 11000 + 6 * 3600 * 1000u); CHECK(hz.encendido());    // 00:30: sigue encendido
+  // (pasa por 01:00 en algún ciclo intermedio)
+  Controlador hz2; hz2.configurar(1, redPara(1)); hz2.programar(true, 18 * 60 + 30, 60);
+  hz2.fijarHora(1767225600u + 59 * 60 + 30, 0); hz2.encender(true);        // 00:59:30 encendido
+  hz2.paso(ok1b, 100); hz2.paso(ok1b, 31000); CHECK(!hz2.encendido());      // 01:00 -> apaga
+  procesarComando(hz2, "PROG 25:00 01:00", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  procesarComando(hz2, "PROG 07:15 23:45", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK") && hz2.minEncender() == 435 && hz2.minApagar() == 1425);
+  procesarComando(hz2, "PROG OFF", ok, rr, sizeof rr); CHECK(!hz2.horarioActivo());
+
+  // --- API JSON tipo WLED ---
+  Controlador wl; wl.configurar(1, redPara(1));
+  CHECK(wl.aplicarWled("{\"on\":true,\"bri\":128,\"seg\":[{\"col\":[[255,0,10]]}]}"));
+  CHECK(wl.encendido() && cerca(wl.brillo(), 128 / 255.f, 1e-3f) && wl.color().r == 255 && wl.color().b == 10);
+  CHECK(wl.aplicarWled("{\"on\":\"t\"}") && !wl.encendido());
+  CHECK(wl.aplicarWled("{\"col\":[[1,2,3,4]]}") && wl.color().w == 4);
+  CHECK(!wl.aplicarWled("{\"bri\":999}") && !wl.aplicarWled("hola"));
+  wl.estadoWled(rr, sizeof rr); CHECK(strstr(rr, "\"on\":false") && strstr(rr, "[[1,2,3,4]]"));
+
+  // --- Tarjeta PERSONAL (220k) ---
+  CHECK(decodificarTarjeta(mvDe(220000)) == PERFIL_PERSONAL);
+  RedFB rp{0.8f, 29400.f, 1910.f, 47000.f, 3.3f};          // R_B 1.91k -> ~13.1 V
+  Controlador pe; pe.configurar(PERFIL_PERSONAL, rp);
+  CHECK(!pe.encender(true));                                 // sin límites programados no enciende
+  procesarComando(pe, "LIMITES 13 2.5", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK"));
+  CHECK(pe.encender(true) && cerca(pe.limiteCorriente(), 2.5f, 1e-6f) && cerca(pe.vset(), 13.f, 1e-6f));
+  pe.fijarVoltaje(12.f); s = pe.paso(Medicion{12.f, 0.5f, 24.f, 30.f}, 50);     // la red se ajustó a Vmax = 13 V
+  CHECK(cerca(s.vdac, dacParaVoltaje(RedFB{0.8f, 29400.f, 29400.f / (13.f / 0.8f - 1.f), 47000.f, 3.3f}, 12.f), 1e-4f) && s.vdac > 1.1f);
+  procesarComando(pe, "LIMITES 30 2", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  procesarComando(p, "LIMITES 12 1", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));   // tarjeta normal: no
+  procesarComando(p, "MODO fuego", ok, rr, sizeof rr); CHECK(p.modo() == Modo::FUEGO);
+  procesarComando(p, "CCT 9000", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
 
   printf("%d/%d pruebas OK\n", total - fallos, total);
   return fallos ? 1 : 0;

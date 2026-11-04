@@ -7,6 +7,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string>
+#define PROGMEM
+typedef const char* PGM_P;
+struct String { String(); String(const char*); const char* c_str() const; void trim(); bool operator==(const char*) const;
+  String operator+(const String&) const; String operator+(const char*) const; };
+String operator+(const char*, const String&);
+struct IPAddress { String toString() const; };
 #define OUTPUT 1
 #define INPUT_PULLUP 2
 #define LOW 0
@@ -20,3 +26,5 @@ size_t strlcpy(char*, const char*, size_t);
 struct HardwareSerial { void begin(long); int available(); int read(); size_t println(const char*); int printf(const char*, ...); };
 extern HardwareSerial Serial;
 struct EspClass { uint64_t getEfuseMac(); }; extern EspClass ESP;
+int strncasecmp(const char*, const char*, size_t);
+void configTime(long, int, const char*, const char* = nullptr, const char* = nullptr);
