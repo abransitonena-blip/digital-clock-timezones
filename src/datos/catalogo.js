@@ -11,6 +11,7 @@ export const TIRAS = [
   { id: 'cct-24', nombre: 'Blanco dual CCT · 24 V', tipo: 'CCT', v: 24, wm: 12, tramoMax: 10, uso: 'Hogar, oficinas, alimentos' },
   { id: '5050-rgb-30-12', nombre: 'SMD5050 RGB · 30 LED/m · 12 V', tipo: 'RGB', v: 12, wm: 7.2, tramoMax: 5, uso: 'Decoración, ambientación' },
   { id: '5050-rgb-60-12', nombre: 'SMD5050 RGB · 60 LED/m · 12 V', tipo: 'RGB', v: 12, wm: 14.4, tramoMax: 5, uso: 'Decoración intensa' },
+  { id: 'rgbcct-60-24', nombre: 'SMD5050 RGB + CCT · 60 LED/m · 24 V', tipo: 'RGBCCT', v: 24, wm: 19.2, tramoMax: 8, uso: 'Color + blanco cálido y frío (placa v2)' },
   { id: '5050-rgbw-60-24', nombre: 'SMD5050 RGBW · 60 LED/m · 24 V', tipo: 'RGBW', v: 24, wm: 18, tramoMax: 8, uso: 'Color + blanco real' },
   { id: 'ws2812b-30', nombre: 'WS2812B · 30 LED/m · 5 V', tipo: 'WS2812B', v: 5, wm: 9, tramoMax: 2, uso: 'Efectos, letreros animados' },
   { id: 'ws2812b-60', nombre: 'WS2812B · 60 LED/m · 5 V', tipo: 'WS2812B', v: 5, wm: 18, tramoMax: 1.5, uso: 'Efectos de alta resolución' },
@@ -85,7 +86,7 @@ export const COMPAT = [
     ['RGB 5050', 'si', 'Salidas R, G, B'],
     ['RGBW / RGBWW 4 en 1', 'si', 'Salidas R, G, B, W'],
     ['Blanco dual CCT', 'si', 'Cálido en R, frío en G; 2700–6500 K'],
-    ['RGB + CCT (5 canales)', 'no', 'Requiere 5 salidas; la placa v1 tiene 4'],
+    ['RGB + CCT (5 canales)', 'si', 'Placa v2: blanco cálido en W y frío en el 5.º canal'],
   ] },
   { grupo: 'Tiras direccionables', items: [
     ['WS2812B / WS2813 (5 V, GRB)', 'si', 'Hasta 600 LED; tarjeta de 5 V'],
@@ -105,7 +106,7 @@ export const COMPAT = [
     ['Matter (Wi-Fi)', 'plan', 'El ESP32-C3 lo permite; requiere migrar el firmware a ESP-IDF'],
     ['Actualización por Wi-Fi (OTA)', 'si', 'Desde la página del cubo, con PIN'],
     ['DMX por red: Art-Net y sACN / E1.31', 'parcial', 'Consolas, xLights, QLC+, Resolume, MadMapper; probado con paquetes de prueba, falta con consola real'],
-    ['DMX512 por cable (XLR)', 'plan', 'Necesita transceptor RS-485 en la placa v2'],
+    ['DMX512 por cable', 'parcial', 'Placa v2: RS-485 con protección y terminación; bornera GND·D−·D+. Falta probar con consola'],
     ['Tuya / Smart Life', 'no', 'Ecosistema cerrado en la nube'],
   ] },
   { grupo: 'Energía', items: [
@@ -129,6 +130,12 @@ export const PROYECTOS = [
     img: 'img/placa_control_arriba.jpg',
     texto: 'TPS54560 5 A, INA226, DAC, 2 × UCC27524 + 4 MOSFET, 74AHCT1G125. 2 capas, DRC sin errores.',
     docs: [['Esquema (PDF)', 'docs/esquema_placa_control.pdf'], ['Gerber (ZIP)', 'docs/cubo_ap_control_gerbers.zip'], ['BOM (CSV)', 'docs/bom.csv']],
+  },
+  {
+    id: 'placa2', nombre: 'Placa de control v2 · DMX + 5 canales', estado: 'Gerber listos, sin fabricar',
+    img: 'img/placa_control_v2_arriba.jpg',
+    texto: 'Todo lo de la v1 más DMX512 por cable (RS-485 con TVS y terminación) y 5.º canal para tiras RGB+CCT. DRC sin errores.',
+    docs: [['Esquema v2 (PDF)', 'docs/esquema_placa_control_v2.pdf'], ['BOM v2 (CSV)', 'docs/bom_v2.csv']],
   },
   {
     id: 'fuente127', nombre: 'Fuente universal 127 V (flyback)', estado: 'Diseño para planchar, sin probar',

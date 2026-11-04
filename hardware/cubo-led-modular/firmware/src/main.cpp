@@ -4,6 +4,7 @@
 //   · Bluetooth LE (Nordic UART) con PIN de 6 dígitos  -> app web / celular
 //   · Wi-Fi: página de control en http://<nombre>.local, API /api/cmd (pide PIN en cabecera X-PIN)
 //   · DMX por red: Art-Net (UDP 6454) y sACN/E1.31 (UDP 5568, multicast) para consolas, xLights, QLC+, Resolume
+//   · DMX512 por cable (placa v2): transceptor RS-485 en GPIO2, 250 kbit/s
 //   · Actualización OTA en /update (pide PIN; apaga la salida mientras escribe)
 //   · Integraciones (se activan con "INTEGRACIONES ON" por Bluetooth): API JSON tipo WLED (/json/state),
 //     anuncio mDNS _wled._tcp y Alexa local (emulación Hue con Espalexa). Home Assistant las usa vía WLED/Hue.
@@ -25,7 +26,11 @@
 // ---------------- Pines (ver README: tabla de pines) ----------------
 static const int P_TARJETA = 0;   // ADC: R_ID de la tarjeta (pull-up 47k)
 static const int P_VIN     = 1;   // ADC: Vin / 11 (100k / 10k)
-static const int P_BOTON   = 2;   // botón a GND (pull-up 10k)
+#ifndef CUBO_PLACA
+#define CUBO_PLACA 2               // 1: placa v1 (botón en GPIO2) · 2: placa v2 (DMX por cable + 5.º canal)
+#endif
+static const int P_BOTON   = 2;   // v1: botón a GND (pull-up 10k) · v2: RO del transceptor RS-485 (DMX512)
+static const int P_CANAL5  = 10;  // v2: 5.º canal (blanco frío) en el mismo GPIO que DAT; nunca se usan juntos
 static const int P_NTC     = 3;   // ADC: NTC 10k B3950 a GND, 10k a 3.3 V
 static const int P_EN      = 4;   // EN del reductor (4.7k serie, 10k a GND; ALERT del INA226 lo tira a GND)
 static const int P_PWM[4]  = {21, 5, 6, 7}; // R G B W -> drivers UCC27524 -> MOSFET
@@ -49,6 +54,8 @@ static NimBLECharacteristic* tx = nullptr;
 static WebServer web(80);
 static Espalexa alexa;
 static WiFiUDP udp_art, udp_sacn;
+static ap::ReceptorDmx rx_dmx;
+static bool uart_dmx = false;
 static bool reiniciar_udp = true, ota_negada = false, ota_activa = false;
 static volatile bool conectado = false;
 static bool en_previo = false, guardar_pendiente = false, integraciones = false, wifi_ok = false;
@@ -91,6 +98,10 @@ static void medir() {
 
 // ---------------- Tira direccionable ----------------
 static void tipo_neopixel() {
+  static bool pwm10 = false;
+  bool quiero_pwm = CUBO_PLACA >= 2 && ctl.tira() == ap::Tira::RGBCCT;
+  if (quiero_pwm && !pwm10) { ledcAttach(P_CANAL5, 19000, 12); ledcWrite(P_CANAL5, 0); pwm10 = true; }
+  if (!quiero_pwm && pwm10) { ledcDetach(P_CANAL5); pwm10 = false; tira.begin(); }
   switch (ctl.tira()) {
     case ap::Tira::SK6812: tira.updateType(NEO_GRBW + NEO_KHZ800); break;
     case ap::Tira::WS2811: tira.updateType(NEO_RGB + NEO_KHZ800); break;
@@ -337,7 +348,26 @@ static void led_estado(uint32_t t) {
   else v = (t % 2000) < 60;                            // latido en espera
   digitalWrite(P_LED, v);
 }
+static void uart_dmx_atender() {                 // DMX512 por cable: 250 kbit/s 8N2, la ruptura separa tramas
+#if CUBO_PLACA >= 2
+  bool quiero = ctl.protoDmx() == ap::ProtoDmx::CABLE;
+  if (quiero && !uart_dmx) {
+    Serial1.setRxBufferSize(1024);
+    Serial1.onReceive([] { while (Serial1.available()) rx_dmx.byte((uint8_t)Serial1.read()); });
+    Serial1.onReceiveError([](hardwareSerial_error_t e) {
+      if (e == UART_BREAK_ERROR) { while (Serial1.available()) rx_dmx.byte((uint8_t)Serial1.read()); rx_dmx.ruptura(); }
+    });
+    Serial1.begin(250000, SERIAL_8N2, P_BOTON, -1);
+    uart_dmx = true;
+  } else if (!quiero && uart_dmx) { Serial1.end(); uart_dmx = false; }
+  static uint8_t trama[512]; uint16_t n;
+  if (uart_dmx && rx_dmx.tomar(trama, n)) ctl.entradaDmx(trama, n, millis());
+#endif
+}
 static void boton(uint32_t t) {
+#if CUBO_PLACA >= 2
+  (void)t; return;                                   // v2 no tiene botón: ese GPIO es la entrada DMX
+#endif
   static uint32_t t0 = 0; static bool prev = true;
   bool b = digitalRead(P_BOTON);
   if (!b && prev) t0 = t;
@@ -357,6 +387,7 @@ static void boton(uint32_t t) {
 void setup() {
   pinMode(P_EN, OUTPUT); digitalWrite(P_EN, LOW);      // reductor apagado hasta decidir
   pinMode(P_LED, OUTPUT); pinMode(P_BOTON, INPUT_PULLUP);
+  ctl.placaCincoCanales(CUBO_PLACA >= 2);
   for (int i = 0; i < 4; ++i) { ledcAttach(P_PWM[i], 19000, 12); ledcWrite(P_PWM[i], 0); }
   Serial.begin(115200);
   analogReadResolution(12);
@@ -386,10 +417,16 @@ void loop() {
   while (Serial.available()) {                          // mismo protocolo por USB
     static char b[96]; static size_t n = 0;
     char ch = Serial.read();
-    if (ch == '\n' || n == sizeof b - 1) { b[n] = 0; if (n) { ejecutar(b, r, sizeof r); Serial.println(r); } n = 0; }
+    if (ch == '\n' || n == sizeof b - 1) {
+      b[n] = 0;
+      if (!strcasecmp(b, "OLVIDAR")) { NimBLEDevice::deleteAllBonds(); Serial.println("OK vinculos borrados"); }  // solo por USB
+      else if (n) { ejecutar(b, r, sizeof r); Serial.println(r); }
+      n = 0;
+    }
     else if (ch != '\r') b[n++] = ch;
   }
   boton(t);
+  uart_dmx_atender();
   led_estado(t);
   wifi_atender(t);
 
@@ -404,6 +441,7 @@ void loop() {
     dac_w(s.vdac);
     digitalWrite(P_EN, s.habilitar_reductor);
     for (int i = 0; i < 4; ++i) ledcWrite(P_PWM[i], s.pwm[i]);
+    if (CUBO_PLACA >= 2 && ctl.tira() == ap::Tira::RGBCCT) ledcWrite(P_CANAL5, s.pwm[4]);
     if (ap::direccionable(ctl.tira()) && t - t_tira >= 20) {   // 50 cuadros por segundo
       t_tira = t; float k = s.brillo_efectivo;
       for (uint16_t i = 0; i < tira.numPixels(); ++i) {

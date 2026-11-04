@@ -49,7 +49,8 @@ RGBW rueda(uint8_t pos);      // arcoíris
 //   RGBW, RGB, CCT (blanco cálido en R, frío en G), MONO (un color, salida W).
 // Direccionables (una línea de datos, salida DAT): WS2812B (5 V, GRB), SK6812 (5 V, GRBW),
 //   WS2811 (12 V, RGB), WS2815 (12 V, GRB). Con relojes (APA102/SK9822) no: requieren 2 líneas.
-enum class Tira : uint8_t { RGBW, RGB, CCT, MONO, WS2812B, SK6812, WS2811, WS2815 };
+// RGBCCT (placa v2): R G B + blanco cálido en W + blanco frío en el 5.º canal (comparte GPIO con DAT).
+enum class Tira : uint8_t { RGBW, RGB, CCT, MONO, WS2812B, SK6812, WS2811, WS2815, RGBCCT };
 const char* nombreTira(Tira t);
 bool tiraDeTexto(const char* s, Tira& t);
 bool direccionable(Tira t);
@@ -74,13 +75,28 @@ struct Medicion {        // lo que llega de sensores en cada ciclo
 
 struct Salida {          // lo que el firmware aplica al hardware en cada ciclo
   bool habilitar_reductor;
-  uint16_t pwm[4];       // 12 bit R,G,B,W
+  uint16_t pwm[5];       // 12 bit R,G,B,W y 5.º canal (solo RGBCCT)
   float vdac;            // V para el DAC de ajuste
   float brillo_efectivo; // 0..1 tras limitaciones
 };
 
 // ---------- DMX por red: Art-Net (UDP 6454) y sACN / E1.31 (UDP 5568) ----------
-enum class ProtoDmx : uint8_t { OFF, ARTNET, SACN };
+enum class ProtoDmx : uint8_t { OFF, ARTNET, SACN, CABLE };
+
+// DMX512 por cable (RS-485 a 250 kbit/s, 8N2). La UART avisa la ruptura (break) entre tramas;
+// cada byte va a byte(). Al llegar la ruptura, la trama anterior queda lista si empezó con código 0.
+class ReceptorDmx {
+public:
+  void byte(uint8_t b) { if (n_ < sizeof trabajo_) trabajo_[n_++] = b; }
+  void ruptura();
+  bool tomar(uint8_t* destino, uint16_t& n);   // copia la última trama completa (sin código de inicio)
+  uint32_t tramas() const { return tramas_; }
+private:
+  uint8_t trabajo_[513] = {}, lista_[512] = {};
+  uint16_t n_ = 0, n_lista_ = 0;
+  volatile bool hay_ = false;
+  uint32_t tramas_ = 0;
+};
 // Devuelven true si el paquete es DMX válido; dan universo, puntero a los canales y cuántos son.
 bool leerArtNet(const uint8_t* p, size_t len, uint16_t& universo, const uint8_t*& datos, uint16_t& n);
 bool leerE131(const uint8_t* p, size_t len, uint16_t& universo, const uint8_t*& datos, uint16_t& n);
@@ -98,6 +114,7 @@ public:
   bool fijarVoltaje(float v);         // se recorta a [vmin, vmax del perfil]
   bool fijarModo(Modo m);
   bool fijarTira(Tira t);             // rechaza direccionables si la tarjeta no da su voltaje
+  void placaCincoCanales(bool si) { cinco_canales_ = si; }   // placa v2: hay 5.º canal
   bool fijarCCT(uint16_t kelvin);     // 2700–6500 K
   // Reloj y horario diario (la app o NTP mandan la hora local en segundos desde 1970)
   void fijarHora(uint32_t epoch_local, uint32_t ahora_ms);
@@ -136,6 +153,7 @@ public:
   // Direccionables: 3 o 4 canales por LED desde dir. Si dejan de llegar paquetes 2.5 s, vuelve al modo normal.
   bool configurarDmx(ProtoDmx p, uint16_t universo, uint16_t direccion);
   bool paqueteRed(const uint8_t* p, size_t len, uint32_t ahora_ms);
+  bool entradaDmx(const uint8_t* canales, uint16_t n, uint32_t ahora_ms);   // DMX ya decodificado (cable)
   bool dmxActivo(uint32_t ahora_ms) const;
   ProtoDmx protoDmx() const { return dmx_proto_; }
   uint16_t universoDmx() const { return dmx_univ_; }
@@ -173,6 +191,7 @@ private:
   uint32_t t_dmx_ = 0;
   uint8_t dmx_[512] = {};
   Escena escenas_[N_ESCENAS] = {};
+  bool cinco_canales_ = false;
 };
 
 // ---------- Protocolo de texto (BLE UART / USB serie) ----------

@@ -3,9 +3,9 @@ const B = import.meta.env.BASE_URL
 
 const SPECS = [
   ['Entrada', '12–36 V DC (cartucho 127 V, batería o fuente)'], ['Salida', '5–24.3 V, hasta 5 A por cubo'],
-  ['Canales', '4 PWM de 5 A (R, G, B, W) + datos WS2812/SK6812/WS2811/WS2815'], ['Control', 'ESP32-C3: Bluetooth LE + Wi-Fi 2.4 GHz'],
+  ['Canales', '5 PWM de 5 A (R, G, B, WW, CW) + datos WS2812/SK6812/WS2811/WS2815'], ['Control', 'ESP32-C3: Bluetooth LE + Wi-Fi 2.4 GHz'],
   ['Medición', 'Voltaje, corriente, potencia, temperatura y voltaje de entrada'], ['Protecciones', 'Corte por hardware 1 ms, polaridad, TVS, térmica, reintento'],
-  ['Caja', '80 mm IP67 de diseño (100 mm de aluminio para 75 W)'], ['Integraciones', 'Alexa local, WLED (básico), Home Assistant'],
+  ['Caja', '80 mm IP67 de diseño (100 mm de aluminio para 75 W)'], ['Integraciones', 'Alexa local, WLED (básico), Home Assistant'], ['DMX', 'Art-Net y sACN por Wi-Fi; DMX512 por cable (RS-485)'],
 ]
 
 export default function Cubo() {
@@ -36,12 +36,12 @@ export default function Cubo() {
         </ol>
       </div>
       <div className="tarjeta">
-        <h2>Placa de control</h2>
-        <img className="foto" src={B + 'img/placa_control_arriba.jpg'} alt="Placa de control de 68 por 64 milímetros" loading="lazy" />
+        <h2>Placa de control v2</h2>
+        <img className="foto" src={B + 'img/placa_control_v2_arriba.jpg'} alt="Placa de control v2 de 68 por 64 milímetros" loading="lazy" />
         <div className="fila" style={{ marginTop: 10 }}>
-          <a className="boton" href={B + 'docs/esquema_placa_control.pdf'}>Esquema</a>
-          <a className="boton" href={B + 'docs/cubo_ap_control_gerbers.zip'}>Gerber</a>
-          <a className="boton" href={B + 'docs/bom.csv'}>BOM</a>
+          <a className="boton" href={B + 'docs/esquema_placa_control_v2.pdf'}>Esquema</a>
+          <a className="boton" href={B + 'docs/cubo_ap_control_v2_gerbers.zip'}>Gerber</a>
+          <a className="boton" href={B + 'docs/bom_v2.csv'}>BOM</a>
           <a className="boton" href={B + 'docs/cubo_ap_sistema.pdf'}>Sistema</a>
         </div>
       </div>

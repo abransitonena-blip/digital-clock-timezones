@@ -268,6 +268,39 @@ int main() {
   procesarComando(es, "ESCENA GUARDAR 9", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
   Controlador es2; es2.cargarEscenas(es.escenas()); CHECK(es2.aplicarEscena(2) && es2.color().b == 3);
 
+  // ================= Placa v2: RGB+CCT (5 canales) y DMX por cable =================
+  Controlador v2; v2.configurar(6, redPara(6));                        // 24 V 2 A
+  CHECK(!v2.fijarTira(Tira::RGBCCT));                                   // placa v1: no hay 5.º canal
+  v2.placaCincoCanales(true); CHECK(v2.fijarTira(Tira::RGBCCT) && !direccionable(Tira::RGBCCT));
+  CHECK(tiraDeTexto("rgbcct", tt) && tt == Tira::RGBCCT);
+  Medicion ok24{24.f, 1.f, 30.f, 30.f};
+  v2.encender(true); v2.fijarBrillo(1.f); v2.fijarColor({255, 0, 0, 255}); v2.fijarCCT(6500);
+  v2.paso(ok24, 10); s = v2.paso(ok24, 700);
+  CHECK(s.pwm[0] == 4095 && s.pwm[3] == 0 && s.pwm[4] == 4095);         // 6500 K: todo el blanco al frío
+  v2.fijarCCT(2700); s = v2.paso(ok24, 710); CHECK(s.pwm[3] == 4095 && s.pwm[4] == 0);
+  v2.fijarTira(Tira::RGBW); s = v2.paso(ok24, 720); CHECK(s.pwm[4] == 0);   // otras tiras: 5.º canal apagado
+
+  // receptor DMX512: bytes de la UART + rupturas
+  ReceptorDmx rx; uint8_t got[512]; uint16_t gn = 0;
+  CHECK(!rx.tomar(got, gn));
+  rx.ruptura();                                                          // primera ruptura: no hay trama previa
+  rx.byte(0x00); for (int k = 1; k <= 512; ++k) rx.byte((uint8_t)k);    // código 0 + 512 canales
+  rx.byte(0x77);                                                         // byte de más: se ignora
+  rx.ruptura(); CHECK(rx.tomar(got, gn) && gn == 512 && got[0] == 1 && got[511] == 0 && rx.tramas() == 1);
+  CHECK(!rx.tomar(got, gn));                                             // ya se tomó
+  rx.byte(0xCC); rx.byte(5); rx.ruptura(); CHECK(!rx.tomar(got, gn));    // código 0xCC (RDM): no es de niveles
+  rx.byte(0x00); rx.ruptura(); CHECK(!rx.tomar(got, gn));                // trama vacía
+  rx.byte(0x00); rx.byte(200); rx.byte(1); rx.byte(2); rx.byte(3); rx.byte(4); rx.byte(5); rx.ruptura();
+  CHECK(rx.tomar(got, gn) && gn == 6);
+  // RGB+CCT por DMX: atenuador, R, G, B, cálido, frío
+  v2.fijarTira(Tira::RGBCCT); CHECK(v2.configurarDmx(ProtoDmx::CABLE, 99, 1) && v2.universoDmx() == 0);
+  CHECK(v2.entradaDmx(got, gn, 800)); s = v2.paso(ok24, 810);
+  CHECK(cerca(s.brillo_efectivo, 200 / 255.f, 0.01f) && s.pwm[4] == (uint16_t)lroundf(gamma12(5) * s.brillo_efectivo) && s.pwm[3] == (uint16_t)lroundf(gamma12(4) * s.brillo_efectivo));
+  procesarComando(v2, "DMX CABLE 600", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  procesarComando(v2, "DMX CABLE 17", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK") && v2.protoDmx() == ProtoDmx::CABLE && v2.direccionDmx() == 17);
+  v2.estadoJson(grande, sizeof grande, ok); CHECK(strstr(grande, "\"dmx\":\"cable\"") && strstr(grande, "\"tira\":\"RGBCCT\""));
+  procesarComando(v2, "DMX OFF", ok, rr, sizeof rr); CHECK(!v2.entradaDmx(got, gn, 900));
+
   printf("%d/%d pruebas OK\n", total - fallos, total);
   return fallos ? 1 : 0;
 }

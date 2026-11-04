@@ -29,3 +29,10 @@ struct EspClass { uint64_t getEfuseMac(); void restart(); };
 void delay(uint32_t); extern EspClass ESP;
 int strncasecmp(const char*, const char*, size_t);
 void configTime(long, int, const char*, const char* = nullptr, const char* = nullptr);
+bool ledcDetach(int);
+#define SERIAL_8N2 0x800003c
+typedef enum { UART_NO_ERROR, UART_BREAK_ERROR, UART_BUFFER_FULL_ERROR, UART_FIFO_OVF_ERROR, UART_FRAME_ERROR, UART_PARITY_ERROR } hardwareSerial_error_t;
+#include <functional>
+struct HardwareSerial1 { void begin(unsigned long, uint32_t, int8_t, int8_t); void end(); int available(); int read();
+  size_t setRxBufferSize(size_t); void onReceive(std::function<void(void)>, bool = false); void onReceiveError(std::function<void(hardwareSerial_error_t)>); };
+extern HardwareSerial1 Serial1;

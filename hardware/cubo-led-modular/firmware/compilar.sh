@@ -1,7 +1,7 @@
 #!/bin/bash
 # Compila el firmware del Cubo AP con arduino-cli (sin IDE). Todo se descarga de github.com:
 # arduino-cli 1.1.1, núcleo ESP32 3.1.1 (solo herramientas del C3) y librerías con versión fija.
-#   bash compilar.sh                         -> binarios en ./binarios
+#   bash compilar.sh                         -> binarios en ./binarios (placa v2 y v1)
 #   PUERTO=/dev/ttyACM0 bash compilar.sh     -> además graba por USB-C
 set -e
 AQUI=$(cd "$(dirname "$0")" && pwd)
@@ -31,9 +31,12 @@ cd "$D"
 python3 "$AQUI/gen_pagina.py"
 rm -rf CuboAP && mkdir CuboAP && cp "$AQUI"/src/*.cpp "$AQUI"/src/*.h CuboAP/ && echo '// programa en main.cpp y nucleo.cpp' > CuboAP/CuboAP.ino
 FQBN=esp32:esp32:esp32c3:CDCOnBoot=cdc,PartitionScheme=min_spiffs
-./arduino-cli --config-file cli.yaml compile -b $FQBN --build-property runtime.tools.ctags.path="$D/ctags" --output-dir "$D/out" CuboAP
 mkdir -p "$AQUI/binarios"
-cp out/CuboAP.ino.merged.bin "$AQUI/binarios/CuboAP_completo_0x0.bin"
-cp out/CuboAP.ino.bin "$AQUI/binarios/CuboAP_actualizacion_OTA.bin"
+for P in 2 1; do
+  ./arduino-cli --config-file cli.yaml compile -b $FQBN --build-property runtime.tools.ctags.path="$D/ctags" \
+    --build-property "compiler.cpp.extra_flags=-DCUBO_PLACA=$P" --output-dir "$D/out$P" CuboAP
+  cp "out$P/CuboAP.ino.merged.bin" "$AQUI/binarios/CuboAP_placa_v${P}_completo_0x0.bin"
+  cp "out$P/CuboAP.ino.bin" "$AQUI/binarios/CuboAP_placa_v${P}_OTA.bin"
+done
 echo "Binarios en $AQUI/binarios"
-[ -z "$PUERTO" ] || ./arduino-cli --config-file cli.yaml upload -b $FQBN -p "$PUERTO" --input-dir out CuboAP
+[ -z "$PUERTO" ] || ./arduino-cli --config-file cli.yaml upload -b $FQBN -p "$PUERTO" --input-dir out${PLACA:-2} CuboAP

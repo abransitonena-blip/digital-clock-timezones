@@ -17,10 +17,14 @@ Regenerar: `python3 cubo.py && python3 render.py && python3 hacer_documento.py &
   - calcula el voltaje y el DAC;
   - aplica el arranque suave, la limitación suave de corriente, el recorte térmico, las fallas con reintento y los efectos;
   - interpreta el protocolo de texto.
-- `firmware/test/test_nucleo.cpp`: **215 pruebas** que corren en PC. Comando:
+- `firmware/test/test_nucleo.cpp`: **234 pruebas** que corren en PC. Comando:
   `cd firmware/test && g++ -std=c++17 -I../src test_nucleo.cpp ../src/nucleo.cpp -o t && ./t`
+- **Compilación real:** `firmware/compilar.sh` usa arduino-cli + núcleo ESP32 3.1.1 con las librerías en versión fija y compila **sin errores**: v2 1.39 MB y v1 1.38 MB, el 70 % de la partición `min_spiffs`. La partición de fábrica de 1.25 MB **no alcanza**.
+  - `firmware/binarios/`: imágenes completas (para la dirección 0x0) y binarios OTA, para cada placa.
+  - Grabar por USB: `esptool.py --chip esp32c3 write_flash 0x0 CuboAP_placa_v2_completo_0x0.bin`, o `PUERTO=/dev/ttyACM0 bash compilar.sh`.
+  - Se elige la placa con `-DCUBO_PLACA=1|2`.
 - `firmware/src/main.cpp`: código del ESP32-C3. Usa Arduino-ESP32 3.x, NimBLE-Arduino 2.x y Adafruit NeoPixel. Compila con `pio run`.
-  Usa Espalexa para Alexa. Solo se verificó la sintaxis contra cabeceras simuladas (`test/stubs`). `gen_pagina.py` mete `app/index.html` en `src/pagina.h`; PlatformIO lo corre solo al compilar. **Falta compilarlo con el toolchain real y probarlo en placa.**
+  Usa Espalexa para Alexa. Ya compila con el toolchain real (ver arriba). `gen_pagina.py` mete `app/index.html` en `src/pagina.h`; `compilar.sh` y PlatformIO lo corren solos. **Falta probarlo en la placa.**
 - `app/index.html`: app web con Bluetooth seguro (Chrome/Edge en Android o PC), servida por HTTPS (p. ej., GitHub Pages).
   Tiene un botón **Demo** para probarla sin hardware.
 
@@ -54,7 +58,22 @@ El cartucho debe dar al menos Vout + 1.2 V. Para 12 V y 15 V se usa el de 24 V; 
 | 3 | ADC NTC 10k | | 20 | LED de estado (tubo de luz de la tapa) |
 | 4 | EN del reductor (+ ALERT del INA226) | | 21 | PWM R |
 
-## Placa de control (`placa-control/`)
+## Placa de control v2 (`placa-control-v2/`), la recomendada
+Es la v1 con dos agregados:
+- **DMX512 por cable:**
+  - transceptor RS-485 de 3.3 V fijo en recepción, en GPIO2 (donde la v1 tenía el botón);
+  - SM712 contra descargas;
+  - terminación de 120 Ω con el puente JP3: se pone solo en el último equipo;
+  - bornera de 3.5 mm: 1 GND · 2 D− · 3 D+, igual a los pines 1, 2 y 3 del XLR.
+- **5.º canal** con UCC27517 y MOSFET para tiras **RGB+CCT**. Comparte GPIO10 con los datos WS2812, y el firmware nunca usa los dos a la vez.
+
+La bornera de salida es de 8 polos: V+ R G B WW CW DAT GND.
+- **Ruteo:** DRC sin errores, 0 redes abiertas, 183 vías.
+- **Archivos:** Gerber en `cubo_ap_control_v2_gerbers.zip` y esquema en `esquema_placa_control_v2.pdf`.
+- **Sin botón:** para borrar los teléfonos vinculados se escribe `OLVIDAR` por el USB, que requiere acceso físico.
+- **Verificar antes de fabricar:** además de lo que dice la v1, el pinout del UCC27517 (1 VDD, 2 GND, 3 IN+, 4 IN−, 5 OUT) y del SM712.
+
+## Placa de control v1 (`placa-control/`)
 Placa de 2 capas, 68 × 64 mm, hecha para fabricarse y ensamblarse (JLCPCB o similar). Detalles en `placa-control/README.md`.
 
 ### Tiras, efectos e integraciones (firmware)
@@ -89,6 +108,7 @@ Placa de 2 capas, 68 × 64 mm, hecha para fabricarse y ensamblarse (JLCPCB o sim
 - **Luz:** `ON`, `OFF`, `BRILLO 0-100`, `RGBW r g b w`, `V 11.5`, `MODO FIJO|RESPIRA|ARCOIRIS|FUEGO|COMETA`, `RESET`.
 - **Tira:** `TIRA RGBW|RGB|CCT|MONO|WS2812B|SK6812|WS2811|WS2815`, `CCT 2700-6500`, `LEDS n`.
 - **Horario:** `HORA epoch_local`, `PROG 18:30 01:00` (o `PROG OFF`), `ZONA -6`.
-- **Escenas y DMX:** `ESCENA n`, `ESCENA GUARDAR n`, `DMX ARTNET|SACN universo dirección`, `DMX OFF`.
+- **Escenas y DMX:** `ESCENA n`, `ESCENA GUARDAR n`, `DMX ARTNET|SACN universo dirección`, `DMX CABLE dirección` (v2), `DMX OFF`. Tira `RGBCCT` en la v2.
+- **Solo por USB:** `OLVIDAR` borra los vínculos Bluetooth.
 - **Tarjeta y red:** `LIMITES v i`, `WIFI red clave` (o `WIFI OFF`), `NOMBRE x`, `INTEGRACIONES ON|OFF`.
 - **Consulta:** `RED` y `ESTADO` responden en JSON.

@@ -4,7 +4,7 @@ import { rbParaVoltaje } from '../lib/led'
 
 const MODOS = [['FIJO', 'Fijo'], ['RESPIRA', 'Respira'], ['ARCOIRIS', 'Arcoíris'], ['FUEGO', 'Fuego'], ['COMETA', 'Cometa']]
 const TIRAS = [['RGBW', 'RGBW (4 canales)'], ['RGB', 'RGB 5050'], ['CCT', 'Blanco dual CCT'], ['MONO', 'Un color'],
-  ['WS2812B', 'WS2812B · 5 V'], ['SK6812', 'SK6812 RGBW · 5 V'], ['WS2811', 'WS2811 · 12 V'], ['WS2815', 'WS2815 · 12 V']]
+  ['WS2812B', 'WS2812B · 5 V'], ['SK6812', 'SK6812 RGBW · 5 V'], ['WS2811', 'WS2811 · 12 V'], ['WS2815', 'WS2815 · 12 V'], ['RGBCCT', 'RGB + CCT · 5 canales (placa v2)']]
 const MUESTRAS = ['#ffffff', '#ff3b30', '#ff9500', '#ffd60a', '#34c759', '#0a84ff', '#bf5af2', '#ff2d92']
 const hhmm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0')
 const hex = c => '#' + c.slice(0, 3).map(x => x.toString(16).padStart(2, '0')).join('')
@@ -76,11 +76,12 @@ export default function Panel() {
             <input type="range" min="0" max="100" value={brillo} onChange={e => { tocar(); setBrillo(+e.target.value); enviarBrillo(e.target.value) }} />
             <label className="campo">Efecto</label>
             <div className="chips">{MODOS.map(([k, t]) => <button key={k} className={'chip' + (s?.modo === k.toLowerCase() ? ' sel' : '')} onClick={() => enviar('MODO ' + k)}>{t}</button>)}</div>
-            {s?.tira === 'CCT' ? <>
+            {(s?.tira === 'CCT' || s?.tira === 'RGBCCT') && <>
               <div className="entre"><label className="campo">Temperatura de blanco</label><b>{cct} K</b></div>
               <input type="range" min="2700" max="6500" step="100" value={cct} onChange={e => { tocar(); setCct(+e.target.value); enviarCct(e.target.value) }} />
               <div style={{ height: 8, borderRadius: 4, background: 'linear-gradient(90deg,#ffb15e,#fff3e0,#cfe3ff)' }} />
-            </> : s?.tira !== 'MONO' && <>
+            </>}
+            {s?.tira !== 'CCT' && s?.tira !== 'MONO' && <>
               <label className="campo">Color</label>
               <div className="fila">
                 <input type="color" value={color} onChange={e => { tocar(); setColor(e.target.value); enviarColor([e.target.value, w]) }} aria-label="Color" />
@@ -150,17 +151,17 @@ export default function Panel() {
           </div>
 
           <div className="tarjeta">
-            <h3>DMX por red</h3>
+            <h3>DMX</h3>
             <div className="rejilla" style={{ gridTemplateColumns: '1.3fr 1fr 1fr', gap: 8 }}>
-              <div><label className="campo">Protocolo</label><select value={dmxp} onChange={e => setDmxp(e.target.value)}><option value="ARTNET">Art-Net</option><option value="SACN">sACN (E1.31)</option></select></div>
-              <div><label className="campo">Universo</label><input type="number" min="0" value={dmxu} onChange={e => setDmxu(e.target.value)} /></div>
+              <div><label className="campo">Protocolo</label><select value={dmxp} onChange={e => setDmxp(e.target.value)}><option value="ARTNET">Art-Net</option><option value="SACN">sACN (E1.31)</option><option value="CABLE">Cable DMX512 (v2)</option></select></div>
+              <div><label className="campo">Universo</label><input type="number" min="0" value={dmxu} disabled={dmxp === 'CABLE'} onChange={e => setDmxu(e.target.value)} /></div>
               <div><label className="campo">Dirección</label><input type="number" min="1" max="512" value={dmxd} onChange={e => setDmxd(e.target.value)} /></div>
             </div>
             <div className="entre" style={{ marginTop: 8 }}>
-              <span className="mut peq">{!s?.dmx || s.dmx === 'off' ? 'Sin DMX' : `${s.dmx === 'artnet' ? 'Art-Net' : 'sACN'} U${s.univ} @${s.dir} · ${s.dmx_vivo ? 'recibiendo' : 'sin señal'}`}</span>
-              <div className="fila" style={{ flexWrap: 'nowrap' }}><button className="boton" onClick={() => enviar('DMX OFF')}>Apagar</button><button className="boton pri" onClick={() => enviar(`DMX ${dmxp} ${dmxu} ${dmxd}`)}>Aplicar</button></div>
+              <span className="mut peq">{!s?.dmx || s.dmx === 'off' ? 'Sin DMX' : `${s.dmx === 'cable' ? 'Cable' : s.dmx === 'artnet' ? 'Art-Net U' + s.univ : 'sACN U' + s.univ} @${s.dir} · ${s.dmx_vivo ? 'recibiendo' : 'sin señal'}`}</span>
+              <div className="fila" style={{ flexWrap: 'nowrap' }}><button className="boton" onClick={() => enviar('DMX OFF')}>Apagar</button><button className="boton pri" onClick={() => enviar(dmxp === 'CABLE' ? `DMX CABLE ${dmxd}` : `DMX ${dmxp} ${dmxu} ${dmxd}`)}>Aplicar</button></div>
             </div>
-            <p className="mut peq" style={{ marginTop: 6 }}>Analógicas: 5 canales (atenuador, R, G, B, W). Direccionables: 3 o 4 canales por LED. Para consolas, xLights, QLC+, Resolume o MadMapper.</p>
+            <p className="mut peq" style={{ marginTop: 6 }}>Analógicas: atenuador + R, G, B, W (RGB+CCT: + blanco frío). Direccionables: 3 o 4 canales por LED. Para consolas, xLights, QLC+, Resolume o MadMapper.</p>
           </div>
 
           {s?.perfil === 'PERSONAL' && <div className="tarjeta">

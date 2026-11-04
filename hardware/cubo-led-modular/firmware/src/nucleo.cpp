@@ -213,12 +213,14 @@ Salida Controlador::paso(const Medicion& m, uint32_t ahora) {
   t_efecto_ = ahora;
   bool dmx = dmxActivo(ahora);
   RGBW c;
+  uint8_t quinto = 0;
   if (dmx) {                                       // DMX manda: atenuador + 4 canales
     const uint8_t* d = dmx_ + (dmx_dir_ - 1);
     int disp = dmx_n_ - (dmx_dir_ - 1);
     auto canal = [&](int k) -> uint8_t { return k < disp ? d[k] : 0; };
     b = direccionable(tira_) ? 1.f : canal(0) / 255.f;
     c = {canal(1), canal(2), canal(3), canal(4)};
+    quinto = canal(5);
   } else {
     if (modo_ == Modo::RESPIRA || modo_ == Modo::COMETA) b *= respiro(ahora);
     c = colorPixel(0, 1, ahora);
@@ -227,27 +229,31 @@ Salida Controlador::paso(const Medicion& m, uint32_t ahora) {
   float k = b * rampa_ * factorTermico(m.temp_c) * recorte_i_;
   s.brillo_efectivo = k;
   if (!direccionable(tira_)) {
-    uint8_t ch[4] = {c.r, c.g, c.b, c.w};
+    uint8_t ch[5] = {c.r, c.g, c.b, c.w, 0};
     if (tira_ == Tira::RGB) ch[3] = 0;
+    else if (tira_ == Tira::RGBCCT) {              // W = nivel de blanco, repartido entre cálido y frío
+      if (dmx) ch[4] = quinto;
+      else { RGBW w = mezclaCCT(cct_); ch[3] = (uint8_t)(c.w * w.r / 255); ch[4] = (uint8_t)(c.w * w.g / 255); }
+    }
     else if (tira_ == Tira::CCT) { RGBW w = dmx ? RGBW{c.r, c.g, 0, 0} : mezclaCCT(cct_); ch[0] = w.r; ch[1] = w.g; ch[2] = 0; ch[3] = 0; }
     else if (tira_ == Tira::MONO) { ch[3] = dmx ? c.r : 255; ch[0] = ch[1] = ch[2] = 0; }
-    for (int i = 0; i < 4; ++i) s.pwm[i] = (uint16_t)lroundf(gamma12(ch[i]) * k);
+    for (int i = 0; i < 5; ++i) s.pwm[i] = (uint16_t)lroundf(gamma12(ch[i]) * k);
   }
   return s;
 }
 
 // ---------------- Tiras ----------------
 const char* nombreTira(Tira t) {
-  static const char* n[] = {"RGBW", "RGB", "CCT", "MONO", "WS2812B", "SK6812", "WS2811", "WS2815"};
+  static const char* n[] = {"RGBW", "RGB", "CCT", "MONO", "WS2812B", "SK6812", "WS2811", "WS2815", "RGBCCT"};
   return n[(int)t];
 }
 bool igual(const char* a, const char* b);
 bool tiraDeTexto(const char* s, Tira& t) {
-  for (int i = 0; i <= (int)Tira::WS2815; ++i) if (igual(s, nombreTira((Tira)i))) { t = (Tira)i; return true; }
+  for (int i = 0; i <= (int)Tira::RGBCCT; ++i) if (igual(s, nombreTira((Tira)i))) { t = (Tira)i; return true; }
   if (igual(s, "WS2812")) { t = Tira::WS2812B; return true; }
   return false;
 }
-bool direccionable(Tira t) { return t >= Tira::WS2812B; }
+bool direccionable(Tira t) { return t >= Tira::WS2812B && t <= Tira::WS2815; }
 uint8_t bytesPorLed(Tira t) { return t == Tira::SK6812 ? 4 : 3; }
 float tensionTira(Tira t) {
   switch (t) { case Tira::WS2812B: case Tira::SK6812: return 5.f; case Tira::WS2811: case Tira::WS2815: return 12.f; default: return 0.f; }
@@ -301,6 +307,7 @@ RGBW Controlador::colorPixel(uint16_t i, uint16_t n, uint32_t t) const {
 
 bool Controlador::fijarTira(Tira t) {
   float vt = tensionTira(t);
+  if (t == Tira::RGBCCT && !cinco_canales_) return false;
   if (vt > 0.f) {                                   // direccionable: la tarjeta debe dar su voltaje (±10 %)
     float vm = vmaxPerfil();
     if (vm <= 0.f || vm < vt * 0.9f || vm > vt * 1.1f) return false;
@@ -385,6 +392,7 @@ bool leerE131(const uint8_t* p, size_t len, uint16_t& u, const uint8_t*& d, uint
   n = cuenta - 1; d = p + 126; return true;
 }
 bool Controlador::configurarDmx(ProtoDmx p, uint16_t u, uint16_t dir) {
+  if (p == ProtoDmx::CABLE) u = 0;
   if (dir < 1 || dir > 512 || (p == ProtoDmx::SACN && (u < 1 || u > 63999)) || (p == ProtoDmx::ARTNET && u > 32767)) return false;
   dmx_proto_ = p; dmx_univ_ = u; dmx_dir_ = dir; t_dmx_ = 0; return true;
 }
@@ -393,9 +401,23 @@ bool Controlador::paqueteRed(const uint8_t* p, size_t len, uint32_t ahora) {
   bool ok = dmx_proto_ == ProtoDmx::ARTNET ? leerArtNet(p, len, u, d, n) :
             dmx_proto_ == ProtoDmx::SACN ? leerE131(p, len, u, d, n) : false;
   if (!ok || u != dmx_univ_) return false;
+  return entradaDmx(d, n, ahora);
+}
+bool Controlador::entradaDmx(const uint8_t* d, uint16_t n, uint32_t ahora) {
+  if (dmx_proto_ == ProtoDmx::OFF || n > 512) return false;
   memcpy(dmx_, d, n); dmx_n_ = n; t_dmx_ = ahora ? ahora : 1;
   if (!on_) encender(true);
   return true;
+}
+void ReceptorDmx::ruptura() {
+  if (n_ >= 2 && trabajo_[0] == 0x00 && !hay_) {   // código de inicio 0 = niveles
+    n_lista_ = n_ - 1; memcpy(lista_, trabajo_ + 1, n_lista_); hay_ = true; ++tramas_;
+  }
+  n_ = 0;
+}
+bool ReceptorDmx::tomar(uint8_t* destino, uint16_t& n) {
+  if (!hay_) return false;
+  n = n_lista_; memcpy(destino, lista_, n); hay_ = false; return true;
 }
 bool Controlador::dmxActivo(uint32_t ahora) const {
   return dmx_proto_ != ProtoDmx::OFF && t_dmx_ && ahora - t_dmx_ < 2500;
@@ -428,7 +450,7 @@ size_t Controlador::estadoJson(char* buf, size_t n, const Medicion& m) const {
     m.vout, m.iout, m.vout * m.iout, m.vin, m.temp_c, (int)lroundf(brillo_ * 100),
     color_.r, color_.g, color_.b, color_.w, nombreModo(modo_), nombreFalla(falla_), nombreTira(tira_), cct_,
     prog_on_ ? "true" : "false", min_on_, min_off_, minutoDelDia(t_ultimo_),
-    dmx_proto_ == ProtoDmx::ARTNET ? "artnet" : dmx_proto_ == ProtoDmx::SACN ? "sacn" : "off", dmx_univ_, dmx_dir_,
+    dmx_proto_ == ProtoDmx::ARTNET ? "artnet" : dmx_proto_ == ProtoDmx::SACN ? "sacn" : dmx_proto_ == ProtoDmx::CABLE ? "cable" : "off", dmx_univ_, dmx_dir_,
     dmxActivo(t_ultimo_) ? "true" : "false", mascaraEscenas());
   return w < 0 ? 0 : ((size_t)w < n ? (size_t)w : n - 1);
 }
@@ -501,11 +523,14 @@ size_t procesarComando(Controlador& c, const char* linea, const Medicion& m, cha
   }
   if (igual(arg[0], "DMX")) {
     if (na == 2 && igual(arg[1], "OFF")) { c.configurarDmx(ProtoDmx::OFF, 0, 1); return resp(r, n, "OK"); }
+    if (na == 3 && igual(arg[1], "CABLE")) {
+      if (c.configurarDmx(ProtoDmx::CABLE, 0, (uint16_t)atoi(arg[2]))) return resp(r, n, "OK");
+    }
     if (na == 4 && (igual(arg[1], "ARTNET") || igual(arg[1], "SACN"))) {
       ProtoDmx p = igual(arg[1], "ARTNET") ? ProtoDmx::ARTNET : ProtoDmx::SACN;
       if (c.configurarDmx(p, (uint16_t)atoi(arg[2]), (uint16_t)atoi(arg[3]))) return resp(r, n, "OK");
     }
-    return resp(r, n, "ERR usa DMX ARTNET|SACN universo direccion o DMX OFF");
+    return resp(r, n, "ERR usa DMX ARTNET|SACN universo direccion, DMX CABLE direccion o DMX OFF");
   }
   if (igual(arg[0], "LIMITES") && na == 3) {
     float v, i; if (!num(arg[1], v) || !num(arg[2], i) || !c.fijarLimitesPersonal(v, i)) return resp(r, n, "ERR solo tarjeta PERSONAL, 3-24.4 V y 0.2-5 A");
