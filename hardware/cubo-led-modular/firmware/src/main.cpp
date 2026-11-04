@@ -211,7 +211,7 @@ static void ble_iniciar() {
       NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_ENC | NIMBLE_PROPERTY::WRITE_AUTHEN);
   rx->setCallbacks(new RxCB());
   tx = svc->createCharacteristic(UUID_TX, NIMBLE_PROPERTY::NOTIFY | NIMBLE_PROPERTY::READ_ENC);
-  svc->start();
+  // NimBLE 2.x arranca los servicios junto con el servidor
   NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
   adv->addServiceUUID(UUID_SVC);
   adv->setName(nombre);
