@@ -24,6 +24,11 @@ build/
 
 # OS
 Thumbs.db
+__pycache__/
+*.kicad_prl
+*-backups/
+hardware/**/kicad/*.dsn
+hardware/**/kicad/*.ses
 
 # generados al compilar el sitio desde hardware/cubo-led-modular/firmware/binarios
 public/firmware/*.bin

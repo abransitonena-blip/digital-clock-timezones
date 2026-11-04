@@ -1,0 +1,19 @@
+(version 1)
+(rule "Pistas >= 0.8 mm"
+  (condition "A.Type == 'track'")
+  (constraint track_width (min 0.8mm)))
+(rule "127 V contra 127 V"
+  (condition "A.NetClass == 'Red127V' && B.NetClass == 'Red127V'")
+  (constraint clearance (min 2.0mm)))
+(rule "127 V contra bajo voltaje (reforzado)"
+  (condition "A.NetClass == 'Red127V' && B.NetClass != 'Red127V'")
+  (constraint clearance (min 5.0mm)))
+(rule "Dentro del relevador y de la fuente (aislamiento del fabricante)"
+  (condition "(A.Parent == 'K1' && B.Parent == 'K1') || (A.Parent == 'PS1' && B.Parent == 'PS1')")
+  (constraint clearance (min 1.5mm)))
+(rule "Contacto COM junto a su propia bobina (aislamiento del relevador)"
+  (condition "(A.NetName == '/COM' && (B.NetName == '/RLY' || B.NetName == '/V12')) || (B.NetName == '/COM' && (A.NetName == '/RLY' || A.NetName == '/V12'))")
+  (constraint clearance (min 3.0mm)))
+(rule "Contacto NC del relevador (sin usar, junto a COM)"
+  (condition "(A.Parent == 'K1' && A.Pad_Number == '4') || (B.Parent == 'K1' && B.Pad_Number == '4')")
+  (constraint clearance (min 2.0mm)))

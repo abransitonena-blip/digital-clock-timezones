@@ -1,0 +1,9 @@
+(version 1)
+(rule "Pistas de potencia >= 1.2 mm"
+  (condition "A.NetClass == 'Potencia'")
+  (constraint track_width (min 1.2mm)))
+(rule "Pistas de senal >= 0.8 mm"
+  (condition "A.Type == 'track'")
+  (constraint track_width (min 0.8mm)))
+(rule "Separacion minima 0.6 mm"
+  (constraint clearance (min 0.6mm)))

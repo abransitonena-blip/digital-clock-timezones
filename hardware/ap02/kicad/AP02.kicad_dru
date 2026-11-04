@@ -1,0 +1,10 @@
+(version 1)
+(rule "127 V contra bajo voltaje (reforzado)"
+  (condition "A.NetClass == 'Red127V' && B.NetClass != 'Red127V'")
+  (constraint clearance (min 5.0mm)))
+(rule "Dentro del relevador (aislamiento del fabricante)"
+  (condition "A.intersectsCourtyard('K1') && B.intersectsCourtyard('K1') && (A.NetClass == 'Red127V' || B.NetClass == 'Red127V')")
+  (constraint clearance (min 1.5mm)))
+(rule "Contacto NC sin usar"
+  (condition "(A.Parent == 'K1' && A.Pad_Number == '4') || (B.Parent == 'K1' && B.Pad_Number == '4')")
+  (constraint clearance (min 2.0mm)))

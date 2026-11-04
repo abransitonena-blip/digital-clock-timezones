@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LetreroLab Control</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --ink:#0f172a; --muted:#5b6475; --line:#e3e7ef;
+  --acc:#16a34a; --acc2:#0ea5e9; --warn:#f59e0b; --bad:#dc2626; --chip:#eef2f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1120; --card:#131b2e; --ink:#e7ecf5; --muted:#93a0b8; --line:#24304a; --chip:#1b2540;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --card:#131b2e; --ink:#e7ecf5; --muted:#93a0b8; --line:#24304a; --chip:#1b2540;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;
+  color:#fff;font-weight:800;letter-spacing:-.5px}
+h1{font-size:20px;margin:0}
+.sub{color:var(--muted);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+.card h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row.sp{justify-content:space-between}
+button{font:inherit;border:0;border-radius:12px;padding:10px 14px;background:var(--chip);color:var(--ink);cursor:pointer}
+button.pri{background:var(--acc);color:#fff;font-weight:600}
+button.on{background:var(--acc);color:#fff}
+button:disabled{opacity:.5}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.chips button{padding:10px 6px;font-size:14px}
+input[type=range]{width:100%;accent-color:var(--acc)}
+label.sl{display:block;margin:8px 0 2px;font-size:14px;color:var(--muted)}
+.val{float:right;color:var(--ink);font-weight:600}
+input[type=time],select,input[type=number]{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--bad);display:inline-block}
+.dot.ok{background:var(--acc)}
+.swatch{width:46px;height:46px;border-radius:12px;border:1px solid var(--line)}
+.colors{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.colors button{width:38px;height:38px;border-radius:50%;padding:0;border:2px solid var(--line)}
+pre{white-space:pre-wrap;word-break:break-all;font-size:12px;color:var(--muted);max-height:140px;overflow:auto;margin:0}
+.toggle{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.big{font-size:18px;padding:14px 18px}
+.note{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo">LL</div>
+    <div style="flex:1">
+      <h1>LetreroLab Control</h1>
+      <div class="sub"><span id="dot" class="dot"></span> <span id="st">Sin conectar</span></div>
+    </div>
+    <button id="theme" title="Tema">◐</button>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <button class="pri big" id="btBle">Conectar Bluetooth</button>
+      <button id="btUsb">USB</button>
+      <button id="btDemo">Demo</button>
+    </div>
+    <p class="note" id="hint">Usa Chrome en Android o en la computadora. El módulo debe ser BLE (HM-10, JDY-23, AT-09). En iPhone abre esta página con la app "Bluefy".</p>
+  </section>
+
+  <section class="card">
+    <div class="row sp">
+      <h2 style="margin:0">Letrero</h2>
+      <button id="pwr" class="big">Encendido</button>
+    </div>
+    <label class="sl">Brillo <span class="val" id="vb">100 %</span></label>
+    <input type="range" id="b" min="0" max="100" value="100">
+    <label class="sl">Velocidad <span class="val" id="vv">4</span></label>
+    <input type="range" id="v" min="0" max="9" value="4">
+  </section>
+
+  <section class="card">
+    <h2>Efecto</h2>
+    <div class="chips" id="modes"></div>
+  </section>
+
+  <section class="card">
+    <h2>Color (tira RGB / RGBW)</h2>
+    <div class="row">
+      <input type="color" id="col" value="#ff7800" class="swatch">
+      <div style="flex:1">
+        <label class="sl">Blanco <span class="val" id="vw">0</span></label>
+        <input type="range" id="w" min="0" max="255" value="0">
+      </div>
+    </div>
+    <div class="colors" id="pal"></div>
+  </section>
+
+  <section class="card">
+    <h2>Salidas</h2>
+    <div class="toggle"><span>Canales del letrero</span>
+      <select id="n"><option value="1">1</option><option value="2">2</option><option value="3" selected>3 (flechas / RGB)</option><option value="4">4 (RGBW)</option></select></div>
+    <div class="toggle"><span>Focos normales (relevador)</span><button id="x">Apagado</button></div>
+    <div class="toggle"><span>Modo ahorro (brillo máx. 60 %)</span><button id="e">No</button></div>
+  </section>
+
+  <section class="card">
+    <h2>Horario y luz</h2>
+    <div class="row">
+      <span>Encender</span><input type="time" id="hon" value="19:00">
+      <span>Apagar</span><input type="time" id="hoff" value="02:00">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="hset">Guardar horario</button><button id="hdel">Sin horario</button><button id="tsync">Poner la hora</button>
+    </div>
+    <div class="toggle" style="margin-top:8px"><span>Encender solo de noche (sensor de luz)</span><button id="l">No</button></div>
+    <label class="sl">Umbral de oscuridad <span class="val" id="vu">600</span></label>
+    <input type="range" id="u" min="50" max="1000" value="600">
+    <p class="note" id="clock">Reloj: —</p>
+  </section>
+
+  <section class="card">
+    <h2>Escenas</h2>
+    <div class="row" id="scenes"></div>
+    <p class="note">Toque: cargar la escena. Mantener presionado: guardar lo actual en esa escena.</p>
+  </section>
+
+  <section class="card">
+    <h2>Registro</h2>
+    <pre id="log"></pre>
+  </section>
+  <p class="note" style="text-align:center">LetreroLab AP-0.1 · protocolo de texto a 9600 baudios (BLE y USB)</p>
+</main>
+<script>
+const MODES=["Fijo","Secuencia","Parpadeo","Respirar","Sec. suave","Alternado","Color","Arcoíris","Flash","Vela"];
+const PAL=["#ff0000","#ff7800","#ffd000","#00ff40","#00c8ff","#0030ff","#a000ff","#ff00a0","#ffffff"];
+const $=id=>document.getElementById(id);
+let tx=null, mode="none", buf="", S={p:1,m:1,s:4,b:100,ch:3,c:[255,120,0,0],x:0,e:0,l:0,u:600,on:-1,off:-1};
+
+function log(t){const el=$("log");el.textContent=(t+"\n"+el.textContent).slice(0,3000);}
+function setConn(ok,txt){$("dot").className="dot"+(ok?" ok":"");$("st").textContent=txt;}
+
+async function send(cmd){
+  log("→ "+cmd);
+  if(mode==="demo"){demo(cmd);return;}
+  if(!tx){log("(sin conexión)");return;}
+  const data=new TextEncoder().encode(cmd+"\n");
+  try{
+    if(mode==="ble"){for(let i=0;i<data.length;i+=20){await tx.writeValueWithoutResponse(data.slice(i,i+20));}}
+    else {await tx.write(data);}
+  }catch(e){log("Error: "+e.message);}
+}
+function onText(t){
+  buf+=t; let i;
+  while((i=buf.indexOf("\n"))>=0){
+    const line=buf.slice(0,i).trim(); buf=buf.slice(i+1);
+    if(!line)continue; log("← "+line);
+    if(line[0]==="{"){try{S=Object.assign(S,JSON.parse(line));render();}catch(e){}}
+  }
+}
+
+$("btBle").onclick=async()=>{
+  if(!navigator.bluetooth){alert("Este navegador no tiene Web Bluetooth. Usa Chrome (Android/PC) o Bluefy (iPhone).");return;}
+  try{
+    const dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[0xffe0]});
+    setConn(false,"Conectando a "+(dev.name||"módulo")+"…");
+    const srv=await dev.gatt.connect();
+    const ch=await (await srv.getPrimaryService(0xffe0)).getCharacteristic(0xffe1);
+    await ch.startNotifications();
+    ch.addEventListener("characteristicvaluechanged",ev=>onText(new TextDecoder().decode(ev.target.value)));
+    dev.addEventListener("gattserverdisconnected",()=>{tx=null;setConn(false,"Desconectado");});
+    tx=ch; mode="ble"; setConn(true,"Conectado: "+(dev.name||"BLE"));
+    send("?");
+  }catch(e){setConn(false,"Sin conectar");log("Error: "+e.message);}
+};
+$("btUsb").onclick=async()=>{
+  if(!navigator.serial){alert("Web Serial solo está en Chrome/Edge de computadora.");return;}
+  try{
+    const port=await navigator.serial.requestPort(); await port.open({baudRate:9600});
+    tx=port.writable.getWriter(); mode="usb"; setConn(true,"Conectado por USB");
+    const rd=port.readable.getReader(); const dec=new TextDecoder();
+    (async()=>{try{for(;;){const {value,done}=await rd.read(); if(done)break; onText(dec.decode(value));}}catch(e){}})();
+    setTimeout(()=>send("?"),1500);
+  }catch(e){log("Error: "+e.message);}
+};
+$("btDemo").onclick=()=>{mode="demo";tx=null;setConn(true,"Modo demostración (sin equipo)");render();};
+
+function demo(cmd){            // simula la respuesta del cabezal para probar la app
+  const a=cmd.split(/[ :\-]+/), k=cmd[0], n=a.slice(1).map(Number);
+  if(k==="M")S.m=n[0]; if(k==="V")S.s=n[0]; if(k==="B")S.b=n[0]; if(k==="C")S.c=n.slice(0,4);
+  if(k==="N")S.ch=n[0]; if(k==="P")S.p=n[0]; if(k==="X")S.x=n[0]; if(k==="E")S.e=n[0];
+  if(k==="L"){S.l=n[0]; if(n[1])S.u=n[1];}
+  if(k==="H"){ if(cmd.trim()==="H -"){S.on=S.off=-1;} else {S.on=n[0]*60+n[1];S.off=n[2]*60+n[3];} }
+  onText(JSON.stringify(Object.assign({},S,{v:"demo",t:new Date().getHours()*60+new Date().getMinutes()}))+"\n");
+}
+
+// --- controles ---
+const modes=$("modes");
+MODES.forEach((m,i)=>{const b=document.createElement("button");b.textContent=m;b.onclick=()=>send("M "+i);modes.appendChild(b);});
+PAL.forEach(c=>{const b=document.createElement("button");b.style.background=c;b.onclick=()=>{$("col").value=c;sendColor();};$("pal").appendChild(b);});
+let tmr={};
+function deb(key,fn,ms=180){clearTimeout(tmr[key]);tmr[key]=setTimeout(fn,ms);}
+$("b").oninput=e=>{$("vb").textContent=e.target.value+" %";deb("b",()=>send("B "+e.target.value));};
+$("v").oninput=e=>{$("vv").textContent=e.target.value;deb("v",()=>send("V "+e.target.value));};
+$("u").oninput=e=>{$("vu").textContent=e.target.value;deb("u",()=>send("L "+S.l+" "+e.target.value));};
+function sendColor(){const h=$("col").value;const r=parseInt(h.substr(1,2),16),g=parseInt(h.substr(3,2),16),b=parseInt(h.substr(5,2),16);
+  send(`C ${r} ${g} ${b} ${$("w").value}`); if(S.m!==6)send("M 6");}
+$("col").oninput=()=>deb("c",sendColor);
+$("w").oninput=e=>{$("vw").textContent=e.target.value;deb("c",sendColor);};
+$("n").onchange=e=>send("N "+e.target.value);
+$("pwr").onclick=()=>send("P "+(S.p?0:1));
+$("x").onclick=()=>send("X "+(S.x?0:1));
+$("e").onclick=()=>send("E "+(S.e?0:1));
+$("l").onclick=()=>send("L "+(S.l?0:1)+" "+$("u").value);
+$("hset").onclick=()=>send("H "+$("hon").value+" "+$("hoff").value);
+$("hdel").onclick=()=>send("H -");
+$("tsync").onclick=()=>{const d=new Date(),p=x=>String(x).padStart(2,"0");
+  send(`T ${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`);};
+for(let i=0;i<4;i++){const b=document.createElement("button");b.textContent="Escena "+(i+1);let lp;
+  b.onpointerdown=()=>{lp=setTimeout(()=>{lp=null;send("S "+i);b.textContent="Guardada ✓";setTimeout(()=>b.textContent="Escena "+(i+1),1200);},700);};
+  b.onpointerup=()=>{if(lp){clearTimeout(lp);send("R "+i);}};
+  $("scenes").appendChild(b);}
+$("theme").onclick=()=>{const r=document.documentElement;const d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme: dark)").matches);
+  r.dataset.theme=d?"light":"dark";try{localStorage.setItem("tema",r.dataset.theme);}catch(e){}};
+try{const t=localStorage.getItem("tema");if(t)document.documentElement.dataset.theme=t;}catch(e){}
+
+const hhmm=m=>m<0?"—":String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+function render(){
+  $("pwr").textContent=S.p?"Encendido":"Apagado"; $("pwr").className="big"+(S.p?" on":"");
+  [...modes.children].forEach((b,i)=>b.className=i===S.m?"on":"");
+  $("b").value=S.b;$("vb").textContent=S.b+" %"; $("v").value=S.s;$("vv").textContent=S.s;
+  $("n").value=S.ch; $("x").textContent=S.x?"Encendidos":"Apagados"; $("x").className=S.x?"on":"";
+  $("e").textContent=S.e?"Sí":"No"; $("e").className=S.e?"on":""; $("l").textContent=S.l?"Sí":"No"; $("l").className=S.l?"on":"";
+  if(S.u){$("u").value=S.u;$("vu").textContent=S.u;}
+  if(S.on>=0){$("hon").value=hhmm(S.on);$("hoff").value=hhmm(S.off);}
+  $("clock").textContent="Reloj del letrero: "+(S.t>=0?hhmm(S.t):"sin módulo DS3231")+" · horario: "+(S.on>=0?hhmm(S.on)+" a "+hhmm(S.off):"siempre")+
+    (S.lv!==undefined?" · luz: "+S.lv:"");
+}
+render();
+</script>
+</body>
+</html>

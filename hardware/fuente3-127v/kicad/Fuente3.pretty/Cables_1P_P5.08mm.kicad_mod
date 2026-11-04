@@ -1,0 +1,60 @@
+(footprint "Cables_1P_P5.08mm"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "1 pads para soldar cable (1.3 mm), paso 5.08 mm, pads para toner")
+	(property "Reference" "J**"
+		(at 0 -3 0)
+		(layer "F.SilkS")
+		(uuid "32ed7206-3513-43de-be63-aca98805d8db")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Cables"
+		(at 0 3 0)
+		(layer "F.Fab")
+		(uuid "f8977fa7-54d3-4eb4-841e-04537e6d83a3")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_rect
+		(start -1.6 -1.6)
+		(end 1.6 1.6)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "72084c8f-ba51-41a9-a215-7e1396e688d6")
+	)
+	(fp_rect
+		(start -1.75 -1.75)
+		(end 1.75 1.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "73992975-29e4-4055-a1be-aa5a9933cff4")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 3 3)
+		(drill 1.3)
+		(layers "B.Cu" "B.Mask")
+		(remove_unused_layers no)
+		(uuid "7ed513d8-4318-4fcd-83f0-ae642b19c2bd")
+	)
+)
