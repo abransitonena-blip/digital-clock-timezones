@@ -1,0 +1,455 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@page { size: letter; margin: 11mm 12mm; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 9.6pt; color: #111; margin: 0; }
+h1 { font-size: 19pt; margin: 0; } h2 { font-size: 12pt; margin: 4.5mm 0 1.8mm; border-bottom: 1.5px solid #111; padding-bottom: 0.6mm; }
+.sub { color: #444; margin: 0.8mm 0 3mm; }
+.specs { display: flex; gap: 3mm; margin-bottom: 2mm; } .spec { flex: 1; border: 1.5px solid #111; border-radius: 2.5mm; padding: 1.8mm 2.5mm; }
+.spec b { display: block; font-size: 13pt; } .spec span { color: #555; font-size: 8.5pt; }
+.hoja { display: flex; gap: 6mm; justify-content: center; margin: 1.5mm 0; }
+.nota { border-left: 3px solid #e8590c; background: #fff4ec; padding: 1.5mm 3mm; margin: 2mm 0; }
+.peligro { border: 2px solid #c00; background: #fff0f0; border-radius: 2.5mm; padding: 2mm 3mm; margin: 2mm 0; }
+table { border-collapse: collapse; width: 100%; font-size: 9pt; } th, td { border: 1px solid #999; padding: 1.1mm 1.8mm; vertical-align: top; text-align: left; }
+th { background: #eee; } td.r { font-weight: 700; white-space: nowrap; } td.c { text-align: center; } td.g { color: #444; }
+ol, ul { margin: 1mm 0; padding-left: 5.5mm; } li { margin: 0.9mm 0; }
+.pb { page-break-before: always; } .fig { text-align: center; } .cap { font-size: 8pt; color: #555; text-align: center; }
+</style></head><body>
+<h1>Fuente 12 V · 1.7 A desde 127 V</h1>
+<div class="sub">Transformador + puente + filtro + regulador conmutado LM2596S-12 (SMD). Placa de una cara de 7.2 × 5 cm para planchar. Diseño AP.</div>
+<div class="specs">
+<div class="spec"><b>127 V~</b><span>entrada, con transformador 18 V</span></div>
+<div class="spec"><b>12 V</b><span>salida fija ± 4 %</span></div>
+<div class="spec"><b>1.7 A</b><span>continuos (máx. 2 A)</span></div>
+<div class="spec"><b>Aislada</b><span>los 127 V no tocan la placa</span></div></div>
+<h2>Cómo se conecta todo</h2>
+<div class="fig"><svg width="184mm" height="42mm" viewBox="0 0 184 42" font-family="Arial,Helvetica,sans-serif" font-size="2.8">
+<g fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round">
+<path d="M14 10 H34 M14 32 H96"/><rect x="2" y="6" width="12" height="30" rx="2"/>
+<path d="M34 10 L42 6 M42 10 H50"/><circle cx="34" cy="10" r="0.9"/><circle cx="42" cy="10" r="0.9"/>
+<rect x="50" y="7.5" width="14" height="5" rx="2.5"/><path d="M64 10 H96"/>
+<path d="M76 10 V17 M76 25 V32"/><rect x="73" y="17" width="6" height="8"/><path d="M71 26 L81 16"/>
+<path d="M96 10 q3 3 0 5.5 q3 3 0 5.5 q3 3 0 5.5 q3 3 0 5.5"/><path d="M103 8 V34 M105 8 V34" stroke-width="0.6"/>
+<path d="M112 10 q-3 3 0 5.5 q-3 3 0 5.5 q-3 3 0 5.5 q-3 3 0 5.5"/>
+<path d="M112 10 H150 M112 32 H150"/><rect x="150" y="4" width="32" height="34" rx="2"/>
+</g>
+<text x="3.5" y="4">Clavija</text><text x="5" y="22" font-size="3.4" font-weight="700">127 V</text><text x="15" y="8.5">L (fase)</text><text x="15" y="30.5">N (neutro)</text>
+<text x="33" y="4">S1 interruptor</text><text x="48" y="17">F1 fusible 1 A lento</text>
+<text x="82" y="22">RV1</text><text x="82" y="25.5" font-size="2.4">10D201K</text>
+<text x="92" y="40">T1 primario 127 V</text><text x="110" y="4">secundario 18 V</text><text x="113" y="21" font-size="2.4">2–3 A</text>
+<text x="154" y="18" font-weight="700">Placa AP</text><text x="154" y="22">entra a J1 (18V~)</text><text x="154" y="26">sin polaridad</text>
+</svg></div>
+<div class="peligro"><b>127 V solo en la caja, nunca en la placa.</b> Fusible F1 primero que todo. Cubre con termofit cada unión del primario
+(clavija, interruptor, fusible, varistor, transformador). Si la caja es metálica, conecta la tierra física de la clavija al metal.
+No toques el primario con la clavija conectada.</div>
+<p style="margin:1.5mm 0">El transformador baja a 18 V y aísla; BR1 y C6/C7 lo convierten en 24–28 V de corriente directa; el LM2596 lo baja a 12 V
+con ≈ 88 % de eficiencia (se calienta poco). LED rojo: hay voltaje en el filtro. LED verde: hay 12 V.
+El LM2596 trae límite de corriente y apagado por temperatura, así que un corto en la salida no lo destruye.</p>
+<h2>Por qué 18 V y no 12 V</h2>
+<p style="margin:1mm 0">A 1.7 A, el filtro baja en cada valle unos 4.5 V. Con 18 V~ el valle queda en ≈ 18 V y el regulador tiene de sobra;
+con 12 V~ caería a ≈ 11 V y la salida se vendría abajo. Sin carga y con la red alta, el filtro sube a ≈ 30 V: dentro del límite de 40 V del LM2596.</p>
+<h2 class="pb">1 · Hojas para planchar (1:1)</h2>
+<div class="hoja"><svg xmlns="http://www.w3.org/2000/svg" width="72.0mm" height="50.0mm" viewBox="0 0 72 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="72" height="50" fill="#fff" stroke="#000" stroke-width="0.25"/>
+<g transform="translate(72 0) scale(-1 1)">
+<path d="M62.00 15.90 L68.50 15.90" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62.00 19.80 L68.50 19.80" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.60 12.00 L41.00 12.00 L41.00 17.20" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41.00 12.00 L62.00 12.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.60 12.00 L34.60 15.20" fill="none" stroke="#000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 12.00 L52.00 15.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M48.00 12.00 L48.00 31.00 L52.00 31.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 29.40 L48.00 29.40" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 32.60 L45.50 35.20" fill="none" stroke="#000" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M29.70 12.00 L29.70 6.80" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M29.70 6.80 L5.00 6.80 L5.00 10.60" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 6.80 L15.00 11.60" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.00 12.00 L28.00 18.00" fill="none" stroke="#000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M24.60 12.00 L24.60 18.00" fill="none" stroke="#000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.60 18.40 L33.00 18.40" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.00 26.00 L28.00 38.00" fill="none" stroke="#000" stroke-width="7.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.00 40.00 L60.00 40.00" fill="none" stroke="#000" stroke-width="4.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41.00 25.80 L41.00 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 35.70 L8.00 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 36.08 L17.50 40.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 35.40 L20.80 39.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 31.20 L14.40 38.50" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 37.40 L45.50 39.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.00 17.40 L5.00 19.50 L2.20 19.50 L2.20 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60.00 23.70 L60.00 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62.00 23.70 L60.00 23.70" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 20.00 L55.50 20.00 L55.50 25.00 L60.00 25.00" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 36.00 L60.00 36.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 21.40 L15.00 25.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 25.00 L20.80 25.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 25.00 L17.50 31.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 25.00 L20.80 28.20" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 25.00 L14.40 28.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M21.00 25.00 L21.00 9.00 L26.30 9.00 L26.30 11.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 30.40 L20.80 33.20" fill="none" stroke="#000" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="68.5" cy="15.31" r="1.5"/><circle cx="68.5" cy="15.31" r="0.5" fill="#fff"/>
+<circle cx="68.5" cy="20.39" r="1.5"/><circle cx="68.5" cy="20.39" r="0.5" fill="#fff"/>
+<circle cx="62" cy="12" r="1.2"/><circle cx="62" cy="12" r="0.5" fill="#fff"/>
+<circle cx="62" cy="15.9" r="1.2"/><circle cx="62" cy="15.9" r="0.5" fill="#fff"/>
+<circle cx="62" cy="19.8" r="1.2"/><circle cx="62" cy="19.8" r="0.5" fill="#fff"/>
+<circle cx="62" cy="23.7" r="1.2"/><circle cx="62" cy="23.7" r="0.5" fill="#fff"/>
+<rect x="64.60" y="15.38" width="1.8" height="1.75" rx="0.2"/>
+<rect x="64.60" y="18.57" width="1.8" height="1.75" rx="0.2"/>
+<circle cx="52" cy="15" r="1.2"/><circle cx="52" cy="15" r="0.5" fill="#fff"/>
+<circle cx="52" cy="20" r="1.2"/><circle cx="52" cy="20" r="0.5" fill="#fff"/>
+<circle cx="52" cy="31" r="1.2"/><circle cx="52" cy="31" r="0.5" fill="#fff"/>
+<circle cx="52" cy="36" r="1.2"/><circle cx="52" cy="36" r="0.5" fill="#fff"/>
+<rect x="44.60" y="28.52" width="1.8" height="1.75" rx="0.2"/>
+<rect x="44.60" y="31.73" width="1.8" height="1.75" rx="0.2"/>
+<rect x="44.80" y="34.60" width="1.4" height="1.2" rx="0.2"/>
+<rect x="44.80" y="36.80" width="1.4" height="1.2" rx="0.2"/>
+<rect x="24.05" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="25.75" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="27.45" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="29.15" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="30.85" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="22.60" y="17.65" width="10.8" height="9.6" rx="0.2"/>
+<rect x="39.70" y="15.20" width="2.6" height="4.0" rx="0.2"/>
+<rect x="39.70" y="23.80" width="2.6" height="4.0" rx="0.2"/>
+<rect x="33.70" y="14.32" width="1.8" height="1.75" rx="0.2"/>
+<rect x="33.70" y="17.52" width="1.8" height="1.75" rx="0.2"/>
+<rect x="3.35" y="9.35" width="3.3" height="2.5" rx="0.2"/>
+<rect x="3.35" y="16.15" width="3.3" height="2.5" rx="0.2"/>
+<rect x="12.50" y="10.00" width="5.0" height="3.2" rx="0.2"/>
+<rect x="12.50" y="19.80" width="5.0" height="3.2" rx="0.2"/>
+<rect x="6.70" y="25.30" width="2.6" height="4.0" rx="0.2"/>
+<rect x="6.70" y="33.70" width="2.6" height="4.0" rx="0.2"/>
+<rect x="13.50" y="27.12" width="1.8" height="1.75" rx="0.2"/>
+<rect x="13.50" y="30.32" width="1.8" height="1.75" rx="0.2"/>
+<circle cx="17.5" cy="31" r="1.5"/><circle cx="17.5" cy="31" r="0.5" fill="#fff"/>
+<circle cx="17.5" cy="36.08" r="1.5"/><circle cx="17.5" cy="36.08" r="0.5" fill="#fff"/>
+<rect x="20.10" y="27.60" width="1.4" height="1.2" rx="0.2"/>
+<rect x="20.10" y="29.80" width="1.4" height="1.2" rx="0.2"/>
+<rect x="20.10" y="32.60" width="1.4" height="1.2" rx="0.2"/>
+<rect x="20.10" y="34.80" width="1.4" height="1.2" rx="0.2"/>
+<circle cx="3.5" cy="3.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="3.5" cy="3.5" r="0.4"/>
+<circle cx="68.5" cy="3.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="68.5" cy="3.5" r="0.4"/>
+<circle cx="3.5" cy="46.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="3.5" cy="46.5" r="0.4"/>
+<circle cx="68.5" cy="46.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="68.5" cy="46.5" r="0.4"/>
+<text x="35.8" y="31.2" text-anchor="middle" font-weight="700" font-size="2.4">AP</text>
+<text x="35.8" y="35.0" text-anchor="middle" font-weight="700" font-size="1.1">12V 1.7A</text>
+<text x="66" y="27.2" text-anchor="middle" font-weight="700" font-size="1.6">18V~</text>
+</g></svg><svg xmlns="http://www.w3.org/2000/svg" width="72.0mm" height="50.0mm" viewBox="0 0 72 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="72" height="50" fill="#fff" stroke="#000" stroke-width="0.25"/>
+<g transform="translate(72 0) scale(-1 1)">
+<path d="M62.00 15.90 L68.50 15.90" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62.00 19.80 L68.50 19.80" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.60 12.00 L41.00 12.00 L41.00 17.20" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41.00 12.00 L62.00 12.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.60 12.00 L34.60 15.20" fill="none" stroke="#000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 12.00 L52.00 15.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M48.00 12.00 L48.00 31.00 L52.00 31.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 29.40 L48.00 29.40" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 32.60 L45.50 35.20" fill="none" stroke="#000" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M29.70 12.00 L29.70 6.80" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M29.70 6.80 L5.00 6.80 L5.00 10.60" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 6.80 L15.00 11.60" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.00 12.00 L28.00 18.00" fill="none" stroke="#000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M24.60 12.00 L24.60 18.00" fill="none" stroke="#000" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.60 18.40 L33.00 18.40" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.00 26.00 L28.00 38.00" fill="none" stroke="#000" stroke-width="7.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.00 40.00 L60.00 40.00" fill="none" stroke="#000" stroke-width="4.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41.00 25.80 L41.00 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 35.70 L8.00 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 36.08 L17.50 40.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 35.40 L20.80 39.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 31.20 L14.40 38.50" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 37.40 L45.50 39.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.00 17.40 L5.00 19.50 L2.20 19.50 L2.20 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60.00 23.70 L60.00 40.00" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62.00 23.70 L60.00 23.70" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 20.00 L55.50 20.00 L55.50 25.00 L60.00 25.00" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 36.00 L60.00 36.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 21.40 L15.00 25.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 25.00 L20.80 25.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 25.00 L17.50 31.00" fill="none" stroke="#000" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 25.00 L20.80 28.20" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 25.00 L14.40 28.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M21.00 25.00 L21.00 9.00 L26.30 9.00 L26.30 11.00" fill="none" stroke="#000" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 30.40 L20.80 33.20" fill="none" stroke="#000" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="68.5" cy="15.31" r="1.5"/><circle cx="68.5" cy="15.31" r="0.5" fill="#fff"/>
+<circle cx="68.5" cy="20.39" r="1.5"/><circle cx="68.5" cy="20.39" r="0.5" fill="#fff"/>
+<circle cx="62" cy="12" r="1.2"/><circle cx="62" cy="12" r="0.5" fill="#fff"/>
+<circle cx="62" cy="15.9" r="1.2"/><circle cx="62" cy="15.9" r="0.5" fill="#fff"/>
+<circle cx="62" cy="19.8" r="1.2"/><circle cx="62" cy="19.8" r="0.5" fill="#fff"/>
+<circle cx="62" cy="23.7" r="1.2"/><circle cx="62" cy="23.7" r="0.5" fill="#fff"/>
+<rect x="64.60" y="15.38" width="1.8" height="1.75" rx="0.2"/>
+<rect x="64.60" y="18.57" width="1.8" height="1.75" rx="0.2"/>
+<circle cx="52" cy="15" r="1.2"/><circle cx="52" cy="15" r="0.5" fill="#fff"/>
+<circle cx="52" cy="20" r="1.2"/><circle cx="52" cy="20" r="0.5" fill="#fff"/>
+<circle cx="52" cy="31" r="1.2"/><circle cx="52" cy="31" r="0.5" fill="#fff"/>
+<circle cx="52" cy="36" r="1.2"/><circle cx="52" cy="36" r="0.5" fill="#fff"/>
+<rect x="44.60" y="28.52" width="1.8" height="1.75" rx="0.2"/>
+<rect x="44.60" y="31.73" width="1.8" height="1.75" rx="0.2"/>
+<rect x="44.80" y="34.60" width="1.4" height="1.2" rx="0.2"/>
+<rect x="44.80" y="36.80" width="1.4" height="1.2" rx="0.2"/>
+<rect x="24.05" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="25.75" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="27.45" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="29.15" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="30.85" y="10.25" width="1.1" height="3.5" rx="0.2"/>
+<rect x="22.60" y="17.65" width="10.8" height="9.6" rx="0.2"/>
+<rect x="39.70" y="15.20" width="2.6" height="4.0" rx="0.2"/>
+<rect x="39.70" y="23.80" width="2.6" height="4.0" rx="0.2"/>
+<rect x="33.70" y="14.32" width="1.8" height="1.75" rx="0.2"/>
+<rect x="33.70" y="17.52" width="1.8" height="1.75" rx="0.2"/>
+<rect x="3.35" y="9.35" width="3.3" height="2.5" rx="0.2"/>
+<rect x="3.35" y="16.15" width="3.3" height="2.5" rx="0.2"/>
+<rect x="12.50" y="10.00" width="5.0" height="3.2" rx="0.2"/>
+<rect x="12.50" y="19.80" width="5.0" height="3.2" rx="0.2"/>
+<rect x="6.70" y="25.30" width="2.6" height="4.0" rx="0.2"/>
+<rect x="6.70" y="33.70" width="2.6" height="4.0" rx="0.2"/>
+<rect x="13.50" y="27.12" width="1.8" height="1.75" rx="0.2"/>
+<rect x="13.50" y="30.32" width="1.8" height="1.75" rx="0.2"/>
+<circle cx="17.5" cy="31" r="1.5"/><circle cx="17.5" cy="31" r="0.5" fill="#fff"/>
+<circle cx="17.5" cy="36.08" r="1.5"/><circle cx="17.5" cy="36.08" r="0.5" fill="#fff"/>
+<rect x="20.10" y="27.60" width="1.4" height="1.2" rx="0.2"/>
+<rect x="20.10" y="29.80" width="1.4" height="1.2" rx="0.2"/>
+<rect x="20.10" y="32.60" width="1.4" height="1.2" rx="0.2"/>
+<rect x="20.10" y="34.80" width="1.4" height="1.2" rx="0.2"/>
+<circle cx="3.5" cy="3.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="3.5" cy="3.5" r="0.4"/>
+<circle cx="68.5" cy="3.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="68.5" cy="3.5" r="0.4"/>
+<circle cx="3.5" cy="46.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="3.5" cy="46.5" r="0.4"/>
+<circle cx="68.5" cy="46.5" r="1.9000000000000001" fill="none" stroke="#000" stroke-width="0.4"/><circle cx="68.5" cy="46.5" r="0.4"/>
+<text x="35.8" y="31.2" text-anchor="middle" font-weight="700" font-size="2.4">AP</text>
+<text x="35.8" y="35.0" text-anchor="middle" font-weight="700" font-size="1.1">12V 1.7A</text>
+<text x="66" y="27.2" text-anchor="middle" font-weight="700" font-size="1.6">18V~</text>
+</g></svg></div>
+<div class="cap">Cobre — ya va en espejo; las piezas SMD se sueldan de este lado</div>
+<div class="hoja"><svg xmlns="http://www.w3.org/2000/svg" width="72.0mm" height="50.0mm" viewBox="0 0 72 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="72" height="50" fill="#fff"/>
+<g>
+<rect x="0.7" y="0.7" width="70.6" height="48.6" rx="2" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="15.31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="20.39" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="12" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="15.9" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="19.8" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="23.7" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="15" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="20" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="36" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="17.5" cy="31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="17.5" cy="36.08" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="3.5" cy="3.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="3.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="3.5" cy="46.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="46.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<path d="M60.4 11.8 L61.4 10.4 H63.6 V25.3 H60.4 Z" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(62 9.4) scale(-1 1)"><text x="0" y="0" font-size="1.0" text-anchor="middle" font-weight="700">BR1</text></g><g transform="translate(62 27.0) scale(-1 1)"><text x="0" y="0" font-size="0.8" text-anchor="middle" font-weight="400">KBP307</text></g>
+<circle cx="52" cy="17.5" r="6.25" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M48.4 22.61 A6.25 6.25 0 0 0 55.6 22.61" stroke="#000" stroke-width="1.2" fill="none"/>
+<g transform="translate(52 18.1) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">C6</text></g><g transform="translate(52 13.5) scale(-1 1)"><text x="0" y="0" font-size="0.95" text-anchor="middle" font-weight="400">1000µF 50V</text></g><g transform="translate(49.6 15.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g>
+<circle cx="52" cy="33.5" r="6.25" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M48.4 38.61 A6.25 6.25 0 0 0 55.6 38.61" stroke="#000" stroke-width="1.2" fill="none"/>
+<g transform="translate(52 34.1) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">C7</text></g><g transform="translate(52 29.5) scale(-1 1)"><text x="0" y="0" font-size="0.95" text-anchor="middle" font-weight="400">1000µF 50V</text></g><g transform="translate(49.6 31.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g>
+<rect x="64.4" y="12.6" width="7.0" height="10.5" rx="0.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(68.0 25.4) scale(-1 1)"><text x="0" y="0" font-size="1.3" text-anchor="middle" font-weight="700">18V~</text></g>
+<rect x="13.7" y="28.4" width="7.6" height="10.3" rx="0.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(17.5 27.3) scale(-1 1)"><text x="0" y="0" font-size="1.1" text-anchor="middle" font-weight="700">12V 1.7A</text></g><g transform="translate(15.0 31.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g><g transform="translate(15.0 36.8) scale(-1 1)"><text x="0" y="0" font-size="1.8" text-anchor="middle" font-weight="700">−</text></g>
+<g transform="translate(32 30) scale(-1 1)"><text x="0" y="0" font-size="6.0" text-anchor="middle" font-weight="700">AP</text></g><g transform="translate(32 34.5) scale(-1 1)"><text x="0" y="0" font-size="1.3" text-anchor="middle" font-weight="700">FUENTE 12 V · 1.7 A</text></g>
+<g transform="translate(32 9.5) scale(-1 1)"><text x="0" y="0" font-size="1.0" text-anchor="middle" font-weight="400">Las piezas SMD van del otro lado</text></g>
+</g></svg><svg xmlns="http://www.w3.org/2000/svg" width="72.0mm" height="50.0mm" viewBox="0 0 72 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="72" height="50" fill="#fff"/>
+<g>
+<rect x="0.7" y="0.7" width="70.6" height="48.6" rx="2" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="15.31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="20.39" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="12" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="15.9" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="19.8" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="62" cy="23.7" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="15" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="20" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="52" cy="36" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="17.5" cy="31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="17.5" cy="36.08" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="3.5" cy="3.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="3.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="3.5" cy="46.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="68.5" cy="46.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<path d="M60.4 11.8 L61.4 10.4 H63.6 V25.3 H60.4 Z" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(62 9.4) scale(-1 1)"><text x="0" y="0" font-size="1.0" text-anchor="middle" font-weight="700">BR1</text></g><g transform="translate(62 27.0) scale(-1 1)"><text x="0" y="0" font-size="0.8" text-anchor="middle" font-weight="400">KBP307</text></g>
+<circle cx="52" cy="17.5" r="6.25" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M48.4 22.61 A6.25 6.25 0 0 0 55.6 22.61" stroke="#000" stroke-width="1.2" fill="none"/>
+<g transform="translate(52 18.1) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">C6</text></g><g transform="translate(52 13.5) scale(-1 1)"><text x="0" y="0" font-size="0.95" text-anchor="middle" font-weight="400">1000µF 50V</text></g><g transform="translate(49.6 15.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g>
+<circle cx="52" cy="33.5" r="6.25" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M48.4 38.61 A6.25 6.25 0 0 0 55.6 38.61" stroke="#000" stroke-width="1.2" fill="none"/>
+<g transform="translate(52 34.1) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">C7</text></g><g transform="translate(52 29.5) scale(-1 1)"><text x="0" y="0" font-size="0.95" text-anchor="middle" font-weight="400">1000µF 50V</text></g><g transform="translate(49.6 31.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g>
+<rect x="64.4" y="12.6" width="7.0" height="10.5" rx="0.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(68.0 25.4) scale(-1 1)"><text x="0" y="0" font-size="1.3" text-anchor="middle" font-weight="700">18V~</text></g>
+<rect x="13.7" y="28.4" width="7.6" height="10.3" rx="0.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(17.5 27.3) scale(-1 1)"><text x="0" y="0" font-size="1.1" text-anchor="middle" font-weight="700">12V 1.7A</text></g><g transform="translate(15.0 31.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g><g transform="translate(15.0 36.8) scale(-1 1)"><text x="0" y="0" font-size="1.8" text-anchor="middle" font-weight="700">−</text></g>
+<g transform="translate(32 30) scale(-1 1)"><text x="0" y="0" font-size="6.0" text-anchor="middle" font-weight="700">AP</text></g><g transform="translate(32 34.5) scale(-1 1)"><text x="0" y="0" font-size="1.3" text-anchor="middle" font-weight="700">FUENTE 12 V · 1.7 A</text></g>
+<g transform="translate(32 9.5) scale(-1 1)"><text x="0" y="0" font-size="1.0" text-anchor="middle" font-weight="400">Las piezas SMD van del otro lado</text></g>
+</g></svg></div>
+<div class="cap">Serigrafía para el lado sin cobre (opcional) — también en espejo</div>
+<div class="fig" style="margin-top:2mm"><svg width="72mm" height="5mm" viewBox="0 0 72 5"><rect x="0" y="2" width="72" height="1"/><rect x="0" y="0" width="0.6" height="5"/><rect x="71.4" y="0" width="0.6" height="5"/></svg> <span style="font-size:8pt">esta barra debe medir 72 mm</span></div>
+<div class="nota">Láser al <b>100 %</b>, sin «ajustar a página». Plancha el cobre, grabas, barrenas, y luego plancha la serigrafía del otro lado alineando con los barrenos.</div>
+<ol>
+<li>Lija y limpia con alcohol. Plancha 3–4 min, remoja y retira el papel. Cloruro férrico; quita el tóner con thinner.</li>
+<li>Barrenos: <b>1.0 mm</b> para C6 y C7, <b>1.2 mm</b> para BR1 y borneras, <b>3.2 mm</b> en las 4 esquinas.</li>
+<li>Revisa a contraluz que no haya puentes de cobre entre las patas del LM2596 (0.6 mm entre ellas).</li>
+</ol>
+<h2 class="pb">2 · Esquema de la placa</h2>
+<div class="fig"><svg width="184mm" height="74mm" viewBox="0 0 184 74" font-family="Arial,Helvetica,sans-serif" font-size="2.7">
+<path d="M5 31 H18 M5 43 H18" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><circle cx="4" cy="31" r="1.4" fill="#fff" stroke="#000" stroke-width="0.45"/><circle cx="4" cy="43" r="1.4" fill="#fff" stroke="#000" stroke-width="0.45"/><text x="1" y="27.5">J1</text><text x="0.5" y="49">18 V~</text>
+<path d="M11 31 V36.0 M11 38.0 V43" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 36.0 H14.5 M7.5 38.0 H14.5" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><text x="13" y="36">C5</text><text x="13" y="39">100n</text>
+<rect x="18" y="26" width="14" height="22" rx="1" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><text x="19.5" y="24.5">BR1 KBP307</text>
+<text x="19" y="32">~</text><text x="19" y="44">~</text><text x="29" y="32">+</text><text x="29.2" y="44">−</text>
+<path d="M25 33 L28.5 37 L25 41 L21.5 37 Z" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.35"/>
+<path d="M32 31 H36 V14 H88 M32 43 H34 V64 M4 64 H180" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M44 14 V37.5 M44 40.5 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 37.5 H48" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><path d="M40 40.8 Q44 39.6 48 40.8" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><text x="38.5" y="37.0" font-size="2.6">+</text><text x="46" y="35">C6</text><text x="46" y="44" font-size="2.3">1000µF</text>
+<path d="M54 14 V37.5 M54 40.5 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 37.5 H58" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><path d="M50 40.8 Q54 39.6 58 40.8" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><text x="48.5" y="37.0" font-size="2.6">+</text><text x="56" y="35">C7</text><text x="56" y="44" font-size="2.3">1000µF</text>
+<path d="M63 14 V22.5 M63 30.5 V39" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><rect x="61.2" y="22.5" width="3.6" height="8" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M63 39 V49.0 M63 54.0 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M60 49.0 H66 L63 54.0 Z M60 54.0 H66" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M66.5 50.5 l2.2 -1.6 M66.5 52.5 l2.2 -1.6" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.35"/><text x="65.5" y="27">R2 10k</text><text x="66" y="52">LED1</text>
+<path d="M74 14 V37.5 M74 40.5 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M70 37.5 H78" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><path d="M70 40.8 Q74 39.6 78 40.8" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><text x="68.5" y="37.0" font-size="2.6">+</text><text x="76" y="35">C1</text><text x="76" y="44" font-size="2.3">220µF</text>
+<path d="M82 14 V38.0 M82 40.0 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M78.5 38.0 H85.5 M78.5 40.0 H85.5" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><text x="84" y="47">C2</text>
+<rect x="88" y="8" width="30" height="34" rx="1" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><text x="96" y="22" font-weight="700">U1</text><text x="93" y="26" font-size="2.5">LM2596S-12</text>
+<text x="89.5" y="15">1 VIN</text><text x="106" y="15">2 OUT</text><text x="109.5" y="31">4 FB</text><text x="89.5" y="35">5 ON/OFF</text><text x="98" y="40.5">3 GND</text>
+<path d="M88 34 H85 V64 M103 42 V64 M118 14 H130 M118 30 H152 V14" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M125 14 V35 M125 43 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M121 43 H129 L125 35 Z M121 35 H129" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><text x="127" y="47">D1 SS54</text>
+<path d="M130 14 q2.5 -5 5 0 q2.5 -5 5 0 q2.5 -5 5 0 q2.5 -5 5 0 M150 14 H180" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><text x="132" y="8">L1 47µH</text>
+<text x="128" y="28.5" font-size="2.3">FB</text>
+<path d="M158 14 V37.5 M158 40.5 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M154 37.5 H162" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><path d="M154 40.8 Q158 39.6 162 40.8" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><text x="152.5" y="37.0" font-size="2.6">+</text><text x="160" y="35">C3</text><text x="160" y="44" font-size="2.3">470µF</text>
+<path d="M166 14 V38.0 M166 40.0 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M162.5 38.0 H169.5 M162.5 40.0 H169.5" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8"/><text x="168" y="47">C4</text>
+<path d="M173 14 V22.5 M173 30.5 V39" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><rect x="171.2" y="22.5" width="3.6" height="8" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M173 39 V49.0 M173 54.0 V64" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M170 49.0 H176 L173 54.0 Z M170 54.0 H176" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/><path d="M176.5 50.5 l2.2 -1.6 M176.5 52.5 l2.2 -1.6" fill="none" stroke="#000" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.35"/>
+<circle cx="181" cy="14" r="1.4" fill="#fff" stroke="#000" stroke-width="0.45"/><circle cx="181" cy="64" r="1.4" fill="#fff" stroke="#000" stroke-width="0.45"/><text x="183" y="10" text-anchor="end">J2 12 V</text><text x="183" y="71" text-anchor="end">1.7 A −</text>
+<text x="175" y="27" font-size="2.3">R1</text><text x="176.5" y="52" font-size="2.3">LED2</text>
+<circle cx="36" cy="14" r="0.8"/><circle cx="44" cy="14" r="0.8"/><circle cx="54" cy="14" r="0.8"/><circle cx="63" cy="14" r="0.8"/><circle cx="74" cy="14" r="0.8"/><circle cx="82" cy="14" r="0.8"/><circle cx="125" cy="14" r="0.8"/><circle cx="152" cy="14" r="0.8"/><circle cx="158" cy="14" r="0.8"/><circle cx="166" cy="14" r="0.8"/><circle cx="173" cy="14" r="0.8"/>
+<circle cx="34" cy="64" r="0.8"/><circle cx="44" cy="64" r="0.8"/><circle cx="54" cy="64" r="0.8"/><circle cx="63" cy="64" r="0.8"/><circle cx="74" cy="64" r="0.8"/><circle cx="82" cy="64" r="0.8"/><circle cx="85" cy="64" r="0.8"/><circle cx="103" cy="64" r="0.8"/><circle cx="125" cy="64" r="0.8"/><circle cx="158" cy="64" r="0.8"/><circle cx="166" cy="64" r="0.8"/><circle cx="173" cy="64" r="0.8"/>
+<text x="40" y="11" font-size="2.4">24–28 V DC</text><text x="152" y="11" font-size="2.4">12 V</text>
+</svg></div>
+<h2>3 · Material de la placa</h2>
+<table><tr><th>Ref.</th><th>Cant.</th><th>Pieza</th><th>Nota</th></tr><tr><td class=r>U1</td><td class=c>1</td><td><b>LM2596S-12</b> (fija de 12 V), TO-263-5</td><td class=g>La ADJ no sirve en esta placa</td></tr><tr><td class=r>BR1</td><td class=c>1</td><td>Puente rectificador <b>KBP307</b> (3 A, 700 V), en línea</td><td class=g>El que ya usas en las otras placas</td></tr><tr><td class=r>C6, C7</td><td class=c>2</td><td>Electrolítico <b>1000 µF 50 V</b> de patitas, 12.5 mm, paso 5 mm, 105 °C</td><td class=g>Filtro principal</td></tr><tr><td class=r>C1</td><td class=c>1</td><td>Electrolítico SMD <b>220 µF 50 V</b>, 10 × 10.5 mm, bajo ESR</td><td class=g>Junto al LM2596</td></tr><tr><td class=r>C3</td><td class=c>1</td><td>Electrolítico SMD <b>470 µF 25 V</b>, 10 × 10.5 mm, bajo ESR</td><td class=g>Salida</td></tr><tr><td class=r>C2</td><td class=c>1</td><td>Cerámico <b>1 µF 50 V</b> X7R, 1206</td><td class=g></td></tr><tr><td class=r>C4</td><td class=c>1</td><td>Cerámico <b>10 µF 25 V</b> X5R/X7R, 1206</td><td class=g>Baja el rizo de salida</td></tr><tr><td class=r>C5</td><td class=c>1</td><td>Cerámico <b>100 nF 50 V</b>, 1206</td><td class=g>Quita ruido en la entrada de alterna</td></tr><tr><td class=r>D1</td><td class=c>1</td><td>Diodo Schottky <b>SS54</b> (5 A, 40 V), SMC</td><td class=g>No sirve un diodo normal</td></tr><tr><td class=r>L1</td><td class=c>1</td><td>Bobina SMD <b>47 µH, ≥ 3 A</b>, 12 × 12 mm (CD127 «470»)</td><td class=g>33 a 68 µH también</td></tr><tr><td class=r>R1</td><td class=c>1</td><td><b>2.2 kΩ</b> 0805</td><td class=g>LED de salida</td></tr><tr><td class=r>R2</td><td class=c>1</td><td><b>10 kΩ</b> 1206</td><td class=g>LED de entrada y descarga de C6/C7</td></tr><tr><td class=r>LED1</td><td class=c>1</td><td>LED SMD 0805 <b>rojo</b></td><td class=g>Hay voltaje en el filtro</td></tr><tr><td class=r>LED2</td><td class=c>1</td><td>LED SMD 0805 <b>verde</b></td><td class=g>Hay 12 V en la salida</td></tr><tr><td class=r>J1, J2</td><td class=c>2</td><td>Bornera de 2 tornillos, paso 5.08 mm</td><td class=g></td></tr><tr><td class=r>—</td><td class=c>1</td><td>Placa fenólica de una cara 7.2 × 5 cm</td><td class=g></td></tr></table>
+<h2>4 · Material de la caja (127 V)</h2>
+<table><tr><th>Ref.</th><th>Cant.</th><th>Pieza</th><th>Nota</th></tr><tr><td class=r>T1</td><td class=c>1</td><td>Transformador <b>127 V → 18 V</b>, <b>2 A mínimo (3 A recomendado)</b></td><td class=g>Uno de 12 V no alcanza</td></tr><tr><td class=r>F1</td><td class=c>1</td><td>Portafusible de chasis + fusible 5 × 20 mm <b>1 A lento</b></td><td class=g>Siempre antes de todo</td></tr><tr><td class=r>S1</td><td class=c>1</td><td>Interruptor de 127 V (con luz, opcional)</td><td class=g></td></tr><tr><td class=r>RV1</td><td class=c>1</td><td>Varistor <b>10D201K</b> (o 14D201K)</td><td class=g>Contra picos de la red</td></tr><tr><td class=r>—</td><td class=c>1</td><td>Cable con clavija, termofit, caja, 4 separadores M3 de 15 mm</td><td class=g>Las piezas SMD quedan abajo</td></tr></table>
+<h2 class="pb">5 · Montaje (visto desde el lado del cobre)</h2>
+<div class="fig"><svg xmlns="http://www.w3.org/2000/svg" width="176.4mm" height="122.5mm" viewBox="0 0 72 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="72" height="50" rx="1" fill="#fbf8f2" stroke="#555" stroke-width="0.3"/>
+<path d="M62.00 15.90 L68.50 15.90" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62.00 19.80 L68.50 19.80" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.60 12.00 L41.00 12.00 L41.00 17.20" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41.00 12.00 L62.00 12.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.60 12.00 L34.60 15.20" fill="none" stroke="#ead0b3" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 12.00 L52.00 15.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M48.00 12.00 L48.00 31.00 L52.00 31.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 29.40 L48.00 29.40" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 32.60 L45.50 35.20" fill="none" stroke="#ead0b3" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M29.70 12.00 L29.70 6.80" fill="none" stroke="#ead0b3" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M29.70 6.80 L5.00 6.80 L5.00 10.60" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 6.80 L15.00 11.60" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.00 12.00 L28.00 18.00" fill="none" stroke="#ead0b3" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M24.60 12.00 L24.60 18.00" fill="none" stroke="#ead0b3" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.60 18.40 L33.00 18.40" fill="none" stroke="#ead0b3" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.00 26.00 L28.00 38.00" fill="none" stroke="#ead0b3" stroke-width="7.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.00 40.00 L60.00 40.00" fill="none" stroke="#ead0b3" stroke-width="4.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41.00 25.80 L41.00 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 35.70 L8.00 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 36.08 L17.50 40.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 35.40 L20.80 39.00" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 31.20 L14.40 38.50" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.50 37.40 L45.50 39.00" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.00 17.40 L5.00 19.50 L2.20 19.50 L2.20 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60.00 23.70 L60.00 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62.00 23.70 L60.00 23.70" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 20.00 L55.50 20.00 L55.50 25.00 L60.00 25.00" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.00 36.00 L60.00 36.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 21.40 L15.00 25.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 25.00 L20.80 25.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 25.00 L17.50 31.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 25.00 L20.80 28.20" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 25.00 L14.40 28.00" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M21.00 25.00 L21.00 9.00 L26.30 9.00 L26.30 11.00" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 30.40 L20.80 33.20" fill="none" stroke="#ead0b3" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="68.5" cy="15.31" r="1.5" fill="#d9a877"/><circle cx="68.5" cy="15.31" r="0.55" fill="#fff"/>
+<circle cx="68.5" cy="20.39" r="1.5" fill="#d9a877"/><circle cx="68.5" cy="20.39" r="0.55" fill="#fff"/>
+<circle cx="62" cy="12" r="1.2" fill="#d9a877"/><circle cx="62" cy="12" r="0.55" fill="#fff"/>
+<circle cx="62" cy="15.9" r="1.2" fill="#d9a877"/><circle cx="62" cy="15.9" r="0.55" fill="#fff"/>
+<circle cx="62" cy="19.8" r="1.2" fill="#d9a877"/><circle cx="62" cy="19.8" r="0.55" fill="#fff"/>
+<circle cx="62" cy="23.7" r="1.2" fill="#d9a877"/><circle cx="62" cy="23.7" r="0.55" fill="#fff"/>
+<rect x="64.60" y="15.38" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="64.60" y="18.57" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<circle cx="52" cy="15" r="1.2" fill="#d9a877"/><circle cx="52" cy="15" r="0.55" fill="#fff"/>
+<circle cx="52" cy="20" r="1.2" fill="#d9a877"/><circle cx="52" cy="20" r="0.55" fill="#fff"/>
+<circle cx="52" cy="31" r="1.2" fill="#d9a877"/><circle cx="52" cy="31" r="0.55" fill="#fff"/>
+<circle cx="52" cy="36" r="1.2" fill="#d9a877"/><circle cx="52" cy="36" r="0.55" fill="#fff"/>
+<rect x="44.60" y="28.52" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="44.60" y="31.73" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="44.80" y="34.60" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="44.80" y="36.80" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="24.05" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="25.75" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="27.45" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="29.15" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="30.85" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="22.60" y="17.65" width="10.8" height="9.6" rx="0.2" fill="#d9a877"/>
+<rect x="39.70" y="15.20" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="39.70" y="23.80" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="33.70" y="14.32" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="33.70" y="17.52" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="3.35" y="9.35" width="3.3" height="2.5" rx="0.2" fill="#d9a877"/>
+<rect x="3.35" y="16.15" width="3.3" height="2.5" rx="0.2" fill="#d9a877"/>
+<rect x="12.50" y="10.00" width="5.0" height="3.2" rx="0.2" fill="#d9a877"/>
+<rect x="12.50" y="19.80" width="5.0" height="3.2" rx="0.2" fill="#d9a877"/>
+<rect x="6.70" y="25.30" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="6.70" y="33.70" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="13.50" y="27.12" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="13.50" y="30.32" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<circle cx="17.5" cy="31" r="1.5" fill="#d9a877"/><circle cx="17.5" cy="31" r="0.55" fill="#fff"/>
+<circle cx="17.5" cy="36.08" r="1.5" fill="#d9a877"/><circle cx="17.5" cy="36.08" r="0.55" fill="#fff"/>
+<rect x="20.10" y="27.60" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="20.10" y="29.80" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="20.10" y="32.60" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="20.10" y="34.80" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<circle cx="3.5" cy="3.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<circle cx="68.5" cy="3.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<circle cx="3.5" cy="46.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<circle cx="68.5" cy="46.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<rect x="22.9" y="15.4" width="10.2" height="9.4" rx="0.4" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<path d="M24.6 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M26.3 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M28.0 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M29.7 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M31.4 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<circle cx="31.4" cy="16.6" r="0.45" fill="#111"/><text x="28" y="20.6" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">U1</text><text x="28" y="22.4" font-size="1.05" text-anchor="middle" font-weight="400" fill="#111">LM2596S-12</text>
+<text x="31.4" y="8.0" font-size="0.9" text-anchor="middle" font-weight="400" fill="#111">1</text><text x="24.6" y="8.0" font-size="0.9" text-anchor="middle" font-weight="400" fill="#111">5</text>
+<rect x="2.3" y="9.4" width="5.4" height="9.2" rx="0.5" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><rect x="2.3" y="9.4" width="5.4" height="1.3" fill="#111"/><text x="5" y="13.8" font-size="1.2" text-anchor="middle" font-weight="700" fill="#111">D1</text><text x="5" y="15.2" font-size="0.9" text-anchor="middle" font-weight="400" fill="#111">SS54</text>
+<rect x="9" y="10.5" width="12" height="12" rx="1.5" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><circle cx="15" cy="16.5" r="4.2" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="15" y="16.4" font-size="1.5" text-anchor="middle" font-weight="700" fill="#111">L1</text><text x="15" y="18.0" font-size="1.0" text-anchor="middle" font-weight="400" fill="#111">47µH</text>
+<path d="M37.45 16.35 H44.55 L46.15 17.950000000000003 V26.65 H35.85 V17.950000000000003 Z" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><circle cx="41" cy="21.5" r="4.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M36.7 23.2 A4.6 4.6 0 0 0 45.3 23.2 Z" fill="#111"/><text x="41" y="20.9" font-size="1.5" text-anchor="middle" font-weight="700" fill="#111">C1</text><text x="41" y="22.4" font-size="0.95" text-anchor="middle" font-weight="400" fill="#111">220µF 50V</text><text x="37.0" y="18.5" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">+</text><path d="M4.449999999999999 26.35 H11.55 L13.15 27.950000000000003 V36.65 H2.8499999999999996 V27.950000000000003 Z" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><circle cx="8" cy="31.5" r="4.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M3.7 33.2 A4.6 4.6 0 0 0 12.3 33.2 Z" fill="#111"/><text x="8" y="30.9" font-size="1.5" text-anchor="middle" font-weight="700" fill="#111">C3</text><text x="8" y="32.4" font-size="0.95" text-anchor="middle" font-weight="400" fill="#111">470µF 25V</text><text x="4.0" y="28.5" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">+</text>
+<rect x="33.5" y="14.0" width="2.2" height="5.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="34.6" y="21.3" font-size="0.9" text-anchor="middle" font-weight="700" fill="#111">C2</text><text x="34.6" y="22.4" font-size="0.75" text-anchor="middle" font-weight="400" fill="#111">1µF</text>
+<rect x="13.3" y="26.8" width="2.2" height="5.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="14.4" y="24.299999999999997" font-size="0.8" text-anchor="middle" font-weight="700" fill="#111"></text>
+<text x="12.2" y="39.0" font-size="0.8" text-anchor="start" font-weight="700" fill="#111">C4 10µF</text>
+<rect x="19.9" y="27.5" width="1.8" height="3.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="22.4" y="29.6" font-size="0.85" text-anchor="start" font-weight="700" fill="#111">R1 2.2k</text>
+<rect x="19.9" y="32.5" width="1.8" height="3.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M20.1 35.6 H21.5" stroke="#111" stroke-width="0.35"/><text x="22.4" y="34.6" font-size="0.85" text-anchor="start" font-weight="700" fill="#111">LED2</text><text x="22.4" y="35.7" font-size="0.7" text-anchor="start" font-weight="400" fill="#111">verde</text>
+<rect x="44.4" y="28.2" width="2.2" height="5.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="44.0" y="30.7" font-size="0.85" text-anchor="end" font-weight="700" fill="#111">R2</text><text x="44.0" y="31.8" font-size="0.75" text-anchor="end" font-weight="400" fill="#111">10k</text>
+<rect x="44.6" y="34.4" width="1.8" height="3.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M44.8 37.8 H46.2" stroke="#111" stroke-width="0.35"/><text x="44.0" y="36.0" font-size="0.85" text-anchor="end" font-weight="700" fill="#111">LED1</text><text x="44.0" y="37.1" font-size="0.7" text-anchor="end" font-weight="400" fill="#111">rojo</text>
+<rect x="64.4" y="15.1" width="2.2" height="5.5" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="65.5" y="23.4" font-size="0.85" text-anchor="middle" font-weight="700" fill="#111">C5</text><text x="65.5" y="24.5" font-size="0.7" text-anchor="middle" font-weight="400" fill="#111">100nF</text>
+<rect x="60.2" y="10.3" width="3.5999999999999943" height="15.099999999999998" rx="0.6" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<circle cx="52" cy="17.5" r="6.25" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<circle cx="52" cy="33.5" r="6.25" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<rect x="64.4" y="12.6" width="7.599999999999994" height="10.500000000000002" rx="0.6" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<rect x="13.7" y="28.4" width="7.600000000000001" height="10.300000000000004" rx="0.6" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<text x="52" y="26.4" font-size="1.2" text-anchor="middle" font-weight="700" fill="#2563eb">C6</text><text x="52" y="28.6" font-size="1.2" text-anchor="middle" font-weight="700" fill="#2563eb">C7</text>
+<text x="51.0" y="16.0" font-size="1.5" text-anchor="end" font-weight="700" fill="#c00">+</text><text x="51.0" y="32.0" font-size="1.5" text-anchor="end" font-weight="700" fill="#c00">+</text>
+<text x="58.6" y="12.6" font-size="1.4" text-anchor="middle" font-weight="700" fill="#c00">+</text><text x="58.6" y="26.0" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">−</text><text x="62" y="33.4" font-size="1.1" text-anchor="middle" font-weight="700" fill="#2563eb">BR1</text><text x="62" y="34.7" font-size="0.8" text-anchor="middle" font-weight="400" fill="#2563eb">KBP307</text>
+<text x="68.3" y="10.6" font-size="1.1" text-anchor="middle" font-weight="700" fill="#2563eb">18V~</text><text x="17.5" y="34.1" font-size="1.3" text-anchor="middle" font-weight="700" fill="#c00">+</text><text x="15.6" y="26.4" font-size="1" text-anchor="middle" font-weight="700" fill="#111"></text>
+<text x="17.5" y="27.6" font-size="0.9" text-anchor="middle" font-weight="700" fill="#2563eb">12V</text>
+</svg></div>
+<div class="cap">Café = cobre. Negro = piezas SMD de este lado. Azul punteado = piezas de patitas que van del otro lado.</div>
+<ol><li><b>Estaña los pads.</b> Capa delgada de soldadura con flux en todos los pads SMD.</li><li><b>U1 · LM2596S-12.</b> Primero. Pata 1 a la derecha (junto a C2), pestaña sobre el pad grande. Fija una pata, alinea, suelda las 5 y al final la pestaña con cautín de 60 W o más (o pistola de calor).</li><li><b>D1 · SS54.</b> Franja hacia arriba, hacia la pista larga del borde.</li><li><b>Piezas chicas.</b> C2, C4, C5, R1 y R2 no tienen polaridad. En LED1 y LED2 el cátodo (marca verde o la «T» del reverso) va hacia abajo, hacia la pista ancha de tierra.</li><li><b>L1 · 47 µH.</b> Sin polaridad; calienta bien los dos pads.</li><li><b>C1 y C3.</b> Esquinas cortadas de la base = + (hacia arriba en los dos). Franja negra = −.</li><li><b>Del otro lado: BR1, C6, C7, J1, J2.</b> Entran por el lado sin cobre, siguiendo la serigrafía, y se sueldan del lado del cobre. BR1: la esquina cortada (+) hacia la orilla de arriba. C6 y C7: pata larga (+) donde dice +, franja hacia abajo.</li><li><b>Limpieza.</b> Quita el flux con alcohol isopropílico y revisa con lupa que no haya puentes entre las patas del LM2596.</li></ol>
+<h2 class="pb">6 · Pruebas (en este orden)</h2>
+<ol>
+<li><b>Sin corriente:</b> continuidad entre + y − de J2 y entre + de C6 y tierra: no deben quedarse pitando (un pitido corto es el capacitor cargando).</li>
+<li><b>Solo el transformador:</b> con la caja armada y la placa desconectada, mide el secundario: 18–21 V de alterna.</li>
+<li><b>Primera conexión, sin carga:</b> conecta el secundario a J1 y enciende. Prende LED1 (rojo) y LED2 (verde).
+En C6 debe haber 24–30 V de directa; en J2, <b>11.5–12.5 V</b>.</li>
+<li><b>Con carga:</b> foco de auto 12 V 21 W (≈ 1.75 A) o tu tira LED. La salida se queda arriba de 11.5 V.</li>
+<li><b>10 minutos con carga:</b> LM2596 y bobina tibios-calientes (hasta ≈ 70 °C) pero se pueden tocar un momento; transformador y puente tibios.</li>
+<li><b>Al apagar:</b> LED1 se apaga en unos segundos; R2 descarga C6 y C7.</li>
+</ol>
+<h2>7 · Si algo falla</h2>
+<table><tr><th>Síntoma</th><th>Revisa</th></tr>
+<tr><td>Se funde F1 al encender</td><td>BR1 al revés o en corto, C6/C7 al revés, corto entre + y tierra del filtro. <b>No pongas un fusible más grande.</b></td></tr>
+<tr><td>No prende ningún LED</td><td>F1, interruptor, transformador (mide el secundario), bornera J1, soldaduras de BR1.</td></tr>
+<tr><td>Rojo sí, verde no</td><td>Patas 1 o 5 del LM2596 sin soldar (la 5 va a tierra), D1 al revés, LED2 al revés.</td></tr>
+<tr><td>Salen más de 13 V (18–28 V)</td><td>Pata 1 y 2 en corto o pusiste la versión ADJ. <b>Desconecta enseguida.</b></td></tr>
+<tr><td>La salida baja con carga</td><td>Transformador de 12 V o de poca corriente (mide en C6: no debe bajar de 16 V), pata 4 sin soldar, bobina de menos de 3 A.</td></tr>
+<tr><td>El transformador zumba y se calienta mucho</td><td>Es muy chico para la carga: usa uno de 18 V 3 A.</td></tr>
+</table>
+<p style="color:#555;font-size:8.5pt;margin-top:3mm">Diseño revisado por programa: separación mínima entre pistas de 0.55 mm, todas las conexiones verificadas y cuerpos de las piezas de patitas sin encimarse. Esta placa aún no se ha armado físicamente.</p>
+</body></html>

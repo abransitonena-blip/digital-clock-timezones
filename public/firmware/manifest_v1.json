@@ -1,0 +1,6 @@
+{
+  "name": "Cubo AP · placa de control v1",
+  "version": "2.1.0",
+  "new_install_prompt_erase": true,
+  "builds": [{ "chipFamily": "ESP32-C3", "parts": [{ "path": "CuboAP_placa_v1.bin", "offset": 0 }] }]
+}
