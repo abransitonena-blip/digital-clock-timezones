@@ -140,6 +140,12 @@ export const PROYECTOS = [
     docs: [['Esquema v2 (PDF)', 'docs/esquema_placa_control_v2.pdf'], ['BOM v2 (CSV)', 'docs/bom_v2.csv']],
   },
   {
+    id: 'placa3', nombre: 'Placa de control v3 · ESP32-C3 soldado', estado: 'Gerber listos, sin fabricar',
+    img: 'img/placa_control_v3_arriba.jpg',
+    texto: 'La v2 sin módulo: chip ESP32-C3FH4 en la placa con cristal, red RF, U.FL para antena externa y regulador propio. Mismo firmware. DRC sin errores, 0 redes abiertas.',
+    docs: [['Esquema v3 (PDF)', 'docs/esquema_placa_control_v3.pdf'], ['Gerber v3 (ZIP)', 'docs/cubo_ap_control_v3_gerbers.zip'], ['BOM v3 (CSV)', 'docs/bom_v3.csv']],
+  },
+  {
     id: 'fuente127', nombre: 'Fuente universal 127 V (flyback)', estado: 'Diseño para planchar, sin probar',
     img: 'img/fuente127_vista_montaje.jpg',
     texto: 'Flyback UC3844 tipo cargador + LM2596-ADJ: de 127 V a 1.2–20 V 2 A en una sola placa.',

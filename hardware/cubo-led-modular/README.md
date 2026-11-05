@@ -58,6 +58,21 @@ El cartucho debe dar al menos Vout + 1.2 V. Para 12 V y 15 V se usa el de 24 V; 
 | 3 | ADC NTC 10k | | 20 | LED de estado (tubo de luz de la tapa) |
 | 4 | EN del reductor (+ ALERT del INA226) | | 21 | PWM R |
 
+## Placa de control v3 (`placa-control-v3/`): ESP32-C3 soldado, sin módulo
+Es la v2 con el **chip ESP32-C3FH4** (QFN32 5 × 5, flash de 4 MB dentro del chip) soldado directo en lugar del SuperMini enchufable. Usa el **mismo mapa de pines**, así que corre el mismo firmware (`CUBO_PLACA=2`) y el mismo instalador web.
+
+- **Circuito del chip:** según la guía de hardware de Espressif (esquema de referencia y lista de verificación del ESP32-C3):
+  - VDD3P3 con 2.0 nH + 1 µF, y 10 µF + 0.1 µF del lado de 3V3; VDDA con 1 µF + 10 nF; RTC y CPU con 0.1 µF; VDD_SPI (alimenta la flash) con 1 µF;
+  - CHIP_EN con RC de 10k / 1 µF;
+  - cristal de 40 MHz ±10 ppm con 24 nH en serie en XTAL_P y cargas de 12 pF (C = 2·(CL − Cparásita) para CL = 10 pF);
+  - red CLC de RF junto al chip (C40, L4, C41) y conector **U.FL** para una antena externa que sale por la pared del cubo.
+- **3.3 V propio:** AP2112K-3.3 (600 mA), que antes traía el módulo.
+- **Programación:** por el USB nativo del chip en 6 pads para puntas pogo (5V · D− · D+ · GND · EN · IO9). Con el chip virgen, IO9 a GND al conectar = modo descarga. Después, OTA por Wi-Fi.
+- **Huellas:** las del chip, el cristal, el U.FL y los 0402 se leen tal cual de la librería oficial de KiCad (`huellas_kicad/`, CC-BY-SA 4.0 con excepción para diseños).
+- **Ruteo:** DRC sin errores, 0 redes abiertas, 268 vías. Junto al chip: pistas de 0.15 mm, abanico fijo de salida de los pines, pistas fijas para RF y cristal, y plano de GND inferior sin cortes bajo el cristal y la red RF. `reparar.py` termina de cerrar redes arrancando y rehaciendo solo los vecinos que estorban.
+- **Archivos:** Gerber en `cubo_ap_control_v3_gerbers.zip`, BOM y CPL, esquema en `esquema_placa_control_v3.pdf`.
+- **Hay que ajustar en la placa real:** la red CLC (arranca con L4 = 0 Ω y C40/C41 sin poblar) con analizador de redes, y los capacitores del cristal con la prueba de tono de Espressif hasta ±10 ppm. La pista de RF es corta (2 mm, coplanar de ≈57 Ω). VDDA sale por una vía porque queda encerrada entre el cristal y la RF.
+
 ## Placa de control v2 (`placa-control-v2/`), la recomendada
 Es la v1 con dos agregados:
 - **DMX512 por cable:**

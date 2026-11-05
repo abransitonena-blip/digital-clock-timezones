@@ -134,7 +134,7 @@ def serigrafia(pads):
                               ("FB GND ID", -3.8, 13.9, 0.8, 0),
                               ("DMX", -23.6, -28.4, 1.1, 0), ("GND D- D+", -16.0, -30.9, 0.8, 0), ("TERM", -13.0, -26.6, 0.8, 0),
                               ("AP v3", -27.6, -10.0, 1.3, 0),
-                              ("5V D- D+ GND EN IO9", 10.0, -28.3, 0.8, 0), ("ANT", 0.6, -29.4, 0.9, 0)):
+                              ("5V   D-   D+  GND  EN  IO9", 10.0, -31.35, 0.6, 0), ("ANT", 0.6, -29.4, 0.9, 0)):
         s.append(texto(txt, x, y, h, rot=rot))
     todo = unary_union(s + lin)
     abiertos = unary_union([q["g"] for q in pads]).buffer(0.15)
