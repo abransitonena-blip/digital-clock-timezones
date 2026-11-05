@@ -8,6 +8,7 @@ import Compatibilidad from './paginas/Compatibilidad'
 import Proyectos from './paginas/Proyectos'
 import Reloj from './paginas/Reloj'
 import Instalar from './paginas/Instalar'
+import Plataformas from './paginas/Plataformas'
 import './sitio.css'
 
 export const RUTAS = [
@@ -19,6 +20,7 @@ export const RUTAS = [
   ['compatibilidad', 'Compatibilidad', Compatibilidad],
   ['proyectos', 'Proyectos', Proyectos],
   ['instalar', 'Instalar', Instalar],
+  ['plataformas', 'Chips', Plataformas],
   ['reloj', 'Reloj', Reloj],
 ]
 
