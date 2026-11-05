@@ -15,6 +15,10 @@ def abiertas(P):
     redes = sorted({q["net"] for q in P.pads if not q["net"].startswith("NC")} - {"GND"})
     return [n for n in redes if len(P.islas(n)) > 1]
 
+def guardar(P):                     # progreso (sin planos): si el proceso se corta, se retoma de aquí
+    json.dump(dict(pistas=P.pistas, vias=P.vias), open("ruteo.json", "w"), indent=0)
+    fab.guardar_cobre(P.cobre)
+
 def estado(P): return (copy.deepcopy(P.cobre), list(P.vias), copy.deepcopy(P.pistas))
 def volver(P, e): P.cobre, P.vias, P.pistas = copy.deepcopy(e[0]), list(e[1]), copy.deepcopy(e[2]); P.repintar()
 
@@ -26,7 +30,7 @@ if __name__ == "__main__":
         n = ab[it % len(ab)]; e = estado(P)
         if P.conectar_red(n):
             nuevo = abiertas(P)
-            if len(nuevo) < len(ab): ab = nuevo; print(f"  {it}: {n} directo → {len(ab)} abiertas"); continue
+            if len(nuevo) < len(ab): ab = nuevo; guardar(P); print(f"  {it}: {n} directo → {len(ab)} abiertas"); continue
             volver(P, e)
         if not hasattr(P, "ult_par"): continue
         cand = [m for m in P.estorbos(n) if m not in ("GND",)]
@@ -37,7 +41,7 @@ if __name__ == "__main__":
         for m in orden:
             if len(P.islas(m)) > 1: P.conectar_red(m)
         nuevo = abiertas(P)
-        if len(nuevo) < len(ab): ab = nuevo; print(f"  {it}: {n} (quité {', '.join(quitar)}) → {len(ab)} abiertas  {time.time()-t0:.0f}s")
+        if len(nuevo) < len(ab): ab = nuevo; guardar(P); print(f"  {it}: {n} (quité {', '.join(quitar)}) → {len(ab)} abiertas  {time.time()-t0:.0f}s")
         else: volver(P, e)
         sys.stdout.flush()
     P.planos()
