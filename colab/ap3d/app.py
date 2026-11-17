@@ -48,6 +48,13 @@ def _summary(info):
     ]
     if info.get("animaciones"):
         lines.append("Animaciones: " + ", ".join(info["animaciones"]))
+    if info.get("lod_caras"):
+        lines.append("LOD ligeros: " + ", ".join(
+            f"{k} ({v:,} caras)" for k, v in info["lod_caras"].items()))
+    if "vertices_sin_peso_reparados" in info:
+        lines.append(f"Pesos: 100 % de la malla sigue al esqueleto "
+                     f"({info['vertices_sin_peso_reparados']} vertices reparados)")
+    lines.append("Abre **visor.html** del ZIP para ver el modelo animado en el navegador o en AR.")
     for w in info.get("avisos", []):
         lines.append(f"⚠️ {w}")
     return "\n\n".join(lines)

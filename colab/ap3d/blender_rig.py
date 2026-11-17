@@ -16,7 +16,8 @@ Hace:
      distancia a los huesos.
   4. Crea animaciones (reposo, caminar, correr, saludar, saltar, bailar).
   5. Exporta GLB animado, FBX, BLEND (con texturas empaquetadas), OBJ,
-     STL, piezas por hueso y videos (animacion y giro 360).
+     STL, piezas por hueso, LODs ligeros, visor web y videos.
+  6. Repara vertices sin peso y reporta cuantos vertices mueve cada hueso.
 """
 import argparse
 import json
@@ -424,6 +425,45 @@ if args.rig != "ninguno":
         if arm.data.bones.get(g.name) is None:
             obj.vertex_groups.remove(g)
 
+    # Reparar vertices que quedaron sin peso (se quedarian quietos y
+    # estirarian la malla): copian los pesos del vertice con peso mas
+    # cercano. Asi el 100 % de la malla sigue al esqueleto.
+    from mathutils.kdtree import KDTree
+    me = obj.data
+    gi2name = {g.index: g.name for g in obj.vertex_groups}
+    weighted = [v.index for v in me.vertices
+                if any(e.weight > 1e-4 for e in v.groups)]
+    nv = len(me.vertices)
+    sin_peso = nv - len(weighted)
+    if 0 < sin_peso < nv and weighted:
+        kd = KDTree(len(weighted))
+        for i in weighted:
+            kd.insert(me.vertices[i].co, i)
+        kd.balance()
+        wset = set(weighted)
+        fixes = []
+        for v in me.vertices:
+            if v.index in wset:
+                continue
+            _, j, _ = kd.find(v.co)
+            fixes.append((v.index, [(gi2name[e.group], e.weight)
+                                    for e in me.vertices[j].groups]))
+        for i, ws in fixes:
+            for n, w in ws:
+                obj.vertex_groups[n].add([i], w, "REPLACE")
+    INFO["vertices_sin_peso_reparados"] = int(sin_peso)
+    # Cobertura por hueso (para ver de un vistazo si un hueso no mueve nada)
+    cnt = {g.name: 0 for g in obj.vertex_groups}
+    for v in me.vertices:
+        for e in v.groups:
+            if e.weight > 0.05:
+                cnt[gi2name[e.group]] += 1
+    INFO["vertices_por_hueso"] = cnt
+    vacios = [n for n, c in cnt.items() if c == 0 and not n.endswith("_End")]
+    if vacios:
+        INFO["avisos"].append("huesos sin zona: " + ", ".join(vacios))
+    log("pesos reparados:", sin_peso, "vertices; huesos vacios:", len(vacios))
+
     obj.parent = arm
     am = obj.modifiers.new("Armature", "ARMATURE")
     am.object = arm
@@ -818,6 +858,80 @@ if arm is not None:
             bpy.data.objects.remove(o, do_unlink=True)
 
     export("piezas", _piezas, p_pz)
+
+# LOD: versiones mas ligeras (mismo esqueleto y animaciones) para
+# juegos, web y celulares.
+def _lod(ratio, path):
+    lo = obj.copy()
+    lo.data = obj.data.copy()
+    lo.name = f"LOD_{int(ratio * 100)}"
+    scene.collection.objects.link(lo)
+    activate(lo)
+    am_ = [m for m in lo.modifiers if m.type == "ARMATURE"]
+    for m in am_:
+        lo.modifiers.remove(m)
+    dm = lo.modifiers.new("Dec", "DECIMATE")
+    dm.ratio = ratio
+    dm.use_collapse_triangulate = True
+    bpy.ops.object.modifier_apply(modifier=dm.name)
+    if arm is not None:
+        am2 = lo.modifiers.new("Armature", "ARMATURE")
+        am2.object = arm
+    deselect_all()
+    lo.select_set(True)
+    if arm is not None:
+        arm.select_set(True)
+        vl.objects.active = arm
+    kw = dict(filepath=path, export_format="GLB", use_selection=True,
+              export_apply=False, export_yup=True, export_materials="EXPORT")
+    try:
+        if arm is not None:
+            bpy.ops.export_scene.gltf(**kw, export_animations=True, export_skins=True,
+                                      export_animation_mode="ACTIONS")
+        else:
+            bpy.ops.export_scene.gltf(**kw)
+    finally:
+        INFO.setdefault("lod_caras", {})[os.path.basename(path)] = len(lo.data.polygons)
+        bpy.data.objects.remove(lo, do_unlink=True)
+
+
+_nf = len(obj.data.polygons)
+for _r, _tag in ((0.5, "lod1_50"), (0.15, "lod2_15")):
+    if _nf * _r >= 1500:
+        _pl = os.path.join(OUT, f"modelo_{_tag}.glb")
+        export(_tag, lambda r=_r, pth=_pl: _lod(r, pth), _pl)
+
+# Visor web: abre visor.html (junto a los .glb) y elige la animacion.
+def _visor():
+    html = """<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visor AP 3D</title>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<style>body{margin:0;font-family:system-ui;background:#16181d;color:#eee}
+model-viewer{width:100vw;height:82vh;background:#22252c}
+.bar{display:flex;gap:8px;flex-wrap:wrap;padding:10px}
+button{background:#2f6fed;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:15px}
+button.off{background:#444}</style></head><body>
+<model-viewer id="mv" src="modelo_animado.glb" camera-controls autoplay ar
+ shadow-intensity="1" exposure="1.1" environment-image="neutral"></model-viewer>
+<div class="bar" id="anims"></div><div class="bar" id="lods"></div>
+<script>
+const mv=document.getElementById('mv'),A=document.getElementById('anims'),L=document.getElementById('lods');
+const lods=__LODS__;
+function btn(p,t,f){const b=document.createElement('button');b.textContent=t;b.onclick=f;p.appendChild(b);return b}
+mv.addEventListener('load',()=>{A.innerHTML='';(mv.availableAnimations||[]).forEach(n=>
+ btn(A,n.replace('_',' '),()=>{mv.animationName=n;mv.play()}))});
+lods.forEach(([f,t])=>btn(L,t,()=>{mv.src=f}));
+</script></body></html>"""
+    lods = [["modelo_animado.glb", "Calidad completa"]]
+    for k, t in (("lod1_50", "Ligero 50%"), ("lod2_15", "Muy ligero 15%")):
+        if k in files:
+            lods.append([files[k], t])
+    with open(os.path.join(OUT, "visor.html"), "w") as fh:
+        fh.write(html.replace("__LODS__", json.dumps(lods)))
+
+
+export("visor_web", _visor, os.path.join(OUT, "visor.html"))
 
 # Archivo de Blender con todo empaquetado
 p_blend = os.path.join(OUT, "modelo.blend")

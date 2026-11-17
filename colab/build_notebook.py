@@ -39,6 +39,9 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Usa la RAM a fondo**: carga en la RAM los pesos de los modelos (cerca de 30 GB) y deja **todos los modelos cargados a la vez** en la GPU (1 foto, varias vistas y textura). Trabaja en `/dev/shm`, un disco en RAM, guarda en caché los resultados y deja que Blender corra **en paralelo** con la siguiente generación.
 * **Pesos sin manchas**: los calcula Blender (método de calor) sobre una copia cerrada de la malla y los pasa al modelo real. Cada hueso mueve su zona completa, no solo una banda.
 * **Malla reparada**: quita trozos sueltos, cierra agujeros y orienta las caras.
+* **Cero vértices sin peso**: si alguno queda suelto, copia el peso de su vecino; el informe dice cuántos vértices mueve cada hueso.
+* **LOD para juegos**: además del modelo completo, versiones al 50 % y 15 % con el mismo esqueleto y animaciones.
+* **Visor web** (`visor.html` en el ZIP): botones para cada animación, cambio de calidad y modo AR en el celular.
 * **Multivista**: si subes espalda o perfiles (o una hoja de vistas), usa Hunyuan3D-2mv y pinta también la espalda.
 
 ## Cómo usarlo
