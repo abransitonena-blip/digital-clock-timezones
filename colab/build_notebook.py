@@ -199,12 +199,20 @@ if not os.path.exists("/content/blender/blender"):
             break
 
 # --- TripoSG (modelo abierto del equipo de Tripo AI): forma de alta fidelidad
-if INSTALAR_TRIPOSG and not os.path.exists("/content/TripoSG"):
-    sh("git clone -q --depth 1 https://github.com/VAST-AI-Research/TripoSG /content/TripoSG", check=False)
+if INSTALAR_TRIPOSG and (not os.path.exists("/content/TripoSG") or
+                         subprocess.run(f"{sys.executable} -c 'import diso'", shell=True).returncode):
+    if not os.path.exists("/content/TripoSG"):
+        sh("git clone -q --depth 1 https://github.com/VAST-AI-Research/TripoSG /content/TripoSG", check=False)
     sh(f"{sys.executable} -m pip install -q peft jaxtyping typeguard scikit-image", check=False)
-    r = subprocess.run(f"{sys.executable} -m pip install -q diso", shell=True,
-                       capture_output=True, text=True)
-    print("TripoSG:", "listo" if r.returncode == 0 else "diso no compilo (TripoSG desactivado)")
+    # diso se compila con CUDA y necesita ver torch: sin aislamiento de build
+    r = subprocess.run(f"{sys.executable} -m pip install -q --no-build-isolation diso",
+                       shell=True, capture_output=True, text=True)
+    if r.returncode != 0:
+        r = subprocess.run(f"{sys.executable} -m pip install -q --no-build-isolation "
+                           "git+https://github.com/SarahWeiii/diso", shell=True,
+                           capture_output=True, text=True)
+    print("TripoSG:", "listo" if r.returncode == 0 else
+          "diso no compilo (TripoSG desactivado). Error:\n" + (r.stderr or r.stdout)[-800:])
 print(sh("/content/blender/blender -b --version | head -1").strip())
 print(f"Instalación lista en {time.time()-t0:.0f}s")
 '''
@@ -236,11 +244,24 @@ from huggingface_hub import snapshot_download
 from ap3d import config
 from ap3d.engine import get_engine
 
+# Token de Hugging Face (opcional) desde los Secretos de Colab
+try:
+    from google.colab import userdata
+    os.environ.setdefault("HF_TOKEN", userdata.get("HF_TOKEN") or "")
+except Exception:
+    pass
+if not os.environ.get("HF_TOKEN"):
+    os.environ.pop("HF_TOKEN", None)
+import logging, warnings
+warnings.filterwarnings("ignore")
+for _n in ("hy3dgen", "hy3dgen.shapgen", "hy3dgen.shapegen"):
+    logging.getLogger(_n).setLevel(logging.WARNING)
+
 # ---- reloj de pasos: duracion de cada uno y fin estimado ----
 _T0 = time.time()
 _RES = []
-_EST = {"Hunyuan3D-2": 90, "Hunyuan3D-2mv": 45, "TripoSG": 60, "Texto a imagen (FLUX)": 150,
-        "Precargar pesos en RAM": 45, "Cargar modelos en GPU": 100, "TripoSG en GPU": 25}
+_EST = {"Hunyuan3D-2": 120, "Hunyuan3D-2mv": 50, "TripoSG": 45, "Texto a imagen": 90,
+        "Precargar pesos en RAM": 15, "Cargar modelos en GPU": 110, "TripoSG en GPU": 25}
 _PEND = [k for k in _EST]
 def paso(nombre, fn, activo=True):
     if nombre in _PEND:
@@ -277,9 +298,20 @@ def _tripo():
     snapshot_download("briaai/RMBG-1.4", local_dir="/content/TripoSG/pretrained_weights/RMBG-1.4", max_workers=16)
     return True
 CARGAR_TRIPOSG = bool(paso("TripoSG", _tripo, CARGAR_TRIPOSG and os.path.exists("/content/TripoSG")))
-paso("Texto a imagen (FLUX)", lambda: snapshot_download(
-     "black-forest-labs/FLUX.1-schnell", max_workers=16,
-     ignore_patterns=["flux1-schnell.safetensors", "ae.safetensors", "*.md"]), CARGAR_TEXTO_A_3D)
+def _t2i():
+    # FLUX pide aceptar su licencia en Hugging Face (con tu token en Secretos de
+    # Colab: HF_TOKEN). Sin acceso se usa HunyuanDiT, que no pide nada.
+    try:
+        snapshot_download("black-forest-labs/FLUX.1-schnell", max_workers=16,
+                          ignore_patterns=["flux1-schnell.safetensors", "ae.safetensors", "*.md"])
+        return "FLUX"
+    except Exception as e:
+        print("           FLUX sin acceso (necesita token):", str(e).splitlines()[0][:90])
+        print("           -> se usa HunyuanDiT para texto a 3D")
+        os.environ["AP3D_T2I"] = "hunyuan"
+        snapshot_download("Tencent-Hunyuan/HunyuanDiT-v1.1-Diffusers-Distilled", max_workers=16)
+        return "HunyuanDiT"
+T2I = paso("Texto a imagen", _t2i, CARGAR_TEXTO_A_3D)
 
 eng = get_engine()
 paso("Precargar pesos en RAM", eng.preload_weights, P["preload_weights"])
@@ -293,7 +325,7 @@ for n, sec, st in _RES:
 print(f"{'TOTAL':28s} {time.time()-_T0:6.0f} s")
 print(f"GPU {P['gpu']} · VRAM usada {torch.cuda.memory_allocated()/2**30:.1f} GB · "
       f"TripoSG {'si' if getattr(eng, 'tripo', None) is not None else 'no'} · "
-      f"texto a 3D {'si' if CARGAR_TEXTO_A_3D else 'no'}")
+      f"texto a 3D {T2I or 'no'}")
 print("Todo listo. Sigue con la celda 3b (prueba de 1 min) o con la 4/5.")
 '''
 
@@ -303,6 +335,7 @@ import glob, sys, time
 sys.path.insert(0, "/content/ap3d_app")
 from ap3d.engine import get_engine
 _img = sorted(glob.glob("/content/Hunyuan3D-2/assets/example_images/*.png"))[0]
+print("Imagen de prueba:", _img.split("/")[-1])
 _t = time.time()
 _last = [None]
 def _p(f, m):
@@ -320,6 +353,8 @@ print(f"Detectado: {(_i.get('clasificacion') or {}).get('tipo', _i.get('rig'))} 
       f"pesos por {_i.get('pesos')} · malla IA {_i.get('caras_alta')} -> {_i.get('caras')} caras · "
       f"cuadros {_i.get('quads_caras')}")
 print("Archivos:", ", ".join(sorted((_i.get('archivos') or {}).values())))
+print("Clasificacion (medidas):", _i.get("clasificacion"))
+print("UV:", _i.get("uv"))
 print("Avisos:", _i.get("avisos") or "ninguno")
 '''
 

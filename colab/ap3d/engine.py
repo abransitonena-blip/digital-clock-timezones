@@ -192,6 +192,7 @@ class Engine:
         return pipe
 
     def load(self, want_mv=True, want_paint=True, want_turbo=True, want_quality=None):
+        quiet_logs()
         """Carga los modelos. Turbo (5 pasos + FlashVDM) es el modo por defecto:
         la forma sale en segundos. Con GPU grande tambien queda cargado el
         modelo normal (50 pasos) para el modo Calidad."""
@@ -214,9 +215,13 @@ class Engine:
             except Exception as e:
                 self.log("  Turbo no disponible:", e)
                 want_quality = True
+        diferidos = []
         if want_quality and self.shape is None:
-            self.log("Cargando Hunyuan3D-2 (forma, calidad)...")
-            self.shape = self._shape_pipe("tencent/Hunyuan3D-2", "hunyuan3d-dit-v2-0", False)
+            if self.shape_t is not None:
+                diferidos.append("forma")      # Turbo ya sirve: calidad en 2o plano
+            else:
+                self.log("Cargando Hunyuan3D-2 (forma, calidad)...")
+                self.shape = self._shape_pipe("tencent/Hunyuan3D-2", "hunyuan3d-dit-v2-0", False)
         if want_mv and want_turbo and self.shape_mv_t is None:
             self.log("Cargando Hunyuan3D-2mv Turbo (varias vistas)...")
             try:
@@ -225,12 +230,15 @@ class Engine:
             except Exception as e:
                 self.log("  2mv Turbo no disponible:", e)
         if want_mv and (want_quality or self.shape_mv_t is None) and self.shape_mv is None:
-            self.log("Cargando Hunyuan3D-2mv (varias vistas, calidad)...")
-            try:
-                self.shape_mv = self._shape_pipe("tencent/Hunyuan3D-2mv",
-                                                 "hunyuan3d-dit-v2-mv", False)
-            except Exception as e:
-                self.log("  2mv no disponible, se usara solo 1 foto:", e)
+            if self.shape_mv_t is not None:
+                diferidos.append("mv")
+            else:
+                self.log("Cargando Hunyuan3D-2mv (varias vistas, calidad)...")
+                try:
+                    self.shape_mv = self._shape_pipe("tencent/Hunyuan3D-2mv",
+                                                     "hunyuan3d-dit-v2-mv", False)
+                except Exception as e:
+                    self.log("  2mv no disponible, se usara solo 1 foto:", e)
         if want_paint and self.paint is None:
             from hy3dgen.texgen import Hunyuan3DPaintPipeline
             subs = (["hunyuan3d-paint-v2-0-turbo"] if want_turbo else []) + ["hunyuan3d-paint-v2-0"]
@@ -261,6 +269,19 @@ class Engine:
                     p.to("cpu")
         self.ready = True
         self.warmup()
+        if diferidos:
+            def _late():
+                try:
+                    if "forma" in diferidos:
+                        self.shape = self._shape_pipe("tencent/Hunyuan3D-2", "hunyuan3d-dit-v2-0", False)
+                    if "mv" in diferidos:
+                        self.shape_mv = self._shape_pipe("tencent/Hunyuan3D-2mv",
+                                                         "hunyuan3d-dit-v2-mv", False)
+                    self.log("Modelos de calidad (50 pasos) listos en segundo plano")
+                except Exception as e:
+                    self.log("  modelos de calidad no cargados:", e)
+            threading.Thread(target=_late, daemon=True).start()
+            self.log("Turbo listo. Los modelos de 50 pasos se cargan en segundo plano.")
         self.log(f"Modelos listos en {time.time() - t:.0f}s")
         self.log_mem()
 
@@ -296,6 +317,8 @@ class Engine:
                 "plain white background, soft studio light, 3D render style, high detail")
         if getattr(self, "t2i", None) is None:
             try:
+                if os.environ.get("AP3D_T2I") == "hunyuan":
+                    raise RuntimeError("FLUX sin acceso (falta token de Hugging Face)")
                 from diffusers import FluxPipeline
                 self.log("Cargando FLUX.1-schnell (texto a imagen)...")
                 pipe = FluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell",
@@ -624,10 +647,10 @@ class Engine:
                 # Primero se reduce (las mallas de 1 millon de caras tardaban
                 # ~50 s en repararse) y despues se repara la malla ya ligera.
                 info_alta = len(mesh.faces)
-                if info_alta > 300000:
+                if info_alta > 200000:
                     try:
                         from hy3dgen.shapegen import FaceReducer
-                        mesh = FaceReducer()(mesh, max_facenum=300000)
+                        mesh = FaceReducer()(mesh, max_facenum=200000)
                     except Exception as e:
                         self.log("  reduccion previa omitida:", e)
                 mesh = self._repair(mesh, None)
