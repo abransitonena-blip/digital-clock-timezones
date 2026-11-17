@@ -102,6 +102,76 @@ def _memoria_path():
         return ""
 
 
+DENSIDADES = {"humanoide": 985.0, "cuadrupedo": 1000.0, "cabeza": 1100.0, "objeto": 600.0}
+
+
+def physics_data(mesh, height_m, tipo="humanoide"):
+    """Datos fisicos del modelo a su tamano real (Y arriba):
+    volumen, masa aproximada, centro de masa, base de apoyo, estabilidad
+    (si se sostiene solo) y estimacion de impresion 3D a 15 cm en PLA."""
+    import trimesh
+    v = np.asarray(mesh.vertices, dtype=np.float64)
+    ext = v.max(0) - v.min(0)
+    k = float(height_m) / max(ext[1], 1e-9)          # escala a metros reales
+    m = mesh.copy()
+    m.apply_translation(-v.min(0))
+    m.apply_scale(k)
+    vv = np.asarray(m.vertices)
+    dims = vv.max(0) - vv.min(0)
+    if m.is_watertight:
+        vol = float(abs(m.volume))
+        com = np.asarray(m.center_mass, dtype=float)
+    else:
+        pitch = float(dims.max() / 96.0)
+        vox = m.voxelized(pitch).fill()
+        pts = vox.points
+        vol = float(len(pts) * pitch ** 3)
+        com = pts.mean(0) if len(pts) else vv.mean(0)
+    area = float(m.area)
+    dens = DENSIDADES.get(tipo, 800.0)
+    masa = vol * dens
+    # base de apoyo: puntos a menos de 1.5 % de la altura del suelo
+    piso = vv[vv[:, 1] < 0.015 * dims[1]][:, [0, 2]]
+    estable, margen, base_cm2 = None, None, 0.0
+    try:
+        from scipy.spatial import ConvexHull, Delaunay
+        if len(piso) >= 4:
+            hull = ConvexHull(piso)
+            base_cm2 = float(hull.volume) * 1e4
+            dl = Delaunay(piso[hull.vertices])
+            c2 = com[[0, 2]]
+            estable = bool(dl.find_simplex(c2) >= 0)
+            hp = piso[hull.vertices]
+            seg = np.roll(hp, -1, 0) - hp
+            t = np.clip(((c2 - hp) * seg).sum(1) / np.maximum((seg ** 2).sum(1), 1e-12), 0, 1)
+            dmin = float(np.min(np.linalg.norm(hp + seg * t[:, None] - c2, axis=1)))
+            margen = round(dmin * 100 * (1 if estable else -1), 2)
+    except Exception:
+        pass
+    # impresion: escalar a 15 cm de alto, PLA 1.24 g/cm3, ~20 % relleno
+    s15 = 0.15 / max(dims[1], 1e-9)
+    vol15_cm3 = vol * s15 ** 3 * 1e6
+    area15_cm2 = area * s15 ** 2 * 1e4
+    gramos = (area15_cm2 * 0.12 + max(vol15_cm3 - area15_cm2 * 0.12, 0) * 0.2) * 1.24
+    horas = gramos / 11.0          # ~11 g/h en una impresora FDM comun
+    # tensor de inercia aproximado (caja equivalente) para motores
+    a_, b_, c_ = dims
+    inercia = [masa / 12 * (b_ ** 2 + c_ ** 2), masa / 12 * (a_ ** 2 + c_ ** 2),
+               masa / 12 * (a_ ** 2 + b_ ** 2)]
+    return {
+        "alto_m": round(float(dims[1]), 3), "ancho_m": round(float(dims[0]), 3),
+        "fondo_m": round(float(dims[2]), 3), "volumen_l": round(vol * 1000, 2),
+        "superficie_m2": round(area, 3), "densidad_kg_m3": dens, "masa_kg": round(masa, 2),
+        "centro_masa_m": [round(float(x), 3) for x in com],
+        "centro_masa_altura_pct": round(float(com[1] / max(dims[1], 1e-9)) * 100, 1),
+        "base_apoyo_cm2": round(base_cm2, 1), "se_sostiene_solo": estable,
+        "margen_estabilidad_cm": margen,
+        "impresion_15cm": {"gramos_pla": round(gramos, 1), "horas": round(horas, 1),
+                           "volumen_cm3": round(vol15_cm3, 1)},
+        "inercia_kg_m2": [round(float(x), 4) for x in inercia],
+    }
+
+
 def render_preview(mesh, size=384, az=30.0):
     """Imagen de una malla sin GPU grafica: proyeccion ortografica con
     z-buffer de caras y luz por normales (para elegir variantes)."""
@@ -818,6 +888,18 @@ class Engine:
             info.setdefault("avisos", []).extend(
                 a_ for a_ in ix.get("avisos", []) if a_ not in info.get("avisos", []))
             os.remove(ipx)
+        try:
+            tipo_ = (info.get("clasificacion") or {}).get("tipo", info.get("rig", "humanoide"))
+            fis = physics_data(textured, height, tipo_)
+            info["fisica"] = fis
+            json.dump({"masa_kg": fis["masa_kg"], "centro_masa_m": fis["centro_masa_m"],
+                       "inercia_kg_m2": fis["inercia_kg_m2"], "dimensiones_m":
+                       [fis["ancho_m"], fis["alto_m"], fis["fondo_m"]], "notas":
+                       "Y arriba, origen en el suelo bajo el modelo. Para Rigidbody de "
+                       "Unity (mass, centerOfMass) o Unreal (Mass, COM offset)."},
+                      open(os.path.join(out, "fisica.json"), "w"), indent=2)
+        except Exception as e:
+            self.log("  datos fisicos omitidos:", e)
         info.update(caras_alta=locals().get("info_alta"), multivista=used_mv, textura_ia=ok_tex, segundos_forma=round(t_shape, 1),
                     segundos_textura=round(t_tex, 1), segundos_blender=round(t_bl, 1),
                     segundos_total=round(time.time() - t0, 1), turbo=bool(turbo),

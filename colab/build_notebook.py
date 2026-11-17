@@ -46,6 +46,8 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Huesos de tela con movimiento secundario**: en túnicas, faldas y capas se crean 4 cadenas de huesos (frente, atrás, izquierda, derecha) que se balancean con retraso e inercia en cada animación. Queda grabado en GLB, FBX y .blend.
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Aprende de ti**: bajo cada modelo, **¿Salió bien?** con 👍/👎 para forma, textura y esqueleto, más un comentario. Si corriges el tipo (persona/animal/cabeza/objeto), rehace el esqueleto al momento y **recuerda la corrección**: los modelos parecidos salen bien solos. La memoria se guarda en Drive si está montado (celda 6).
+* **Física**: volumen, masa, centro de masa, base de apoyo, si se sostiene solo y filamento/horas para imprimir a 15 cm; `fisica.json` (masa, centro de masa, inercia) para Unity/Unreal. En el visor, **física en vivo**: la tela se balancea con resortes según el movimiento, y botón **Centro de masa**.
+* **Tablero de tarjetas** (Foto → Forma → Textura → Esqueleto → Animaciones → Física → Exportar) que se encienden en azul según avanza.
 * **🎲 4 variantes de forma** en segundos para elegir antes de texturizar (contra la aleatoriedad que critican los desarrolladores).
 * **PBR básico** (rugosidad estimada, metal = 0), **PLY con color** para impresión multicolor y **malla en cuadrados también en FBX**.
 * **Panel para celular**: visor arriba, botón Generar siempre a mano y estado de la GPU en la cabecera.
@@ -136,7 +138,7 @@ sh("apt-get -qq update && apt-get -qq install -y libxi6 libxkbcommon0 libsm6 lib
 # --- Python
 sh(f"{sys.executable} -m pip install -q 'gradio>=5.9,<6' 'diffusers==0.32.2' 'transformers==4.49.0' 'accelerate>=1.2,<1.6' "
    "einops omegaconf trimesh pymeshlab pygltflib xatlas rembg onnxruntime-gpu "
-   "opencv-python-headless ninja pybind11 psutil hf_transfer 'huggingface_hub>=0.25' sentencepiece protobuf")
+   "opencv-python-headless ninja pybind11 psutil hf_transfer 'huggingface_hub>=0.25' sentencepiece protobuf scipy")
 print(f"Paquetes listos ({time.time()-t0:.0f}s)")
 
 # --- Hunyuan3D-2

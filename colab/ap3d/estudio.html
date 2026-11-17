@@ -39,7 +39,7 @@ canvas{display:block}
  #bottom{bottom:30px}
  #tools{max-width:96vw;overflow-x:auto}
  #anims button{padding:5px 10px;font-size:13px}
- #stagebadge{top:auto;bottom:150px;right:8px;font-size:12px}
+ #stagebadge{top:auto;bottom:150px;right:8px;font-size:11px;max-width:55vw;padding:4px 10px}
  #legend{bottom:150px;font-size:11px;max-height:26vh;max-width:46vw;opacity:.92}
 }
 </style>
@@ -67,7 +67,7 @@ canvas{display:block}
   <div id="anims"></div>
   <div class="seg" id="tools">
     <button id="rot" class="on">Auto-rotar</button><button id="ctr">Centrar</button>
-    <button id="wire">Polígonos</button><button id="skel">Esqueleto</button><button id="shot">📷 Captura</button>
+    <button id="wire">Polígonos</button><button id="skel">Esqueleto</button><button id="phys" class="on">Física</button><button id="com">Centro de masa</button><button id="shot">📷 Captura</button>
   </div>
 </div>
 <script type="module">
@@ -79,7 +79,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s);
 const FILES={tex:['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb'],hi:['malla_alta.glb'],quads:['modelo_quads.glb']};
-const NICE={'modelo_web.glb':'GLB ligero web (Draco + JPEG)','modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
+const NICE={'fisica.json':'Datos físicos (masa, centro de masa) para Unity/Unreal','modelo_color_impresion.ply':'PLY con color (impresión multicolor)','modelo_quads.fbx':'Malla en cuadrados (FBX)','modelo_web.glb':'GLB ligero web (Draco + JPEG)','modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
  'modelo.blend':'Blender (.blend)','modelo_texturizado.glb':'GLB sin esqueleto','modelo_estatico.obj':'OBJ estático',
  'modelo_impresion3d.stl':'STL impresión 3D (mm)','modelo_lod1_50.glb':'LOD ligero 50%','modelo_lod2_15.glb':'LOD muy ligero 15%',
  'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','malla_alta.glb':'Malla alta resolución (sin reducir)','modelo_quads.glb':'Malla en cuadrados limpia (retopología + textura horneada)','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
@@ -147,7 +147,7 @@ async function show(view){
   $('#legend').style.display=view==='weights'||view==='parts'?'block':'none';if(innerWidth<640)$('#legend').classList.add('min');
   $('#legend').innerHTML=view==='weights'?'<b>Pesos</b><br>Cada color = un hueso.<br>Donde se mezclan, la malla se dobla.':
     view==='parts'?'<b>Piezas del cuerpo ▾</b>'+partsLegend():'';
-  frame();light(curLight);stats();$('#load').style.display='none';
+  frame();light(curLight);stats();setupPhysics();if(comMark){scene.remove(comMark);comMark=null;$('#com').classList.remove('on')}$('#load').style.display='none';
   document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
 }
 function partsLegend(){const seen=new Map();cur.traverse(o=>{if(o.isMesh&&!o.userData.wire){const m=Array.isArray(o.material)?o.material[0]:o.material;
@@ -182,7 +182,36 @@ $('#skel').onclick=()=>{const on=!$('#skel').classList.contains('on');$('#skel')
   else{scene.remove(skelHelper);skelHelper=null;cur.traverse(o=>{if(o.isMesh){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{m.opacity=1;m.transparent=false})}})}};
 $('#shot').onclick=()=>{renderer.render(scene,cam);const a=document.createElement('a');a.href=renderer.domElement.toDataURL('image/png');a.download='captura.png';a.click()};
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt);ctl.update();renderer.render(scene,cam)});
+// ---- Fisica en vivo: resortes (masa-resorte-amortiguador) en los huesos de
+// tela. Cada hueso reacciona a la aceleracion de la cadera con retraso.
+let springs=[],hipsBone=null,prevP=null,prevV=null,physOn=true,comMark=null;
+const _v=new THREE.Vector3(),_a=new THREE.Vector3(),_q=new THREE.Quaternion(),_e=new THREE.Euler();
+function setupPhysics(){springs=[];hipsBone=null;prevP=null;prevV=null;if(!cur)return;
+  cur.traverse(o=>{if(o.isBone){if(/Tela/.test(o.name)){const lvl=+((o.name.match(/(\d)$/)||[0,1])[1]);
+    springs.push({b:o,lvl,x:0,z:0,vx:0,vz:0})} if(/Hips$/.test(o.name)&&!hipsBone)hipsBone=o}});}
+function stepPhysics(dt){if(!physOn||!springs.length||!hipsBone||dt<=0)return;dt=Math.min(dt,1/30);
+  hipsBone.getWorldPosition(_v);if(!prevP){prevP=_v.clone();prevV=new THREE.Vector3();return}
+  const vel=_v.clone().sub(prevP).divideScalar(dt);_a.copy(vel).sub(prevV).divideScalar(dt);prevP.copy(_v);prevV.copy(vel);
+  const k=60,c=7;        // rigidez y amortiguacion
+  for(const s of springs){const g=0.0035*(1+0.6*(s.lvl-1));      // mas suelto hacia el borde
+    // fuerza: resorte hacia 0 + inercia (la tela se queda atras de la aceleracion)
+    s.vx+=(-k*s.x-c*s.vx-_a.z*g*k)*dt; s.vz+=(-k*s.z-c*s.vz+_a.x*g*k)*dt;
+    s.x=Math.max(-.8,Math.min(.8,s.x+s.vx*dt)); s.z=Math.max(-.8,Math.min(.8,s.z+s.vz*dt));
+    _q.setFromEuler(_e.set(s.x,0,s.z));s.b.quaternion.multiply(_q)}}
+async function toggleCom(){if(comMark){scene.remove(comMark);comMark=null;$('#com').classList.remove('on');return}
+  let f=null;try{f=await (await fetch('fisica.json')).json()}catch(e){}
+  if(!f){alert('Este modelo no tiene datos de física');return}
+  bbox();const c=f.centro_masa_m;const p=new THREE.Vector3(box.min.x+c[0],box.min.y+c[1],box.min.z+c[2]);
+  comMark=new THREE.Group();const r=H*0.025;
+  const sph=new THREE.Mesh(new THREE.SphereGeometry(r,24,16),new THREE.MeshBasicMaterial({color:0xff4d6d,depthTest:false}));
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([p.clone(),new THREE.Vector3(p.x,box.min.y,p.z)]),
+    new THREE.LineDashedMaterial({color:0xff4d6d,dashSize:H*0.02,gapSize:H*0.015,depthTest:false}));line.computeLineDistances();
+  sph.position.copy(p);sph.renderOrder=line.renderOrder=9;comMark.add(sph,line);scene.add(comMark);$('#com').classList.add('on');
+  $('#legend').style.display='block';$('#legend').classList.remove('min');
+  $('#legend').innerHTML=`<b>Física</b><br>Masa ≈ ${f.masa_kg} kg<br>Centro de masa (rojo)<br>Línea = cae sobre el suelo`}
+$('#phys').onclick=()=>{physOn=!physOn;$('#phys').classList.toggle('on',physOn)};
+$('#com').onclick=toggleCom;
+renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt);stepPhysics(dt);ctl.update();renderer.render(scene,cam)});
 
 (async()=>{
   try{info=await (await fetch('rig_info.json')).json()}catch(e){}

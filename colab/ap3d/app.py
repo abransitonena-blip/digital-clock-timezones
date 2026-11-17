@@ -71,6 +71,12 @@ def _summary(info):
     if info.get("quads_caras"):
         lines.append(f"Malla en cuadrados limpia: **{info['quads_caras']:,} caras** con color y relieve "
                      "horneados de la original (`modelo_quads.glb`, pestaña *Cuadros*)")
+    fz = info.get("fisica")
+    if fz:
+        lines.append(f"Física: {fz['masa_kg']} kg · centro de masa al {fz['centro_masa_altura_pct']} % · "
+                     f"{'se sostiene solo' if fz.get('se_sostiene_solo') else 'necesita base'} · "
+                     f"imprimir a 15 cm: {fz['impresion_15cm']['gramos_pla']} g PLA "
+                     f"(`fisica.json` para Unity/Unreal)")
     if info.get("lod_caras"):
         lines.append("LOD ligeros: " + ", ".join(
             f"{k} ({v:,} caras)" for k, v in info["lod_caras"].items()))
@@ -220,7 +226,7 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
                              etapa="Etapa 1/3 · Malla en alta resolución"),
             gr.update(selected="malla"),
             f"**Etapa 1/3 · Malla lista** ({time.time() - st['t0']:.0f} s). Pintando la textura…",
-            int(seed))
+            int(seed), tablero_html(2, activo=True))
 
 
 def step_textura(jid, progress=gr.Progress()):
@@ -233,7 +239,7 @@ def step_textura(jid, progress=gr.Progress()):
     return (viewer_html(d, view="tex", etapa="Etapa 2/3 · Textura"),
             gr.update(selected="textura"),
             f"**Etapa 2/3 · Textura lista** ({time.time() - st['t0']:.0f} s). "
-            "Poniendo esqueleto y animaciones…")
+            "Poniendo esqueleto y animaciones…", tablero_html(3, activo=True))
 
 
 def step_final(jid, progress=gr.Progress()):
@@ -251,8 +257,70 @@ def step_final(jid, progress=gr.Progress()):
     return (viewer_html(d), gr.update(selected="estudio"),
             _done_html(), _done_html(),
             vid, _exists(d, "video_giro360.mp4"), files,
-            f"✅ **Modelo listo en {time.time() - st['t0']:.0f} s**\n\n" + _summary(info),
-            monitor_html(), d, _review_md(info), _tipo_actual(info))
+            f"✅ **Modelo listo en {time.time() - st['t0']:.0f} s** · datos y resumen debajo del visor",
+            monitor_html(), d, _review_md(info), _tipo_actual(info), tablero_html(7), datos_html(info),
+            _summary(info))
+
+
+# ------------------------------------------------------------ tablero (tarjetas)
+_IC = {  # iconos de linea, estilo de la hoja de diseno
+    "foto": "<rect x='6' y='14' width='36' height='24' rx='4'/><circle cx='24' cy='26' r='7'/><path d='M17 14l3-5h8l3 5'/>",
+    "forma": "<path d='M24 6l16 9v18l-16 9-16-9V15z'/><path d='M8 15l16 9 16-9M24 24v18'/>",
+    "textura": "<path d='M10 38l18-18 6 6-18 18H10z'/><path d='M28 20l5-5a3 3 0 014 4l-5 5'/><circle cx='13' cy='12' r='3'/>",
+    "esqueleto": "<circle cx='24' cy='9' r='4'/><path d='M24 13v14M14 18h20M24 27l-7 13M24 27l7 13'/><circle cx='14' cy='18' r='2'/><circle cx='34' cy='18' r='2'/>",
+    "poses": "<circle cx='28' cy='8' r='4'/><path d='M27 13l-6 12 8 5-3 11M21 25l-9 2M27 15l9 6'/>",
+    "fisica": "<path d='M24 6v8M10 18h28M14 18l-6 12h12zM34 18l-6 12h12z'/><path d='M18 42h12M24 14v28'/>",
+    "exportar": "<path d='M24 6v20M16 18l8 8 8-8'/><rect x='8' y='30' width='14' height='12' rx='2'/><rect x='26' y='30' width='14' height='12' rx='2'/>",
+}
+_ETAPAS = [("foto", "Foto"), ("forma", "Forma 3D"), ("textura", "Textura"),
+           ("esqueleto", "Esqueleto"), ("poses", "Animaciones"), ("fisica", "Física"),
+           ("exportar", "Exportar")]
+
+
+def tablero_html(hecho=0, info=None, activo=None, solo_datos=False):
+    """Tarjetas del proceso (azul = hecho, borde brillante = en curso) y
+    los datos del modelo: fisica, esqueleto, malla, impresion."""
+    info = info or {}
+    cards = []
+    for i, (k, lab) in enumerate(_ETAPAS):
+        st = "ok" if i < hecho else ("run" if i == hecho and activo else "")
+        cards.append(f"<div class='tc {st}'><svg viewBox='0 0 48 48'>{_IC[k]}</svg>"
+                     f"<span>{lab}</span></div>")
+    datos = ""
+    f = info.get("fisica")
+    if f:
+        est = f.get("se_sostiene_solo")
+        est_txt = ("✅ se sostiene solo" if est else "⚠️ se cae: necesita base o soporte") \
+            if est is not None else "—"
+        imp = f.get("impresion_15cm", {})
+        datos += (
+            "<div class='td'><b>Física (a tamaño real)</b>"
+            f"<div class='kv'><span>Medidas</span><b>{f['ancho_m']} × {f['alto_m']} × {f['fondo_m']} m</b></div>"
+            f"<div class='kv'><span>Volumen</span><b>{f['volumen_l']} L</b></div>"
+            f"<div class='kv'><span>Masa aprox.</span><b>{f['masa_kg']} kg</b></div>"
+            f"<div class='kv'><span>Centro de masa</span><b>{f['centro_masa_altura_pct']} % de la altura</b></div>"
+            f"<div class='kv'><span>Base de apoyo</span><b>{f['base_apoyo_cm2']} cm²</b></div>"
+            f"<div class='kv'><span>Equilibrio</span><b>{est_txt}</b></div>"
+            "</div><div class='td'><b>Impresión 3D a 15 cm (PLA, 20 %)</b>"
+            f"<div class='kv'><span>Filamento</span><b>{imp.get('gramos_pla')} g</b></div>"
+            f"<div class='kv'><span>Tiempo aprox.</span><b>{imp.get('horas')} h</b></div>"
+            f"<div class='kv'><span>Volumen</span><b>{imp.get('volumen_cm3')} cm³</b></div></div>")
+    if info.get("huesos"):
+        c = (info.get("clasificacion") or {}).get("tipo", info.get("rig"))
+        datos += ("<div class='td'><b>Modelo</b>"
+                  f"<div class='kv'><span>Tipo</span><b>{TIPOS_UI.get(c, c)}</b></div>"
+                  f"<div class='kv'><span>Huesos</span><b>{info.get('huesos')}</b></div>"
+                  f"<div class='kv'><span>Caras</span><b>{info.get('caras', 0):,}</b></div>"
+                  f"<div class='kv'><span>Cuadros</span><b>{info.get('quads_caras') or '—'}</b></div>"
+                  f"<div class='kv'><span>UV</span><b>{(info.get('uv') or {}).get('nota', '—')}</b></div>"
+                  f"<div class='kv'><span>Total</span><b>{info.get('segundos_total', '—')} s</b></div></div>")
+    if solo_datos:
+        return f"<div class='tab'><div class='tds'>{datos}</div></div>" if datos else ""
+    return "<div class='tab'><div class='tcs'>" + "".join(cards) + "</div></div>"
+
+
+def datos_html(info):
+    return tablero_html(7, info, solo_datos=True)
 
 
 # ------------------------------------------------------------ aprender del usuario
@@ -367,8 +435,9 @@ def open_model(evt: gr.SelectData):
     zp = d + ".zip"
     return (viewer_html(d), gr.update(selected="estudio"),
             _done_html(), _done_html(), vid, _exists(d, "video_giro360.mp4"),
-            ([zp] if os.path.exists(zp) else []) + _files(d), _summary(info), monitor_html(),
-            d, _review_md(info), _tipo_actual(info))
+            ([zp] if os.path.exists(zp) else []) + _files(d), "📂 Modelo abierto · datos debajo del visor",
+            monitor_html(), d, _review_md(info), _tipo_actual(info), tablero_html(7), datos_html(info),
+            _summary(info))
 
 
 def history():
@@ -474,6 +543,21 @@ body, .gradio-container {background:#17181d !important}
       font-size:17px !important; border-radius:12px !important; box-shadow:0 0 24px #5b5bf055}
 #rigsel .wrap {gap:6px} #rigsel label {border-radius:20px !important}
 footer {display:none !important}
+.tab .tcs {display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
+.tc {border:1px solid #2a2f45; border-radius:10px; padding:6px 2px; text-align:center;
+     color:#5d6380; background:#151824; font-size:11px}
+.tc svg {width:28px; height:28px; display:block; margin:0 auto 3px; fill:none;
+         stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
+.tc.ok {color:#4d7dff; border-color:#2b4da8; box-shadow:0 0 12px #3d6bff33}
+.tc.run {color:#9db6ff; border-color:#6d8dff; animation:tcp 1.2s ease-in-out infinite}
+@keyframes tcp {50% {box-shadow:0 0 16px #6d8dffaa}}
+.tds {display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px; margin-top:8px}
+.td {border:1px solid #2a2f45; border-radius:12px; padding:8px 10px; background:#151824;
+     color:#c9cee0; font-size:13px}
+.td > b {color:#8fb0ff; font-size:12px; text-transform:uppercase; letter-spacing:.04em}
+.kv {display:flex; justify-content:space-between; gap:8px; border-bottom:1px dashed #252a3d;
+     padding:3px 0} .kv:last-child {border:0} .kv span {color:#8a90a8}
+@media (max-width:820px) {.tab .tcs {grid-template-columns:repeat(4,1fr)} .tc {font-size:10px}}
 .hdr {display:flex; justify-content:space-between; align-items:center; width:100%}
 .hdr .ttl {font-size:26px; font-weight:700; color:#e8e9ee}
 .hdr .chip {text-align:right; color:#9a9daa; font-size:12px; line-height:1.3}
@@ -617,9 +701,10 @@ def build_ui():
                         r_out = gr.Markdown()
             # ------------------------------------------------ escenario
             with gr.Column(scale=7, elem_id="stage"):
+                tablero = gr.HTML(tablero_html(0))
                 status = gr.Markdown("Sube una foto y pulsa **Generar**. Veras primero la "
                                      "malla, luego la textura y al final el modelo animado.",
-                                     min_height=70)
+                                     min_height=40)
                 with gr.Tabs() as tabs:
                     with gr.Tab("1 · Malla", id="malla"):
                         m_clay = gr.HTML(viewer_html(msg="Aquí aparecerá la malla"))
@@ -644,6 +729,9 @@ def build_ui():
                             votes.append((q, False, gr.Button(f"👎 {lab}", size="sm")))
                     retry_btn = gr.Button("🔁 Reintentar con lo aprendido", variant="secondary")
                     review_out = gr.Markdown("")
+                datos = gr.HTML("")
+                with gr.Accordion("Resumen técnico completo", open=False):
+                    resumen = gr.Markdown("")
                 out_files = gr.File(label="Descargas (ZIP con todo + archivos sueltos)",
                                     file_count="multiple")
                 with gr.Accordion("Lo que el proyecto ha aprendido", open=False):
@@ -665,16 +753,16 @@ def build_ui():
         preset.change(apply_preset, preset, [steps, octree, faces, tex])
         preset.change(lambda n: n == "Turbo", preset, tex_rapida)
         final_outs = [view, tabs, m_clay, m_tex, v_anim, v_360, out_files, status, mon,
-                      cur_dir, review, tipo_fix]
+                      cur_dir, review, tipo_fix, tablero, datos, resumen]
         gen_inputs = [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                       faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                       video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
                       detalle, motor, prompt, tex_rapida]
 
         def chain(ev):
-            return (ev.then(step_malla, gen_inputs, [front, job, m_clay, tabs, status, seed],
+            return (ev.then(step_malla, gen_inputs, [front, job, m_clay, tabs, status, seed, tablero],
                             concurrency_id="gen", concurrency_limit=P["workers"], **_spo(status))
-                    .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",
+                    .success(step_textura, job, [m_tex, tabs, status, tablero], concurrency_id="gen",
                              **_spo(status))
                     .success(step_final, job, final_outs, concurrency_id="gen", **_spo(status)))
 
