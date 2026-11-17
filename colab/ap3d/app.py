@@ -24,7 +24,7 @@ PRESETS = {
     "Alta": (40, 384, 80000, 2048),
     "Maxima": (50, 512, 150000, 4096),
 }
-EXAMPLES_DIR = "/content/Hunyuan3D-2/assets/example_images"
+EXAMPLES_DIR = os.path.join(config.HY3D_DIR, "assets", "example_images")
 
 
 def _files(d):

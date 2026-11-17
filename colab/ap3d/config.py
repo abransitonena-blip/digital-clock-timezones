@@ -13,6 +13,10 @@ import psutil
 ROOT = os.environ.get("AP3D_ROOT", "/content/ap3d")
 OUT_DIR = os.environ.get("AP3D_OUT", "/content/ap3d_salidas")
 BLENDER = os.environ.get("AP3D_BLENDER", "/content/blender/blender")
+# Repositorios clonados (en Colab estan en /content; en Modal, en /opt)
+HY3D_DIR = os.environ.get("AP3D_HY3D", "/content/Hunyuan3D-2")
+TRIPOSG_DIR = os.environ.get("AP3D_TRIPOSG", "/content/TripoSG")
+TRIPOSG_PESOS = os.environ.get("AP3D_TRIPOSG_PESOS", os.path.join(TRIPOSG_DIR, "pretrained_weights"))
 
 
 def _gpu():
