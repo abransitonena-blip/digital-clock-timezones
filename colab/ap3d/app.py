@@ -1126,7 +1126,8 @@ def launch_inline(port=7860):
 
 
 def _cloudflared():
-    exe = "/content/cloudflared"
+    exe = os.environ.get("AP3D_CLOUDFLARED", "/content/cloudflared")
+    os.makedirs(os.path.dirname(exe), exist_ok=True)
     if not os.path.exists(exe):
         subprocess.run(["wget", "-q", "-O", exe,
                         "https://github.com/cloudflare/cloudflared/releases/latest/download/"
