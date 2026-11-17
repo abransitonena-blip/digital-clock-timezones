@@ -462,21 +462,68 @@ def rig_edit(carpeta: str, cambios: str) -> str:
                        "extra": e.get("extra", 0), "avisos": new.get("avisos", [])})
 
 
-def batch(files, rig, video, progress=gr.Progress()):
+TIPO_ACTIVO = {"Personaje": "character", "Prop rígido": "prop_rigid",
+               "Prop articulado": "prop_articulated"}
+ROBLOX_TRIS = {"No": 0, "Roblox 12k": 12000, "Roblox 15k": 15000, "High 40k": 40000}
+
+
+def batch(files, rig, video, activo="Auto", altura_prop=0.40, roblox="Roblox 12k",
+          progress=gr.Progress()):
+    """Varias fotos seguidas con los mismos ajustes de activo y Roblox. Devuelve
+    los ZIPs, un catalogo (tabla + catalogo.csv) con el QA de cada modelo."""
+    import csv
     if not files:
         raise gr.Error("Sube varias fotos")
     eng = get_engine()
-    zips, log = [], []
+    zips, filas = [], []
+    t0 = time.time()
     for i, f in enumerate(files):
-        progress(i / len(files), desc=f"Foto {i + 1}/{len(files)}")
         path = f if isinstance(f, str) else f.name
+        nom = os.path.basename(path)
+        hechas = time.time() - t0
+        resta = f" · faltan ~{hechas / i * (len(files) - i) / 60:.0f} min" if i else ""
+        progress(i / len(files), desc=f"Foto {i + 1}/{len(files)}: {nom}{resta}")
         try:
-            r = eng.run(path, rig=RIGS.get(rig, rig), video=video)
+            r = eng.run(path, rig=RIGS.get(rig, rig), video=video,
+                        asset_type=TIPO_ACTIVO.get(activo, "auto"), altura_prop=float(altura_prop),
+                        roblox_tris=ROBLOX_TRIS.get(roblox, 12000))
             zips.append(r["zip"])
-            log.append(f"✅ {os.path.basename(path)} → {os.path.basename(r['zip'])}")
+            info = r.get("info") or {}
+            if not info and r.get("dir"):
+                try:
+                    info = json.load(open(os.path.join(r["dir"], "rig_info.json")))
+                except Exception:
+                    info = {}
+            qa = info.get("qa") or {}
+            dm = qa.get("dimensions_m") or ["", "", ""]
+            filas.append({"foto": nom, "zip": os.path.basename(r["zip"]),
+                          "tipo": qa.get("asset_type") or info.get("tipo_activo", ""),
+                          "ancho_m": dm[0], "fondo_m": dm[1], "alto_m": dm[2],
+                          "triangulos": qa.get("triangles", ""), "roblox": qa.get("roblox_triangles", ""),
+                          "esqueleto": "si" if qa.get("has_rig") else "no",
+                          "qa": "aprobado" if qa.get("passed") else "revisar",
+                          "avisos": " | ".join(qa.get("warnings") or [])})
         except Exception as e:
-            log.append(f"❌ {os.path.basename(path)}: {e}")
-    return zips, "\n\n".join(log)
+            filas.append({"foto": nom, "zip": "", "tipo": "", "ancho_m": "", "fondo_m": "", "alto_m": "",
+                          "triangulos": "", "roblox": "", "esqueleto": "", "qa": "ERROR",
+                          "avisos": str(e)[:200]})
+    out_csv = os.path.join(config.OUT_DIR, f"catalogo_{time.strftime('%Y%m%d_%H%M%S')}.csv")
+    os.makedirs(config.OUT_DIR, exist_ok=True)
+    with open(out_csv, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(filas[0]))
+        w.writeheader()
+        w.writerows(filas)
+    ok = sum(1 for x in filas if x["qa"] == "aprobado")
+    md = [f"**{len(filas)} fotos · {ok} aprobadas · {(time.time() - t0) / 60:.1f} min**", "",
+          "| Foto | Tipo | Medidas (m) | Roblox | QA |", "|---|---|---|---|---|"]
+    for x in filas:
+        icon = {"aprobado": "✅", "ERROR": "❌"}.get(x["qa"], "⚠️")
+        md.append(f"| {x['foto']} | {x['tipo']} | {x['ancho_m']} × {x['fondo_m']} × {x['alto_m']} | "
+                  f"{x['roblox']} | {icon} {x['qa']} |")
+    avisos = [f"- **{x['foto']}**: {x['avisos']}" for x in filas if x["avisos"]]
+    if avisos:
+        md += ["", "**Avisos:**"] + avisos
+    return zips + [out_csv], "\n".join(md)
 
 
 FILTROS = {"Todos": None, "Personas": "humanoide", "Vehículos": "vehiculo",
@@ -937,6 +984,8 @@ def build_ui():
                             b_files = gr.File(file_count="multiple", file_types=["image"], label="Fotos")
                             b_rig = gr.Radio(list(RIGS), value="Auto", label="Esqueleto")
                             b_video = gr.Dropdown(ANIMS, value="Caminar", label="Animación")
+                            gr.Markdown("Usa el *Tipo de activo*, la altura de prop y el preset "
+                                        "Roblox de arriba. Al final: tabla de QA y catalogo.csv.")
                             b_btn = gr.Button("Procesar lote")
                             b_log = gr.Markdown()
                             b_out = gr.File(file_count="multiple", label="ZIPs")
@@ -1085,7 +1134,8 @@ def build_ui():
         g_btn.click(lambda f_: (my_models(f_), history(), kpis_html()), filtro, [gal, h_out, kpis])
         filtro.change(my_models, filtro, gal)
         gal.select(open_model, filtro, final_outs)
-        b_btn.click(batch, [b_files, b_rig, b_video], [b_out, b_log], concurrency_id="gen")
+        b_btn.click(batch, [b_files, b_rig, b_video, activo, altura_prop, roblox], [b_out, b_log],
+                    concurrency_id="gen")
         r_btn.click(resources, None, r_out)
         def _on_load():
             from . import memoria
