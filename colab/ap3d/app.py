@@ -592,7 +592,29 @@ def kpis_html():
 
 
 def open_model(filtro, evt: gr.SelectData):
-    d = _model_dirs(filtro)[evt.index][0]
+    return _open_dir(_model_dirs(filtro)[evt.index][0])
+
+
+def step_optimizar(archivo, caras, rig_o, tipo_o, tam_o, roblox_o, relieve_o, progress=gr.Progress()):
+    """Modulo Optimizar: un modelo que ya tienes -> menos poligonos, Roblox, QA."""
+    if archivo is None:
+        raise gr.Error("Sube un archivo .glb, .fbx u .obj")
+    path = archivo if isinstance(archivo, str) else archivo.name
+    rig = {"Sin esqueleto": "ninguno", "Auto": "auto", "Humano": "humanoide",
+           "Objeto (flota/gira)": "objeto"}.get(rig_o, "ninguno")
+    ta = TIPO_ACTIVO.get(tipo_o, "auto")
+    if rig == "humanoide":
+        ta = "character"
+    try:
+        r = get_engine().optimize(path, caras=int(caras), rig=rig, asset_type=ta, altura_prop=float(tam_o),
+                                  roblox_tris=ROBLOX_TRIS.get(roblox_o, 12000), relieve=float(relieve_o),
+                                  progress=lambda f_, m_: progress(f_, desc=m_))
+    except Exception as e:
+        raise gr.Error(f"No se pudo optimizar: {e}")
+    return _open_dir(r["dir"])
+
+
+def _open_dir(d):
     if not os.path.exists(os.path.join(d, "estudio.html")):
         import shutil
         shutil.copy(os.path.join(os.path.dirname(__file__), "estudio.html"), d)
@@ -866,8 +888,9 @@ def build_ui():
         with gr.Row(equal_height=False, elem_id="main"):
             # ------------------------------------------------ panel izquierdo
             with gr.Column(scale=3, min_width=320, elem_id="side"):
-                with gr.Tabs():
-                    with gr.Tab("Generar"):
+                with gr.Tabs(selected="optimizar" if os.environ.get("AP3D_MODO") == "optimizar"
+                             else "generar"):
+                    with gr.Tab("Generar", id="generar"):
                         prompt = gr.Textbox(label="O descríbelo con texto (como Tripo)",
                                             placeholder="Ej.: a medieval knight with silver armor",
                                             info="Si no subes foto, FLUX crea la imagen desde el texto "
@@ -950,6 +973,24 @@ def build_ui():
                         gal = gr.Gallery(label="Toca uno para abrirlo en el estudio",
                                          columns=2, height=520, allow_preview=False)
                         h_out = gr.File(file_count="multiple", label="ZIPs guardados")
+                    with gr.Tab("Optimizar", id="optimizar"):
+                        gr.Markdown("**Optimiza un modelo que ya tienes** (sin IA: sirve en una GPU "
+                                    "chica como la T4 de Kaggle). Reduce polígonos protegiendo las "
+                                    "aristas, suelda, hace malla en cuadros, relieve, escala real, "
+                                    "Roblox + OBJ y control de calidad.")
+                        o_file = gr.File(file_types=[".glb", ".gltf", ".fbx", ".obj"],
+                                         label="Modelo (.glb, .fbx, .obj)")
+                        o_caras = gr.Slider(1000, 200000, 20000, step=1000, label="Caras finales")
+                        o_tipo = gr.Radio(["Prop rígido", "Personaje", "Prop articulado", "Auto"],
+                                          value="Prop rígido", label="Tipo de activo")
+                        o_rig = gr.Radio(["Sin esqueleto", "Auto", "Humano", "Objeto (flota/gira)"],
+                                         value="Sin esqueleto", label="Esqueleto")
+                        o_tam = gr.Slider(0.05, 3.0, 0.40, step=0.01,
+                                          label="Tamaño real del prop (m): altura, o lado mayor si está acostado")
+                        o_rbx = gr.Radio(["No", "Roblox 12k", "Roblox 15k", "High 40k"],
+                                         value="Roblox 12k", label="Roblox")
+                        o_rel = gr.Slider(0, 1.5, 0.6, step=0.1, label="Relieve (mapa de normales)")
+                        o_btn = gr.Button("Optimizar", variant="primary")
                     with gr.Tab("Escena"):
                         gr.Markdown("**Crea un cuarto completo.** Un objeto por línea, con su "
                                     "altura en metros después de «|». Se genera cada uno (texto → "
@@ -1136,6 +1177,8 @@ def build_ui():
         g_btn.click(lambda f_: (my_models(f_), history(), kpis_html()), filtro, [gal, h_out, kpis])
         filtro.change(my_models, filtro, gal)
         gal.select(open_model, filtro, final_outs)
+        o_btn.click(step_optimizar, [o_file, o_caras, o_rig, o_tipo, o_tam, o_rbx, o_rel], final_outs,
+                    concurrency_id="gen")
         b_btn.click(batch, [b_files, b_rig, b_video, activo, altura_prop, roblox], [b_out, b_log],
                     concurrency_id="gen")
         r_btn.click(resources, None, r_out)
