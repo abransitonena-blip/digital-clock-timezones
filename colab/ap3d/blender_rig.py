@@ -62,6 +62,11 @@ ap.add_argument("--detalle", type=int, default=1,
                 help="1 = esqueleto detallado: dedos de manos y pies, ojos y mandibula")
 ap.add_argument("--memoria", default="", help="json con correcciones de tipo del usuario")
 ap.add_argument("--huesos", default="", help="json del editor: mover articulaciones y huesos extra")
+ap.add_argument("--tipo_activo", default="auto",
+                choices=["auto", "character", "prop_rigid", "prop_articulated"],
+                help="character: rig de personaje; prop_rigid: sin esqueleto; prop_articulated: rig rigido")
+ap.add_argument("--altura_prop", type=float, default=0.40, help="altura real de props en metros")
+ap.add_argument("--roblox_tris", type=int, default=12000, help="0 = sin exportacion Roblox")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -73,6 +78,17 @@ scene.render.fps = 30
 
 
 # ------------------------------------------------------------ helpers
+def _nodes(idb):
+    """Activa nodos solo si hace falta (use_nodes esta obsoleto en Blender 5 y
+    desaparece en 6: alli los materiales y mundos ya tienen nodos)."""
+    if getattr(idb, "node_tree", None) is None:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            idb.use_nodes = True
+    return idb
+
+
 def deselect_all():
     for o in scene.objects:
         o.select_set(False)
@@ -331,6 +347,51 @@ if args.rig == "auto":
             log("paneles:", e)
     INFO["rig"] = args.rig
     log("esqueleto automatico:", args.rig, INFO.get("clasificacion"))
+
+# ---- tipo de activo: personaje / prop rigido / prop articulado
+PERSONAJES = ("humanoide", "cuadrupedo", "cabeza")
+ta = args.tipo_activo
+if ta == "character" and args.rig not in ("humanoide", "cuadrupedo") and args.rig != "ninguno":
+    args.rig = "humanoide"                # "Personaje" pedido: rig Mixamo
+elif ta == "prop_rigid":
+    args.rig = "ninguno"                  # sin Armature ni deformacion
+elif ta == "prop_articulated" and args.rig in PERSONAJES:
+    args.rig = "objeto"
+elif ta == "auto" and args.rig == "objeto":
+    ta = "prop_rigid"                     # un objeto suelto no necesita huesos
+    args.rig = "ninguno"
+if ta == "auto":
+    ta = "character" if args.rig in PERSONAJES else (
+        "prop_articulated" if args.rig in ("vehiculo", "mueble", "objeto") else "prop_rigid")
+INFO["tipo_activo"] = ta
+INFO["rig"] = args.rig
+ES_PROP = ta.startswith("prop")
+if ES_PROP and args.rig != "vehiculo" and args.altura_prop > 0 and abs(args.altura_prop - H) > 1e-3:
+    # Escala real de prop (un Jack-in-the-Box no mide 1.70 m); pivote en la base
+    k_ = args.altura_prop / H
+    obj.data.transform(Matrix.Scale(k_, 4))
+    obj.data.update()
+    co = verts_np(obj)
+    H = float(co[:, 2].max())
+    INFO["altura_m"] = round(H, 3)
+    log("prop escalado a", round(H, 3), "m")
+mn_, mx_ = co.min(0), co.max(0)
+INFO["pivote"] = {"x": round(float((mn_[0] + mx_[0]) / 2), 4), "y": round(float((mn_[1] + mx_[1]) / 2), 4),
+                  "z_min": round(float(mn_[2]), 4)}
+# Aristas duras: props con suavizado por angulo (35 grados) para que cajas,
+# marcos y metal no se vean derretidos; personajes con suavizado completo.
+activate(obj)
+try:
+    if ES_PROP:
+        bpy.ops.object.shade_smooth_by_angle(angle=math.radians(35), keep_sharp_edges=True)
+        INFO["aristas_duras"] = "35 grados"
+except Exception:
+    try:
+        bpy.ops.object.shade_smooth()
+        obj.data.use_auto_smooth = True
+        obj.data.auto_smooth_angle = math.radians(35)
+    except Exception:
+        pass
 
 # Material: asegurar que se vea en Cycles / Eevee / visores
 for slot in obj.material_slots:
@@ -719,7 +780,11 @@ def vehicle_weights():
         c, sgn = VEH["ruedas"][nm]
         d = np.hypot(co_[:, li] - c[li], co_[:, 2] - c[2])
         lado_ok = (co_[:, si] - VEH["smid"]) * sgn > 0.45 * abs(c[si] - VEH["smid"])
-        asign[(d < 1.06 * r) & lado_ok & (asign < 0)] = k
+        # solo el disco de la rueda: dentro del radio, por debajo de su borde
+        # superior y en la banda lateral de la llanta (puertas y paneles fuera)
+        banda = np.abs(co_[:, si] - c[si]) < 0.75 * r
+        bajo = co_[:, 2] < c[2] + 0.98 * r
+        asign[(d < 1.0 * r) & lado_ok & banda & bajo & (asign < 0)] = k
     for k, nm in enumerate(nombres):
         g = obj.vertex_groups.new(name=nm)
         idx = np.nonzero(asign == k)[0].tolist()
@@ -1312,7 +1377,8 @@ if args.rig != "ninguno":
             if e.weight > 0.05:
                 cnt[gi2name[e.group]] += 1
     INFO["vertices_por_hueso"] = cnt
-    _fino = ("Thumb", "Index", "Middle", "Ring", "Pinky", "Toe", "Eye", "Jaw", "Tela", "Neck")
+    _fino = ("Thumb", "Index", "Middle", "Ring", "Pinky", "Toe", "Eye", "Jaw", "Tela", "Neck", "Raiz",
+             "Extra_")
     vacios = [n for n, c in cnt.items() if c == 0 and not n.endswith("_End")
               and not any(x in n for x in _fino)]
     INFO["huesos_finos_sin_zona"] = sum(1 for n, c in cnt.items()
@@ -2011,7 +2077,38 @@ files = {}
 
 # "export": lo principal (GLB, web, FBX, .blend). "extra": lo demas, en otro
 # proceso a la vez (OBJ, STL, piezas, pesos, LOD). Asi Blender tarda la mitad.
-EXTRA = {"obj", "stl_mm", "piezas", "pesos", "lod1_50", "lod2_15", "visor_web", "quads"}
+EXTRA = {"obj", "stl_mm", "piezas", "pesos", "lod1_50", "lod2_15", "visor_web", "quads", "roblox"}
+
+
+def verify_textures():
+    """Mapas de datos (normal, rugosidad, metal, ORM) en Non-Color y todas las
+    imagenes empaquetadas antes de exportar FBX/GLB."""
+    fixed = 0
+    for m in bpy.data.materials:
+        if not getattr(m, "node_tree", None):
+            continue
+        for l in m.node_tree.links:
+            n = l.from_node
+            if n.type != "TEX_IMAGE" or n.image is None:
+                continue
+            dest = l.to_socket.name
+            if l.to_node.type == "NORMAL_MAP" or dest in ("Roughness", "Metallic", "Normal"):
+                if n.image.colorspace_settings.name != "Non-Color":
+                    n.image.colorspace_settings.name = "Non-Color"
+                    fixed += 1
+    for img in bpy.data.images:
+        if img.source in ("FILE", "GENERATED") and not img.packed_file and img.has_data:
+            try:
+                img.pack()
+            except Exception:
+                pass
+    packed = all(bool(i.packed_file) for i in bpy.data.images
+                 if i.users and i.source in ("FILE", "GENERATED") and i.has_data)
+    INFO["texturas_non_color_corregidas"] = fixed
+    return packed
+
+
+TEXTURAS_EMPAQUETADAS = verify_textures()
 
 
 def export(kind, fn, path):
@@ -2214,7 +2311,7 @@ if arm is not None:
             m = bpy.data.materials.new(n)
             c = rng.random(3) * 0.75 + 0.25
             m.diffuse_color = (*c, 1)
-            m.use_nodes = True
+            _nodes(m)
             bs = next(nd for nd in m.node_tree.nodes if nd.type == "BSDF_PRINCIPLED")
             bs.inputs["Base Color"].default_value = (*c, 1)
             me.materials.append(m)
@@ -2270,7 +2367,7 @@ if arm is not None:
         me.color_attributes.active_color = attr
         me.materials.clear()
         m = bpy.data.materials.new("pesos")
-        m.use_nodes = True
+        _nodes(m)
         bs = next(nd for nd in m.node_tree.nodes if nd.type == "BSDF_PRINCIPLED")
         ca = m.node_tree.nodes.new("ShaderNodeVertexColor")
         ca.layer_name = "Pesos"
@@ -2324,6 +2421,53 @@ def _lod(ratio, path):
         INFO.setdefault("lod_caras", {})[os.path.basename(path)] = len(lo.data.polygons)
         bpy.data.objects.remove(lo, do_unlink=True)
 
+
+# Roblox Studio: copia reducida (MeshPart ~10-20k triangulos), escala real
+# aplicada, texturas embebidas, sin suelo ni luces de vista previa.
+p_rbx = os.path.join(OUT, "modelo_roblox.fbx")
+
+
+def _roblox():
+    obj.data.calc_loop_triangles()
+    tris = len(obj.data.loop_triangles)
+    target = int(args.roblox_tris)
+    rb = obj.copy()
+    rb.data = obj.data.copy()
+    rb.name = "Roblox"
+    scene.collection.objects.link(rb)
+    activate(rb)
+    arms = [m for m in rb.modifiers if m.type == "ARMATURE"]
+    for m in arms:
+        rb.modifiers.remove(m)
+    if tris > target:
+        dm = rb.modifiers.new("Dec", "DECIMATE")
+        dm.ratio = target / tris
+        dm.use_collapse_triangulate = True
+        bpy.ops.object.modifier_apply(modifier=dm.name)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    if arm is not None:
+        am2 = rb.modifiers.new("Armature", "ARMATURE")
+        am2.object = arm
+    rb.data.calc_loop_triangles()
+    INFO["roblox_triangulos"] = len(rb.data.loop_triangles)
+    deselect_all()
+    rb.select_set(True)
+    if arm is not None:
+        arm.select_set(True)
+        vl.objects.active = arm
+    try:
+        bpy.ops.export_scene.fbx(filepath=p_rbx, use_selection=True, add_leaf_bones=False,
+                                 bake_anim=arm is not None, bake_anim_use_all_actions=True,
+                                 bake_anim_use_nla_strips=False, path_mode="COPY",
+                                 embed_textures=True, mesh_smooth_type="FACE",
+                                 apply_scale_options="FBX_SCALE_ALL",
+                                 axis_forward="-Z", axis_up="Y")
+    finally:
+        bpy.data.objects.remove(rb, do_unlink=True)
+
+
+if args.roblox_tris > 0:
+    export("roblox", _roblox, p_rbx)
 
 _nf = len(obj.data.polygons)
 for _r, _tag in ((0.5, "lod1_50"), (0.15, "lod2_15")):
@@ -2424,7 +2568,7 @@ def _quads():
     img_n = bpy.data.images.new("quads_normal", size, size, float_buffer=False)
     img_n.colorspace_settings.name = "Non-Color"
     mat = bpy.data.materials.new("quads")
-    mat.use_nodes = True
+    _nodes(mat)
     nt = mat.node_tree
     bs = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
     tc = nt.nodes.new("ShaderNodeTexImage"); tc.image = img_c
@@ -2629,10 +2773,13 @@ def setup_render():
     scene.view_settings.view_transform = "AgX" if "AgX" in [
         i.identifier for i in scene.view_settings.bl_rna.properties["view_transform"].enum_items] else "Filmic"
 
+    prev = bpy.data.collections.get("Preview_Studio") or bpy.data.collections.new("Preview_Studio")
+    if prev.name not in scene.collection.children:
+        scene.collection.children.link(prev)
     # Mundo
     w = bpy.data.worlds.new("Mundo")
     scene.world = w
-    w.use_nodes = True
+    _nodes(w)
     bg = w.node_tree.nodes.get("Background")
     bg.inputs[0].default_value = (0.045, 0.05, 0.065, 1)
     bg.inputs[1].default_value = 1.0
@@ -2646,22 +2793,25 @@ def setup_render():
         o = bpy.data.objects.new(name, L)
         o.location = Vector(loc) * (H / 1.8)
         o.rotation_euler = (Vector((0, 0, H * 0.5)) - o.location).to_track_quat("-Z", "Y").to_euler()
-        scene.collection.objects.link(o)
+        prev.objects.link(o)
     # Suelo
     bpy.ops.mesh.primitive_plane_add(size=H * 20, location=(0, 0, 0))
     fl = vl.objects.active
     fl.name = "Suelo"
     m = bpy.data.materials.new("Suelo")
-    m.use_nodes = True
+    _nodes(m)
     bs = next(nd for nd in m.node_tree.nodes if nd.type == "BSDF_PRINCIPLED")
     bs.inputs["Base Color"].default_value = (0.09, 0.1, 0.12, 1)
     bs.inputs["Roughness"].default_value = 0.85
     fl.data.materials.append(m)
+    for c_ in list(fl.users_collection):
+        c_.objects.unlink(fl)
+    prev.objects.link(fl)
     # Camara
     cam_d = bpy.data.cameras.new("Camara")
     cam_d.lens = 50
     cam = bpy.data.objects.new("Camara", cam_d)
-    scene.collection.objects.link(cam)
+    prev.objects.link(cam)
     scene.camera = cam
     return cam
 
@@ -2760,6 +2910,100 @@ export("blend", _blend, p_blend)
 
 INFO["archivos"] = files
 INFO["segundos"] = round(time.time() - T0, 1)
+def qa_gate():
+    """Control de calidad del modelo final (bloque info.qa): piezas flotantes,
+    bordes no manifold, triangulos, vertices, medidas, esqueleto, texturas y
+    Roblox. passed = sin alertas criticas."""
+    import bmesh
+    from mathutils.bvhtree import BVHTree
+    me = obj.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    # soldar costuras de UV en la copia: no son islas reales
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bm.verts.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    nm = sum(1 for e in bm.edges if not e.is_manifold)
+    parent = list(range(len(bm.verts)))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+    for e in bm.edges:
+        a, b = find(e.verts[0].index), find(e.verts[1].index)
+        if a != b:
+            parent[a] = b
+    comp = {}
+    for f_ in bm.faces:
+        comp.setdefault(find(f_.verts[0].index), []).append(f_)
+    partes = len(comp)
+    flot = 0
+    if partes > 1:
+        # una pieza que TOCA o atraviesa el cuerpo (anclada, soldada con
+        # puente) no flota; solo cuentan las que quedan separadas en el aire
+        area = {k: sum(f_.calc_area() for f_ in fs) for k, fs in comp.items()}
+        cuerpo = max(area, key=area.get)
+        fs0 = comp[cuerpo]
+        vi = {}
+        for f_ in fs0:
+            for v in f_.verts:
+                vi.setdefault(v.index, len(vi))
+        vs = [None] * len(vi)
+        for i_, j_ in vi.items():
+            vs[j_] = bm.verts[i_].co.copy()
+        tree = BVHTree.FromPolygons(vs, [[vi[v.index] for v in f_.verts] for f_ in fs0])
+        ext = max(obj.dimensions) or 1.0
+        for k, fs in comp.items():
+            if k == cuerpo:
+                continue
+            vv = {v.index: v.co for f_ in fs for v in f_.verts}
+            d = min((tree.find_nearest(c)[3] or 1e9) for c in list(vv.values())[::max(1, len(vv) // 3000)])
+            if d > 0.004 * ext:
+                flot += 1
+    nverts = len(bm.verts)
+    bm.free()
+    me.calc_loop_triangles()
+    tris = len(me.loop_triangles)
+    co_ = verts_np(obj)
+    dims = (co_.max(0) - co_.min(0)) if len(co_) else np.zeros(3)
+    ta = INFO.get("tipo_activo", "")
+    crit, w = [], []
+    if flot:
+        crit.append(f"{flot} piezas flotando separadas del cuerpo")
+    if nm:
+        w.append(f"{nm} bordes no manifold")
+    if tris > 20000 and args.roblox_tris <= 0:
+        w.append(f"{tris:,} triangulos: pesado para Roblox (activa el preset Roblox)")
+    if ta.startswith("prop") and dims[2] > 1.5 and args.rig != "vehiculo":
+        crit.append(f"prop de {dims[2]:.2f} m de alto: revisa la altura del prop")
+    if ta == "character" and not (1.0 <= dims[2] <= 2.6):
+        w.append(f"personaje de {dims[2]:.2f} m (lo normal: 1.70-2.10 m)")
+    if not TEXTURAS_EMPAQUETADAS:
+        crit.append("hay texturas sin empaquetar")
+    if len(co_) and abs(float(co_[:, 2].min())) > 1e-3:
+        crit.append("la base no esta en Z = 0")
+    if ta == "prop_rigid" and arm is not None:
+        crit.append("prop rigido con esqueleto")
+    rt = INFO.get("roblox_triangulos")
+    if rt and rt > 15000:
+        crit.append(f"FBX Roblox con {rt:,} triangulos (> 15,000)")
+    INFO["qa"] = {"islands": 1 + flot, "mesh_parts": partes, "non_manifold_edges": nm,
+                  "triangles": tris, "vertices": nverts,
+                  "dimensions_m": [round(float(x), 3) for x in dims],
+                  "has_rig": arm is not None, "textures_packed": bool(TEXTURAS_EMPAQUETADAS),
+                  "asset_type": ta or "auto", "roblox_triangles": rt,
+                  "roblox_ready": bool(rt) and rt <= 15000 and bool(TEXTURAS_EMPAQUETADAS),
+                  "warnings": crit + w, "critical": crit, "passed": not crit}
+    log("QA:", INFO["qa"])
+
+
+try:
+    qa_gate()
+except Exception as e:
+    INFO["avisos"].append(f"QA: {e}")
+
 _info_name = {"video": "rig_info_video.json", "extra": "rig_info_extra.json"}.get(
     args.stage, "rig_info.json")
 with open(os.path.join(OUT, _info_name), "w") as f:

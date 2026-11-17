@@ -28,7 +28,7 @@ EXAMPLES_DIR = "/content/Hunyuan3D-2/assets/example_images"
 
 
 def _files(d):
-    order = ["modelo_animado.glb", "modelo_quads.glb", "modelo_quads.fbx", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
+    order = ["modelo_animado.glb", "modelo_roblox.fbx", "modelo_quads.glb", "modelo_quads.fbx", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
              "modelo_estatico.obj", "modelo_estatico.mtl", "modelo_impresion3d.stl",
              "modelo_color_impresion.ply",
              "piezas.glb", "pesos.glb", "arcilla.glb", "rig_info.json"]
@@ -168,7 +168,7 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
                faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
                detalle=True, motor="Hunyuan3D (rápido)", prompt="", tex_rapida=False,
-               progress=gr.Progress()):
+               activo="Auto", altura_prop=0.40, roblox="Roblox 12k", progress=gr.Progress()):
     """Etapa 1: lanza el trabajo y devuelve la malla en cuanto existe."""
     if rand_seed:
         seed = random.randint(0, 2**31 - 1)
@@ -209,7 +209,12 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
                                 videos=bool(make_videos), on_stage=on_stage,
                                 detalle=bool(detalle),
                                 motor="triposg" if str(motor).startswith("Tripo") else "hunyuan",
-                                tex_rapida=bool(tex_rapida))
+                                tex_rapida=bool(tex_rapida),
+                                asset_type={"Personaje": "character", "Prop rígido": "prop_rigid",
+                                            "Prop articulado": "prop_articulated"}.get(activo, "auto"),
+                                altura_prop=float(altura_prop),
+                                roblox_tris={"No": 0, "Roblox 12k": 12000, "Roblox 15k": 15000,
+                                             "High 40k": 40000}.get(roblox, 12000))
             st["dir"] = st["res"]["dir"]
         except Exception as e:
             import traceback
@@ -305,6 +310,28 @@ def tablero_html(hecho=0, info=None, activo=None, solo_datos=False):
             f"<div class='kv'><span>Filamento</span><b>{imp.get('gramos_pla')} g</b></div>"
             f"<div class='kv'><span>Tiempo aprox.</span><b>{imp.get('horas')} h</b></div>"
             f"<div class='kv'><span>Volumen</span><b>{imp.get('volumen_cm3')} cm³</b></div></div>")
+    qa = info.get("qa")
+    if qa:
+        dm = qa.get("dimensions_m") or [0, 0, 0]
+        ws = qa.get("warnings") or []
+        isl = info.get("islas_malla") or {}
+        datos += ("<div class='td'><b>Control de calidad</b>"
+                  f"<div class='kv'><span>Estado</span><b>{'✅ aprobado' if qa.get('passed', not ws) else '❌ no aprobado'}"
+                  f"{'' if not ws else ' · ' + str(len(ws)) + ' alertas'}</b></div>"
+                  f"<div class='kv'><span>Tipo de activo</span><b>{info.get('tipo_activo', '—')}</b></div>"
+                  f"<div class='kv'><span>Medidas (m)</span><b>{dm[0]} × {dm[1]} × {dm[2]}</b></div>"
+                  f"<div class='kv'><span>Triángulos</span><b>{qa.get('triangles', 0):,}</b></div>"
+                  f"<div class='kv'><span>Vértices</span><b>{qa.get('vertices', 0):,}</b></div>"
+                  f"<div class='kv'><span>Roblox</span><b>{qa.get('roblox_triangles') or '—'}"
+                  f"{' ✅ listo' if qa.get('roblox_ready') else ''}</b></div>"
+                  f"<div class='kv'><span>Islas</span><b>{isl.get('islas', '—')} → {qa.get('islands')} "
+                  f"(ancladas {isl.get('ancladas', 0)}, puentes {isl.get('puentes', 0)}, "
+                  f"quitadas {isl.get('eliminadas', 0)})</b></div>"
+                  f"<div class='kv'><span>Bordes no manifold</span><b>{qa.get('non_manifold_edges')}</b></div>"
+                  f"<div class='kv'><span>Esqueleto</span><b>{'sí' if qa.get('has_rig') else 'no'}</b></div>"
+                  f"<div class='kv'><span>Texturas empaquetadas</span><b>{'sí' if qa.get('textures_packed') else 'no'}</b></div>"
+                  + "".join(f"<div class='kv'><span class='warnq'>⚠️ {w}</span></div>" for w in ws)
+                  + "</div>")
     if info.get("huesos"):
         c = (info.get("clasificacion") or {}).get("tipo", info.get("rig"))
         datos += ("<div class='td'><b>Modelo</b>"
@@ -326,12 +353,12 @@ def datos_html(info):
 # ------------------------------------------------------------ aprender del usuario
 TIPOS_UI = {"humanoide": "Persona", "cuadrupedo": "Animal de 4 patas",
             "cabeza": "Cabeza / busto", "vehiculo": "Vehículo", "mueble": "Mueble",
-            "objeto": "Objeto"}
+            "objeto": "Objeto", "ninguno": "Prop rígido (sin esqueleto)"}
 UI_TIPOS = {v: k for k, v in TIPOS_UI.items()}
 
 
 def _tipo_actual(info):
-    t = (info.get("clasificacion") or {}).get("tipo", info.get("rig"))
+    t = "ninguno" if info.get("rig") == "ninguno" else (info.get("clasificacion") or {}).get("tipo", info.get("rig"))
     return TIPOS_UI.get(t, "Persona")
 
 
@@ -714,6 +741,7 @@ footer {display:none !important}
 .td {border:1px solid #2a2f45; border-radius:12px; padding:8px 10px; background:#151824;
      color:#c9cee0; font-size:13px}
 .td > b {color:#8fb0ff; font-size:12px; text-transform:uppercase; letter-spacing:.04em}
+.warnq {color:#e0a030 !important}
 .kv {display:flex; justify-content:space-between; gap:8px; border-bottom:1px dashed #252a3d;
      padding:3px 0} .kv:last-child {border:0} .kv span {color:#8a90a8}
 .kpis {display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px}
@@ -798,6 +826,13 @@ def build_ui():
                             gr.Markdown("<small>Auto detecta persona, animal de 4 patas, "
                                         "cabeza/busto (mueve boca, ojos y cabeza) u objeto "
                                         "(flota, gira, rebota, baila).</small>")
+                            activo = gr.Radio(["Auto", "Personaje", "Prop rígido", "Prop articulado"],
+                                              value="Auto", label="Tipo de activo",
+                                              info="Prop rígido: sin esqueleto (cajas, relojes, "
+                                                   "estatuas). Prop articulado: partes rígidas que se "
+                                                   "mueven (ruedas, puertas). Personaje: rig Mixamo.")
+                            altura_prop = gr.Slider(0.05, 3.0, 0.40, step=0.01,
+                                                    label="Altura real del prop (m)")
                             detalle = gr.Checkbox(True, label="Esqueleto detallado",
                                                   info="Dedos de manos y pies, ojos y mandíbula "
                                                        "(66 huesos en vez de 23)")
@@ -816,6 +851,10 @@ def build_ui():
                                                    "con menos caras). Maxima: 50 pasos, el mas lento")
                             tex = gr.Dropdown(["1024", "2048", "4096"], value=str(PRESETS[best][3]),
                                               label="Textura (px)")
+                            roblox = gr.Radio(["No", "Roblox 12k", "Roblox 15k", "High 40k"],
+                                              value="Roblox 12k", label="Exportación para Roblox Studio",
+                                              info="FBX reducido (triángulos máx.), escala real "
+                                                   "aplicada, texturas embebidas")
                             tex_rapida = gr.Checkbox(False, label="Textura rápida",
                                                      info="Hornea a 1024 en vez de 2048: tarda "
                                                           "menos y los colores salen algo menos nítidos")
@@ -947,7 +986,7 @@ def build_ui():
         gen_inputs = [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                       faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                       video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-                      detalle, motor, prompt, tex_rapida]
+                      detalle, motor, prompt, tex_rapida, activo, altura_prop, roblox]
 
         def chain(ev):
             return (ev.then(step_malla, gen_inputs, [front, job, m_clay, tabs, status, seed, tablero],

@@ -207,6 +207,90 @@ def physics_data(mesh, height_m, tipo="humanoide"):
     }
 
 
+def fix_islands(mesh, keep_area=0.015, dust_area=0.002, near=0.08, touch=0.002, bridge=True):
+    """Islas de la malla (partes desconectadas), segun el estandar del pipeline:
+    * principal = la de mayor area;
+    * area < 0.2 % de la principal -> polvo: se elimina siempre;
+    * a 0.2 %-8 % del tamano del modelo -> pieza fina separada por el corte
+      del volumen (manivela, mano, resorte): se ANCLA moviendola hasta que
+      solape la principal (0.2 %) y se suelda con un PUENTE cilindrico solido;
+    * lejos y con area < 1.5 % -> particula suelta: se elimina;
+    * lejos y grande -> se conserva (parte real separada) con aviso.
+    La distancia es superficie-a-superficie con scipy cKDTree (no hace falta rtree).
+    Devuelve (malla, informe)."""
+    import trimesh
+    rep = {"islas": 0, "eliminadas": 0, "ancladas": 0, "puentes": 0, "separadas": 0,
+           "finales": 1, "distancias_m": []}
+    try:
+        parts = mesh.split(only_watertight=False)
+    except Exception:
+        return mesh, rep
+    rep["islas"] = len(parts)
+    if len(parts) <= 1:
+        rep["finales"] = len(parts)
+        return mesh, rep
+    parts = sorted(parts, key=lambda p: -p.area)
+    main = parts[0]
+    ext = float(np.max(mesh.extents))
+    try:
+        from scipy.spatial import cKDTree
+        # puntos de la superficie principal (vertices + muestreo uniforme, asi
+        # una caja de 8 vertices tambien sirve)
+        mv = np.asarray(main.vertices)
+        if len(mv) > 150000:
+            mv = mv[:: len(mv) // 150000 + 1]
+        smp = trimesh.sample.sample_surface(main, 60000, seed=0)[0]
+        mv = np.vstack([mv, smp])
+        tree = cKDTree(mv)
+    except Exception:
+        tree = None
+    keep = [main]
+    for p in parts[1:]:
+        if p.area < dust_area * main.area:
+            rep["eliminadas"] += 1
+            continue
+        if tree is None:
+            keep.append(p)
+            continue
+        pv = np.asarray(p.vertices)
+        sub = np.vstack([pv[:: max(1, len(pv) // 5000)],
+                         trimesh.sample.sample_surface(p, 4000, seed=0)[0]])
+        d, idx = tree.query(sub)
+        i = int(np.argmin(d))
+        dist = float(d[i])
+        rep["distancias_m"].append(round(dist, 4))
+        if dist <= near * ext:
+            if dist > touch * ext:
+                # mover la isla por la direccion mas corta hasta solapar
+                v = mv[idx[i]] - sub[i]
+                v *= (dist + touch * ext) / max(dist, 1e-12)
+                p = p.copy()
+                p.apply_translation(v)
+                rep["ancladas"] += 1
+                if bridge:
+                    try:
+                        # puente solido: cilindro corto que entra en las dos piezas
+                        u = v / (np.linalg.norm(v) + 1e-12)
+                        r = float(np.clip(0.3 * np.min(p.extents), 0.002 * ext, 0.012 * ext))
+                        L = 0.03 * ext
+                        cyl = trimesh.creation.cylinder(r, L, sections=12)
+                        cyl.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], u))
+                        cyl.apply_translation(sub[i] + v)
+                        keep.append(cyl)
+                        rep["puentes"] += 1
+                    except Exception:
+                        pass
+            keep.append(p)
+        elif p.area < keep_area * main.area:
+            rep["eliminadas"] += 1          # particula lejana
+        else:
+            rep["separadas"] += 1
+            keep.append(p)
+    rep["finales"] = 1 + rep["separadas"]
+    out = trimesh.util.concatenate(keep)
+    return out, rep
+
+
 def render_preview(mesh, size=384, az=30.0):
     """Imagen de una malla sin GPU grafica: proyeccion ortografica con
     z-buffer de caras y luz por normales (para elegir variantes)."""
@@ -604,9 +688,10 @@ class Engine:
 
     # ------------------------------------------------------------ forma
     def _repair(self, mesh, max_faces):
-        from hy3dgen.shapegen import (DegenerateFaceRemover, FaceReducer,
-                                      FloaterRemover)
-        mesh = FloaterRemover()(mesh)
+        from hy3dgen.shapegen import DegenerateFaceRemover, FaceReducer
+        # Antes: FloaterRemover. Ahora las islas se analizan y las piezas
+        # finas cortadas por Marching Cubes (manivelas, manos) se reconectan.
+        mesh, self.last_islands = fix_islands(mesh)
         mesh = DegenerateFaceRemover()(mesh)
         try:
             import pymeshlab
@@ -714,8 +799,10 @@ class Engine:
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
             texture=True, relieve=0.8, turbo=True, progress=lambda f, m: None, on_partial=None,
-            videos=False, on_stage=None, detalle=True, motor="hunyuan", tex_rapida=False):
+            videos=False, on_stage=None, detalle=True, motor="hunyuan", tex_rapida=False,
+            asset_type="auto", altura_prop=0.40, roblox_tris=12000):
         self._ensure()
+        self._activo = (str(asset_type), float(altura_prop), int(roblox_tris))
         quiet_logs()
         progress = track(progress)
         try:
@@ -760,7 +847,8 @@ class Engine:
                     video=video, video_res=video_res, samples=samples,
                     turntable=bool(turntable), texture=bool(texture), relieve=float(relieve),
                     turbo=bool(turbo), videos=bool(videos), detalle=bool(detalle), motor=motor,
-                    tex_rapida=bool(tex_rapida))
+                    tex_rapida=bool(tex_rapida), asset_type=self._activo[0],
+                    altura_prop=self._activo[1], roblox_tris=self._activo[2])
         k = self.key(views, opts)
         if k in self.cache and os.path.isdir(self.cache[k]["dir"]):
             self.log("Resultado en cache:", k)
@@ -936,6 +1024,9 @@ class Engine:
         if os.path.exists(ipx):
             ix = json.load(open(ipx))
             info.setdefault("archivos", {}).update(ix.get("archivos", {}))
+            if ix.get("roblox_triangulos") is not None:
+                info["roblox_triangulos"] = ix["roblox_triangulos"]
+                info.setdefault("qa", {})["roblox_triangles"] = ix["roblox_triangulos"]
             for k_ in ("lod_caras", "piezas", "quads_caras"):
                 if k_ in ix:
                     info[k_] = ix[k_]
@@ -954,6 +1045,23 @@ class Engine:
                       open(os.path.join(out, "fisica.json"), "w"), indent=2)
         except Exception as e:
             self.log("  datos fisicos omitidos:", e)
+        isl = getattr(self, "last_islands", None)
+        info["islas_malla"] = isl
+        qa = info.get("qa")
+        if isinstance(qa, dict):
+            ta_ = info.get("tipo_activo", "")
+            if isl:
+                qa["refinement"] = {"islands_initial": isl.get("islas", 0),
+                                    "islands_reconnected": isl.get("ancladas", 0),
+                                    "islands_removed": isl.get("eliminadas", 0),
+                                    "islands_final": isl.get("finales", 1),
+                                    "bridges": isl.get("puentes", 0),
+                                    "hard_surface": ta_.startswith("prop")}
+            rt = qa.get("roblox_triangles")
+            qa["roblox_ready"] = bool(rt) and rt <= 15000 and bool(qa.get("textures_packed"))
+            if rt and rt > 15000:
+                qa.setdefault("critical", []).append(f"FBX Roblox con {rt:,} triangulos (> 15,000)")
+                qa["passed"] = False
         info.update(caras_alta=locals().get("info_alta"), multivista=used_mv, textura_ia=ok_tex, segundos_forma=round(t_shape, 1),
                     segundos_textura=round(t_tex, 1), segundos_blender=round(t_bl, 1),
                     segundos_total=round(time.time() - t0, 1), turbo=bool(turbo),
@@ -1016,6 +1124,9 @@ class Engine:
         a = info.get("ajustes", {})
         args = (inp, d, rig, a.get("height", 1.8), a.get("rotate", 0.0), a.get("video", "Caminar"),
                 a.get("video_res", 720), a.get("samples", 16), False, a.get("relieve", 0.8))
+        ta = {"humanoide": "character", "cuadrupedo": "character", "cabeza": "character",
+              "ninguno": "prop_rigid"}.get(rig, "prop_articulated")
+        self._activo = (ta, float(a.get("altura_prop", 0.4)), int(a.get("roblox_tris", 12000)))
         progress(0.1, f"Poniendo esqueleto de tipo {rig}")
         fe = self.blender_pool.submit(self.blender, *args, "export", None, None, huesos)
         fx = self.blender_pool.submit(self.blender, *args, "extra", None, None, huesos)
@@ -1117,6 +1228,9 @@ class Engine:
                "--turntable", "1" if turntable else "0", "--relieve", str(relieve),
                "--detalle", "1" if getattr(self, "_detalle", True) else "0",
                "--memoria", _memoria_path(), "--huesos", huesos or "",
+               "--tipo_activo", getattr(self, "_activo", ("auto",))[0],
+               "--altura_prop", str(getattr(self, "_activo", ("", 0.4))[1]),
+               "--roblox_tris", str(getattr(self, "_activo", ("", 0, 12000))[2]),
                "--stage", stage, "--preview", "1" if stage != "export" or self._preview else "0"]
         ms = self.MILESTONES.get(stage, self.MILESTONES["export"])
         lines = []
