@@ -61,6 +61,7 @@ ap.add_argument("--preview", type=int, default=1, help="0 = no renderizar vista_
 ap.add_argument("--detalle", type=int, default=1,
                 help="1 = esqueleto detallado: dedos de manos y pies, ojos y mandibula")
 ap.add_argument("--memoria", default="", help="json con correcciones de tipo del usuario")
+ap.add_argument("--huesos", default="", help="json del editor: mover articulaciones y huesos extra")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -775,6 +776,70 @@ def furniture_weights():
                                   for k, (nm, _) in enumerate(MUEBLE["paneles"])}
 
 
+EXTRAS = []         # huesos agregados por el usuario: (nombre_corto, indice_en_cadena)
+
+
+def _g2b(p):
+    """glTF (Y arriba) -> Blender (Z arriba)."""
+    return Vector((float(p[0]), -float(p[2]), float(p[1])))
+
+
+def apply_bone_edits(bones, ed):
+    """mover: {hueso: [x,y,z]} nueva posicion de la articulacion (cabeza).
+    extra: [{nombre, padre, head, tail}] huesos nuevos (colas, alas, pelo).
+    borrar: [hueso] (solo extras). Coordenadas en glTF (las del visor)."""
+    clean = lambda n: n.replace(":", "").replace(".", "")
+    by = {clean(n): i for i, (n, *_r) in enumerate(bones)}
+    bones = [list(b) for b in bones]
+    movidos = 0
+    for nm, pos in (ed.get("mover") or {}).items():
+        i = by.get(clean(nm))
+        if i is None:
+            continue
+        old = bones[i][1].copy()
+        new = _g2b(pos)
+        bones[i][1] = new
+        for b in bones:                       # la cola del padre sigue a la articulacion
+            if (b[2] - old).length < 1e-4:
+                b[2] = new.copy()
+        if (bones[i][2] - bones[i][1]).length < 0.01 * H:
+            bones[i][2] = bones[i][1] + Vector((0, 0, 0.05 * H))
+        movidos += 1
+    pref = "mixamorig:" if args.rig in ("humanoide", "cabeza") else ""
+    names = {clean(b[0]): b[0] for b in bones}
+    nuevos = 0
+    for k, e in enumerate(ed.get("extra") or []):
+        corto = "Extra_" + "".join(ch for ch in str(e.get("nombre", k)) if ch.isalnum() or ch == "_")[:20]
+        p_ = str(e.get("padre", ""))
+        padre = names.get(clean(p_)) or names.get(clean(pref + p_)) or names.get(clean(pref + "Extra_" + p_))
+        if padre is None:
+            padre = bones[0][0]
+        nm = pref + corto
+        hd, tl = _g2b(e["head"]), _g2b(e["tail"])
+        if (tl - hd).length < 1e-4:
+            continue
+        bones.append([nm, hd, tl, padre])
+        names[clean(nm)] = nm
+        EXTRAS.append((corto, int(e.get("orden", 0))))
+        nuevos += 1
+    INFO["edicion_huesos"] = {"movidos": movidos, "extra": nuevos}
+    log("editor: articulaciones movidas", movidos, "huesos nuevos", nuevos)
+    return [tuple(b) for b in bones]
+
+
+def extra_motion(anim, t):
+    """Movimiento secundario de los huesos extra (colas, alas, orejas):
+    vaiven con retraso creciente a lo largo de la cadena."""
+    amp = {"Correr": 0.35, "Saltar": 0.4, "Bailar": 0.35, "Caminar": 0.22,
+           "Avanzar": 0.15, "Flotar": 0.25}.get(anim, 0.1)
+    out = {}
+    for corto, i in EXTRAS:
+        ph = 2 * math.pi * t - 0.7 * (i + 1)
+        out[corto] = wrot(corto, ((0, 0, 1), amp * (0.6 + 0.3 * i) * math.sin(ph)),
+                          ((1, 0, 0), 0.4 * amp * math.sin(ph * 2 + 1)))
+    return out
+
+
 BONES = []          # (nombre, cabeza, cola, padre)
 
 
@@ -966,6 +1031,12 @@ if args.rig != "ninguno":
     else:
         BONES = quadruped_bones(co, H)
 
+    # ---- ediciones del usuario (editor de esqueleto en el visor)
+    if args.huesos and os.path.exists(args.huesos):
+        try:
+            BONES = apply_bone_edits(BONES, json.load(open(args.huesos)))
+        except Exception as e:
+            INFO["avisos"].append(f"edicion de huesos: {e}")
     adata = bpy.data.armatures.new("Esqueleto")
     arm = bpy.data.objects.new("Esqueleto", adata)
     scene.collection.objects.link(arm)
@@ -1331,6 +1402,8 @@ def build_action(name, frames, pose_fn, step=2):
         pose = pose_fn(t)
         if TELA:
             pose.update(cloth_motion(name, t))
+        if EXTRAS:
+            pose.update(extra_motion(name, t))
         for bname, val in pose.items():
             b = pb(bname)
             if b is None or val is None:
@@ -2039,6 +2112,47 @@ def _fbx():
 
 
 export("fbx", _fbx, p_fbx)
+
+UE5 = {"Hips": "pelvis", "Spine": "spine_01", "Spine1": "spine_02", "Spine2": "spine_03",
+       "Neck": "neck_01", "Head": "head", "LeftShoulder": "clavicle_l", "LeftArm": "upperarm_l",
+       "LeftForeArm": "lowerarm_l", "LeftHand": "hand_l", "RightShoulder": "clavicle_r",
+       "RightArm": "upperarm_r", "RightForeArm": "lowerarm_r", "RightHand": "hand_r",
+       "LeftUpLeg": "thigh_l", "LeftLeg": "calf_l", "LeftFoot": "foot_l", "LeftToeBase": "ball_l",
+       "RightUpLeg": "thigh_r", "RightLeg": "calf_r", "RightFoot": "foot_r", "RightToeBase": "ball_r"}
+for _s, _l in (("Left", "l"), ("Right", "r")):
+    for _f, _u in (("Thumb", "thumb"), ("Index", "index"), ("Middle", "middle"), ("Ring", "ring"),
+                   ("Pinky", "pinky")):
+        for _k in (1, 2, 3):
+            UE5[f"{_s}Hand{_f}{_k}"] = f"{_u}_0{_k}_{_l}"
+p_ue = os.path.join(OUT, "modelo_ue5.fbx")
+
+
+def _ue5():
+    """Esqueleto con nombres del maniqui de UE5 (pelvis, spine_01, thigh_l...):
+    el IK Retargeter de Unreal lo reconoce solo. Se renombra, se exporta y se
+    devuelve el nombre original (los grupos de vertices se renombran solos)."""
+    if arm is None or args.rig != "humanoide":
+        raise RuntimeError("solo para personajes humanos")
+    orig = {}
+    for b in arm.data.bones:
+        short = b.name.split(":")[-1]
+        if short in UE5:
+            orig[UE5[short]] = b.name
+            b.name = UE5[short]
+    try:
+        sel_export_objects()
+        bpy.ops.export_scene.fbx(filepath=p_ue, use_selection=True, add_leaf_bones=False,
+                                 bake_anim=False, path_mode="COPY", embed_textures=True,
+                                 armature_nodetype="NULL", axis_forward="-Z", axis_up="Y",
+                                 mesh_smooth_type="FACE", primary_bone_axis="Y",
+                                 secondary_bone_axis="X", global_scale=1.0)
+    finally:
+        for new, old in orig.items():
+            arm.data.bones[new].name = old
+
+
+if args.rig == "humanoide":
+    export("ue5_fbx", _ue5, p_ue)
 
 # Malla estatica (sin esqueleto) para Mixamo / impresion
 p_obj = os.path.join(OUT, "modelo_estatico.obj")

@@ -31,6 +31,14 @@
 #legend div{display:flex;gap:6px;align-items:center;margin:2px 0}#legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 #load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);z-index:3}
 canvas{display:block}
+#ed{position:absolute;left:12px;top:100px;z-index:8;width:270px;background:#151824ee;border:1px solid #2b4da8;
+ border-radius:14px;padding:10px;font-size:12px;color:#c9cee0;box-shadow:0 0 20px #3d6bff33}
+#ed .edt{font-weight:700;color:#8fb0ff;margin-bottom:6px}
+#ed .seg{margin:6px 0;flex-wrap:wrap}
+#ed button.pri{background:#3d6bff;color:#fff}
+#edhelp{color:#8a90a8;line-height:1.4}
+#edmsg{margin-top:6px;color:#9db6ff;min-height:16px}
+@media (max-width:640px){#ed{left:6px;right:6px;width:auto;top:auto;bottom:118px;font-size:11px;padding:8px}}
 @media (max-width:640px){
  #top{gap:6px;top:8px;left:8px;right:8px}
  .seg button,.btn{padding:6px 9px;font-size:13px}
@@ -62,12 +70,27 @@ canvas{display:block}
 <div id="load">Cargando modelo…</div>
 <div id="stagebadge" style="display:none;position:absolute;right:12px;z-index:5;background:#5b5bf0;color:#fff;padding:6px 12px;border-radius:20px;font-size:13px;box-shadow:0 0 18px #5b5bf088"></div>
 <div id="legend"></div>
+<div id="ed" style="display:none">
+  <div class="edt">🦴 Editor de esqueleto</div>
+  <div class="seg edm">
+    <button data-m="mover" class="on" title="Arrastra una articulación a su lugar">✋ Mover</button>
+    <button data-m="posar" title="Gira huesos para posar el modelo">🔄 Posar</button>
+    <button data-m="cadena" title="Elige un hueso padre y toca el modelo para crear huesos (cola, alas, pelo)">➕ Huesos</button>
+  </div>
+  <div id="edhelp">Toca una articulación (punto azul) y arrástrala con las flechas.</div>
+  <div class="seg edb">
+    <button id="edundo">↶ Deshacer</button><button id="edend">✔ Cerrar cadena</button>
+    <button id="edpose">⬇ Pose GLB</button>
+  </div>
+  <div class="seg edb"><button id="edapply" class="pri">Aplicar al modelo</button><button id="edexit">Salir</button></div>
+  <div id="edmsg"></div>
+</div>
 <div id="info"></div>
 <div id="bottom">
   <div id="anims"></div>
   <div class="seg" id="tools">
     <button id="rot" class="on">Auto-rotar</button><button id="ctr">Centrar</button>
-    <button id="wire">Polígonos</button><button id="skel">Esqueleto</button><button id="phys" class="on">Física</button><button id="com">Centro de masa</button><button id="shot">📷 Captura</button>
+    <button id="wire">Polígonos</button><button id="skel">Esqueleto</button><button id="phys" class="on">Física</button><button id="com">Centro de masa</button><button id="shot">📷 Captura</button><button id="edit">🦴 Editar esqueleto</button>
   </div>
 </div>
 <script type="module">
@@ -75,11 +98,13 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {TransformControls} from 'three/addons/controls/TransformControls.js';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s);
 const FILES={tex:['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb'],hi:['malla_alta.glb'],quads:['modelo_quads.glb']};
-const NICE={'fisica.json':'Datos físicos (masa, centro de masa) para Unity/Unreal','modelo_color_impresion.ply':'PLY con color (impresión multicolor)','modelo_quads.fbx':'Malla en cuadrados (FBX)','modelo_web.glb':'GLB ligero web (Draco + JPEG)','modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
+const NICE={'modelo_ue5.fbx':'FBX para Unreal Engine 5 (huesos con nombres del maniquí)','huesos_editados.json':'Tus ediciones del esqueleto','fisica.json':'Datos físicos (masa, centro de masa) para Unity/Unreal','modelo_color_impresion.ply':'PLY con color (impresión multicolor)','modelo_quads.fbx':'Malla en cuadrados (FBX)','modelo_web.glb':'GLB ligero web (Draco + JPEG)','modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
  'modelo.blend':'Blender (.blend)','modelo_texturizado.glb':'GLB sin esqueleto','modelo_estatico.obj':'OBJ estático',
  'modelo_impresion3d.stl':'STL impresión 3D (mm)','modelo_lod1_50.glb':'LOD ligero 50%','modelo_lod2_15.glb':'LOD muy ligero 15%',
  'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','malla_alta.glb':'Malla alta resolución (sin reducir)','modelo_quads.glb':'Malla en cuadrados limpia (retopología + textura horneada)','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
@@ -124,11 +149,12 @@ function stats(){let t=0,v=0;cur.traverse(o=>{if(o.isMesh&&!o.userData.wire){con
    (info.huesos?` · ${info.huesos} huesos`:'')}
 async function exists(f){try{const r=await fetch(f,{method:'HEAD'});return r.ok}catch(e){return false}}
 
-async function show(view){
+let curView='tex';
+async function show(view){curView=view;
   const cands=FILES[view];let file=null;for(const f of cands)if(avail.has(f)){file=f;break}
   if(!file)return;
   $('#load').style.display='flex';
-  const g=await loader.loadAsync(file,e=>{if(e.total)$('#load').textContent=`Cargando modelo… ${Math.round(100*e.loaded/e.total)}%`});
+  const g=await loader.loadAsync(file+'?v='+(window.__ver||0),e=>{if(e.total)$('#load').textContent=`Cargando modelo… ${Math.round(100*e.loaded/e.total)}%`});
   if(cur){scene.remove(cur)}if(skelHelper){scene.remove(skelHelper);skelHelper=null}
   cur=g.scene;cur.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;
     if(view==='clay'||view==='hi')o.material=new THREE.MeshStandardMaterial({color:0xb9bcc6,roughness:.55,metalness:.05});
@@ -211,7 +237,97 @@ async function toggleCom(){if(comMark){scene.remove(comMark);comMark=null;$('#co
   $('#legend').innerHTML=`<b>Física</b><br>Masa ≈ ${f.masa_kg} kg<br>Centro de masa (rojo)<br>Línea = cae sobre el suelo`}
 $('#phys').onclick=()=>{physOn=!physOn;$('#phys').classList.toggle('on',physOn)};
 $('#com').onclick=toggleCom;
-renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt);stepPhysics(dt);ctl.update();renderer.render(scene,cam)});
+
+// ===================== Editor de esqueleto =====================
+const ED={on:false,mode:'mover',bones:[],sph:[],lines:null,sel:null,mover:{},extra:[],chain:null,hist:[],n:1};
+const tc=new TransformControls(cam,renderer.domElement);tc.setSize(0.8);
+tc.addEventListener('dragging-changed',e=>{ctl.enabled=!e.value;
+  if(!e.value&&ED.sel!==null&&ED.mode==='mover'){const b=ED.bones[ED.sel];
+    ED.hist.push({t:'m',n:b.name,prev:ED.mover[b.name]});ED.mover[b.name]=loc(ED.sph[ED.sel].position);msg(`Movido: ${nice(b.name)}`)}});
+scene.add(tc);
+const jg=new THREE.Group();scene.add(jg);
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+const nice=n=>n.replace(/^mixamorig/,'').replace(/^Extra_/,'+ ');
+const loc=p=>{const v=cur.worldToLocal(p.clone());return [+v.x.toFixed(4),+v.y.toFixed(4),+v.z.toFixed(4)]};
+const msg=t=>$('#edmsg').textContent=t;
+const HELP={mover:'Toca una articulación (punto azul) y arrástrala con las flechas. Al terminar pulsa «Aplicar».',
+ posar:'Toca una articulación y gira el hueso con los anillos. Es solo vista previa; descárgala con «Pose GLB».',
+ cadena:'1) Toca la articulación padre (azul). 2) Toca el modelo en cada punto de la cola/ala/oreja (se crea un hueso entre cada par). 3) «Cerrar cadena».'};
+function skel(){let sk=null;cur&&cur.traverse(o=>{if(o.isSkinnedMesh&&!sk)sk=o.skeleton});return sk}
+function buildJoints(){jg.clear();ED.sph=[];const sk=skel();if(!sk){msg('Este modelo no tiene esqueleto');return false}
+  ED.bones=sk.bones;const r=H*0.012;
+  for(const b of ED.bones){const m=new THREE.Mesh(new THREE.SphereGeometry(/Extra_/.test(b.name)?r*1.2:r,12,8),
+    new THREE.MeshBasicMaterial({color:/Extra_/.test(b.name)?0x34d399:0x4d7dff,depthTest:false,transparent:true,opacity:.95}));
+    m.renderOrder=20;b.getWorldPosition(m.position);jg.add(m);ED.sph.push(m)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(ED.bones.length*6),3));
+  ED.lines=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x8fb0ff,depthTest:false}));ED.lines.renderOrder=19;jg.add(ED.lines);
+  return true}
+function updJoints(){if(!ED.on||!ED.lines)return;const a=ED.lines.geometry.attributes.position.array;
+  ED.bones.forEach((b,i)=>{if(ED.mode==='posar')b.getWorldPosition(ED.sph[i].position);
+    const pi=ED.bones.indexOf(b.parent);const p=ED.sph[pi>=0?pi:i].position,q=ED.sph[i].position;
+    a.set([p.x,p.y,p.z,q.x,q.y,q.z],i*6)});ED.lines.geometry.attributes.position.needsUpdate=true}
+function select(i){ED.sel=i;ED.sph.forEach((m,k)=>m.material.color.set(k===i?0xffd166:(/Extra_/.test(ED.bones[k].name)?0x34d399:0x4d7dff)));
+  tc.detach();if(i===null)return;const b=ED.bones[i];
+  if(ED.mode==='mover'){tc.setMode('translate');tc.setSpace('world');tc.attach(ED.sph[i])}
+  else if(ED.mode==='posar'){tc.setMode('rotate');tc.setSpace('local');tc.attach(b)}
+  msg('Seleccionado: '+nice(b.name))}
+function setMode(m){ED.mode=m;document.querySelectorAll('#ed .edm button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  $('#edhelp').textContent=HELP[m];ED.chain=null;select(ED.sel)}
+function enter(){if(!buildJoints())return;ED.on=true;mixer&&mixer.stopAllAction();const sk=skel();sk&&sk.pose();
+  physOn=false;ctl.autoRotate=false;$('#rot').classList.remove('on');$('#ed').style.display='block';$('#edit').classList.add('on');
+  setMode('mover');buildJoints();msg(`${ED.bones.length} huesos`)}
+function exit(){ED.on=false;tc.detach();jg.clear();$('#ed').style.display='none';$('#edit').classList.remove('on');physOn=true;
+  const sk=skel();sk&&sk.pose()}
+function surfacePoint(ev){const rc=renderer.domElement.getBoundingClientRect();
+  mouse.set(((ev.clientX-rc.left)/rc.width)*2-1,-((ev.clientY-rc.top)/rc.height)*2+1);ray.setFromCamera(mouse,cam);
+  const ms=[];cur.traverse(o=>{if(o.isMesh&&!o.userData.wire)ms.push(o)});const hit=ray.intersectObjects(ms,false);
+  if(!hit.length)return null;   // dentro del volumen: punto medio entre la entrada y la salida
+  return hit.length>1?hit[0].point.clone().lerp(hit[1].point,0.5):hit[0].point.clone()}
+renderer.domElement.addEventListener('pointerdown',ev=>{if(!ED.on||tc.dragging)return;
+  const rc=renderer.domElement.getBoundingClientRect();
+  mouse.set(((ev.clientX-rc.left)/rc.width)*2-1,-((ev.clientY-rc.top)/rc.height)*2+1);ray.setFromCamera(mouse,cam);
+  const h=ray.intersectObjects(ED.sph,false);
+  if(h.length&&!(ED.mode==='cadena'&&ED.chain&&ED.chain.pts.length)){select(ED.sph.indexOf(h[0].object));
+    if(ED.mode==='cadena'){ED.chain={padre:ED.bones[ED.sel].name,pts:[]};msg('Padre: '+nice(ED.bones[ED.sel].name)+' · ahora toca el modelo')}return}
+  if(ED.mode==='cadena'&&ED.chain){const p=surfacePoint(ev);if(!p)return;
+    const c=ED.chain;const prev=c.pts.length?c.pts[c.pts.length-1]:ED.sph[ED.sel].position.clone();
+    if(c.pts.length===0&&prev.distanceTo(p)>H*0.6){msg('Punto muy lejos del padre');return}
+    const nm='H'+(ED.n++),orden=c.pts.length,padre=c.pts.length?c.last:c.padre;
+    ED.extra.push({nombre:nm,padre,head:loc(prev),tail:loc(p),orden});ED.hist.push({t:'x'});
+    c.last=nm;c.pts.push(p);
+    const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([prev,p]),new THREE.LineBasicMaterial({color:0x34d399,depthTest:false}));
+    const sp=new THREE.Mesh(new THREE.SphereGeometry(H*0.014,12,8),new THREE.MeshBasicMaterial({color:0x34d399,depthTest:false}));
+    sp.position.copy(p);ln.renderOrder=sp.renderOrder=21;jg.add(ln,sp);
+    msg(`Huesos nuevos: ${ED.extra.length} (sigue tocando o «Cerrar cadena»)`)}});
+document.querySelectorAll('#ed .edm button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$('#edit').onclick=()=>ED.on?exit():enter();
+$('#edexit').onclick=exit;
+$('#edend').onclick=()=>{ED.chain=null;msg(`Cadena cerrada. ${ED.extra.length} huesos nuevos listos para aplicar.`)};
+$('#edundo').onclick=()=>{const h=ED.hist.pop();if(!h)return;
+  if(h.t==='m'){if(h.prev)ED.mover[h.n]=h.prev;else delete ED.mover[h.n];buildJoints()}
+  else{ED.extra.pop();buildJoints();ED.extra.forEach(()=>{})}msg('Deshecho')};
+$('#edpose').onclick=()=>{new GLTFExporter().parse(cur,r=>{const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([r],{type:'model/gltf-binary'}));a.download='pose.glb';a.click()},e=>msg('Error: '+e),{binary:true})};
+async function apiCall(data){const path=decodeURIComponent(location.pathname);const k=path.indexOf('/gradio_api/file=');
+  if(k<0)throw new Error('Para aplicar cambios abre el modelo desde la página del notebook');
+  const root=location.origin+path.slice(0,k),carpeta=path.slice(k+'/gradio_api/file='.length).replace(/\/estudio\.html$/,'');
+  const r=await fetch(root+'/gradio_api/call/rig_edit',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({data:[carpeta,JSON.stringify(data)]})});
+  if(!r.ok)throw new Error('servidor '+r.status);const {event_id}=await r.json();
+  const t=await (await fetch(root+'/gradio_api/call/rig_edit/'+event_id)).text();
+  const err=t.match(/event: error\s*\ndata: (.*)/);if(err)throw new Error(err[1]);
+  const m=t.match(/event: complete\s*\ndata: (.*)/);if(!m)throw new Error('sin respuesta');
+  return JSON.parse(JSON.parse(m[1])[0])}
+$('#edapply').onclick=async()=>{const n=Object.keys(ED.mover).length+ED.extra.length;
+  if(!n){msg('No hay cambios: mueve articulaciones o crea huesos');return}
+  $('#load').style.display='flex';$('#load').textContent='Reconstruyendo esqueleto y pesos en Blender… (30-60 s)';
+  try{const r=await apiCall({mover:ED.mover,extra:ED.extra});
+    ED.mover={};ED.extra=[];ED.hist=[];window.__ver=Date.now();exit();try{info=await (await fetch('rig_info.json?v='+window.__ver)).json()}catch(e){}
+    await show(curView);msg('');$('#stagebadge').textContent=`✔ ${r.huesos} huesos (${r.movidos} movidos, ${r.extra} nuevos)`;
+    $('#stagebadge').style.display='block'}
+  catch(e){$('#load').style.display='none';msg('⚠ '+e.message)}};
+window.__ED=ED;window.__edEnter=enter;
+renderer.setAnimationLoop(()=>{const dt=clock.getDelta();if(!ED.on){mixer&&mixer.update(dt);stepPhysics(dt)}updJoints();ctl.update();renderer.render(scene,cam)});
 
 (async()=>{
   try{info=await (await fetch('rig_info.json')).json()}catch(e){}

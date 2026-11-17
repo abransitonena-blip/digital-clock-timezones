@@ -958,7 +958,7 @@ class Engine:
                 z.write(os.path.join(out, f), f, compress_type=comp)
         os.replace(tmp, zp)
 
-    def rerig(self, d, rig, progress=lambda f, m: None):
+    def rerig(self, d, rig, progress=lambda f, m: None, huesos=""):
         """Vuelve a poner esqueleto/animaciones a un modelo ya generado con el
         tipo que eligio el usuario (sin repetir la IA). Unos 30-60 s."""
         inp = os.path.join(d, "modelo_texturizado.glb")
@@ -968,8 +968,8 @@ class Engine:
         args = (inp, d, rig, a.get("height", 1.8), a.get("rotate", 0.0), a.get("video", "Caminar"),
                 a.get("video_res", 720), a.get("samples", 16), False, a.get("relieve", 0.8))
         progress(0.1, f"Poniendo esqueleto de tipo {rig}")
-        fe = self.blender_pool.submit(self.blender, *args, "export", None, None)
-        fx = self.blender_pool.submit(self.blender, *args, "extra", None, None)
+        fe = self.blender_pool.submit(self.blender, *args, "export", None, None, huesos)
+        fx = self.blender_pool.submit(self.blender, *args, "extra", None, None, huesos)
         log_ = fe.result() + "\n\n" + fx.result()
         new = json.load(open(ip)) if os.path.exists(ip) else {}
         ipx = os.path.join(d, "rig_info_extra.json")
@@ -1060,14 +1060,14 @@ class Engine:
     }
 
     def blender(self, inp, out, rig, height, rotate, video, video_res, samples, turntable,
-                relieve=0.6, stage="all", on_progress=None, on_ready=None):
+                relieve=0.6, stage="all", on_progress=None, on_ready=None, huesos=""):
         cmd = [config.BLENDER, "-b", "--factory-startup", "-t", "0", "-P",
                os.path.join(HERE, "blender_rig.py"), "--", "--in", inp, "--out", out,
                "--rig", rig, "--height", str(height), "--rotate", str(rotate),
                "--video", video, "--video_res", str(video_res), "--samples", str(samples),
                "--turntable", "1" if turntable else "0", "--relieve", str(relieve),
                "--detalle", "1" if getattr(self, "_detalle", True) else "0",
-               "--memoria", _memoria_path(),
+               "--memoria", _memoria_path(), "--huesos", huesos or "",
                "--stage", stage, "--preview", "1" if stage != "export" or self._preview else "0"]
         ms = self.MILESTONES.get(stage, self.MILESTONES["export"])
         lines = []

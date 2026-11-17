@@ -390,6 +390,38 @@ def fix_type(d, tipo_ui, progress=gr.Progress()):
             aviso + "Esqueleto rehecho.\n\n" + _summary(new), memoria.stats_md())
 
 
+def rig_edit(carpeta: str, cambios: str) -> str:
+    """API del editor de esqueleto del visor: recibe la carpeta del modelo y
+    un JSON {mover, extra, reiniciar}; lo acumula en huesos_editados.json y
+    rehace esqueleto y pesos en Blender (30-60 s)."""
+    d = os.path.realpath(carpeta)
+    base = os.path.realpath(config.OUT_DIR)
+    if not d.startswith(base + os.sep) or not os.path.isdir(d):
+        raise gr.Error("Carpeta no valida")
+    ed = json.loads(cambios)
+    if not isinstance(ed, dict):
+        raise gr.Error("Datos no validos")
+    p = os.path.join(d, "huesos_editados.json")
+    prev = {"mover": {}, "extra": []}
+    if os.path.exists(p) and not ed.get("reiniciar"):
+        prev = json.load(open(p))
+    prev["mover"].update({str(k): [float(x) for x in v][:3] for k, v in (ed.get("mover") or {}).items()})
+    quitar = set(ed.get("borrar") or [])
+    prev["extra"] = [e for e in prev["extra"] if e.get("nombre") not in quitar]
+    for e in (ed.get("extra") or [])[:40]:
+        prev["extra"].append({"nombre": str(e["nombre"])[:20], "padre": str(e.get("padre", "")),
+                              "head": [float(x) for x in e["head"]][:3],
+                              "tail": [float(x) for x in e["tail"]][:3],
+                              "orden": int(e.get("orden", 0))})
+    json.dump(prev, open(p, "w"), indent=1)
+    info = _info_of(d)
+    rig = info.get("rig") or (info.get("clasificacion") or {}).get("tipo") or "humanoide"
+    new = get_engine().rerig(d, rig, huesos=p)
+    e = new.get("edicion_huesos", {})
+    return json.dumps({"ok": True, "huesos": new.get("huesos"), "movidos": e.get("movidos", 0),
+                       "extra": e.get("extra", 0), "avisos": new.get("avisos", [])})
+
+
 def batch(files, rig, video, progress=gr.Progress()):
     if not files:
         raise gr.Error("Sube varias fotos")
@@ -923,6 +955,7 @@ def build_ui():
             from . import memoria
             return my_models(), history(), memoria.stats_md(), kpis_html()
         demo.load(_on_load, None, [gal, h_out, learn_md, kpis])
+        gr.api(rig_edit, api_name="rig_edit")
     demo.queue(default_concurrency_limit=P["workers"], max_size=20)
     return demo
 
