@@ -46,6 +46,7 @@ canvas{display:block}
   <div class="dd" id="exp"><button class="btn">Exportar ▾</button><div class="menu" id="expmenu"></div></div>
 </div>
 <div id="load">Cargando modelo…</div>
+<div id="stagebadge" style="display:none;position:absolute;top:58px;right:12px;z-index:5;background:#5b5bf0;color:#fff;padding:6px 12px;border-radius:20px;font-size:13px;box-shadow:0 0 18px #5b5bf088"></div>
 <div id="legend"></div>
 <div id="info"></div>
 <div id="bottom">
@@ -103,7 +104,7 @@ function frame(az=35,el=12){
   cam.position.set(c.x+Math.sin(a)*Math.cos(e)*d,c.y+Math.sin(e)*d,c.z+Math.cos(a)*Math.cos(e)*d);
   ctl.target.copy(c);cam.near=d/200;cam.far=d*50;cam.updateProjectionMatrix();ctl.update();
 }
-function stats(){let t=0,v=0;cur.traverse(o=>{if(o.isMesh){const g=o.geometry;v+=g.attributes.position.count;t+=g.index?g.index.count/3:g.attributes.position.count/3}});
+function stats(){let t=0,v=0;cur.traverse(o=>{if(o.isMesh&&!o.userData.wire){const g=o.geometry;v+=g.attributes.position.count;t+=g.index?g.index.count/3:g.attributes.position.count/3}});
   const s=box.getSize(new THREE.Vector3());
   $('#info').innerHTML=`${Math.round(t).toLocaleString()} triángulos · ${v.toLocaleString()} vértices<br>${s.x.toFixed(2)} × ${s.y.toFixed(2)} × ${s.z.toFixed(2)} m`+
    (info.huesos?` · ${info.huesos} huesos`:'')}
@@ -138,7 +139,11 @@ async function show(view){
 let curAnim=null;
 function play(n){const a=actions[n];if(!a)return;if(curAnim&&curAnim!==a)curAnim.fadeOut(.3);a.reset().fadeIn(.3).play();curAnim=a;
   document.querySelectorAll('#anims button').forEach(b=>b.classList.toggle('on',b.textContent===n.replace('_',' ')))}
-function setWire(on){cur&&cur.traverse(o=>{if(o.isMesh){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.wireframe=on)}})}
+function setWire(on){if(!cur)return;const ws=[];cur.traverse(o=>{if(o.userData.wire)ws.push(o)});ws.forEach(w=>w.parent.remove(w));
+  cur.traverse(o=>{if(!o.isMesh||o.userData.wire)return;
+    if(o.isSkinnedMesh){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.wireframe=on);return}
+    if(on){const w=new THREE.Mesh(o.geometry,new THREE.MeshBasicMaterial({color:0x8b8bff,wireframe:true,transparent:true,opacity:.35,depthWrite:false}));
+      w.userData.wire=true;w.renderOrder=2;o.add(w)}})}
 
 let curLight='estudio';
 document.querySelectorAll('.dd>.btn').forEach(b=>b.onclick=e=>{e.stopPropagation();const d=b.parentElement;const o=d.classList.contains('open');
@@ -171,6 +176,10 @@ renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt)
   const m=$('#expmenu');
   for(const f of Object.keys(NICE))if(avail.has(f)){const a=document.createElement('a');a.href=f;a.download=f;a.innerHTML=NICE[f]+` <small>${f.split('.').pop()}</small>`;m.appendChild(a)}
   for(const f of avail)if(!NICE[f]){const a=document.createElement('a');a.href=f;a.download=f;a.textContent=f;m.appendChild(a)}
-  await show('tex');
+  const Q=new URLSearchParams(location.search);
+  let v=Q.get('v')||'tex';if(!FILES[v].some(f=>avail.has(f)))v=Object.keys(FILES).find(k=>FILES[k].some(f=>avail.has(f)))||'clay';
+  if(Q.get('wire')==='1')$('#wire').classList.add('on');
+  const et=Q.get('etapa');if(et){const b=$('#stagebadge');b.textContent=et;b.style.display='block'}
+  await show(v);
 })();
 </script></body></html>

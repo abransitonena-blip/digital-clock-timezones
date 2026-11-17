@@ -13,6 +13,7 @@ Uso de recursos:
 """
 import concurrent.futures as cf
 import gc
+import glob
 import hashlib
 import io
 import json
@@ -32,6 +33,43 @@ from . import config
 HERE = os.path.dirname(os.path.abspath(__file__))
 GPU_LOCK = threading.Lock()
 VIEWS = ("front", "back", "left", "right")
+
+
+# Seguridad: imagenes gigantes o falsas no pueden tumbar el servidor
+Image.MAX_IMAGE_PIXELS = 64_000_000
+MAX_SIDE = 2048
+
+
+def safe_image(img):
+    """Valida y normaliza una imagen subida (tamano, modo, formato)."""
+    if not isinstance(img, Image.Image):
+        raise ValueError("El archivo no es una imagen valida")
+    w, h = img.size
+    if w < 32 or h < 32:
+        raise ValueError("La imagen es demasiado pequena (minimo 32 px)")
+    if w * h > Image.MAX_IMAGE_PIXELS:
+        raise ValueError("La imagen es demasiado grande")
+    if max(w, h) > MAX_SIDE:
+        img = img.copy()
+        img.thumbnail((MAX_SIDE, MAX_SIDE), Image.LANCZOS)
+    if img.mode not in ("RGB", "RGBA"):
+        img = img.convert("RGBA")
+    return img
+
+
+def cleanup_outputs(keep=80, min_free_gb=10):
+    """Borra los resultados mas viejos si hay demasiados o falta disco."""
+    try:
+        ds = sorted(d for d in glob.glob(os.path.join(config.OUT_DIR, "*")) if os.path.isdir(d))
+        free = shutil.disk_usage(config.OUT_DIR).free / 2**30
+        while ds and (len(ds) > keep or free < min_free_gb):
+            d = ds.pop(0)
+            shutil.rmtree(d, ignore_errors=True)
+            if os.path.exists(d + ".zip"):
+                os.remove(d + ".zip")
+            free = shutil.disk_usage(config.OUT_DIR).free / 2**30
+    except Exception:
+        pass
 
 
 class Engine:
@@ -232,6 +270,7 @@ class Engine:
             return None
         if isinstance(img, str):
             img = Image.open(img)
+        img = safe_image(img)
         img = ImageOps.exif_transpose(img)
         has_alpha = img.mode == "RGBA" and np.array(img)[..., 3].min() < 250
         if remove_bg and not has_alpha:
@@ -366,7 +405,7 @@ class Engine:
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
             texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None, on_partial=None,
-            videos=False):
+            videos=False, on_stage=None):
         if not self.ready:
             self.load()
         P = self.p
@@ -397,6 +436,11 @@ class Engine:
             self.log("Resultado en cache:", k)
             return self.cache[k]
 
+        cleanup_outputs()
+        out = os.path.join(config.OUT_DIR, time.strftime("%Y%m%d_%H%M%S_") + k)
+        os.makedirs(out, exist_ok=True)
+        shutil.copy(os.path.join(HERE, "estudio.html"), out)
+        stage = on_stage or (lambda name, d: None)
         work = os.path.join(P["work_dir"], k)
         os.makedirs(work, exist_ok=True)
         for n, v in views.items():
@@ -445,6 +489,8 @@ class Engine:
                 progress(f_shape, "Limpiando y cerrando agujeros")
                 mesh = self._repair(mesh, faces)
                 mesh.export(os.path.join(work, "arcilla.glb"))
+                shutil.copy(os.path.join(work, "arcilla.glb"), out)
+                stage("malla", out)          # etapa 1: la malla ya se ve
                 ts = time.time()
                 if texture:
                     textured, ok_tex = phase(f_shape + 0.01, f_tex, E["textura"],
@@ -454,6 +500,8 @@ class Engine:
                     textured, ok_tex = mesh, False
                 t_tex = time.time() - ts
                 textured.export(os.path.join(work, "modelo_texturizado.glb"))
+                shutil.copy(os.path.join(work, "modelo_texturizado.glb"), out)
+                stage("textura", out)        # etapa 2: con color
                 try:
                     import torch
                     torch.cuda.empty_cache()
@@ -467,8 +515,6 @@ class Engine:
 
         # Blender fuera del candado (la GPU ya genera la siguiente foto).
         # Dos procesos a la vez: uno exporta archivos, el otro renderiza videos.
-        out = os.path.join(config.OUT_DIR, time.strftime("%Y%m%d_%H%M%S_") + k)
-        os.makedirs(out, exist_ok=True)
         tb = time.time()
         inp = os.path.join(work, "modelo_texturizado.glb")
         # Por defecto solo el modelo interactivo: sin videos ni render de Cycles
@@ -496,7 +542,7 @@ class Engine:
         fe = self.blender_pool.submit(
             self.blender, inp, out, rig, height, rotate, video, video_res, samples,
             turntable, relieve, "export", eprog,
-            (lambda: on_partial(out)) if on_partial else None)
+            lambda: (stage("esqueleto", out), on_partial and on_partial(out)))
         fv = None
         if "video" in stages:
             # Los videos NO frenan la entrega: siguen en segundo plano y se

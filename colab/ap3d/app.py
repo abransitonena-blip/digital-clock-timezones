@@ -19,6 +19,7 @@ ANIMS = ["Caminar", "Correr", "Saludar", "Saltar", "Bailar", "Reposo"]
 PRESETS = {
     # nombre: (pasos, octree, caras, textura). 10 pasos o menos = modelo Turbo
     "Turbo": (5, 384, 100000, 2048),
+    "Detallado": (8, 512, 200000, 4096),
     "Rapido": (25, 256, 40000, 2048),
     "Alta": (40, 384, 80000, 2048),
     "Maxima": (50, 512, 150000, 4096),
@@ -70,7 +71,7 @@ def _summary(info):
 RIGS = {"Auto": "auto", "Humano": "humanoide", "Criatura": "cuadrupedo", "Sin esqueleto": "ninguno"}
 
 
-def viewer_html(d=None, height=640):
+def viewer_html(d=None, height=640, view=None, wire=False, etapa=None):
     """Estudio 3D (three.js) en un iframe servido desde la carpeta del resultado."""
     if not d or not os.path.exists(os.path.join(d, "estudio.html")):
         return (f"<div style='height:{height}px;display:flex;align-items:center;"
@@ -78,7 +79,15 @@ def viewer_html(d=None, height=640):
                 "border-radius:14px;color:#9a9daa;font-family:system-ui'>"
                 "<div style='font-size:46px'>🧍</div><div>Sube una foto y pulsa "
                 "<b style='color:#e8e9ee'>Generar 3D con IA + Esqueleto</b></div></div>")
-    src = f"/gradio_api/file={os.path.join(d, 'estudio.html')}?t={int(time.time())}"
+    from urllib.parse import quote
+    q = f"t={int(time.time() * 1000)}"
+    if view:
+        q += f"&v={view}"
+    if wire:
+        q += "&wire=1"
+    if etapa:
+        q += "&etapa=" + quote(etapa)
+    src = f"/gradio_api/file={os.path.join(d, 'estudio.html')}?{q}"
     return (f"<iframe src='{src}' style='width:100%;height:{height}px;border:0;"
             "border-radius:14px;background:#121318' allow='fullscreen; xr-spatial-tracking'"
             " allowfullscreen></iframe>"
@@ -143,7 +152,7 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
                                 samples, turntable, texture,
                                 relieve=float(relieve) if relieve_on else 0.0,
                                 turbo=int(steps) <= 10, progress=prog, videos=bool(make_videos),
-                                on_partial=lambda d: st.__setitem__("partial", d))
+                                on_stage=lambda n, d: st.setdefault("stages", []).append((n, d)))
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -152,14 +161,19 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
     th = threading.Thread(target=work, daemon=True)
     th.start()
     keep = (gr.update(),) * 4
-    shown = False
+    ETAPAS = {"malla": ("clay", True, "Etapa 1/3 · Malla (forma)"),
+              "textura": ("tex", False, "Etapa 2/3 · Textura"),
+              "esqueleto": ("tex", False, "Etapa 3/3 · Esqueleto y animaciones")}
+    seen = 0
     while th.is_alive():
-        if st.get("partial") and not shown:
-            # Modelo listo: se abre ya en el estudio mientras se renderizan los videos
-            shown = True
-            yield ((viewer_html(st["partial"]),) + (gr.update(),) * 3 +
-                   ("**Modelo listo** – ya puedes verlo y descargarlo desde Exportar. "
-                    "Terminando los videos…", gr.update(),
+        stages = st.get("stages", [])
+        if len(stages) > seen:
+            # Nueva etapa: el estudio se actualiza para mostrarla
+            seen = len(stages)
+            name, d = stages[-1]
+            v, w, label = ETAPAS.get(name, ("tex", False, name))
+            yield ((viewer_html(d, view=v, wire=w, etapa=label),) + (gr.update(),) * 3 +
+                   (f"**{label}** lista. Sigue trabajando…", gr.update(),
                     progress_html(st["f"], st["m"], t0)))
         else:
             yield keep + (gr.update(), gr.update(), progress_html(st["f"], st["m"], t0))
@@ -355,7 +369,7 @@ def build_ui():
         button_secondary_background_fill_dark="#2c2f3a", button_secondary_text_color_dark="#e8e9ee",
         checkbox_label_background_fill="#2a2d36", checkbox_label_background_fill_dark="#2a2d36",
         checkbox_label_text_color="#e8e9ee", checkbox_label_text_color_dark="#e8e9ee")
-    best = "Turbo"
+    best = "Detallado" if P["vram_gb"] >= 38 else "Turbo"
     with gr.Blocks(title="AP Model 3D Foto", theme=theme, css=CSS,
                    js="()=>{document.body.classList.add('dark')}") as demo:
         with gr.Row(elem_id="hdr"):
@@ -387,8 +401,8 @@ def build_ui():
                             relieve = gr.Slider(0.1, 2.0, 0.6, step=0.1, label="Intensidad")
                         with gr.Accordion("Calidad", open=False):
                             preset = gr.Radio(list(PRESETS), value=best, label="Preajuste",
-                                              info="Turbo: forma en segundos (5 pasos + FlashVDM). "
-                                                   "Maxima: 50 pasos, mas detalle, mas lento")
+                                              info="Detallado: Turbo con malla 512 y textura 4K (recomendado). "
+                                                   "Turbo: el mas rapido. Maxima: 50 pasos, el mas lento")
                             tex = gr.Dropdown(["1024", "2048", "4096"], value=str(PRESETS[best][3]),
                                               label="Textura (px)")
                             with gr.Row():
@@ -457,7 +471,7 @@ def build_ui():
                    faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                    video_res, samples, turntable, texture, relieve_on, relieve, make_videos],
                   outs + [prog], concurrency_limit=P["workers"], concurrency_id="gen",
-                  show_progress="hidden")
+                  show_progress="hidden", trigger_mode="multiple")
         timer = gr.Timer(1.0)
         timer.tick(monitor_html, None, mon, show_progress="hidden", queue=False)
         g_btn.click(lambda: (my_models(), history()), None, [gal, h_out])
@@ -465,7 +479,7 @@ def build_ui():
         b_btn.click(batch, [b_files, b_rig, b_video], [b_out, b_log], concurrency_id="gen")
         r_btn.click(resources, None, r_out)
         demo.load(lambda: (my_models(), history()), None, [gal, h_out])
-    demo.queue(default_concurrency_limit=P["workers"], max_size=64)
+    demo.queue(default_concurrency_limit=P["workers"], max_size=20)
     return demo
 
 
@@ -524,7 +538,7 @@ def launch_web(password="", user="ap", port=7861):
     demo = build_ui()
     demo.launch(server_name="0.0.0.0", server_port=port, share=False, auth=(user, password),
                 auth_message="AP Model 3D Foto", prevent_thread_lock=True, show_error=True,
-                allowed_paths=[config.OUT_DIR, EXAMPLES_DIR], max_file_size="200mb")
+                allowed_paths=[config.OUT_DIR, EXAMPLES_DIR], max_file_size="25mb")
     _SERVERS["web"] = demo
     url = None
     try:
