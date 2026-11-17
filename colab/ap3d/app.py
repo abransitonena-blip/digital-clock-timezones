@@ -66,6 +66,9 @@ def _summary(info):
                      "liberados de las piernas y brazos para que no se rasguen")
     if info.get("huesos_tela"):
         lines.append(f"Huesos de tela: {info['huesos_tela']} (la túnica/capa se balancea con inercia)")
+    if info.get("pesos_rellenados"):
+        lines.append(f"Pesos por calor parcial: {info['pesos_rellenados']:,} puntos difíciles "
+                     "(tiras, garras) tomaron el peso de sus vecinos")
     if info.get("pesos_intento", 1) > 1:
         lines.append(f"Pesos por calor logrados en el intento {info['pesos_intento']} (proxy más cerrado)")
     if "vertices_sin_peso_reparados" in info:

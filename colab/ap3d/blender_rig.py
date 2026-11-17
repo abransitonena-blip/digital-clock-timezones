@@ -658,8 +658,32 @@ if args.rig != "ninguno":
             bpy.ops.object.modifier_apply(modifier=dm.name)
         return px
 
+    def fill_from_neighbors(px):
+        """Vertices que el calor dejo sin hueso copian al vecino con peso
+        mas cercano (en la copia cerrada, asi no se cuela entre miembros)."""
+        from mathutils.kdtree import KDTree
+        me_ = px.data
+        good = [v.index for v in me_.vertices if v.groups]
+        bad = [v.index for v in me_.vertices if not v.groups]
+        if not good or not bad:
+            return 0
+        kd = KDTree(len(good))
+        for i in good:
+            kd.insert(me_.vertices[i].co, i)
+        kd.balance()
+        names = {g.index: g.name for g in px.vertex_groups}
+        fixes = []
+        for i in bad:
+            _, j, _ = kd.find(me_.vertices[i].co)
+            fixes.append((i, [(names[e.group], e.weight) for e in me_.vertices[j].groups]))
+        for i, ws in fixes:
+            for n, w in ws:
+                px.vertex_groups[n].add([i], w, "REPLACE")
+        return len(bad)
+
     heat_ok = False
     proxy = None
+    mejor = None          # (vacios, intento, div, max_f)
     for intento, (div, max_f) in enumerate(((150.0, 70000), (100.0, 40000), (65.0, 20000)), 1):
         if proxy is not None:
             bpy.data.objects.remove(proxy, do_unlink=True)
@@ -677,7 +701,28 @@ if args.rig != "ninguno":
             heat_ok = True
             INFO["pesos_intento"] = intento
             break
-        log("calor dejo", empty, "vertices sin peso")
+        log("calor dejo", empty, "vertices sin peso de", nv)
+        if len(proxy.vertex_groups) and empty <= 0.40 * nv:
+            fr = empty / nv
+            # el intento mas fino gana si deja menos de 10 % sin peso
+            if mejor is None or (mejor[0] > 0.10 and fr < mejor[0]):
+                mejor = (fr, intento, div, max_f)
+    if not heat_ok and mejor is not None:
+        # Calor parcial (capas, tiras, garras): se rehace el mejor intento y
+        # los huecos se rellenan con los vecinos. Mucho mejor que la distancia.
+        _, intento, div, max_f = mejor
+        bpy.data.objects.remove(proxy, do_unlink=True)
+        proxy = make_proxy(div, max_f)
+        activate(arm, [proxy])
+        try:
+            bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+            n_ = fill_from_neighbors(proxy)
+            heat_ok = True
+            INFO["pesos_intento"] = intento
+            INFO["pesos_rellenados"] = n_
+            log("calor parcial: rellenados", n_, "vertices con sus vecinos")
+        except Exception as e:
+            log("calor parcial fallo:", e)
     if not heat_ok:
         INFO["avisos"].append("pesos por calor fallaron 3 veces; se uso respaldo por distancia")
         for g in list(proxy.vertex_groups):

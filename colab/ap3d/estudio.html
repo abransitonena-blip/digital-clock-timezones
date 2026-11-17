@@ -26,6 +26,8 @@
 #info{position:absolute;left:14px;top:60px;color:var(--mut);font-size:12px;z-index:4;line-height:1.5}
 #stagebadge{top:58px;height:auto;max-width:70vw}
 #legend{position:absolute;right:12px;bottom:70px;max-height:45vh;overflow:auto;background:#1b1d24cc;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:none;z-index:4}
+#legend.min div{display:none}
+#legend{cursor:pointer}
 #legend div{display:flex;gap:6px;align-items:center;margin:2px 0}#legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 #load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);z-index:3}
 canvas{display:block}
@@ -38,7 +40,7 @@ canvas{display:block}
  #tools{max-width:96vw;overflow-x:auto}
  #anims button{padding:5px 10px;font-size:13px}
  #stagebadge{top:auto;bottom:150px;right:8px;font-size:12px}
- #legend{bottom:150px;font-size:11px}
+ #legend{bottom:150px;font-size:11px;max-height:26vh;max-width:46vw;opacity:.92}
 }
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
@@ -142,9 +144,9 @@ async function show(view){
     play(actions['Reposo']?'Reposo':g.animations[0].name);mixer.update(0.01)}
   let hasSkel=false;cur.traverse(o=>{if(o.isSkinnedMesh)hasSkel=true});$('#skel').disabled=!hasSkel;$('#skel').classList.remove('on');
   setWire($('#wire').classList.contains('on'));
-  $('#legend').style.display=view==='weights'||view==='parts'?'block':'none';
+  $('#legend').style.display=view==='weights'||view==='parts'?'block':'none';if(innerWidth<640)$('#legend').classList.add('min');
   $('#legend').innerHTML=view==='weights'?'<b>Pesos</b><br>Cada color = un hueso.<br>Donde se mezclan, la malla se dobla.':
-    view==='parts'?'<b>Piezas del cuerpo</b>'+partsLegend():'';
+    view==='parts'?'<b>Piezas del cuerpo ▾</b>'+partsLegend():'';
   frame();light(curLight);stats();$('#load').style.display='none';
   document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
 }
@@ -170,6 +172,7 @@ document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ctl.autoRotate=f
     cam.position.set(t.x,t.y,t.z+H*.55);ctl.target.copy(t);ctl.update();return}
   const [a,e]=b.dataset.c.split(',').map(Number);frame(a,e)});
 document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+$('#legend').onclick=()=>$('#legend').classList.toggle('min');
 $('#rot').onclick=()=>{ctl.autoRotate=!ctl.autoRotate;$('#rot').classList.toggle('on',ctl.autoRotate)};
 $('#ctr').onclick=()=>frame();
 $('#wire').onclick=()=>{const on=!$('#wire').classList.contains('on');$('#wire').classList.toggle('on',on);setWire(on)};
