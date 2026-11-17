@@ -216,10 +216,42 @@ def descargar_modelos(triposg: bool = True, texto_a_3d: bool = True, calidad: bo
 
 
 # ---------------------------------------------------------------- motor
+REPO_GITHUB = "abransitonena-blip/digital-clock-timezones"
+
+
+def _codigo_github(log=print):
+    """Igual que la celda 1 del notebook: al arrancar baja la ultima version
+    del codigo (colab/ap3d) desde GitHub, asi basta reiniciar el contenedor
+    para tener los cambios. Rama: variable AP3D_RAMA (vacia = no descargar).
+    Si falla, se usa el codigo que va dentro de la imagen."""
+    import io
+    import tarfile
+    import urllib.request
+    rama = os.environ.get("AP3D_RAMA", "claude/practical-gates-go63pg").strip()
+    if not rama:
+        return "imagen"
+    try:
+        url = f"https://codeload.github.com/{REPO_GITHUB}/tar.gz/refs/heads/{rama}"
+        tar = tarfile.open(fileobj=io.BytesIO(urllib.request.urlopen(url, timeout=60).read()))
+        n = 0
+        for m in tar.getmembers():
+            p = m.name.split("/", 1)[-1]
+            if m.isfile() and p.startswith("colab/ap3d/") and p.count("/") == 2:
+                with open(f"{APP_DIR}/ap3d/{os.path.basename(p)}", "wb") as fh:
+                    fh.write(tar.extractfile(m).read())
+                n += 1
+        log(f"Codigo de GitHub ({rama}): {n} archivos")
+        return f"github:{rama}"
+    except Exception as e:
+        log("GitHub no disponible, uso el codigo de la imagen:", str(e)[:120])
+        return "imagen"
+
+
 def _cargar_motor(log=print):
     """Celda 3 del notebook: perfil, precarga en RAM y modelos en la GPU."""
     import sys
     import time
+    _codigo_github(log)
     for p in (APP_DIR, HY3D):
         if p not in sys.path:
             sys.path.insert(0, p)

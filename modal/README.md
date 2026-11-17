@@ -139,6 +139,15 @@ modal serve modal/modal_app.py
 modal volume get ap3d-salidas salidas ./mis_modelos
 ```
 
+## Actualizar el código sin volver a desplegar
+
+Al arrancar, el contenedor descarga la última versión de `colab/ap3d` desde
+GitHub (rama `claude/practical-gates-go63pg`, el repositorio es público). Para
+tener los cambios basta con que el contenedor se reinicie: espera a que se
+apague solo o detén la app en el panel de Modal y vuelve a abrir la página.
+Si GitHub no responde, usa el código que va dentro de la imagen.
+Otra rama: variable `AP3D_RAMA`; vacía = usar siempre el de la imagen.
+
 ## Ajustes al desplegar
 
 Variables de entorno **en tu computadora** al ejecutar `modal deploy`:
