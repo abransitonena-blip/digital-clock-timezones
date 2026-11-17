@@ -1106,8 +1106,11 @@ def render(**kw):
     try:
         return bpy.ops.render.render(**kw)
     except Exception as e:
-        log("render fallo:", e, "-> reintento en CPU")
+        log("render fallo:", e, "-> reintento en CPU (rapido: menos muestras y resolucion)")
         scene.cycles.device = "CPU"
+        scene.cycles.samples = min(scene.cycles.samples, 8)
+        scene.render.resolution_percentage = 50
+        INFO["avisos"].append("render en CPU: la GPU no estuvo disponible para Blender")
         return bpy.ops.render.render(**kw)
 
 
@@ -1116,7 +1119,9 @@ def setup_render():
     dev = "CPU"
     try:
         prefs = bpy.context.preferences.addons["cycles"].preferences
-        for t in ("OPTIX", "CUDA"):
+        # CUDA primero: en Colab OptiX suele fallar y hacia caer el render al
+        # procesador (GPU al 0 % y minutos de espera).
+        for t in ("CUDA", "OPTIX"):
             try:
                 prefs.compute_device_type = t
                 prefs.get_devices()
@@ -1130,6 +1135,12 @@ def setup_render():
     except Exception:
         pass
     scene.cycles.device = "GPU" if dev != "CPU" else "CPU"
+    INFO["render"] = dev
+    log("render en", dev)
+    if dev == "CPU":
+        # Sin GPU para Blender: video mas chico para no tardar minutos
+        args.samples = min(args.samples, 8)
+        scene.render.resolution_percentage = 50
     scene.cycles.samples = args.samples
     # Rapidez: muestreo adaptativo, rebotes justos y datos persistentes entre cuadros
     scene.cycles.use_adaptive_sampling = True
@@ -1152,7 +1163,6 @@ def setup_render():
     scene.render.film_transparent = False
     scene.view_settings.view_transform = "AgX" if "AgX" in [
         i.identifier for i in scene.view_settings.bl_rna.properties["view_transform"].enum_items] else "Filmic"
-    INFO["render"] = dev
 
     # Mundo
     w = bpy.data.worlds.new("Mundo")

@@ -48,7 +48,8 @@ def _summary(info):
         f"Render: {info.get('render', '-')}",
         f"⏱ Tiempos: forma {info.get('segundos_forma', '?')} s"
         f"{' (Turbo)' if info.get('turbo') else ''} · textura {info.get('segundos_textura', '?')} s · "
-        f"Blender (archivos + videos en paralelo) {info.get('segundos_blender', '?')} s · "
+        f"Blender {info.get('segundos_blender', '?')} s · "
+        f"{('videos ' + str(info.get('segundos_videos')) + ' s (en segundo plano) · ') if info.get('segundos_videos') else ''}"
         f"**total {info.get('segundos_total', '?')} s**",
     ]
     if info.get("animaciones"):
@@ -98,13 +99,13 @@ def _outputs(d, info, seed):
 
 
 
-def progress_html(frac, msg, t0, done=False, error=None):
+def progress_html(frac, msg, t0, done=False, error=None, extra="", ready=None):
     pct = max(0, min(100, int(round(frac * 100))))
-    el = time.time() - t0
+    el = ready if ready is not None else time.time() - t0
     eta = (el / frac * (1 - frac)) if frac > 0.03 and not done else None
     col = "#e5484d" if error else ("#1f9d6b" if done else "#5b5bf0")
     txt = (f"❌ {error}" if error else
-           f"✅ Listo en {el:.0f} s" if done else
+           f"✅ Modelo listo en {el:.0f} s" + (f" · {extra}" if extra else "") if done else
            f"{msg} · {el:.0f} s" + (f" · faltan ~{eta:.0f} s" if eta is not None else ""))
     return (f"<div style='background:#20222b;border:1px solid #2a2d36;border-radius:12px;"
             f"padding:10px 14px;font-family:system-ui;color:#e8e9ee'>"
@@ -167,7 +168,22 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
         yield keep + (gr.update(), gr.update(), progress_html(st["f"], "", t0, error=st["err"]))
         return
     r = st["res"]
-    yield _outputs(r["dir"], r["info"], int(seed)) + (progress_html(1, "", t0, done=True),)
+    t_ready = time.time() - t0
+    vf, vs = r.get("video_future"), r.get("video_state") or {}
+    out = _outputs(r["dir"], r["info"], int(seed))
+    if vf is None or vs.get("done"):
+        yield out + (progress_html(1, "", t0, done=True),)
+        return
+    # Modelo entregado; los videos siguen en segundo plano
+    yield out + (progress_html(1, "", t0, done=True, extra=f"videos {int(vs['f'] * 100)}%"),)
+    while not vs.get("done"):
+        time.sleep(1.0)
+        yield ((gr.update(),) * 6 + (progress_html(
+            1, "", t0, done=True, ready=t_ready,
+            extra=f"🎬 videos {int(vs['f'] * 100)}% · {vs.get('msg', '')}"),))
+    out = _outputs(r["dir"], r["info"], int(seed))
+    yield ((gr.update(),) + out[1:4] + (out[4], gr.update(),
+           progress_html(1, "", t0, done=True, ready=t_ready, extra="🎬 videos listos")))
 
 
 def batch(files, rig, video, progress=gr.Progress()):
@@ -319,6 +335,8 @@ body, .gradio-container {background:#17181d !important}
       font-size:17px !important; border-radius:12px !important; box-shadow:0 0 24px #5b5bf055}
 #rigsel .wrap {gap:6px} #rigsel label {border-radius:20px !important}
 footer {display:none !important}
+#mon, #mon *, #prog, #prog * {opacity:1 !important}
+#mon .wrap, #prog .wrap {display:none !important}
 """
 
 
@@ -415,8 +433,8 @@ def build_ui():
                         r_out = gr.Markdown()
             # ------------------------------------------------ escenario
             with gr.Column(scale=7, elem_id="stage"):
-                mon = gr.HTML(monitor_html())
-                prog = gr.HTML(progress_html(0, "Esperando foto", time.time()))
+                mon = gr.HTML(monitor_html(), elem_id="mon")
+                prog = gr.HTML(progress_html(0, "Esperando foto", time.time()), elem_id="prog")
                 view = gr.HTML(viewer_html())
                 status = gr.Markdown("")
                 with gr.Accordion("Videos", open=False):

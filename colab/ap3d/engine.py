@@ -470,30 +470,39 @@ class Engine:
         tb = time.time()
         inp = os.path.join(work, "modelo_texturizado.glb")
         stages = ["export", "video"] if (turntable or rig != "ninguno") else ["export"]
-        state = {s_: 0.0 for s_ in stages}
-        lock = threading.Lock()
+        vstate = {"f": 0.0, "msg": "", "done": "video" not in stages}
+        estate = {"f": 0.0}
 
-        def bprog(stage, x, msg):
-            with lock:
-                state[stage] = max(state[stage], x)
-                avg = sum(state.values()) / len(state)
-            progress(f_tex + (0.97 - f_tex) * avg, msg)
+        def eprog(x, msg):
+            estate["f"] = max(estate["f"], x)
+            progress(f_tex + (0.97 - f_tex) * estate["f"], msg)
+
+        def vprog(x, msg):
+            vstate["f"] = max(vstate["f"], x)
+            vstate["msg"] = msg
 
         # Lo que ya existe se copia antes: el estudio puede abrir el modelo
-        # en cuanto termina la exportacion, sin esperar a los videos.
+        # en cuanto termina la exportacion.
         shutil.copy(os.path.join(HERE, "estudio.html"), out)
         for f in ("arcilla.glb", "modelo_texturizado.glb") + tuple(
                 f"vista_{n}.png" for n in VIEWS):
             src = os.path.join(work, f)
             if os.path.exists(src):
                 shutil.copy(src, out)
-        futs = [self.blender_pool.submit(
+        fe = self.blender_pool.submit(
             self.blender, inp, out, rig, height, rotate, video, video_res, samples,
-            turntable, relieve, st, lambda x, m, st=st: bprog(st, x, m),
-            (lambda: on_partial(out)) if (on_partial and st == "export") else None)
-            for st in stages]
-        blog = "\n\n".join(f_.result() for f_ in futs)
-        E["blender"] = 0.5 * E["blender"] + 0.5 * (time.time() - tb)
+            turntable, relieve, "export", eprog,
+            (lambda: on_partial(out)) if on_partial else None)
+        fv = None
+        if "video" in stages:
+            # Los videos NO frenan la entrega: siguen en segundo plano y se
+            # agregan al ZIP cuando terminan.
+            fv = self.blender_pool.submit(
+                self.blender, inp, out, rig, height, rotate, video, video_res, samples,
+                turntable, relieve, "video", vprog, None)
+        blog = fe.result()
+        t_bl = time.time() - tb
+        E["blender"] = 0.5 * E["blender"] + 0.5 * t_bl
         try:
             json.dump(E, open(self._eta_path, "w"))
         except Exception:
@@ -503,33 +512,58 @@ class Engine:
         ip = os.path.join(out, "rig_info.json")
         if os.path.exists(ip):
             info = json.load(open(ip))
-        ipv = os.path.join(out, "rig_info_video.json")
-        if os.path.exists(ipv):
-            iv = json.load(open(ipv))
-            info.setdefault("archivos", {}).update(iv.get("archivos", {}))
-            info.setdefault("avisos", []).extend(a for a in iv.get("avisos", [])
-                                                if a not in info.get("avisos", []))
-            os.remove(ipv)
         info.update(multivista=used_mv, textura_ia=ok_tex, segundos_forma=round(t_shape, 1),
-                    segundos_textura=round(t_tex, 1),
-                    segundos_blender=round(time.time() - tb, 1),
+                    segundos_textura=round(t_tex, 1), segundos_blender=round(t_bl, 1),
                     segundos_total=round(time.time() - t0, 1), turbo=bool(turbo),
                     ajustes=opts, perfil=P["perfil"], gpu=P["gpu"])
         json.dump(info, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
         open(os.path.join(out, "blender.log"), "w").write(blog)
         progress(0.98, "Empaquetando ZIP")
         zp = out + ".zip"
-        with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
+        self._zip(out, zp)
+        progress(1.0, "Listo")
+        res = dict(dir=out, zip=zp, info=info, key=k, video_future=fv, video_state=vstate)
+
+        def finish_videos(fut):
+            try:
+                vlog = fut.result()
+                ipv = os.path.join(out, "rig_info_video.json")
+                inf = json.load(open(ip))
+                if os.path.exists(ipv):
+                    iv = json.load(open(ipv))
+                    inf.setdefault("archivos", {}).update(iv.get("archivos", {}))
+                    inf.setdefault("avisos", []).extend(
+                        a_ for a_ in iv.get("avisos", []) if a_ not in inf.get("avisos", []))
+                    inf["segundos_videos"] = iv.get("segundos")
+                    os.remove(ipv)
+                json.dump(inf, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
+                res["info"] = inf
+                with open(os.path.join(out, "blender.log"), "a") as fh:
+                    fh.write("\n\n" + vlog)
+                self._zip(out, zp)
+            except Exception as e:
+                self.log("videos:", e)
+            finally:
+                vstate["done"] = True
+                shutil.rmtree(work, ignore_errors=True)
+
+        if fv is not None:
+            fv.add_done_callback(finish_videos)
+        else:
+            shutil.rmtree(work, ignore_errors=True)
+        self.cache[k] = res
+        self.log_mem()
+        return res
+
+    @staticmethod
+    def _zip(out, zp):
+        tmp = zp + ".tmp"
+        with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
             for f in sorted(os.listdir(out)):
                 comp = zipfile.ZIP_STORED if f.endswith((".mp4", ".png", ".glb", ".blend")) \
                     else zipfile.ZIP_DEFLATED
                 z.write(os.path.join(out, f), f, compress_type=comp)
-        shutil.rmtree(work, ignore_errors=True)
-        progress(1.0, "Listo")
-        res = dict(dir=out, zip=zp, info=info, key=k)
-        self.cache[k] = res
-        self.log_mem()
-        return res
+        os.replace(tmp, zp)
 
     # Hitos del log de Blender -> avance (0..1) de cada proceso
     MILESTONES = {
