@@ -65,6 +65,8 @@ ap.add_argument("--huesos", default="", help="json del editor: mover articulacio
 ap.add_argument("--tipo_activo", default="auto",
                 choices=["auto", "character", "prop_rigid", "prop_articulated"],
                 help="character: rig de personaje; prop_rigid: sin esqueleto; prop_articulated: rig rigido")
+ap.add_argument("--caras", type=int, default=0,
+                help="reducir a estas caras al importar (0 = no tocar); modo Optimizar")
 ap.add_argument("--altura_prop", type=float, default=0.40, help="altura real de props en metros")
 ap.add_argument("--roblox_tris", type=int, default=12000, help="0 = sin exportacion Roblox")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
@@ -165,6 +167,58 @@ bpy.ops.mesh.select_all(action="SELECT")
 bpy.ops.mesh.remove_doubles(threshold=1e-5)
 bpy.ops.object.mode_set(mode="OBJECT")
 INFO["vertices_soldados"] = _nv0 - len(obj.data.vertices)
+
+def _aristas_duras(o, grados=35.0):
+    """Vertices en aristas con angulo diedro > 35 grados (esquinas de cajas,
+    pedestales, marcos): se protegen al reducir triangulos."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    lim = math.radians(grados)
+    out = set()
+    for e in bm.edges:
+        if len(e.link_faces) == 2:
+            try:
+                if e.calc_face_angle() > lim:
+                    out.update(v.index for v in e.verts)
+            except ValueError:
+                pass
+        elif len(e.link_faces) == 1:
+            out.update(v.index for v in e.verts)      # borde abierto
+    bm.free()
+    return sorted(out)
+
+
+def reducir_caras(o, objetivo, proteger=True):
+    """Reduce a 'objetivo' caras con Decimate (conserva UV y textura); con
+    proteger, los vertices de aristas > 35 grados no se colapsan."""
+    n0 = len(o.data.polygons)
+    if objetivo <= 0 or n0 <= objetivo:
+        return n0
+    activate(o)
+    dm = o.modifiers.new("Reducir", "DECIMATE")
+    dm.ratio = max(0.001, objetivo / n0)
+    dm.use_collapse_triangulate = True
+    if proteger:
+        duras = _aristas_duras(o)
+        if duras and len(duras) < 0.5 * len(o.data.vertices):
+            g = o.vertex_groups.new(name="Reducir")
+            g.add(list(range(len(o.data.vertices))), 1.0, "REPLACE")
+            g.add(duras, 0.0, "REPLACE")
+            dm.vertex_group = g.name
+            INFO["aristas_protegidas"] = len(duras)
+    bpy.ops.object.modifier_apply(modifier=dm.name)
+    for g in list(o.vertex_groups):
+        if g.name == "Reducir":
+            o.vertex_groups.remove(g)
+    return len(o.data.polygons)
+
+
+if args.caras > 0:
+    _c0 = len(obj.data.polygons)
+    _c1 = reducir_caras(obj, args.caras)
+    INFO["reduccion"] = {"antes": _c0, "despues": _c1}
+    log("caras reducidas", _c0, "->", _c1)
 
 # Normalizar: de pie, centrado, pies en Z=0, altura pedida, mirando a -Y
 if args.rotate:
@@ -2514,27 +2568,6 @@ def _lod(ratio, path):
 # Roblox Studio: copia reducida (MeshPart ~10-20k triangulos), escala real
 # aplicada, texturas embebidas, sin suelo ni luces de vista previa.
 p_rbx = os.path.join(OUT, "modelo_roblox.fbx")
-
-
-def _aristas_duras(o, grados=35.0):
-    """Vertices en aristas con angulo diedro > 35 grados (esquinas de cajas,
-    pedestales, marcos): se protegen al reducir triangulos."""
-    import bmesh
-    bm = bmesh.new()
-    bm.from_mesh(o.data)
-    lim = math.radians(grados)
-    out = set()
-    for e in bm.edges:
-        if len(e.link_faces) == 2:
-            try:
-                if e.calc_face_angle() > lim:
-                    out.update(v.index for v in e.verts)
-            except ValueError:
-                pass
-        elif len(e.link_faces) == 1:
-            out.update(v.index for v in e.verts)      # borde abierto
-    bm.free()
-    return sorted(out)
 
 
 def _texturas_roblox(o, lado=1024):

@@ -1381,6 +1381,80 @@ class Engine:
         progress(1.0, "Listo")
         return new
 
+    def optimize(self, path, caras=20000, rig="ninguno", asset_type="prop_rigid", altura_prop=0.40,
+                 height=1.75, roblox_tris=12000, relieve=0.6, progress=lambda f, m: None):
+        """Modo Optimizar (sin IA, sirve en GPU chica o sin GPU): toma un
+        GLB/FBX/OBJ que ya tienes y hace reduccion de poligonos con aristas
+        protegidas, soldado, cuadros (QuadriFlow), relieve, escala real,
+        esqueleto opcional, Roblox + OBJ, QA y hoja de 6 angulos."""
+        import secrets as _sec
+        t0 = time.time()
+        ext = os.path.splitext(str(path))[1].lower()
+        if ext not in (".glb", ".gltf", ".fbx", ".obj"):
+            raise ValueError("Sube un archivo .glb, .fbx u .obj")
+        out = os.path.join(config.OUT_DIR, time.strftime("%Y%m%d_%H%M%S_") + "opt_" + _sec.token_hex(3))
+        os.makedirs(out, exist_ok=True)
+        inp = os.path.join(out, "original" + ext)
+        shutil.copy(path, inp)
+        self._activo = (asset_type, float(altura_prop), int(roblox_tris))
+        self._caras = int(caras)
+        self._detalle = True
+        args = (inp, out, rig, float(height), 0.0, "Reposo", 720, 16, False, float(relieve))
+        progress(0.1, f"Blender: reduciendo a {int(caras):,} caras y exportando")
+        try:
+            fe = self.blender_pool.submit(self.blender, *args, "export", None, None, "")
+            fx = self.blender_pool.submit(self.blender, *args, "extra", None, None, "")
+            log_ = fe.result() + "\n\n" + fx.result()
+        finally:
+            self._caras = 0
+        ip = os.path.join(out, "rig_info.json")
+        if not os.path.exists(ip):
+            open(os.path.join(out, "blender.log"), "w").write(log_)
+            raise RuntimeError("Blender no pudo procesar el archivo (mira blender.log)")
+        info = json.load(open(ip))
+        ipx = os.path.join(out, "rig_info_extra.json")
+        if os.path.exists(ipx):
+            ix = json.load(open(ipx))
+            info.setdefault("archivos", {}).update(ix.get("archivos", {}))
+            for k_ in ("lod_caras", "piezas", "quads_caras", "roblox_textura_px"):
+                if k_ in ix:
+                    info[k_] = ix[k_]
+            qa = info.setdefault("qa", {})
+            if ix.get("roblox_triangulos") is not None:
+                info["roblox_triangulos"] = qa["roblox_triangles"] = ix["roblox_triangulos"]
+                qa["roblox_ready"] = ix["roblox_triangulos"] <= 15000 and bool(qa.get("textures_packed"))
+            if ix.get("roblox_deriva_aristas_m") is not None:
+                qa["corner_drift_m"] = ix["roblox_deriva_aristas_m"]
+            os.remove(ipx)
+        progress(0.85, "Revision en 6 angulos y QA")
+        try:
+            import trimesh
+            sc = trimesh.load(os.path.join(out, "modelo_web.glb") if os.path.exists(
+                os.path.join(out, "modelo_web.glb")) else inp, force="scene")
+            m = sc.to_geometry() if hasattr(sc, "to_geometry") else sc.dump(concatenate=True)
+            qa_sheet(m).save(os.path.join(out, "revision_6_angulos.png"))
+            a_ = aviso_trasera(getattr(qa_sheet, "ultimo", {}))
+            if a_:
+                info.setdefault("qa", {}).setdefault("warnings", []).append(a_)
+            luz, wl = textura_luz(m)
+            if luz is not None:
+                info.setdefault("qa", {})["texture_brightness"] = luz
+                info["qa"].setdefault("warnings", []).extend(wl)
+        except Exception as e:
+            self.log("  revision omitida:", e)
+        info.update(modo="optimizar", carpeta=out, archivo_original=os.path.basename(str(path)),
+                    segundos_total=round(time.time() - t0, 1),
+                    ajustes={"caras": int(caras), "rig": rig, "tipo_activo": asset_type,
+                             "altura_prop": altura_prop, "roblox_tris": roblox_tris, "relieve": relieve})
+        json.dump(info, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
+        open(os.path.join(out, "blender.log"), "w").write(log_)
+        if os.path.exists(os.path.join(out, "modelo_roblox.fbx")):
+            open(os.path.join(out, "LEEME_ROBLOX.txt"), "w").write(guia_roblox(info))
+        progress(0.97, "Empaquetando ZIP")
+        self._zip(out, out + ".zip")
+        progress(1.0, "Listo")
+        return dict(dir=out, zip=out + ".zip", info=info)
+
     def build_scene(self, lineas, ancho=5.0, fondo=4.0, progress=lambda f, m: None):
         """Escena/cuarto desde una lista de texto: cada linea "objeto | altura_m".
         Cada objeto se genera (texto -> imagen -> 3D -> esqueleto) y despues
@@ -1459,6 +1533,7 @@ class Engine:
                "--tipo_activo", getattr(self, "_activo", ("auto",))[0],
                "--altura_prop", str(getattr(self, "_activo", ("", 0.4))[1]),
                "--roblox_tris", str(getattr(self, "_activo", ("", 0, 12000))[2]),
+               "--caras", str(getattr(self, "_caras", 0)),
                "--stage", stage, "--preview", "1" if stage != "export" or self._preview else "0"]
         ms = self.MILESTONES.get(stage, self.MILESTONES["export"])
         lines = []
