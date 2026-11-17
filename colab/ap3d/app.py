@@ -40,6 +40,7 @@ def _files(d):
 def _summary(info):
     a = info.get("ajustes", {})
     lines = [
+        (f"Malla de la IA: **{info['caras_alta']:,} caras** → reducida a " if info.get("caras_alta") else "") +
         f"**{info.get('caras', '?'):,} caras** · textura {a.get('tex')} px · "
         f"esqueleto {info.get('rig')} ({info.get('huesos', 0)} huesos, pesos por "
         f"{info.get('pesos', '-')}) · {info.get('segundos_total', '?')} s",
@@ -60,6 +61,11 @@ def _summary(info):
             f"{k} ({v:,} caras)" for k, v in info["lod_caras"].items()))
     if info.get("mapas_relieve"):
         lines.append("Relieve: mapa de normales creado desde la textura")
+    if info.get("vertices_tela"):
+        lines.append(f"Física de telas: {info['vertices_tela']:,} vértices de túnica/capa/mangas "
+                     "liberados de las piernas y brazos para que no se rasguen")
+    if info.get("pesos_intento", 1) > 1:
+        lines.append(f"Pesos por calor logrados en el intento {info['pesos_intento']} (proxy más cerrado)")
     if "vertices_sin_peso_reparados" in info:
         lines.append(f"Pesos: 100 % de la malla sigue al esqueleto "
                      f"({info['vertices_sin_peso_reparados']} vertices reparados)")
@@ -178,7 +184,8 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
     threading.Thread(target=work, daemon=True).start()
     _wait(st, "malla", progress)
     d = st["dir"]
-    return (jid, viewer_html(d, view="clay", wire=True, etapa="Etapa 1/3 · Malla"),
+    return (jid, viewer_html(d, view="hi" if _exists(d, "malla_alta.glb") else "clay", wire=True,
+                             etapa="Etapa 1/3 · Malla en alta resolución"),
             gr.update(selected="malla"),
             f"**Etapa 1/3 · Malla lista** ({time.time() - st['t0']:.0f} s). Pintando la textura…",
             int(seed))

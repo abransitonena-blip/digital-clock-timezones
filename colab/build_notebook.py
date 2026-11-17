@@ -41,6 +41,9 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Turbo**: forma con 5 pasos + FlashVDM, textura turbo y Blender en dos procesos a la vez (archivos y videos). Barra con **porcentaje y tiempo restante** y **monitor en vivo** de GPU/VRAM/RAM/CPU/temperatura que se pone **en rojo** si algo se satura o hay cola.
 * **Ves el modelo antes**: el estudio se abre en cuanto está el GLB animado, mientras los videos siguen renderizándose. El visor usa un **GLB ligero** (Draco + JPEG) que carga mucho más rápido en el celular. La GPU se **precalienta** al cargar y los tiempos aprendidos se guardan entre sesiones.
 * **Esqueleto detallado (66 huesos)**: dedos de las manos (5 × 3 falanges, nombres de Mixamo), dedos de los pies, ojos y mandíbula, colocados midiendo la malla. Animaciones nuevas **Manos** y **Hablar**; los dedos se relajan o cierran en las demás.
+* **Por etapas, de más a menos**: primero la malla completa de la IA en alta resolución (`malla_alta.glb`, pestaña *Alta*), luego se reduce a las caras pedidas para la textura y el esqueleto.
+* **Física de telas**: túnicas, capas, mangas y faldas se liberan de piernas y brazos y cuelgan de la cadera o la espalda, para que no se rasguen al animar. Los vértices duplicados se sueldan y los pesos se calculan con hasta 3 intentos.
+* **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Malla reparada**: quita trozos sueltos, cierra agujeros y orienta las caras.
 * **Cero vértices sin peso**: si alguno queda suelto, copia el peso de su vecino; el informe dice cuántos vértices mueve cada hueso.
 * **LOD para juegos**: además del modelo completo, versiones al 50 % y 15 % con el mismo esqueleto y animaciones.

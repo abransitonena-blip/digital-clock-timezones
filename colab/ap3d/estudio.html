@@ -45,7 +45,7 @@ canvas{display:block}
 <div id="top">
   <div class="seg" id="views">
     <button data-v="tex" class="on">Textura</button><button data-v="parts">Piezas</button>
-    <button data-v="weights">Pesos</button><button data-v="clay">Arcilla</button>
+    <button data-v="weights">Pesos</button><button data-v="clay">Arcilla</button><button data-v="hi">Alta</button>
   </div>
   <div class="sp"></div>
   <div class="dd" id="light"><button class="btn">☀ Luz ▾</button><div class="menu">
@@ -75,11 +75,11 @@ import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s);
-const FILES={tex:['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb']};
+const FILES={tex:['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb'],hi:['malla_alta.glb']};
 const NICE={'modelo_web.glb':'GLB ligero web (Draco + JPEG)','modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
  'modelo.blend':'Blender (.blend)','modelo_texturizado.glb':'GLB sin esqueleto','modelo_estatico.obj':'OBJ estático',
  'modelo_impresion3d.stl':'STL impresión 3D (mm)','modelo_lod1_50.glb':'LOD ligero 50%','modelo_lod2_15.glb':'LOD muy ligero 15%',
- 'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
+ 'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','malla_alta.glb':'Malla alta resolución (sin reducir)','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
 
 const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
@@ -128,7 +128,7 @@ async function show(view){
   const g=await loader.loadAsync(file,e=>{if(e.total)$('#load').textContent=`Cargando modelo… ${Math.round(100*e.loaded/e.total)}%`});
   if(cur){scene.remove(cur)}if(skelHelper){scene.remove(skelHelper);skelHelper=null}
   cur=g.scene;cur.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;
-    if(view==='clay')o.material=new THREE.MeshStandardMaterial({color:0xb9bcc6,roughness:.55,metalness:.05});
+    if(view==='clay'||view==='hi')o.material=new THREE.MeshStandardMaterial({color:0xb9bcc6,roughness:.55,metalness:.05});
     if(view==='weights'){o.material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.7})}}});
   scene.add(cur);
   bbox();const mn=box.min.y;cur.position.y-=mn;floor.position.y=0;grid.position.y=0;
@@ -143,10 +143,13 @@ async function show(view){
   setWire($('#wire').classList.contains('on'));
   $('#legend').style.display=view==='weights'||view==='parts'?'block':'none';
   $('#legend').innerHTML=view==='weights'?'<b>Pesos</b><br>Cada color = un hueso.<br>Donde se mezclan, la malla se dobla.':
-    view==='parts'?'<b>Piezas</b><br>'+(info.piezas||'')+' piezas, una por hueso':'';
+    view==='parts'?'<b>Piezas del cuerpo</b>'+partsLegend():'';
   frame();light(curLight);stats();$('#load').style.display='none';
   document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
 }
+function partsLegend(){const seen=new Map();cur.traverse(o=>{if(o.isMesh&&!o.userData.wire){const m=Array.isArray(o.material)?o.material[0]:o.material;
+  if(m&&m.name&&!seen.has(m.name))seen.set(m.name,'#'+m.color.getHexString())}});
+  return [...seen].map(([n,c])=>`<div><i style="background:${c}"></i>${n}</div>`).join('')}
 let curAnim=null;
 function play(n){const a=actions[n];if(!a)return;if(curAnim&&curAnim!==a)curAnim.fadeOut(.3);a.reset().fadeIn(.3).play();curAnim=a;
   document.querySelectorAll('#anims button').forEach(b=>b.classList.toggle('on',b.textContent===n.replace('_',' ')))}
@@ -180,7 +183,7 @@ renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt)
 (async()=>{
   try{info=await (await fetch('rig_info.json')).json()}catch(e){}
   const all=new Set(Object.values(info.archivos||{}));
-  for(const f of ['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb','piezas.glb','pesos.glb','arcilla.glb'])all.add(f);
+  for(const f of ['malla_alta.glb','modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb','piezas.glb','pesos.glb','arcilla.glb'])all.add(f);
   for(const f of Object.keys(NICE))all.add(f);
   await Promise.all([...all].map(async f=>{if(await exists(f))avail.add(f)}));
   document.querySelectorAll('#views button').forEach(b=>b.disabled=!FILES[b.dataset.v].some(f=>avail.has(f)));

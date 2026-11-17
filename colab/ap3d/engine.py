@@ -357,7 +357,7 @@ class Engine:
                 trimesh.repair.fill_holes(mesh)
             except Exception as e2:
                 self.log("  reparacion omitida:", e2)
-        if len(mesh.faces) > max_faces:
+        if max_faces and len(mesh.faces) > max_faces:
             mesh = FaceReducer()(mesh, max_facenum=max_faces)
         return mesh
 
@@ -503,7 +503,20 @@ class Engine:
                                                               guidance, turbo))
                 t_shape = time.time() - ts
                 progress(f_shape, "Limpiando y cerrando agujeros")
-                mesh = self._repair(mesh, faces)
+                # 1) malla completa en alta resolucion (todo el detalle de la IA)
+                mesh = self._repair(mesh, None)
+                info_alta = len(mesh.faces)
+                try:
+                    from hy3dgen.shapegen import FaceReducer
+                    hi = mesh if len(mesh.faces) <= 600000 else FaceReducer()(mesh, max_facenum=600000)
+                    hi.export(os.path.join(out, "malla_alta.glb"))
+                except Exception as e:
+                    self.log("  malla alta omitida:", e)
+                # 2) se reduce despues a las caras pedidas (para textura y esqueleto)
+                progress(f_shape + 0.005, f"Reduciendo de {info_alta:,} a {faces:,} caras")
+                if len(mesh.faces) > faces:
+                    from hy3dgen.shapegen import FaceReducer
+                    mesh = FaceReducer()(mesh, max_facenum=faces)
                 mesh.export(os.path.join(work, "arcilla.glb"))
                 shutil.copy(os.path.join(work, "arcilla.glb"), out)
                 stage("malla", out)          # etapa 1: la malla ya se ve
@@ -579,7 +592,7 @@ class Engine:
         ip = os.path.join(out, "rig_info.json")
         if os.path.exists(ip):
             info = json.load(open(ip))
-        info.update(multivista=used_mv, textura_ia=ok_tex, segundos_forma=round(t_shape, 1),
+        info.update(caras_alta=locals().get("info_alta"), multivista=used_mv, textura_ia=ok_tex, segundos_forma=round(t_shape, 1),
                     segundos_textura=round(t_tex, 1), segundos_blender=round(t_bl, 1),
                     segundos_total=round(time.time() - t0, 1), turbo=bool(turbo),
                     ajustes=opts, perfil=P["perfil"], gpu=P["gpu"])

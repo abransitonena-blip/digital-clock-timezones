@@ -138,6 +138,15 @@ for o in list(scene.objects):
         bpy.data.objects.remove(o, do_unlink=True)
 activate(obj)
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+# Soldar vertices duplicados (costuras de UV, caras sueltas): si quedan
+# separados, cada copia recibe un peso distinto y la malla se rasga en
+# triangulos al animar. Las UV se conservan (Blender las guarda por esquina).
+_nv0 = len(obj.data.vertices)
+bpy.ops.object.mode_set(mode="EDIT")
+bpy.ops.mesh.select_all(action="SELECT")
+bpy.ops.mesh.remove_doubles(threshold=1e-5)
+bpy.ops.object.mode_set(mode="OBJECT")
+INFO["vertices_soldados"] = _nv0 - len(obj.data.vertices)
 
 # Normalizar: de pie, centrado, pies en Z=0, altura pedida, mirando a -Y
 if args.rotate:
@@ -228,6 +237,88 @@ def detect_humanoid(co, H):
     return dict(H=H, crotch=crotch, hip_z=hip_z, fx_l=fx_l, fx_r=fx_r,
                 toe_y=toe_y, heel_y=heel_y, leg_x=leg_x, sh_x=sh_x,
                 sh_z=sh_z, torso_y=torso_y, hand_l=hl, hand_r=hr)
+
+
+def cloth_weights():
+    P = "mixamorig:"
+    bones = arm.data.bones
+    gidx = {g.name: g.index for g in obj.vertex_groups}
+    iname = {v: k for k, v in gidx.items()}
+    # miembro -> (huesos del miembro, hueso ancla, radio normal del miembro)
+    LIMB = {}
+    for side in ("Left", "Right"):
+        LIMB.update({P + side + n: ("leg", P + "Hips", 0.075 * H) for n in ("UpLeg", "Leg")})
+        LIMB.update({P + side + n: ("leg", P + "Hips", 0.06 * H)
+                     for n in ("Foot", "ToeBase", "Toe1", "Toe2", "Toe3", "Toe4", "Toe5")})
+        LIMB.update({P + side + n: ("arm", P + "Spine2", 0.055 * H) for n in ("Arm", "ForeArm")})
+    seg = {}
+    for n in LIMB:
+        b = bones.get(n)
+        if b is not None:
+            seg[n] = (np.array(b.head_local), np.array(b.tail_local))
+    if not seg:
+        return 0
+    me_ = obj.data
+    co_ = verts_np(obj)
+    moved = 0
+    gh = {}
+    for v in me_.vertices:
+        if not v.groups:
+            continue
+        e = max(v.groups, key=lambda x: x.weight)
+        n = iname.get(e.group)
+        if n not in seg:
+            continue
+        a_, c_ = seg[n]
+        p = co_[v.index]
+        ab = c_ - a_
+        t = np.clip((p - a_) @ ab / max(ab @ ab, 1e-9), 0, 1)
+        dist = np.linalg.norm(p - (a_ + t * ab))
+        kind, anchor, r = LIMB[n]
+        if dist <= r:
+            continue
+        # 0 dentro del miembro -> 1 cuando esta a 2.2 veces el radio
+        k = min(1.0, (dist - r) / (1.2 * r))
+        k = k * k * (3 - 2 * k)
+        if kind == "arm":
+            k *= 0.7          # mangas: siguen algo al brazo
+        g_anchor = obj.vertex_groups.get(anchor)
+        if g_anchor is None:
+            continue
+        for ge in v.groups:
+            nm = iname.get(ge.group)
+            if nm in seg:
+                w0 = ge.weight
+                obj.vertex_groups[nm].add([v.index], w0 * (1 - k), "REPLACE")
+                g_anchor.add([v.index], w0 * k, "ADD")
+        moved += 1
+    log("tela: vertices liberados de piernas/brazos:", moved)
+    return moved
+
+
+REGION_ORDER = ["Cabeza", "Ojo izq.", "Ojo der.", "Mandibula", "Cuello", "Torso", "Cadera",
+                "Hombro izq.", "Brazo izq.", "Antebrazo izq.", "Mano izq.", "Dedos mano izq.",
+                "Hombro der.", "Brazo der.", "Antebrazo der.", "Mano der.", "Dedos mano der.",
+                "Muslo izq.", "Pierna izq.", "Pie izq.", "Dedos pie izq.",
+                "Muslo der.", "Pierna der.", "Pie der.", "Dedos pie der."]
+
+
+def region_of(bone):
+    """Nombre de la parte del cuerpo para un hueso (para piezas y GLB)."""
+    n = bone.split(":")[-1]
+    lado = " izq." if n.startswith("Left") else (" der." if n.startswith("Right") else "")
+    core = n.replace("Left", "").replace("Right", "")
+    if core.startswith("Hand") and core != "Hand":
+        return "Dedos mano" + lado
+    if core.startswith("Toe") and core != "ToeBase":
+        return "Dedos pie" + lado
+    tabla = {"Head": "Cabeza", "HeadTop_End": "Cabeza", "Eye": "Ojo", "Jaw": "Mandibula",
+             "Neck": "Cuello", "Spine": "Torso", "Spine1": "Torso", "Spine2": "Torso",
+             "Hips": "Cadera", "Shoulder": "Hombro", "Arm": "Brazo", "ForeArm": "Antebrazo",
+             "Hand": "Mano", "UpLeg": "Muslo", "Leg": "Pierna", "Foot": "Pie", "ToeBase": "Pie"}
+    if core in tabla:
+        return tabla[core] + lado
+    return core + lado
 
 
 BONES = []          # (nombre, cabeza, cola, padre)
@@ -460,44 +551,54 @@ if args.rig != "ninguno":
             for i in idx:
                 vg.add([int(i)], float(w[i, j]), "REPLACE")
 
-    # Copia cerrada para calcular los pesos con calor
-    proxy = obj.copy()
-    proxy.data = obj.data.copy()
-    proxy.name = "Proxy"
-    scene.collection.objects.link(proxy)
-    proxy.data.materials.clear()
-    activate(proxy)
-    rm = proxy.modifiers.new("Remesh", "REMESH")
-    rm.mode = "VOXEL"
-    rm.voxel_size = H / 150.0
-    try:
-        rm.adaptivity = 0.0
-    except Exception:
-        pass
-    bpy.ops.object.modifier_apply(modifier=rm.name)
-    if len(proxy.data.polygons) > 70000:
-        dm = proxy.modifiers.new("Dec", "DECIMATE")
-        dm.ratio = 70000 / len(proxy.data.polygons)
-        bpy.ops.object.modifier_apply(modifier=dm.name)
-    log("proxy de pesos", len(proxy.data.polygons), "caras")
+    # Copia cerrada para calcular los pesos con calor. Si el calor falla
+    # (malla con capas, alas, tunicas...) se reintenta con un proxy mas
+    # grueso y mas cerrado antes de caer al respaldo por distancia.
+    def make_proxy(div, max_f):
+        px = obj.copy()
+        px.data = obj.data.copy()
+        px.name = "Proxy"
+        scene.collection.objects.link(px)
+        px.data.materials.clear()
+        px.modifiers.clear()
+        px.vertex_groups.clear()
+        activate(px)
+        rm = px.modifiers.new("Remesh", "REMESH")
+        rm.mode = "VOXEL"
+        rm.voxel_size = H / div
+        try:
+            rm.adaptivity = 0.0
+        except Exception:
+            pass
+        bpy.ops.object.modifier_apply(modifier=rm.name)
+        if len(px.data.polygons) > max_f:
+            dm = px.modifiers.new("Dec", "DECIMATE")
+            dm.ratio = max_f / len(px.data.polygons)
+            bpy.ops.object.modifier_apply(modifier=dm.name)
+        return px
 
-    activate(arm, [proxy])
-    heat_ok = True
-    try:
-        bpy.ops.object.parent_set(type="ARMATURE_AUTO")
-    except Exception as e:
-        heat_ok = False
-        INFO["avisos"].append(f"pesos por calor fallaron: {e}")
-    filled = sum(1 for g in proxy.vertex_groups)
-    if heat_ok:
-        # verificar que no haya vertices sin peso
+    heat_ok = False
+    proxy = None
+    for intento, (div, max_f) in enumerate(((150.0, 70000), (100.0, 40000), (65.0, 20000)), 1):
+        if proxy is not None:
+            bpy.data.objects.remove(proxy, do_unlink=True)
+        proxy = make_proxy(div, max_f)
+        log("proxy de pesos", len(proxy.data.polygons), "caras (intento", intento, ")")
+        activate(arm, [proxy])
+        try:
+            bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+        except Exception as e:
+            log("calor fallo:", e)
+            continue
         nv = len(proxy.data.vertices)
         empty = sum(1 for v in proxy.data.vertices if not v.groups)
-        if filled == 0 or empty > 0.02 * nv:
-            heat_ok = False
-            INFO["avisos"].append(f"{empty} vertices sin peso con calor; "
-                                  "se uso respaldo por distancia")
+        if len(proxy.vertex_groups) and empty <= 0.02 * nv:
+            heat_ok = True
+            INFO["pesos_intento"] = intento
+            break
+        log("calor dejo", empty, "vertices sin peso")
     if not heat_ok:
+        INFO["avisos"].append("pesos por calor fallaron 3 veces; se uso respaldo por distancia")
         for g in list(proxy.vertex_groups):
             proxy.vertex_groups.remove(g)
         skin_by_distance(proxy)
@@ -560,6 +661,24 @@ if args.rig != "ninguno":
             for n, w in ws:
                 obj.vertex_groups[n].add([i], w, "REPLACE")
     INFO["vertices_sin_peso_reparados"] = int(sin_peso)
+
+    # Fisica de telas: tunicas, capas, alas y faldas que quedan lejos del
+    # hueso de la pierna o del brazo no deben seguir al miembro (se rasgan).
+    # Se reparte su peso hacia la cadera / espalda segun la distancia, como
+    # una tela que cuelga. Mejora mucho a personajes con ropa suelta.
+    INFO["vertices_tela"] = cloth_weights() if args.rig == "humanoide" else 0
+    if INFO["vertices_tela"]:
+        # tras mover peso a la cadera: suavizar, maximo 4 huesos y sumar 1
+        # (si no, el exportador corta pesos y la tela se rasga en triangulos)
+        activate(obj)
+        bpy.ops.object.mode_set(mode="WEIGHT_PAINT")
+        try:
+            bpy.ops.object.vertex_group_smooth(group_select_mode="ALL", factor=0.6, repeat=3)
+        except Exception:
+            pass
+        bpy.ops.object.vertex_group_limit_total(group_select_mode="ALL", limit=4)
+        bpy.ops.object.vertex_group_normalize_all(group_select_mode="ALL", lock_active=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
 
     # Ojos y mandibula: solo su zona real. El calor les daba media cabeza;
     # lo que queda fuera vuelve al hueso de la cabeza.
@@ -1117,16 +1236,19 @@ if arm is not None:
         pz.modifiers.clear()
         pz.parent = None
         me = pz.data
-        gnames = [g.name for g in pz.vertex_groups]
+        gnames = [region_of(g.name) for g in pz.vertex_groups]
+        regions = sorted(set(gnames), key=lambda r: REGION_ORDER.index(r) if r in REGION_ORDER else 99)
+        ridx = {r: i for i, r in enumerate(regions)}
         dom = np.zeros(len(me.vertices), dtype=np.int32)
         for v in me.vertices:
             if v.groups:
                 g = max(v.groups, key=lambda x: x.weight)
-                dom[v.index] = g.group
+                dom[v.index] = ridx[gnames[g.group]]
         me.materials.clear()
         rng = np.random.default_rng(3)
+        gnames = regions
         for i, n in enumerate(gnames):
-            m = bpy.data.materials.new("pieza_" + n.split(":")[-1])
+            m = bpy.data.materials.new(n)
             c = rng.random(3) * 0.75 + 0.25
             m.diffuse_color = (*c, 1)
             m.use_nodes = True
