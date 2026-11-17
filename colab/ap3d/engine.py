@@ -357,6 +357,49 @@ def textura_luz(mesh):
         return None, []
 
 
+STUD_M = 0.28          # 1 stud de Roblox ~ 0.28 m
+
+
+def guia_roblox(info):
+    """Texto con los pasos para importar el modelo en Roblox Studio."""
+    qa = info.get("qa") or {}
+    dm = qa.get("dimensions_m") or [0, 0, 0]
+    ta = qa.get("asset_type") or info.get("tipo_activo") or "auto"
+    st = [round(x / STUD_M, 2) for x in dm]
+    rig = qa.get("has_rig")
+    prop = str(ta).startswith("prop") or not rig
+    L = ["AP Model 3D Foto - Guia para Roblox Studio", "=" * 44, "",
+         f"Archivo: modelo_roblox.fbx  ({qa.get('roblox_triangles') or '?'} triangulos, textura 1024 px embebida)",
+         f"Tipo: {ta}   Esqueleto: {'si' if rig else 'no'}",
+         f"Medidas reales: {dm[0]} x {dm[1]} x {dm[2]} m  (ancho x fondo x alto)",
+         f"En studs (1 stud = {STUD_M} m): {st[0]} x {st[1]} x {st[2]}", "",
+         "Pasos:",
+         "1. Roblox Studio > pestana Inicio (Home) > Importar 3D (Import 3D).",
+         "2. Elige modelo_roblox.fbx.",
+         "3. En el importador: Escala del archivo = metros (File Dimensions > Meters).",
+         "   Comprueba que el tamano coincide con los studs de arriba.",
+         ]
+    if prop:
+        L += ["4. Importar como Model con un MeshPart (no como personaje).",
+              "5. En el MeshPart:",
+              "   - Anchored = true (no se cae ni lo empujan)",
+              "   - CollisionFidelity = Hull (o Box si es una caja/pedestal; mas barato)",
+              "   - RenderFidelity = Automatic",
+              "6. El pivote esta en el centro de la base: con Model:PivotTo() pon la Y",
+              "   justo arriba del pedestal. Si mueves el MeshPart por Position (su centro),",
+              f"   suma la mitad del alto: {round(st[2] / 2, 2)} studs."]
+    else:
+        L += ["4. Rig: Importar como personaje (Rig General / R15 si lo propone).",
+              "5. Las animaciones van dentro del FBX; subelas con el Animation Editor",
+              "   si quieres usarlas en juego.",
+              "6. CollisionFidelity = Default; Anchored = false si debe moverse."]
+    L += ["", "Respaldo: carpeta obj/ (modelo.obj + modelo.mtl + textura PNG).",
+          f"QA aprobado: {'si' if qa.get('passed') else 'no'}"]
+    for w in qa.get("warnings") or []:
+        L.append(f"  aviso: {w}")
+    return "\n".join(L) + "\n"
+
+
 def render_preview(mesh, size=384, az=30.0, elev=0.0, color=False):
     """Imagen de una malla sin GPU grafica: proyeccion ortografica con
     z-buffer de caras y luz por normales (para elegir variantes).
@@ -1209,6 +1252,7 @@ class Engine:
                 info.setdefault("qa", {}).setdefault("warnings", []).append(a_)
         except Exception as e:
             self.log("  hoja de 6 angulos omitida:", e)
+        info["carpeta"] = out
         isl = getattr(self, "last_islands", None)
         info["islas_malla"] = isl
         qa = info.get("qa")
@@ -1239,6 +1283,11 @@ class Engine:
                     ajustes=opts, perfil=P["perfil"], gpu=P["gpu"])
         json.dump(info, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
         open(os.path.join(out, "blender.log"), "w").write(blog)
+        if os.path.exists(os.path.join(out, "modelo_roblox.fbx")):
+            try:
+                open(os.path.join(out, "LEEME_ROBLOX.txt"), "w").write(guia_roblox(info))
+            except Exception as e:
+                self.log("  guia Roblox omitida:", e)
         progress(0.98, "Empaquetando ZIP")
         zp = out + ".zip"
         self._zip(out, zp)

@@ -339,6 +339,14 @@ def tablero_html(hecho=0, info=None, activo=None, solo_datos=False):
                      if qa.get('texture_brightness') is not None else "")
                   + "".join(f"<div class='kv'><span class='warnq'>⚠️ {w}</span></div>" for w in ws)
                   + "</div>")
+        hoja = os.path.join(info.get("carpeta") or "", "revision_6_angulos.png")
+        if info.get("carpeta") and os.path.exists(hoja):
+            src = f"/gradio_api/file={hoja}?t={int(os.path.getmtime(hoja))}"
+            datos += ("<div class='td qa6'><b>Revisión en 6 ángulos</b>"
+                      f"<a href='{src}' target='_blank'><img src='{src}' alt='6 angulos' "
+                      "style='width:100%;border-radius:8px;margin-top:6px'></a>"
+                      "<div class='kv'><span>Busca piezas flotando, caras rotas o la trasera borrosa"
+                      " (toca para ampliar)</span></div></div>")
     if info.get("huesos"):
         c = (info.get("clasificacion") or {}).get("tipo", info.get("rig"))
         datos += ("<div class='td'><b>Modelo</b>"
@@ -748,6 +756,7 @@ footer {display:none !important}
 .td {border:1px solid #2a2f45; border-radius:12px; padding:8px 10px; background:#151824;
      color:#c9cee0; font-size:13px}
 .td > b {color:#8fb0ff; font-size:12px; text-transform:uppercase; letter-spacing:.04em}
+.td.qa6 {grid-column:1/-1}
 .warnq {color:#e0a030 !important}
 .kv {display:flex; justify-content:space-between; gap:8px; border-bottom:1px dashed #252a3d;
      padding:3px 0} .kv:last-child {border:0} .kv span {color:#8a90a8}
