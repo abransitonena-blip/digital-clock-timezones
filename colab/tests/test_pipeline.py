@@ -75,7 +75,8 @@ def test_islas():
 
 def test_prop_rigido():
     print("2) Prop rigido (sin esqueleto, escala real, pivote en la base, Roblox, QA)")
-    m = caja_con_piezas()
+    from ap3d.engine import fix_islands
+    m, _ = fix_islands(caja_con_piezas())     # como en el motor: islas reparadas antes de Blender
     m.apply_scale(4.25)                       # sale a tamano humano, como el bug
     glb = os.path.join(TMP, "caja.glb")
     m.export(glb)
