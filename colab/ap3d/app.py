@@ -140,7 +140,7 @@ def _exists(d, f):
 def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-               detalle=True, progress=gr.Progress()):
+               detalle=True, motor="Hunyuan3D (rápido)", progress=gr.Progress()):
     """Etapa 1: lanza el trabajo y devuelve la malla en cuanto existe."""
     if front is None and sheet is None:
         raise gr.Error("Sube al menos la foto de frente (o una hoja de vistas).")
@@ -173,7 +173,8 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
                                 relieve=float(relieve) if relieve_on else 0.0,
                                 turbo=int(steps) <= 10, progress=prog,
                                 videos=bool(make_videos), on_stage=on_stage,
-                                detalle=bool(detalle))
+                                detalle=bool(detalle),
+                                motor="triposg" if str(motor).startswith("Tripo") else "hunyuan")
             st["dir"] = st["res"]["dir"]
         except Exception as e:
             import traceback
@@ -431,6 +432,9 @@ def build_ui():
                             relieve_on = gr.Checkbox(True, label="Relieve realista desde la textura")
                             relieve = gr.Slider(0.1, 2.5, 0.8, step=0.1, label="Intensidad")
                         with gr.Accordion("Calidad", open=False):
+                            motor = gr.Radio(["Hunyuan3D (rápido)", "TripoSG (más detalle)"],
+                                             value="Hunyuan3D (rápido)", label="Motor de forma",
+                                             info="TripoSG es el modelo abierto de Tripo AI")
                             preset = gr.Radio(list(PRESETS), value=best, label="Preajuste",
                                               info="Detallado: Turbo con malla 512 y 150 000 caras (recomendado). "
                                                    "Turbo: el mas rapido (60 000 caras; la textura tarda menos "
@@ -512,7 +516,7 @@ def build_ui():
                    [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                     faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                     video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-                    detalle],
+                    detalle, motor],
                    [job, m_clay, tabs, status, seed], concurrency_id="gen",
                    concurrency_limit=P["workers"], **_spo(status))
             .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",

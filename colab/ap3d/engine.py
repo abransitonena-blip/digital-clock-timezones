@@ -20,6 +20,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import subprocess
 import threading
 import time
@@ -109,6 +110,7 @@ class Engine:
         d.setdefault("eta", {"forma": 8.0, "textura": 35.0, "blender": 60.0})
         d.setdefault("_eta_path", os.path.join(config.OUT_DIR, "tiempos.json"))
         d.setdefault("cache", {})
+        d.setdefault("tripo", None)
         if d.get("blender_pool") is None:
             d["blender_pool"] = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
 
@@ -255,6 +257,46 @@ class Engine:
         except Exception as e:
             self.log("  calentamiento omitido:", e)
 
+    def load_triposg(self, root="/content/TripoSG"):
+        """TripoSG (VAST / Tripo AI): forma de alta fidelidad desde 1 foto."""
+        import torch
+        if getattr(self, "tripo", None) is not None:
+            return True
+        try:
+            if root not in sys.path:
+                sys.path.insert(0, root)
+                sys.path.insert(0, os.path.join(root, "scripts"))
+            from triposg.pipelines.pipeline_triposg import TripoSGPipeline
+            from briarmbg import BriaRMBG
+            w = os.path.join(root, "pretrained_weights")
+            self.tripo_rmbg = BriaRMBG.from_pretrained(os.path.join(w, "RMBG-1.4")).to("cuda").eval()
+            self.tripo = TripoSGPipeline.from_pretrained(os.path.join(w, "TripoSG")).to(
+                "cuda", torch.float16)
+            self.log("TripoSG listo (motor de forma de Tripo AI)")
+            return True
+        except Exception as e:
+            self.tripo = None
+            self.log("TripoSG no disponible, se usa Hunyuan3D:", e)
+            return False
+
+    def shape_triposg(self, img, steps, seed, guidance):
+        import tempfile
+        import torch
+        import trimesh
+        from image_process import prepare_image
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as fh:
+            img.save(fh.name)
+            path = fh.name
+        try:
+            pil = prepare_image(path, bg_color=np.array([1.0, 1.0, 1.0]), rmbg_net=self.tripo_rmbg)
+        finally:
+            os.remove(path)
+        g = torch.Generator(device="cuda").manual_seed(int(seed))
+        with torch.inference_mode():
+            o = self.tripo(image=pil, generator=g, num_inference_steps=int(max(steps, 25)),
+                           guidance_scale=float(guidance if guidance > 5 else 7.0)).samples[0]
+        return trimesh.Trimesh(o[0].astype(np.float32), np.ascontiguousarray(o[1]))
+
     def _set_texture_size(self, size):
         if self.paint is None:
             return
@@ -361,6 +403,16 @@ class Engine:
             mesh = FaceReducer()(mesh, max_facenum=max_faces)
         return mesh
 
+    def _shape(self, views, steps, octree, seed, guidance, turbo, motor):
+        if motor == "triposg" and getattr(self, "tripo", None) is not None:
+            try:
+                mesh = self.shape_triposg(views["front"], steps, seed, guidance)
+                # TripoSG sale en otra orientacion/escala: se alinea como Hunyuan
+                return mesh, False
+            except Exception as e:
+                self.log("TripoSG fallo, se usa Hunyuan3D:", e)
+        return self.shape_from(views, steps, octree, seed, guidance, turbo)
+
     def shape_from(self, views, steps, octree, seed, guidance, turbo=True):
         import torch
         multi = {k: v for k, v in views.items() if v is not None}
@@ -420,7 +472,7 @@ class Engine:
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
             texture=True, relieve=0.8, turbo=True, progress=lambda f, m: None, on_partial=None,
-            videos=False, on_stage=None, detalle=True):
+            videos=False, on_stage=None, detalle=True, motor="hunyuan"):
         self._ensure()
         if not self.ready:
             self.load()
@@ -446,7 +498,7 @@ class Engine:
                     guidance=guidance, rig=rig, height=height, rotate=rotate,
                     video=video, video_res=video_res, samples=samples,
                     turntable=bool(turntable), texture=bool(texture), relieve=float(relieve),
-                    turbo=bool(turbo), videos=bool(videos), detalle=bool(detalle))
+                    turbo=bool(turbo), videos=bool(videos), detalle=bool(detalle), motor=motor)
         k = self.key(views, opts)
         if k in self.cache and os.path.isdir(self.cache[k]["dir"]):
             self.log("Resultado en cache:", k)
@@ -499,8 +551,8 @@ class Engine:
                 mesh, used_mv = phase(0.05, f_shape, E["forma"],
                                       "Generando la forma 3D" + (" (varias vistas)" if nv > 1 else "")
                                       + (" · Turbo" if turbo else ""),
-                                      lambda: self.shape_from(views, steps, octree, seed,
-                                                              guidance, turbo))
+                                      lambda: self._shape(views, steps, octree, seed,
+                                                          guidance, turbo, motor))
                 t_shape = time.time() - ts
                 progress(f_shape, "Limpiando y cerrando agujeros")
                 # 1) malla completa en alta resolucion (todo el detalle de la IA)

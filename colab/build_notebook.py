@@ -45,6 +45,7 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Física de telas**: túnicas, capas, mangas y faldas se liberan de piernas y brazos y cuelgan de la cadera o la espalda, para que no se rasguen al animar. Los vértices duplicados se sueldan y los pesos se calculan con hasta 3 intentos.
 * **Huesos de tela con movimiento secundario**: en túnicas, faldas y capas se crean 4 cadenas de huesos (frente, atrás, izquierda, derecha) que se balancean con retraso e inercia en cada animación. Queda grabado en GLB, FBX y .blend.
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
+* **Dos motores de forma**: Hunyuan3D-2 (Turbo, segundos) o **TripoSG** del equipo de Tripo AI (más detalle). Blender **4.5 LTS**.
 * **Malla reparada**: quita trozos sueltos, cierra agujeros y orienta las caras.
 * **Cero vértices sin peso**: si alguno queda suelto, copia el peso de su vecino; el informe dice cuántos vértices mueve cada hueso.
 * **LOD para juegos**: además del modelo completo, versiones al 50 % y 15 % con el mismo esqueleto y animaciones.
@@ -102,8 +103,10 @@ print("Proyecto listo en", APP)
 '''
 
 CELL2 = r'''
-# @title 2. Instalar dependencias, Hunyuan3D-2 y Blender 4.2 LTS
+# @title 2. Instalar dependencias, Hunyuan3D-2, TripoSG y Blender 4.5 LTS
 USAR_CACHE_EN_DRIVE = False  # @param {type:"boolean"}
+INSTALAR_TRIPOSG = True  # @param {type:"boolean"}
+# @markdown TripoSG es el modelo abierto del equipo de **Tripo AI**: formas con más detalle y bordes limpios. Se suma como segundo motor; si no instala, sigue Hunyuan3D.
 # @markdown Si lo activas, las piezas compiladas se guardan en Drive y la próxima sesión se instalan en segundos.
 import os, subprocess, sys, glob, shutil, time
 t0 = time.time()
@@ -177,11 +180,24 @@ if not glob.glob(f"{d}/mesh_processor*.so"):
                 shutil.copy(f, cache)
 print(f"Hunyuan3D-2 listo ({time.time()-t0:.0f}s)")
 
-# --- Blender 4.2 LTS
+# --- Blender: 4.5 LTS (el mas nuevo estable); si no se puede, 4.2 LTS
 if not os.path.exists("/content/blender/blender"):
-    url = "https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz"
-    sh(f"wget -q {url} -O /content/blender.tar.xz && tar -xf /content/blender.tar.xz -C /content "
-       "&& mv /content/blender-4.2.3-linux-x64 /content/blender && rm /content/blender.tar.xz")
+    for ver, serie in (("4.5.3", "4.5"), ("4.5.2", "4.5"), ("4.5.1", "4.5"), ("4.2.3", "4.2")):
+        url = f"https://download.blender.org/release/Blender{serie}/blender-{ver}-linux-x64.tar.xz"
+        r = subprocess.run(f"wget -q {url} -O /content/blender.tar.xz && tar -xf /content/blender.tar.xz "
+                           f"-C /content && mv /content/blender-{ver}-linux-x64 /content/blender",
+                           shell=True)
+        subprocess.run("rm -f /content/blender.tar.xz", shell=True)
+        if r.returncode == 0 and os.path.exists("/content/blender/blender"):
+            break
+
+# --- TripoSG (modelo abierto del equipo de Tripo AI): forma de alta fidelidad
+if INSTALAR_TRIPOSG and not os.path.exists("/content/TripoSG"):
+    sh("git clone -q --depth 1 https://github.com/VAST-AI-Research/TripoSG /content/TripoSG", check=False)
+    sh(f"{sys.executable} -m pip install -q peft jaxtyping typeguard scikit-image", check=False)
+    r = subprocess.run(f"{sys.executable} -m pip install -q diso", shell=True,
+                       capture_output=True, text=True)
+    print("TripoSG:", "listo" if r.returncode == 0 else "diso no compilo (TripoSG desactivado)")
 print(sh("/content/blender/blender -b --version | head -1").strip())
 print(f"Instalación lista en {time.time()-t0:.0f}s")
 '''
@@ -191,6 +207,7 @@ CELL3 = r'''
 CARGAR_MULTIVISTA = True  # @param {type:"boolean"}
 CARGAR_TEXTURA = True  # @param {type:"boolean"}
 MODO_CALIDAD_TAMBIEN = True  # @param {type:"boolean"}
+CARGAR_TRIPOSG = True  # @param {type:"boolean"}
 # @markdown Turbo (5 pasos + FlashVDM) siempre se carga: la forma sale en segundos. Con la casilla de arriba también queda cargado el modelo de 50 pasos para el preajuste "Maxima".
 import os, sys, time
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
@@ -223,6 +240,13 @@ snapshot_download("tencent/Hunyuan3D-2", allow_patterns=pats, max_workers=16)
 if CARGAR_MULTIVISTA:
     snapshot_download("tencent/Hunyuan3D-2mv", allow_patterns=["hunyuan3d-dit-v2-mv-turbo/*"]
                       + (["hunyuan3d-dit-v2-mv/*"] if MODO_CALIDAD_TAMBIEN else []), max_workers=16)
+if CARGAR_TRIPOSG and os.path.exists("/content/TripoSG"):
+    try:
+        snapshot_download("VAST-AI/TripoSG", local_dir="/content/TripoSG/pretrained_weights/TripoSG", max_workers=16)
+        snapshot_download("briaai/RMBG-1.4", local_dir="/content/TripoSG/pretrained_weights/RMBG-1.4", max_workers=16)
+    except Exception as e:
+        print("TripoSG no se pudo descargar:", e)
+        CARGAR_TRIPOSG = False
 print(f"Modelos descargados ({time.time()-t:.0f}s)")
 
 eng = get_engine()
@@ -230,6 +254,8 @@ if P["preload_weights"]:
     eng.preload_weights()          # deja todos los pesos en la RAM
 eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=CARGAR_TEXTURA, want_turbo=True,
          want_quality=MODO_CALIDAD_TAMBIEN)
+if CARGAR_TRIPOSG:
+    eng.load_triposg()
 print("Todo listo. Sigue con la celda 4 o 5.")
 '''
 
@@ -308,7 +334,7 @@ nb = {
         md(INTRO),
         md("## 1. Proyecto (código incluido: no necesita Drive ni subir nada)"),
         code(CELL1.replace("__BLOB__", blob)),
-        md("## 2. Instalar dependencias y Blender 4.2 LTS"),
+        md("## 2. Instalar dependencias, TripoSG y Blender 4.5 LTS"),
         code(CELL2),
         md("## 3. Comprobar GPU, Blender y modelos de IA (carga todo en RAM y GPU)"),
         code(CELL3),
