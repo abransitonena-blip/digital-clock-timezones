@@ -438,14 +438,39 @@ def qa_sheet(mesh, size=300):
     Cenital y 3/4), como pide el checklist antes de entregar."""
     from PIL import ImageDraw
     hoja = Image.new("RGB", (size * 3, size * 2 + 26), (20, 22, 28))
+    vistas = {}
     for i, (nom, az, el) in enumerate(ANGULOS_QA):
         im = render_preview(mesh, size, az=az, elev=el, color=True)
+        vistas[nom] = im
         x, y = (i % 3) * size, (i // 3) * size + 26
         hoja.paste(im, (x, y))
         ImageDraw.Draw(hoja).text((x + 8, y + 6), nom, fill=(235, 200, 120))
     ImageDraw.Draw(hoja).text((8, 6), "Revision QA en 6 angulos: busca piezas flotando o caras rotas",
                               fill=(220, 220, 220))
+    qa_sheet.ultimo = {"nitidez_frente": nitidez(vistas["Frontal"]),
+                       "nitidez_trasera": nitidez(vistas["Trasera"])}
     return hoja
+
+
+def nitidez(im):
+    """Detalle de una vista: varianza del laplaciano dentro del modelo (sin
+    contar el borde con el fondo)."""
+    g = np.asarray(im.convert("L"), dtype=np.float32)
+    m = g > 30
+    lap = (-4 * g[1:-1, 1:-1] + g[:-2, 1:-1] + g[2:, 1:-1] + g[1:-1, :-2] + g[1:-1, 2:])
+    dentro = m[1:-1, 1:-1] & m[:-2, 1:-1] & m[2:, 1:-1] & m[1:-1, :-2] & m[1:-1, 2:]
+    if dentro.sum() < 100:
+        return 0.0
+    return round(float(lap[dentro].var()), 2)
+
+
+def aviso_trasera(met, umbral=0.35):
+    """Aviso si la parte de atras salio mucho mas borrosa que el frente."""
+    f_, t_ = met.get("nitidez_frente", 0), met.get("nitidez_trasera", 0)
+    if f_ > 5 and t_ < umbral * f_:
+        return (f"la parte trasera salio borrosa ({int(100 * t_ / f_)} % del detalle del frente): "
+                "agrega una foto de atras (multivista) para mejorarla")
+    return None
 
 
 class Engine:
@@ -1177,6 +1202,11 @@ class Engine:
             self.log("  datos fisicos omitidos:", e)
         try:
             qa_sheet(textured).save(os.path.join(out, "revision_6_angulos.png"))
+            met = getattr(qa_sheet, "ultimo", {})
+            info["nitidez_vistas"] = met
+            a_ = aviso_trasera(met)
+            if a_ and not used_mv:
+                info.setdefault("qa", {}).setdefault("warnings", []).append(a_)
         except Exception as e:
             self.log("  hoja de 6 angulos omitida:", e)
         isl = getattr(self, "last_islands", None)
