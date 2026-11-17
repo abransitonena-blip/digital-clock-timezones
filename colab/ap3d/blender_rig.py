@@ -187,6 +187,9 @@ def has_gap(vals, bins=24):
     if len(vals) < 50:
         return False
     h, _ = np.histogram(vals, bins)
+    # suavizar: un hueco real (entre piernas) ocupa varias casillas; una
+    # casilla vacia suelta es solo la rejilla regular de vertices
+    h = np.convolve(h, [1, 1, 1], "same")
     inner = h[3:-3]
     return bool(len(inner)) and (inner.min() <= 0.02 * h.max())
 
@@ -272,9 +275,10 @@ def classify(co, H):
         if r_ is not None:
             rects.append(r_)
             anchos.append(prof[i])
-    base_caja = (len(rects) >= 3 and float(np.median(rects)) > 0.9
+    # 0.95: dos piernas juntas dan ~0.91, una caja 0.99-1.0
+    base_caja = (len(rects) >= 3 and float(np.median(rects)) > 0.95
                  and max(anchos) < 1.15 * max(min(anchos), 1e-6)
-                 and max(anchos) > 0.45 * max(prof) and not piernas_x)
+                 and max(anchos) > 0.45 * max(prof))
     medida = {"ancho": round(ancho / H, 2), "largo": round(largo / H, 2),
               "base_caja": bool(base_caja), "rect_base": round(float(np.median(rects)), 2) if rects else None,
               "piernas": bool(piernas_x), "patas": bool(patas_y), "brazos": bool(brazos),
