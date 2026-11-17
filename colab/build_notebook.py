@@ -38,6 +38,7 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * Se ajusta sola al equipo. Con una **A100 de 80 GB + 167 GB de RAM** usa el perfil **MÁXIMO**: forma octree 512, hasta 150 000 caras (antes ~25 000), textura de 4096 px y video de 1080p.
 * **Usa la RAM a fondo**: carga en la RAM los pesos de los modelos (cerca de 30 GB) y deja **todos los modelos cargados a la vez** en la GPU (1 foto, varias vistas y textura). Trabaja en `/dev/shm`, un disco en RAM, guarda en caché los resultados y deja que Blender corra **en paralelo** con la siguiente generación.
 * **Pesos sin manchas**: los calcula Blender (método de calor) sobre una copia cerrada de la malla y los pasa al modelo real. Cada hueso mueve su zona completa, no solo una banda.
+* **Turbo**: forma con 5 pasos + FlashVDM, textura turbo y Blender en dos procesos a la vez (archivos y videos). Barra con **porcentaje y tiempo restante** y **monitor en vivo** de GPU/VRAM/RAM/CPU/temperatura que se pone **en rojo** si algo se satura o hay cola.
 * **Malla reparada**: quita trozos sueltos, cierra agujeros y orienta las caras.
 * **Cero vértices sin peso**: si alguno queda suelto, copia el peso de su vecino; el informe dice cuántos vértices mueve cada hueso.
 * **LOD para juegos**: además del modelo completo, versiones al 50 % y 15 % con el mismo esqueleto y animaciones.
@@ -159,6 +160,8 @@ CELL3 = r'''
 # @title 3. Comprobar GPU, descargar modelos, precargarlos en la RAM y cargarlos en la GPU
 CARGAR_MULTIVISTA = True  # @param {type:"boolean"}
 CARGAR_TEXTURA = True  # @param {type:"boolean"}
+MODO_CALIDAD_TAMBIEN = True  # @param {type:"boolean"}
+# @markdown Turbo (5 pasos + FlashVDM) siempre se carga: la forma sale en segundos. Con la casilla de arriba también queda cargado el modelo de 50 pasos para el preajuste "Maxima".
 import os, sys, time
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
@@ -183,18 +186,20 @@ P = config.detect()
 print(config.describe(P))
 
 t = time.time()
-pats = ["hunyuan3d-dit-v2-0/*"]
+pats = ["hunyuan3d-dit-v2-0-turbo/*"] + (["hunyuan3d-dit-v2-0/*"] if MODO_CALIDAD_TAMBIEN else [])
 if CARGAR_TEXTURA:
-    pats += ["hunyuan3d-paint-v2-0/*", "hunyuan3d-delight-v2-0/*"]
+    pats += ["hunyuan3d-paint-v2-0-turbo/*", "hunyuan3d-paint-v2-0/*", "hunyuan3d-delight-v2-0/*"]
 snapshot_download("tencent/Hunyuan3D-2", allow_patterns=pats, max_workers=16)
 if CARGAR_MULTIVISTA:
-    snapshot_download("tencent/Hunyuan3D-2mv", allow_patterns=["hunyuan3d-dit-v2-mv/*"], max_workers=16)
+    snapshot_download("tencent/Hunyuan3D-2mv", allow_patterns=["hunyuan3d-dit-v2-mv-turbo/*"]
+                      + (["hunyuan3d-dit-v2-mv/*"] if MODO_CALIDAD_TAMBIEN else []), max_workers=16)
 print(f"Modelos descargados ({time.time()-t:.0f}s)")
 
 eng = get_engine()
 if P["preload_weights"]:
     eng.preload_weights()          # deja todos los pesos en la RAM
-eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=CARGAR_TEXTURA)
+eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=CARGAR_TEXTURA, want_turbo=True,
+         want_quality=MODO_CALIDAD_TAMBIEN)
 print("Todo listo. Sigue con la celda 4 o 5.")
 '''
 

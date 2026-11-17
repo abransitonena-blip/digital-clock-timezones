@@ -51,9 +51,12 @@ ap.add_argument("--video", default="Caminar")
 ap.add_argument("--video_res", type=int, default=1080)
 ap.add_argument("--samples", type=int, default=48)
 ap.add_argument("--turntable", type=int, default=1)
-ap.add_argument("--loops", type=int, default=3)
+ap.add_argument("--loops", type=int, default=2)
 ap.add_argument("--relieve", type=float, default=0.6,
                 help="fuerza del mapa de relieve (normal) sacado de la textura; 0 = sin relieve")
+ap.add_argument("--stage", default="all", choices=["all", "export", "video"],
+                help="export: archivos y vista previa; video: solo videos. "
+                     "Se lanzan los dos a la vez en procesos separados para ir el doble de rapido")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -369,15 +372,15 @@ if args.rig != "ninguno":
     activate(proxy)
     rm = proxy.modifiers.new("Remesh", "REMESH")
     rm.mode = "VOXEL"
-    rm.voxel_size = H / 180.0
+    rm.voxel_size = H / 150.0
     try:
         rm.adaptivity = 0.0
     except Exception:
         pass
     bpy.ops.object.modifier_apply(modifier=rm.name)
-    if len(proxy.data.polygons) > 120000:
+    if len(proxy.data.polygons) > 70000:
         dm = proxy.modifiers.new("Dec", "DECIMATE")
-        dm.ratio = 120000 / len(proxy.data.polygons)
+        dm.ratio = 70000 / len(proxy.data.polygons)
         bpy.ops.object.modifier_apply(modifier=dm.name)
     log("proxy de pesos", len(proxy.data.polygons), "caras")
 
@@ -780,6 +783,8 @@ files = {}
 
 
 def export(kind, fn, path):
+    if args.stage == "video":
+        return
     try:
         fn()
         files[kind] = os.path.basename(path)
@@ -1096,6 +1101,15 @@ def setup_render():
         pass
     scene.cycles.device = "GPU" if dev != "CPU" else "CPU"
     scene.cycles.samples = args.samples
+    # Rapidez: muestreo adaptativo, rebotes justos y datos persistentes entre cuadros
+    scene.cycles.use_adaptive_sampling = True
+    scene.cycles.adaptive_threshold = 0.03
+    scene.cycles.max_bounces = 4
+    scene.cycles.diffuse_bounces = 2
+    scene.cycles.glossy_bounces = 2
+    scene.cycles.transmission_bounces = 2
+    scene.cycles.transparent_max_bounces = 4
+    scene.render.use_persistent_data = True
     scene.cycles.use_denoising = True
     try:
         # OIDN (usa la GPU en Blender 4.2+); OptiX falla en algunas GPU de Colab
@@ -1167,6 +1181,8 @@ def set_video_output(path):
 
 
 videos_ok = True
+DO_VIDEOS = args.stage in ("all", "video")
+DO_PREVIEW = args.stage in ("all", "export")
 try:
     cam = setup_render()
 except Exception as e:
@@ -1174,7 +1190,7 @@ except Exception as e:
     INFO["avisos"].append(f"escena de render: {e}")
 
 dist = H * 2.6
-if videos_ok and arm is not None and ANIMS:
+if videos_ok and DO_VIDEOS and arm is not None and ANIMS:
     try:
         n = set_anim(args.video)
         aim(cam, math.radians(30), dist, H * 0.62)
@@ -1188,11 +1204,11 @@ if videos_ok and arm is not None and ANIMS:
     except Exception as e:
         INFO["avisos"].append(f"video animacion: {e}")
 
-if videos_ok and args.turntable:
+if videos_ok and DO_VIDEOS and args.turntable:
     try:
         if arm is not None:
             set_anim("Reposo" if "Reposo" in ANIMS else next(iter(ANIMS)))
-        frames = 120 if not args.fast else 4
+        frames = 96 if not args.fast else 4
         piv = bpy.data.objects.new("Pivote", None)
         scene.collection.objects.link(piv)
         cam.parent = None
@@ -1216,7 +1232,7 @@ if videos_ok and args.turntable:
         INFO["avisos"].append(f"video 360: {e}")
 
 # Vista previa PNG
-if videos_ok:
+if videos_ok and DO_PREVIEW:
     try:
         if arm is not None:
             set_anim("Pose_T" if "Pose_T" in ANIMS else next(iter(ANIMS)))
@@ -1237,6 +1253,7 @@ export("blend", _blend, p_blend)
 
 INFO["archivos"] = files
 INFO["segundos"] = round(time.time() - T0, 1)
-with open(os.path.join(OUT, "rig_info.json"), "w") as f:
+_info_name = "rig_info_video.json" if args.stage == "video" else "rig_info.json"
+with open(os.path.join(OUT, _info_name), "w") as f:
     json.dump(INFO, f, indent=2, ensure_ascii=False, default=str)
 log("listo", json.dumps(files))

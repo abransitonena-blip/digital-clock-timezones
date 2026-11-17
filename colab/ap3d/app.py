@@ -17,7 +17,8 @@ from .engine import get_engine
 
 ANIMS = ["Caminar", "Correr", "Saludar", "Saltar", "Bailar", "Reposo"]
 PRESETS = {
-    # nombre: (pasos, octree, caras, textura)
+    # nombre: (pasos, octree, caras, textura). 10 pasos o menos = modelo Turbo
+    "Turbo": (5, 384, 100000, 2048),
     "Rapido": (25, 256, 40000, 2048),
     "Alta": (40, 384, 80000, 2048),
     "Maxima": (50, 512, 150000, 4096),
@@ -45,6 +46,10 @@ def _summary(info):
         f"({info.get('segundos_forma')} s) · Textura IA: "
         f"{'si' if info.get('textura_ia') else 'no'} ({info.get('segundos_textura')} s) · "
         f"Render: {info.get('render', '-')}",
+        f"⏱ Tiempos: forma {info.get('segundos_forma', '?')} s"
+        f"{' (Turbo)' if info.get('turbo') else ''} · textura {info.get('segundos_textura', '?')} s · "
+        f"Blender (archivos + videos en paralelo) {info.get('segundos_blender', '?')} s · "
+        f"**total {info.get('segundos_total', '?')} s**",
     ]
     if info.get("animaciones"):
         lines.append("Animaciones: " + ", ".join(info["animaciones"]))
@@ -92,10 +97,28 @@ def _outputs(d, info, seed):
     return (viewer_html(d), vid, p("video_giro360.mp4"), files, _summary(info), seed)
 
 
+
+def progress_html(frac, msg, t0, done=False, error=None):
+    pct = max(0, min(100, int(round(frac * 100))))
+    el = time.time() - t0
+    eta = (el / frac * (1 - frac)) if frac > 0.03 and not done else None
+    col = "#e5484d" if error else ("#1f9d6b" if done else "#5b5bf0")
+    txt = (f"❌ {error}" if error else
+           f"✅ Listo en {el:.0f} s" if done else
+           f"{msg} · {el:.0f} s" + (f" · faltan ~{eta:.0f} s" if eta is not None else ""))
+    return (f"<div style='background:#20222b;border:1px solid #2a2d36;border-radius:12px;"
+            f"padding:10px 14px;font-family:system-ui;color:#e8e9ee'>"
+            f"<div style='display:flex;justify-content:space-between;margin-bottom:6px'>"
+            f"<span>{txt}</span><b style='font-size:20px;color:{col}'>{pct}%</b></div>"
+            f"<div style='height:10px;background:#17181d;border-radius:6px;overflow:hidden'>"
+            f"<div style='width:{pct}%;height:100%;background:{col};transition:width .4s;"
+            f"{'' if done or error else 'background-image:linear-gradient(90deg,#5b5bf0,#9b7bff,#5b5bf0);background-size:200% 100%;animation:apmv 1.5s linear infinite;'}'></div></div>"
+            "<style>@keyframes apmv{from{background-position:0 0}to{background-position:-200% 0}}</style></div>")
+
+
 def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
              faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
-             video_res, samples, turntable, texture, relieve_on, relieve,
-             progress=gr.Progress()):
+             video_res, samples, turntable, texture, relieve_on, relieve):
     if front is None and sheet is None:
         raise gr.Error("Sube al menos la foto de frente (o una hoja de vistas).")
     if rand_seed:
@@ -104,17 +127,37 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
     if front is None:          # solo hoja de vistas
         parts = eng.split_sheet(sheet, sheet_order)
         front = parts.get("front")
-    try:
-        res = eng.run(front, back, left, right, sheet, sheet_order, remove_bg,
-                      steps, octree, faces, int(tex), seed, guidance, RIGS.get(rig, rig),
-                      height, rotate, video, video_res, samples, turntable, texture,
-                      relieve=float(relieve) if relieve_on else 0.0,
-                      progress=lambda f, m: progress(f, desc=m))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise gr.Error(f"Fallo: {e}")
-    return _outputs(res["dir"], res["info"], int(seed))
+    st = {"f": 0.0, "m": "Preparando", "res": None, "err": None}
+    t0 = time.time()
+
+    def prog(fr, m):
+        st["f"] = max(st["f"], float(fr))
+        st["m"] = m
+
+    def work():
+        try:
+            st["res"] = eng.run(front, back, left, right, sheet, sheet_order, remove_bg,
+                                steps, octree, faces, int(tex), seed, guidance,
+                                RIGS.get(rig, rig), height, rotate, video, video_res,
+                                samples, turntable, texture,
+                                relieve=float(relieve) if relieve_on else 0.0,
+                                turbo=int(steps) <= 10, progress=prog)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            st["err"] = str(e)
+
+    th = threading.Thread(target=work, daemon=True)
+    th.start()
+    keep = (gr.update(),) * 4
+    while th.is_alive():
+        yield keep + (gr.update(), gr.update(), progress_html(st["f"], st["m"], t0))
+        th.join(0.5)
+    if st["err"]:
+        yield keep + (gr.update(), gr.update(), progress_html(st["f"], "", t0, error=st["err"]))
+        return
+    r = st["res"]
+    yield _outputs(r["dir"], r["info"], int(seed)) + (progress_html(1, "", t0, done=True),)
 
 
 def batch(files, rig, video, progress=gr.Progress()):
@@ -183,6 +226,77 @@ def resources():
         return str(ex)
 
 
+_HIST = {"t": [], "gpu": [], "vram": [], "ram": [], "cpu": [], "temp": []}
+
+
+def _sample():
+    import psutil
+    g = v = tp = pw = 0.0
+    try:
+        o = subprocess.run("nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total,"
+                           "temperature.gpu,power.draw --format=csv,noheader,nounits",
+                           shell=True, capture_output=True, text=True, timeout=3).stdout
+        a = [float(x) for x in o.strip().split("\n")[0].split(",")]
+        g, v, tp, pw = a[0], 100 * a[1] / max(a[2], 1), a[3], a[4]
+        vram_txt = f"{a[1] / 1024:.1f}/{a[2] / 1024:.0f} GB"
+    except Exception:
+        vram_txt = "sin GPU"
+    vm = psutil.virtual_memory()
+    vals = dict(gpu=g, vram=v, ram=vm.percent, cpu=psutil.cpu_percent(), temp=tp)
+    for k_, x in vals.items():
+        _HIST[k_].append(x)
+        del _HIST[k_][:-90]
+    return vals, vram_txt, vm, pw
+
+
+def monitor_html():
+    """Grafica en vivo (90 s). Rojo cuando algo pasa del limite o hay cola."""
+    try:
+        vals, vram_txt, vm, pw = _sample()
+    except Exception as e:
+        return f"<div style='color:#9a9daa'>Monitor no disponible: {e}</div>"
+    eng = get_engine()
+    jobs = getattr(eng, "jobs", {"activos": 0, "en_cola": 0})
+    LIM = dict(gpu=97, vram=92, ram=90, cpu=95, temp=83)
+    series = [("GPU", "gpu", "#5b5bf0", "%"), ("VRAM", "vram", "#9b7bff", "%"),
+              ("RAM", "ram", "#1f9d6b", "%"), ("CPU", "cpu", "#e0a030", "%"),
+              ("Temp", "temp", "#4fb3d9", "°C")]
+    W, H = 600, 90
+    paths, chips = [], []
+    alert = []
+    for name, k_, col, u in series:
+        h = _HIST[k_]
+        over = h and h[-1] >= LIM[k_]
+        c = "#e5484d" if over else col
+        if over:
+            alert.append(name)
+        if len(h) > 1:
+            pts = " ".join(f"{W * i / 89:.1f},{H - H * min(x, 100) / 100:.1f}"
+                           for i, x in enumerate(h[-90:]))
+            paths.append(f"<polyline points='{pts}' fill='none' stroke='{c}' "
+                         f"stroke-width='{2.5 if over else 1.6}'/>")
+        chips.append(f"<span style='padding:3px 9px;border-radius:12px;background:"
+                     f"{'#e5484d33' if over else '#2a2d36'};color:{c};border:1px solid "
+                     f"{c if over else '#2a2d36'}'>{name} <b>{h[-1]:.0f}{u}</b></span>")
+    cola = jobs.get("en_cola", 0)
+    if cola > 0:
+        alert.append(f"{cola} en cola")
+    chips.append(f"<span style='padding:3px 9px;border-radius:12px;background:"
+                 f"{'#e5484d33' if cola else '#2a2d36'};color:{'#e5484d' if cola else '#e8e9ee'}'>"
+                 f"Trabajos <b>{jobs.get('activos', 0)}</b> · cola <b>{cola}</b></span>")
+    lim_line = f"<line x1='0' x2='{W}' y1='{H * 0.1}' y2='{H * 0.1}' stroke='#e5484d55' stroke-dasharray='4 4'/>"
+    head = ("<b style='color:#e5484d'>⚠ Saturado: " + ", ".join(alert) + "</b>") if alert \
+        else "<span style='color:#1f9d6b'>● Todo normal</span>"
+    return (f"<div style='background:#20222b;border:1px solid {'#e5484d' if alert else '#2a2d36'};"
+            f"border-radius:12px;padding:8px 12px;font:13px system-ui;color:#e8e9ee'>"
+            f"<div style='display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px'>{head}"
+            f"<span style='color:#9a9daa'>VRAM {vram_txt} · RAM {vm.used / 2**30:.0f}/"
+            f"{vm.total / 2**30:.0f} GB · {pw:.0f} W</span></div>"
+            f"<svg viewBox='0 0 {W} {H}' preserveAspectRatio='none' style='width:100%;height:70px;"
+            f"margin:6px 0'>{lim_line}{''.join(paths)}</svg>"
+            f"<div style='display:flex;gap:6px;flex-wrap:wrap'>{''.join(chips)}</div></div>")
+
+
 CSS = """
 body, .gradio-container {background:#17181d !important}
 .gradio-container {max-width:1500px !important; color:#e8e9ee}
@@ -213,7 +327,7 @@ def build_ui():
         button_secondary_background_fill_dark="#2c2f3a", button_secondary_text_color_dark="#e8e9ee",
         checkbox_label_background_fill="#2a2d36", checkbox_label_background_fill_dark="#2a2d36",
         checkbox_label_text_color="#e8e9ee", checkbox_label_text_color_dark="#e8e9ee")
-    best = "Maxima" if P["vram_gb"] >= 38 else ("Alta" if P["vram_gb"] >= 20 else "Rapido")
+    best = "Turbo"
     with gr.Blocks(title="AP Model 3D Foto", theme=theme, css=CSS,
                    js="()=>{document.body.classList.add('dark')}") as demo:
         with gr.Row(elem_id="hdr"):
@@ -244,8 +358,10 @@ def build_ui():
                             relieve_on = gr.Checkbox(True, label="Relieve realista desde la textura")
                             relieve = gr.Slider(0.1, 2.0, 0.6, step=0.1, label="Intensidad")
                         with gr.Accordion("Calidad", open=False):
-                            preset = gr.Radio(list(PRESETS), value=best, label="Preajuste")
-                            tex = gr.Dropdown(["1024", "2048", "4096"], value=str(P["tex"]),
+                            preset = gr.Radio(list(PRESETS), value=best, label="Preajuste",
+                                              info="Turbo: forma en segundos (5 pasos + FlashVDM). "
+                                                   "Maxima: 50 pasos, mas detalle, mas lento")
+                            tex = gr.Dropdown(["1024", "2048", "4096"], value=str(PRESETS[best][3]),
                                               label="Textura (px)")
                             with gr.Row():
                                 remove_bg = gr.Checkbox(True, label="Quitar fondo")
@@ -264,9 +380,11 @@ def build_ui():
                         h_out = gr.File(file_count="multiple", label="ZIPs guardados")
                     with gr.Tab("Avanzado"):
                         with gr.Row():
-                            steps = gr.Slider(10, 100, P["steps"], step=1, label="Pasos")
-                            octree = gr.Slider(192, 640, P["octree"], step=32, label="Octree")
-                        faces = gr.Slider(10000, 400000, P["faces"], step=5000, label="Caras máximas")
+                            steps = gr.Slider(3, 100, PRESETS[best][0], step=1,
+                                              label="Pasos (≤10 = Turbo)")
+                            octree = gr.Slider(192, 640, PRESETS[best][1], step=32, label="Octree")
+                        faces = gr.Slider(10000, 400000, PRESETS[best][2], step=5000,
+                                          label="Caras máximas")
                         with gr.Row():
                             seed = gr.Number(1234, label="Semilla", precision=0)
                             rand_seed = gr.Checkbox(False, label="Aleatoria")
@@ -287,6 +405,8 @@ def build_ui():
                         r_out = gr.Markdown()
             # ------------------------------------------------ escenario
             with gr.Column(scale=7, elem_id="stage"):
+                mon = gr.HTML(monitor_html())
+                prog = gr.HTML(progress_html(0, "Esperando foto", time.time()))
                 view = gr.HTML(viewer_html())
                 status = gr.Markdown("")
                 with gr.Accordion("Videos", open=False):
@@ -306,7 +426,10 @@ def build_ui():
                   [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                    faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                    video_res, samples, turntable, texture, relieve_on, relieve],
-                  outs, concurrency_limit=P["workers"], concurrency_id="gen")
+                  outs + [prog], concurrency_limit=P["workers"], concurrency_id="gen",
+                  show_progress="hidden")
+        timer = gr.Timer(1.0)
+        timer.tick(monitor_html, None, mon, show_progress="hidden", queue=False)
         g_btn.click(lambda: (my_models(), history()), None, [gal, h_out])
         gal.select(open_model, None, outs)
         b_btn.click(batch, [b_files, b_rig, b_video], [b_out, b_log], concurrency_id="gen")

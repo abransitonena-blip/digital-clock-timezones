@@ -17,6 +17,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import threading
@@ -40,10 +41,16 @@ class Engine:
         self.rembg = None
         self.shape = None
         self.shape_mv = None
+        self.shape_t = None
+        self.shape_mv_t = None
         self.paint = None
+        self.paint_kind = ""
+        self.jobs = {"activos": 0, "en_cola": 0}
+        # tiempos medidos (media movil) para estimar cuanto falta
+        self.eta = {"forma": 8.0, "textura": 35.0, "blender": 60.0}
         self.cache = {}
         self.ready = False
-        self.blender_pool = cf.ThreadPoolExecutor(max_workers=self.p["workers"])
+        self.blender_pool = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
         os.makedirs(config.OUT_DIR, exist_ok=True)
 
     # ------------------------------------------------------------ carga
@@ -76,45 +83,91 @@ class Engine:
                  f"{time.time() - t:.0f}s")
         return total
 
-    def load(self, want_mv=True, want_paint=True):
+    def _shape_pipe(self, repo, sub, turbo):
+        from hy3dgen.shapegen import Hunyuan3DDiTFlowMatchingPipeline
+        pipe = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
+            repo, subfolder=sub, use_safetensors=True)
+        if turbo:
+            # FlashVDM: decodifica la malla ~10x mas rapido
+            try:
+                pipe.enable_flashvdm(mc_algo="mc")
+            except TypeError:
+                try:
+                    pipe.enable_flashvdm()
+                except Exception as e:
+                    self.log("  FlashVDM no disponible:", e)
+            except Exception as e:
+                self.log("  FlashVDM no disponible:", e)
+        return pipe
+
+    def load(self, want_mv=True, want_paint=True, want_turbo=True, want_quality=None):
+        """Carga los modelos. Turbo (5 pasos + FlashVDM) es el modo por defecto:
+        la forma sale en segundos. Con GPU grande tambien queda cargado el
+        modelo normal (50 pasos) para el modo Calidad."""
         import torch
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
         torch.backends.cudnn.benchmark = True
         from hy3dgen.rembg import BackgroundRemover
-        from hy3dgen.shapegen import Hunyuan3DDiTFlowMatchingPipeline
+        if want_quality is None:
+            want_quality = self.p["all_on_gpu"] or not want_turbo
 
         t = time.time()
         if self.rembg is None:
             self.rembg = BackgroundRemover()
-        if self.shape is None:
-            self.log("Cargando Hunyuan3D-2 (forma, 1 foto)...")
-            self.shape = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
-                "tencent/Hunyuan3D-2", subfolder="hunyuan3d-dit-v2-0",
-                use_safetensors=True)
-        if want_mv and self.shape_mv is None:
-            self.log("Cargando Hunyuan3D-2mv (forma, varias vistas)...")
+        if want_turbo and self.shape_t is None:
+            self.log("Cargando Hunyuan3D-2 Turbo (forma rapida)...")
             try:
-                self.shape_mv = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
-                    "tencent/Hunyuan3D-2mv", subfolder="hunyuan3d-dit-v2-mv",
-                    use_safetensors=True)
+                self.shape_t = self._shape_pipe("tencent/Hunyuan3D-2",
+                                                "hunyuan3d-dit-v2-0-turbo", True)
+            except Exception as e:
+                self.log("  Turbo no disponible:", e)
+                want_quality = True
+        if want_quality and self.shape is None:
+            self.log("Cargando Hunyuan3D-2 (forma, calidad)...")
+            self.shape = self._shape_pipe("tencent/Hunyuan3D-2", "hunyuan3d-dit-v2-0", False)
+        if want_mv and want_turbo and self.shape_mv_t is None:
+            self.log("Cargando Hunyuan3D-2mv Turbo (varias vistas)...")
+            try:
+                self.shape_mv_t = self._shape_pipe("tencent/Hunyuan3D-2mv",
+                                                   "hunyuan3d-dit-v2-mv-turbo", True)
+            except Exception as e:
+                self.log("  2mv Turbo no disponible:", e)
+        if want_mv and (want_quality or self.shape_mv_t is None) and self.shape_mv is None:
+            self.log("Cargando Hunyuan3D-2mv (varias vistas, calidad)...")
+            try:
+                self.shape_mv = self._shape_pipe("tencent/Hunyuan3D-2mv",
+                                                 "hunyuan3d-dit-v2-mv", False)
             except Exception as e:
                 self.log("  2mv no disponible, se usara solo 1 foto:", e)
         if want_paint and self.paint is None:
-            self.log("Cargando Hunyuan3D-Paint (textura)...")
-            try:
-                from hy3dgen.texgen import Hunyuan3DPaintPipeline
-                self.paint = Hunyuan3DPaintPipeline.from_pretrained("tencent/Hunyuan3D-2")
+            from hy3dgen.texgen import Hunyuan3DPaintPipeline
+            subs = (["hunyuan3d-paint-v2-0-turbo"] if want_turbo else []) + ["hunyuan3d-paint-v2-0"]
+            for sub in subs:
+                self.log(f"Cargando Hunyuan3D-Paint ({'turbo' if 'turbo' in sub else 'normal'})...")
+                try:
+                    try:
+                        self.paint = Hunyuan3DPaintPipeline.from_pretrained(
+                            "tencent/Hunyuan3D-2", subfolder=sub)
+                    except TypeError:
+                        if "turbo" in sub:
+                            raise
+                        self.paint = Hunyuan3DPaintPipeline.from_pretrained("tencent/Hunyuan3D-2")
+                    self.paint_kind = sub
+                    break
+                except Exception as e:
+                    self.log("  no disponible:", e)
+                    self.paint = None
+            if self.paint is not None:
                 self._set_texture_size(self.p["tex"])
                 if self.p["offload"]:
                     self.paint.enable_model_cpu_offload()
-            except Exception as e:
-                self.log("  Textura IA no disponible (se exporta con color "
-                         "proyectado de la foto):", e)
-                self.paint = None
-        if not self.p["all_on_gpu"] and self.shape_mv is not None:
-            # GPU chica: el modelo multivista espera en la RAM
-            self.shape_mv.to("cpu")
+            else:
+                self.log("  Textura IA no disponible (color proyectado de la foto)")
+        if not self.p["all_on_gpu"]:
+            for p in (self.shape_mv, self.shape_mv_t, self.shape):
+                if p is not None and p is not self.shape_t:
+                    p.to("cpu")
         self.ready = True
         self.log(f"Modelos listos en {time.time() - t:.0f}s")
         self.log_mem()
@@ -224,20 +277,27 @@ class Engine:
             mesh = FaceReducer()(mesh, max_facenum=max_faces)
         return mesh
 
-    def shape_from(self, views, steps, octree, seed, guidance):
+    def shape_from(self, views, steps, octree, seed, guidance, turbo=True):
         import torch
         multi = {k: v for k, v in views.items() if v is not None}
-        use_mv = self.shape_mv is not None and len(multi) > 1
-        pipe = self.shape_mv if use_mv else self.shape
+        want_mv = len(multi) > 1
+        cands = ([self.shape_mv_t, self.shape_mv] if turbo else [self.shape_mv, self.shape_mv_t]) \
+            if want_mv else []
+        cands += [self.shape_t, self.shape] if turbo else [self.shape, self.shape_t]
+        pipe = next(p for p in cands if p is not None)
+        use_mv = pipe in (self.shape_mv, self.shape_mv_t)
+        is_t = pipe in (self.shape_t, self.shape_mv_t)
+        if is_t:
+            steps = min(int(steps), 8) if int(steps) <= 10 else 5
         if not self.p["all_on_gpu"]:
-            other = self.shape if use_mv else self.shape_mv
-            if other is not None:
-                other.to("cpu")
+            for other in (self.shape, self.shape_t, self.shape_mv, self.shape_mv_t):
+                if other is not None and other is not pipe:
+                    other.to("cpu")
             pipe.to("cuda")
             torch.cuda.empty_cache()
         img = multi if use_mv else views["front"]
         g = torch.Generator(device="cuda").manual_seed(int(seed))
-        with torch.inference_mode():
+        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.float16):
             mesh = pipe(image=img, num_inference_steps=int(steps),
                         octree_resolution=int(octree), num_chunks=self.p["chunks"],
                         guidance_scale=float(guidance), generator=g,
@@ -275,7 +335,7 @@ class Engine:
             steps=None, octree=None, faces=None, tex=None, seed=1234,
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
-            texture=True, relieve=0.6, progress=lambda f, m: None):
+            texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None):
         if not self.ready:
             self.load()
         P = self.p
@@ -299,7 +359,8 @@ class Engine:
         opts = dict(steps=steps, octree=octree, faces=faces, tex=tex, seed=int(seed),
                     guidance=guidance, rig=rig, height=height, rotate=rotate,
                     video=video, video_res=video_res, samples=samples,
-                    turntable=bool(turntable), texture=bool(texture), relieve=float(relieve))
+                    turntable=bool(turntable), texture=bool(texture), relieve=float(relieve),
+                    turbo=bool(turbo))
         k = self.key(views, opts)
         if k in self.cache and os.path.isdir(self.cache[k]["dir"]):
             self.log("Resultado en cache:", k)
@@ -311,34 +372,89 @@ class Engine:
             if v is not None:
                 v.save(os.path.join(work, f"vista_{n}.png"))
 
-        with GPU_LOCK:
-            progress(0.08, "Generando la forma 3D con IA" +
-                     (" (varias vistas)" if sum(v is not None for v in views.values()) > 1 else ""))
-            ts = time.time()
-            mesh, used_mv = self.shape_from(views, steps, octree, seed, guidance)
-            t_shape = time.time() - ts
-            progress(0.40, "Limpiando y cerrando agujeros")
-            mesh = self._repair(mesh, faces)
-            mesh.export(os.path.join(work, "arcilla.glb"))
-            progress(0.48, "Pintando la textura con IA (frente y espalda)")
-            ts = time.time()
-            textured, ok_tex = self.texture(mesh, views, tex) if texture else (mesh, False)
-            t_tex = time.time() - ts
-            textured.export(os.path.join(work, "modelo_texturizado.glb"))
-            try:
-                import torch
-                torch.cuda.empty_cache()
-            except Exception:
-                pass
+        E = self.eta
+        # Reparto del 100 % segun lo que tardo cada fase la vez anterior
+        tot = E["forma"] + (E["textura"] if texture else 0) + E["blender"] + 4
+        f_shape = 0.04 + 0.90 * E["forma"] / tot
+        f_tex = f_shape + 0.90 * (E["textura"] if texture else 0) / tot
 
-        # Blender fuera del candado: la GPU queda libre para la siguiente foto
-        progress(0.70, "Blender: esqueleto, pesos, animaciones y video")
+        def tick(a, b, secs, msg, stop):
+            """Avanza la barra suavemente dentro de una fase larga."""
+            t1 = time.time()
+            while not stop.is_set():
+                x = min(0.95, (time.time() - t1) / max(secs, 1))
+                progress(a + (b - a) * x, msg)
+                stop.wait(0.5)
+
+        def phase(a, b, secs, msg, fn):
+            stop = threading.Event()
+            th = threading.Thread(target=tick, args=(a, b, secs, msg, stop), daemon=True)
+            th.start()
+            try:
+                return fn()
+            finally:
+                stop.set()
+                th.join()
+
+        self.jobs["en_cola"] += 1
+        if GPU_LOCK.locked():
+            progress(0.03, "En cola: la GPU termina otro modelo")
+        with GPU_LOCK:
+            self.jobs["en_cola"] -= 1
+            self.jobs["activos"] += 1
+            try:
+                nv = sum(v is not None for v in views.values())
+                ts = time.time()
+                mesh, used_mv = phase(0.05, f_shape, E["forma"],
+                                      "Generando la forma 3D" + (" (varias vistas)" if nv > 1 else "")
+                                      + (" · Turbo" if turbo else ""),
+                                      lambda: self.shape_from(views, steps, octree, seed,
+                                                              guidance, turbo))
+                t_shape = time.time() - ts
+                progress(f_shape, "Limpiando y cerrando agujeros")
+                mesh = self._repair(mesh, faces)
+                mesh.export(os.path.join(work, "arcilla.glb"))
+                ts = time.time()
+                if texture:
+                    textured, ok_tex = phase(f_shape + 0.01, f_tex, E["textura"],
+                                             "Pintando la textura con IA",
+                                             lambda: self.texture(mesh, views, tex))
+                else:
+                    textured, ok_tex = mesh, False
+                t_tex = time.time() - ts
+                textured.export(os.path.join(work, "modelo_texturizado.glb"))
+                try:
+                    import torch
+                    torch.cuda.empty_cache()
+                except Exception:
+                    pass
+            finally:
+                self.jobs["activos"] -= 1
+        E["forma"] = 0.5 * E["forma"] + 0.5 * t_shape
+        if texture and ok_tex:
+            E["textura"] = 0.5 * E["textura"] + 0.5 * t_tex
+
+        # Blender fuera del candado (la GPU ya genera la siguiente foto).
+        # Dos procesos a la vez: uno exporta archivos, el otro renderiza videos.
         out = os.path.join(config.OUT_DIR, time.strftime("%Y%m%d_%H%M%S_") + k)
         os.makedirs(out, exist_ok=True)
-        fut = self.blender_pool.submit(
-            self.blender, os.path.join(work, "modelo_texturizado.glb"), out,
-            rig, height, rotate, video, video_res, samples, turntable, relieve)
-        blog = fut.result()
+        tb = time.time()
+        inp = os.path.join(work, "modelo_texturizado.glb")
+        stages = ["export", "video"] if (turntable or rig != "ninguno") else ["export"]
+        state = {s_: 0.0 for s_ in stages}
+        lock = threading.Lock()
+
+        def bprog(stage, x, msg):
+            with lock:
+                state[stage] = max(state[stage], x)
+                avg = sum(state.values()) / len(state)
+            progress(f_tex + (0.97 - f_tex) * avg, msg)
+
+        futs = [self.blender_pool.submit(
+            self.blender, inp, out, rig, height, rotate, video, video_res, samples,
+            turntable, relieve, st, lambda x, m, st=st: bprog(st, x, m)) for st in stages]
+        blog = "\n\n".join(f_.result() for f_ in futs)
+        E["blender"] = 0.5 * E["blender"] + 0.5 * (time.time() - tb)
 
         shutil.copy(os.path.join(HERE, "estudio.html"), out)
         for f in ("arcilla.glb", "modelo_texturizado.glb") + tuple(
@@ -350,33 +466,82 @@ class Engine:
         ip = os.path.join(out, "rig_info.json")
         if os.path.exists(ip):
             info = json.load(open(ip))
+        ipv = os.path.join(out, "rig_info_video.json")
+        if os.path.exists(ipv):
+            iv = json.load(open(ipv))
+            info.setdefault("archivos", {}).update(iv.get("archivos", {}))
+            info.setdefault("avisos", []).extend(a for a in iv.get("avisos", [])
+                                                if a not in info.get("avisos", []))
+            os.remove(ipv)
         info.update(multivista=used_mv, textura_ia=ok_tex, segundos_forma=round(t_shape, 1),
-                    segundos_textura=round(t_tex, 1), segundos_total=round(time.time() - t0, 1),
+                    segundos_textura=round(t_tex, 1),
+                    segundos_blender=round(time.time() - tb, 1),
+                    segundos_total=round(time.time() - t0, 1), turbo=bool(turbo),
                     ajustes=opts, perfil=P["perfil"], gpu=P["gpu"])
         json.dump(info, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
         open(os.path.join(out, "blender.log"), "w").write(blog)
-        progress(0.97, "Empaquetando ZIP")
+        progress(0.98, "Empaquetando ZIP")
         zp = out + ".zip"
-        with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED) as z:
+        with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
             for f in sorted(os.listdir(out)):
-                z.write(os.path.join(out, f), f)
+                comp = zipfile.ZIP_STORED if f.endswith((".mp4", ".png", ".glb", ".blend")) \
+                    else zipfile.ZIP_DEFLATED
+                z.write(os.path.join(out, f), f, compress_type=comp)
         shutil.rmtree(work, ignore_errors=True)
+        progress(1.0, "Listo")
         res = dict(dir=out, zip=zp, info=info, key=k)
         self.cache[k] = res
         self.log_mem()
         return res
 
+    # Hitos del log de Blender -> avance (0..1) de cada proceso
+    MILESTONES = {
+        "export": [("malla", .05, "Blender: preparando la malla"),
+                   ("esqueleto", .12, "Blender: ajustando el esqueleto"),
+                   ("proxy de pesos", .18, "Blender: calculando pesos"),
+                   ("pesos reparados", .35, "Blender: pesos listos"),
+                   ("mapas de relieve", .40, "Blender: relieve"),
+                   ("exportado modelo_animado", .55, "Exportando GLB animado"),
+                   ("exportado modelo_rig.fbx", .65, "Exportando FBX"),
+                   ("exportado piezas", .72, "Piezas por hueso"),
+                   ("exportado pesos", .78, "Mapa de pesos"),
+                   ("exportado modelo_lod", .86, "Versiones ligeras (LOD)"),
+                   ("exportado modelo.blend", 1.0, "Archivo de Blender")],
+        "video": [("malla", .05, "Video: preparando escena"),
+                  ("pesos reparados", .25, "Video: esqueleto listo"),
+                  ("render animacion", .30, "Renderizando video de animacion"),
+                  ("render giro 360", .70, "Renderizando giro 360"),
+                  ("listo", 1.0, "Videos listos")],
+    }
+
     def blender(self, inp, out, rig, height, rotate, video, video_res, samples, turntable,
-                relieve=0.6):
+                relieve=0.6, stage="all", on_progress=None):
         cmd = [config.BLENDER, "-b", "--factory-startup", "-t", "0", "-P",
                os.path.join(HERE, "blender_rig.py"), "--", "--in", inp, "--out", out,
                "--rig", rig, "--height", str(height), "--rotate", str(rotate),
                "--video", video, "--video_res", str(video_res), "--samples", str(samples),
-               "--turntable", "1" if turntable else "0", "--relieve", str(relieve)]
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
-        logtxt = "\n".join(l for l in (r.stdout + "\n" + r.stderr).splitlines()
-                           if "Append frame" not in l and not l.startswith("Fra:"))
-        if r.returncode != 0:
+               "--turntable", "1" if turntable else "0", "--relieve", str(relieve),
+               "--stage", stage]
+        ms = self.MILESTONES.get(stage, self.MILESTONES["export"])
+        lines = []
+        pr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, bufsize=1)
+        done = 0
+        for line in pr.stdout:
+            if "Append frame" in line or line.startswith("Fra:"):
+                m = re.search(r"Append frame (\d+)", line)
+                if m and on_progress and stage == "video":
+                    on_progress(min(.95, .3 + int(m.group(1)) / 400), "Renderizando video")
+                continue
+            lines.append(line.rstrip())
+            if line.startswith("[rig") and on_progress:
+                for i, (key, x, msg) in enumerate(ms):
+                    if i >= done and key in line:
+                        done = i + 1
+                        on_progress(x, msg)
+        pr.wait()
+        logtxt = "\n".join(lines)
+        if pr.returncode != 0:
             self.log(logtxt[-3000:])
         return logtxt
 

@@ -50,15 +50,15 @@ def detect():
     if vram >= 70:      # A100 80 GB / H100
         p = dict(perfil="MAXIMO", octree=512, steps=50, chunks=400000,
                  faces=150000, tex=4096, render=2048, all_on_gpu=True,
-                 offload=False, video_res=1080, samples=64, workers=3)
+                 offload=False, video_res=1080, samples=24, workers=3)
     elif vram >= 38:    # A100 40 GB
         p = dict(perfil="ALTO", octree=448, steps=50, chunks=200000,
                  faces=120000, tex=4096, render=2048, all_on_gpu=True,
-                 offload=False, video_res=1080, samples=48, workers=2)
+                 offload=False, video_res=1080, samples=24, workers=2)
     elif vram >= 20:    # L4 24 GB
         p = dict(perfil="MEDIO", octree=384, steps=40, chunks=60000,
                  faces=80000, tex=2048, render=2048, all_on_gpu=False,
-                 offload=False, video_res=720, samples=32, workers=2)
+                 offload=False, video_res=720, samples=16, workers=2)
     else:               # T4 15 GB
         p = dict(perfil="BASICO", octree=256, steps=30, chunks=8000,
                  faces=40000, tex=2048, render=1024, all_on_gpu=False,
