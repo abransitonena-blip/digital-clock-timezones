@@ -46,6 +46,7 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Huesos de tela con movimiento secundario**: en túnicas, faldas y capas se crean 4 cadenas de huesos (frente, atrás, izquierda, derecha) que se balancean con retraso e inercia en cada animación. Queda grabado en GLB, FBX y .blend.
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Texto a 3D** (como Tripo): escribe una descripción y se crea la imagen con HunyuanDiT y luego el modelo.
+* **Textura rápida** (opción en Calidad, activa con Turbo): hornea a 1024 en lugar de 2048.
 * **Dos motores de forma**: Hunyuan3D-2 (Turbo, segundos) o **TripoSG** del equipo de Tripo AI (más detalle). Blender **4.5 LTS**.
 * **Malla reparada**: quita trozos sueltos, cierra agujeros y orienta las caras.
 * **Cero vértices sin peso**: si alguno queda suelto, copia el peso de su vecino; el informe dice cuántos vértices mueve cada hueso.

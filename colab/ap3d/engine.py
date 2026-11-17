@@ -73,6 +73,27 @@ def cleanup_outputs(keep=80, min_free_gb=10):
         pass
 
 
+def quiet_logs():
+    """Oculta avisos que no afectan al resultado (torch.range, pasos de
+    difusion, INFO de hy3dgen) para que el registro muestre solo el avance."""
+    import logging
+    import warnings
+    warnings.filterwarnings("ignore", message=".*torch.range.*")
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    for name in ("hy3dgen", "hy3dgen.shapgen", "hy3dgen.shapegen", "hy3dgen.texgen"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+    try:
+        from diffusers.utils import logging as dlog
+        dlog.set_verbosity_error()
+    except Exception:
+        pass
+    try:
+        from transformers.utils import logging as tlog
+        tlog.set_verbosity_error()
+    except Exception:
+        pass
+
+
 class Engine:
     def __init__(self, prof=None, log=print):
         self.p = prof or config.detect()
@@ -309,16 +330,16 @@ class Engine:
                            guidance_scale=float(guidance if guidance > 5 else 7.0)).samples[0]
         return trimesh.Trimesh(o[0].astype(np.float32), np.ascontiguousarray(o[1]))
 
-    def _set_texture_size(self, size):
+    def _set_texture_size(self, size, render=None):
         if self.paint is None:
             return
+        render = int(render or self.p["render"])
         try:
             from hy3dgen.texgen.differentiable_renderer.mesh_render import MeshRender
             self.paint.config.texture_size = size
-            self.paint.config.render_size = self.p["render"]
-            self.paint.render = MeshRender(default_resolution=self.p["render"],
-                                           texture_size=size)
-            self._tex = size
+            self.paint.config.render_size = render
+            self.paint.render = MeshRender(default_resolution=render, texture_size=size)
+            self._tex = (size, render)
         except Exception as e:
             self.log("No se pudo cambiar el tamano de textura:", e)
 
@@ -453,11 +474,13 @@ class Engine:
         return mesh, use_mv
 
     # ------------------------------------------------------------ textura
-    def texture(self, mesh, views, tex_size):
+    def texture(self, mesh, views, tex_size, render=None):
+        """render: resolucion interna del horneado. 1024 = textura rapida."""
         if self.paint is None:
             return mesh, False
-        if tex_size != getattr(self, "_tex", None):
-            self._set_texture_size(tex_size)
+        render = int(render or self.p["render"])
+        if (tex_size, render) != getattr(self, "_tex", None):
+            self._set_texture_size(tex_size, render)
         imgs = [views["front"]] + [views[k] for k in ("back", "left", "right") if views.get(k)]
         try:
             # Varias referencias (frente + espalda...) si la version lo admite
@@ -484,8 +507,9 @@ class Engine:
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
             texture=True, relieve=0.8, turbo=True, progress=lambda f, m: None, on_partial=None,
-            videos=False, on_stage=None, detalle=True, motor="hunyuan"):
+            videos=False, on_stage=None, detalle=True, motor="hunyuan", tex_rapida=False):
         self._ensure()
+        quiet_logs()
         if not self.ready:
             self.load()
         P = self.p
@@ -510,7 +534,8 @@ class Engine:
                     guidance=guidance, rig=rig, height=height, rotate=rotate,
                     video=video, video_res=video_res, samples=samples,
                     turntable=bool(turntable), texture=bool(texture), relieve=float(relieve),
-                    turbo=bool(turbo), videos=bool(videos), detalle=bool(detalle), motor=motor)
+                    turbo=bool(turbo), videos=bool(videos), detalle=bool(detalle), motor=motor,
+                    tex_rapida=bool(tex_rapida))
         k = self.key(views, opts)
         if k in self.cache and os.path.isdir(self.cache[k]["dir"]):
             self.log("Resultado en cache:", k)
@@ -588,7 +613,8 @@ class Engine:
                 if texture:
                     textured, ok_tex = phase(f_shape + 0.01, f_tex, E["textura"],
                                              "Pintando la textura con IA",
-                                             lambda: self.texture(mesh, views, tex))
+                                             lambda: self.texture(mesh, views, tex,
+                                                                  1024 if tex_rapida else None))
                 else:
                     textured, ok_tex = mesh, False
                 t_tex = time.time() - ts

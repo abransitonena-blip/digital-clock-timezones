@@ -143,7 +143,8 @@ def _exists(d, f):
 def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-               detalle=True, motor="Hunyuan3D (rápido)", prompt="", progress=gr.Progress()):
+               detalle=True, motor="Hunyuan3D (rápido)", prompt="", tex_rapida=False,
+               progress=gr.Progress()):
     """Etapa 1: lanza el trabajo y devuelve la malla en cuanto existe."""
     if rand_seed:
         seed = random.randint(0, 2**31 - 1)
@@ -183,7 +184,8 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
                                 turbo=int(steps) <= 10, progress=prog,
                                 videos=bool(make_videos), on_stage=on_stage,
                                 detalle=bool(detalle),
-                                motor="triposg" if str(motor).startswith("Tripo") else "hunyuan")
+                                motor="triposg" if str(motor).startswith("Tripo") else "hunyuan",
+                                tex_rapida=bool(tex_rapida))
             st["dir"] = st["res"]["dir"]
         except Exception as e:
             import traceback
@@ -455,6 +457,9 @@ def build_ui():
                                                    "con menos caras). Maxima: 50 pasos, el mas lento")
                             tex = gr.Dropdown(["1024", "2048", "4096"], value=str(PRESETS[best][3]),
                                               label="Textura (px)")
+                            tex_rapida = gr.Checkbox(False, label="Textura rápida",
+                                                     info="Hornea a 1024 en vez de 2048: tarda "
+                                                          "menos y los colores salen algo menos nítidos")
                             with gr.Row():
                                 remove_bg = gr.Checkbox(True, label="Quitar fondo")
                                 texture = gr.Checkbox(True, label="Textura con IA")
@@ -525,12 +530,13 @@ def build_ui():
             return s, o, f, str(t)
 
         preset.change(apply_preset, preset, [steps, octree, faces, tex])
+        preset.change(lambda n: n == "Turbo", preset, tex_rapida)
         final_outs = [view, tabs, m_clay, m_tex, v_anim, v_360, out_files, status, mon]
         (btn.click(step_malla,
                    [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                     faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                     video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-                    detalle, motor, prompt],
+                    detalle, motor, prompt, tex_rapida],
                    [front, job, m_clay, tabs, status, seed], concurrency_id="gen",
                    concurrency_limit=P["workers"], **_spo(status))
             .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",
