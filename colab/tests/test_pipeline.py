@@ -181,6 +181,9 @@ def test_clasificacion_auto():
                        ("busto", busto, lambda d: d["rig"] != "ninguno"),
                        ("persona_auto", _denso(_persona(), 2), lambda d: d["rig"] == "humanoide")):
         glb = os.path.join(TMP, nom + ".glb")
+        m = m.copy()
+        # glTF es Y-arriba (como sale de Hunyuan): Z de la prueba -> Y
+        m.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, (1, 0, 0)))
         m.export(glb)
         d = blender(glb, os.path.join(TMP, nom), "--rig", "auto", "--tipo_activo", "auto",
                     "--roblox_tris", "0")
@@ -207,7 +210,9 @@ def test_personaje():
     cuello.apply_translation((0, 0, 1.6))
     partes.append(cuello)
     glb = os.path.join(TMP, "persona.glb")
-    trimesh.util.concatenate(partes).export(glb)
+    pm = trimesh.util.concatenate(partes)
+    pm.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, (1, 0, 0)))   # Y arriba
+    pm.export(glb)
     out = os.path.join(TMP, "persona")
     d = blender(glb, out, "--rig", "auto", "--tipo_activo", "character", "--height", "1.75",
                 "--roblox_tris", "0")
