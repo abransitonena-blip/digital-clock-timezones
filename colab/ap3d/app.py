@@ -34,7 +34,9 @@ def _files(d):
              "piezas.glb", "pesos.glb", "arcilla.glb", "rig_info.json"]
     fs = [os.path.join(d, f) for f in order if os.path.exists(os.path.join(d, f))]
     fs += [f for f in sorted(glob.glob(os.path.join(d, "*")))
-           if f not in fs and not f.endswith((".log",))]
+           if f not in fs and os.path.isfile(f) and not f.endswith((".log",))]
+    # carpeta obj/: sus archivos sueltos (Gradio no acepta carpetas)
+    fs += sorted(f for f in glob.glob(os.path.join(d, "obj", "*")) if os.path.isfile(f))
     return fs
 
 
@@ -895,7 +897,7 @@ def build_ui():
                                                    "estatuas). Prop articulado: partes rígidas que se "
                                                    "mueven (ruedas, puertas). Personaje: rig Mixamo.")
                             altura_prop = gr.Slider(0.05, 3.0, 0.40, step=0.01,
-                                                    label="Altura real del prop (m)")
+                                                    label="Tamaño real del prop (m): altura, o el lado mayor si está acostado")
                             detalle = gr.Checkbox(True, label="Esqueleto detallado",
                                                   info="Dedos de manos y pies, ojos y mandíbula "
                                                        "(66 huesos en vez de 23)")

@@ -140,14 +140,18 @@ DENSIDADES = {"humanoide": 985.0, "cuadrupedo": 1000.0, "cabeza": 1100.0, "objet
               "vehiculo": 150.0, "mueble": 450.0}   # auto: carroceria hueca, ~1.2-1.6 t
 
 
-def physics_data(mesh, height_m, tipo="humanoide"):
+def physics_data(mesh, height_m, tipo="humanoide", dims_reales=None):
     """Datos fisicos del modelo a su tamano real (Y arriba):
     volumen, masa aproximada, centro de masa, base de apoyo, estabilidad
     (si se sostiene solo) y estimacion de impresion 3D a 15 cm en PLA."""
     import trimesh
     v = np.asarray(mesh.vertices, dtype=np.float64)
     ext = v.max(0) - v.min(0)
-    k = float(height_m) / max(ext[1], 1e-9)          # escala a metros reales
+    if dims_reales and max(dims_reales) > 0:
+        # medidas reales calculadas en Blender (prop escalado, objeto acostado)
+        k = float(max(dims_reales)) / max(float(ext.max()), 1e-9)
+    else:
+        k = float(height_m) / max(ext[1], 1e-9)      # escala a metros reales
     m = mesh.copy()
     m.apply_translation(-v.min(0))
     m.apply_scale(k)
@@ -1233,7 +1237,8 @@ class Engine:
             os.remove(ipx)
         try:
             tipo_ = (info.get("clasificacion") or {}).get("tipo", info.get("rig", "humanoide"))
-            fis = physics_data(textured, height, tipo_)
+            fis = physics_data(textured, height, tipo_,
+                               dims_reales=(info.get("qa") or {}).get("dimensions_m"))
             info["fisica"] = fis
             json.dump({"masa_kg": fis["masa_kg"], "centro_masa_m": fis["centro_masa_m"],
                        "inercia_kg_m2": fis["inercia_kg_m2"], "dimensiones_m":

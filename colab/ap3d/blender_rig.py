@@ -427,8 +427,12 @@ INFO["tipo_activo"] = ta
 INFO["rig"] = args.rig
 ES_PROP = ta.startswith("prop")
 if ES_PROP and args.rig != "vehiculo" and args.altura_prop > 0 and abs(args.altura_prop - H) > 1e-3:
-    # Escala real de prop (un Jack-in-the-Box no mide 1.70 m); pivote en la base
-    k_ = args.altura_prop / H
+    # Escala real de prop (un Jack-in-the-Box no mide 1.70 m); pivote en la base.
+    # Objeto acostado (linterna, espada, llave): la medida va al lado mayor.
+    lado_ = float(max(co[:, 0].max() - co[:, 0].min(), co[:, 1].max() - co[:, 1].min()))
+    acostado = H < 0.5 * lado_
+    k_ = args.altura_prop / (lado_ if acostado else H)
+    INFO["escala_prop"] = "lado mayor (acostado)" if acostado else "altura"
     obj.data.transform(Matrix.Scale(k_, 4))
     obj.data.update()
     co = verts_np(obj)
