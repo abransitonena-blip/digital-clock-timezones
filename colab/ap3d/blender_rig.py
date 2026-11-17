@@ -239,6 +239,79 @@ def detect_humanoid(co, H):
                 sh_z=sh_z, torso_y=torso_y, hand_l=hl, hand_r=hr)
 
 
+CLOTH = {}          # vertice de tela (falda/tunica) -> cuanto cuelga (0..1)
+TELA = []           # cadenas de huesos de tela: [(nombre, angulo, nivel)]
+
+
+def cloth_chains():
+    """Huesos de tela: 4 cadenas de 3 huesos (frente, atras, izq., der.)
+    que cuelgan de la cadera hasta el borde de la tunica. Los vertices de
+    tela pasan a esos huesos segun su angulo y altura, y las animaciones
+    les dan movimiento secundario (inercia y balanceo)."""
+    if len(CLOTH) < 200:
+        return 0
+    P = "mixamorig:"
+    co_ = verts_np(obj)
+    idx = np.fromiter(CLOTH.keys(), dtype=np.int64)
+    pts = co_[idx]
+    hips = arm.data.bones.get(P + "Hips")
+    if hips is None:
+        return 0
+    hc = np.array(hips.head_local)
+    top = float(hc[2])
+    hem = float(np.percentile(pts[:, 2], 2))
+    if top - hem < 0.12 * H:
+        return 0
+    ang = np.arctan2(pts[:, 0] - hc[0], -(pts[:, 1] - hc[1]))   # 0 = frente
+    rad = np.hypot(pts[:, 0] - hc[0], pts[:, 1] - hc[1])
+    LADOS = (("Frente", 0.0), ("Izq", math.pi / 2), ("Atras", math.pi), ("Der", -math.pi / 2))
+    bpy.ops.object.mode_set(mode="OBJECT")
+    activate(arm)
+    bpy.ops.object.mode_set(mode="EDIT")
+    eb = arm.data.edit_bones
+    levels = [top - (top - hem) * f for f in (0.0, 0.35, 0.68, 1.0)]
+    for lado, a0 in LADOS:
+        sel = np.abs(np.angle(np.exp(1j * (ang - a0)))) < math.pi / 4
+        r = float(np.median(rad[sel])) if sel.sum() > 20 else float(np.median(rad))
+        prev = eb[P + "Hips"]
+        for i in range(3):
+            n = f"{P}Tela{lado}{i + 1}"
+            b = eb.new(n)
+            rr = r * (0.55 + 0.45 * i / 2)
+            b.head = Vector((hc[0] + math.sin(a0) * rr, hc[1] - math.cos(a0) * rr, levels[i]))
+            b.tail = Vector((hc[0] + math.sin(a0) * rr * 1.08, hc[1] - math.cos(a0) * rr * 1.08,
+                             levels[i + 1]))
+            b.parent = prev
+            b.use_connect = False
+            prev = b
+            TELA.append((n, a0, i))
+    bpy.ops.object.mode_set(mode="OBJECT")
+    for n, _, _ in TELA:
+        if obj.vertex_groups.get(n) is None:
+            obj.vertex_groups.new(name=n)
+    gh = obj.vertex_groups.get(P + "Hips")
+    gi = {g.index: g for g in obj.vertex_groups}
+    me_ = obj.data
+    for j, vi in enumerate(idx):
+        v = me_.vertices[int(vi)]
+        wh = next((e.weight for e in v.groups if e.group == gh.index), 0.0)
+        if wh <= 0.01:
+            continue
+        h = (top - pts[j, 2]) / (top - hem)
+        lvl = min(2, max(0, int(h * 3)))
+        # reparto suave entre los 2 lados mas cercanos
+        da = [(abs(np.angle(np.exp(1j * (ang[j] - a0)))), lado) for lado, a0 in LADOS]
+        da.sort()
+        (d1, l1), (d2, l2) = da[0], da[1]
+        w1 = 1 - d1 / (d1 + d2 + 1e-9)
+        move = wh * min(1.0, CLOTH[int(vi)]) * min(1.0, h * 1.6)
+        gh.add([int(vi)], wh - move, "REPLACE")
+        obj.vertex_groups[f"{P}Tela{l1}{lvl + 1}"].add([int(vi)], move * w1, "ADD")
+        obj.vertex_groups[f"{P}Tela{l2}{lvl + 1}"].add([int(vi)], move * (1 - w1), "ADD")
+    log("huesos de tela:", len(TELA))
+    return len(TELA)
+
+
 def cloth_weights():
     P = "mixamorig:"
     bones = arm.data.bones
@@ -261,6 +334,7 @@ def cloth_weights():
     me_ = obj.data
     co_ = verts_np(obj)
     moved = 0
+    CLOTH.clear()
     gh = {}
     for v in me_.vertices:
         if not v.groups:
@@ -292,6 +366,8 @@ def cloth_weights():
                 obj.vertex_groups[nm].add([v.index], w0 * (1 - k), "REPLACE")
                 g_anchor.add([v.index], w0 * k, "ADD")
         moved += 1
+        if kind == "leg":
+            CLOTH[v.index] = k
     log("tela: vertices liberados de piernas/brazos:", moved)
     return moved
 
@@ -300,7 +376,7 @@ REGION_ORDER = ["Cabeza", "Ojo izq.", "Ojo der.", "Mandibula", "Cuello", "Torso"
                 "Hombro izq.", "Brazo izq.", "Antebrazo izq.", "Mano izq.", "Dedos mano izq.",
                 "Hombro der.", "Brazo der.", "Antebrazo der.", "Mano der.", "Dedos mano der.",
                 "Muslo izq.", "Pierna izq.", "Pie izq.", "Dedos pie izq.",
-                "Muslo der.", "Pierna der.", "Pie der.", "Dedos pie der."]
+                "Muslo der.", "Pierna der.", "Pie der.", "Dedos pie der.", "Tela (túnica/capa)"]
 
 
 def region_of(bone):
@@ -316,6 +392,8 @@ def region_of(bone):
              "Neck": "Cuello", "Spine": "Torso", "Spine1": "Torso", "Spine2": "Torso",
              "Hips": "Cadera", "Shoulder": "Hombro", "Arm": "Brazo", "ForeArm": "Antebrazo",
              "Hand": "Mano", "UpLeg": "Muslo", "Leg": "Pierna", "Foot": "Pie", "ToeBase": "Pie"}
+    if core.startswith("Tela"):
+        return "Tela (túnica/capa)"
     if core in tabla:
         return tabla[core] + lado
     return core + lado
@@ -667,6 +745,12 @@ if args.rig != "ninguno":
     # Se reparte su peso hacia la cadera / espalda segun la distancia, como
     # una tela que cuelga. Mejora mucho a personajes con ropa suelta.
     INFO["vertices_tela"] = cloth_weights() if args.rig == "humanoide" else 0
+    try:
+        INFO["huesos_tela"] = cloth_chains() if INFO["vertices_tela"] else 0
+        INFO["huesos"] = INFO.get("huesos", 0) + INFO["huesos_tela"]
+    except Exception as e:
+        INFO["avisos"].append(f"huesos de tela: {e}")
+        bpy.ops.object.mode_set(mode="OBJECT")
     if INFO["vertices_tela"]:
         # tras mover peso a la cadera: suavizar, maximo 4 huesos y sumar 1
         # (si no, el exportador corta pesos y la tela se rasga en triangulos)
@@ -720,6 +804,7 @@ if args.rig != "ninguno":
                 return max(0.0, min(1.0, (jz - p.z) / max(jz - tipz, 1e-4)))
             limit_group(b.name, jaw_keep)
     # Cobertura por hueso (para ver de un vistazo si un hueso no mueve nada)
+    gi2name = {g.index: g.name for g in obj.vertex_groups}
     cnt = {g.name: 0 for g in obj.vertex_groups}
     for v in me.vertices:
         for e in v.groups:
@@ -762,6 +847,36 @@ def wrot(name, *rots):
     return M.inverted() @ R @ M
 
 
+# amplitud del balanceo de la tela y ciclos por animacion
+SWAY = {"Caminar": (0.16, 1), "Correr": (0.32, 1), "Bailar": (0.28, 2), "Saltar": (0.35, 1),
+        "Saludar": (0.05, 1), "Reposo": (0.03, 1), "Manos": (0.03, 1), "Hablar": (0.03, 1)}
+
+
+def cloth_motion(anim, t):
+    """Movimiento secundario: cada hueso de tela sigue al cuerpo con retraso
+    (inercia) y mas amplitud hacia el borde, como una tela real."""
+    amp, cyc = SWAY.get(anim, (0.0, 1))
+    if amp <= 0:
+        return {}
+    out = {}
+    X, Y = (1, 0, 0), (0, 1, 0)
+    for n, a0, i in TELA:
+        short = n.split(":")[-1]
+        lag = 0.55 * (i + 1)
+        ph = 2 * math.pi * cyc * t - lag
+        if anim == "Saltar":
+            # al subir la tela se queda abajo, al caer se levanta
+            sw = amp * math.sin(2 * math.pi * t - 0.6 - 0.3 * i)
+            # rota hacia afuera segun su lado
+            out[short] = wrot(short, (X, -sw * math.cos(a0)), (Y, sw * math.sin(a0)))
+            continue
+        # vaiven adelante-atras (piernas) y un poco de lado a lado
+        fb = amp * (0.6 + 0.4 * i) * math.sin(ph)
+        lr = 0.4 * amp * (0.6 + 0.4 * i) * math.sin(ph * 0.5 + 1.0)
+        out[short] = wrot(short, (X, fb), (Y, lr))
+    return out
+
+
 def build_action(name, frames, pose_fn, step=2):
     act = bpy.data.actions.new(name)
     act.use_fake_user = True
@@ -777,6 +892,8 @@ def build_action(name, frames, pose_fn, step=2):
             b.rotation_quaternion = Quaternion()
             b.location = Vector()
         pose = pose_fn(t)
+        if TELA:
+            pose.update(cloth_motion(name, t))
         for bname, val in pose.items():
             b = pb(bname)
             if b is None or val is None:

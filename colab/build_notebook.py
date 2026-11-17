@@ -43,6 +43,7 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Esqueleto detallado (66 huesos)**: dedos de las manos (5 × 3 falanges, nombres de Mixamo), dedos de los pies, ojos y mandíbula, colocados midiendo la malla. Animaciones nuevas **Manos** y **Hablar**; los dedos se relajan o cierran en las demás.
 * **Por etapas, de más a menos**: primero la malla completa de la IA en alta resolución (`malla_alta.glb`, pestaña *Alta*), luego se reduce a las caras pedidas para la textura y el esqueleto.
 * **Física de telas**: túnicas, capas, mangas y faldas se liberan de piernas y brazos y cuelgan de la cadera o la espalda, para que no se rasguen al animar. Los vértices duplicados se sueldan y los pesos se calculan con hasta 3 intentos.
+* **Huesos de tela con movimiento secundario**: en túnicas, faldas y capas se crean 4 cadenas de huesos (frente, atrás, izquierda, derecha) que se balancean con retraso e inercia en cada animación. Queda grabado en GLB, FBX y .blend.
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Malla reparada**: quita trozos sueltos, cierra agujeros y orienta las caras.
 * **Cero vértices sin peso**: si alguno queda suelto, copia el peso de su vecino; el informe dice cuántos vértices mueve cada hueso.

@@ -64,6 +64,8 @@ def _summary(info):
     if info.get("vertices_tela"):
         lines.append(f"Física de telas: {info['vertices_tela']:,} vértices de túnica/capa/mangas "
                      "liberados de las piernas y brazos para que no se rasguen")
+    if info.get("huesos_tela"):
+        lines.append(f"Huesos de tela: {info['huesos_tela']} (la túnica/capa se balancea con inercia)")
     if info.get("pesos_intento", 1) > 1:
         lines.append(f"Pesos por calor logrados en el intento {info['pesos_intento']} (proxy más cerrado)")
     if "vertices_sin_peso_reparados" in info:
