@@ -1332,6 +1332,7 @@ class Engine:
 
     @staticmethod
     def _zip(out, zp):
+        Engine._zip_ligero(out, zp[:-4] + "_ligero.zip")
         tmp = zp + ".tmp"
         with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
             for raiz, dirs, fs in os.walk(out):
@@ -1342,6 +1343,28 @@ class Engine:
                         else zipfile.ZIP_DEFLATED
                     z.write(p, os.path.relpath(p, out), compress_type=comp)
         os.replace(tmp, zp)
+
+    LIGERO = ("modelo_roblox.fbx", "modelo_web.glb", "LEEME_ROBLOX.txt", "revision_6_angulos.png",
+              "fisica.json", "miniatura.png")
+
+    @staticmethod
+    def _zip_ligero(out, zp):
+        """ZIP pequeno con lo que mas se usa (Roblox, web, guia, revision y OBJ):
+        baja en segundos por el tunel; el completo trae el .blend, videos, etc."""
+        try:
+            tmp = zp + ".tmp"
+            with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
+                for f in Engine.LIGERO:
+                    p = os.path.join(out, f)
+                    if os.path.isfile(p):
+                        z.write(p, f)
+                dobj = os.path.join(out, "obj")
+                if os.path.isdir(dobj):
+                    for f in sorted(os.listdir(dobj)):
+                        z.write(os.path.join(dobj, f), "obj/" + f)
+            os.replace(tmp, zp)
+        except Exception:
+            pass
 
     def rerig(self, d, rig, progress=lambda f, m: None, huesos=""):
         """Vuelve a poner esqueleto/animaciones a un modelo ya generado con el

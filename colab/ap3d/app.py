@@ -27,6 +27,11 @@ PRESETS = {
 EXAMPLES_DIR = os.path.join(config.HY3D_DIR, "assets", "example_images")
 
 
+def _zips(d):
+    """Primero el ZIP ligero (rapido por el tunel), despues el completo."""
+    return [z for z in (d + "_ligero.zip", d + ".zip") if os.path.exists(z)]
+
+
 def _files(d):
     order = ["modelo_animado.glb", "modelo_roblox.fbx", "revision_6_angulos.png", "modelo_quads.glb", "modelo_quads.fbx", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
              "modelo_estatico.obj", "modelo_estatico.mtl", "modelo_impresion3d.stl",
@@ -260,7 +265,7 @@ def step_final(jid, progress=gr.Progress()):
     vid = next((os.path.join(d, f) for f in sorted(os.listdir(d))
                 if f.startswith("video_") and "giro360" not in f and _exists(d, f)), None)
     zp = d + ".zip"
-    files = ([zp] if os.path.exists(zp) else []) + _files(d)
+    files = _zips(d) + _files(d)
     return (viewer_html(d), gr.update(selected="estudio"),
             _done_html(), _done_html(),
             vid, _exists(d, "video_giro360.mp4"), files,
@@ -428,7 +433,7 @@ def fix_type(d, tipo_ui, progress=gr.Progress()):
     new = get_engine().rerig(d, rig, progress=lambda f, m: progress(f, desc=m))
     zp = d + ".zip"
     return (viewer_html(d), gr.update(selected="estudio"),
-            ([zp] if os.path.exists(zp) else []) + _files(d),
+            _zips(d) + _files(d),
             aviso + "Esqueleto rehecho.\n\n" + _summary(new), memoria.stats_md())
 
 
@@ -628,7 +633,7 @@ def _open_dir(d):
     zp = d + ".zip"
     return (viewer_html(d), gr.update(selected="estudio"),
             _done_html(), _done_html(), vid, _exists(d, "video_giro360.mp4"),
-            ([zp] if os.path.exists(zp) else []) + _files(d), "📂 Modelo abierto · datos debajo del visor",
+            _zips(d) + _files(d), "📂 Modelo abierto · datos debajo del visor",
             monitor_html(), d, _review_md(info), _tipo_actual(info), tablero_html(7), datos_html(info),
             _summary(info))
 
