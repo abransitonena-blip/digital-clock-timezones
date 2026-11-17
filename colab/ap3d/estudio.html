@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estudio 3D</title>
+<style>
+:root{--bg:#121318;--panel:#1b1d24;--line:#2a2d36;--txt:#e8e9ee;--mut:#9a9daa;--acc:#5b5bf0;--ok:#1f9d6b}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:14px system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden}
+#top{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;align-items:center;z-index:5;flex-wrap:wrap}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button,.btn{background:transparent;color:var(--mut);border:0;border-radius:7px;padding:7px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+.seg button.on{background:#2c2f3a;color:var(--txt)}
+.seg button:disabled{opacity:.35;cursor:default}
+.sp{flex:1}
+.dd{position:relative}
+.dd>.btn{background:var(--panel);border:1px solid var(--line);color:var(--txt)}
+.dd .menu{display:none;position:absolute;right:0;top:110%;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;min-width:190px;max-height:60vh;overflow:auto}
+.dd.open .menu{display:block}
+.menu a,.menu button{display:block;width:100%;text-align:left;color:var(--txt);text-decoration:none;padding:8px 10px;border-radius:6px;background:none;border:0;font:inherit;cursor:pointer}
+.menu a:hover,.menu button:hover{background:#2c2f3a}
+.menu small{color:var(--mut);float:right}
+#exp>.btn{background:var(--ok);border-color:var(--ok);font-weight:600}
+#bottom{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:96vw}
+#anims{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#anims button{background:var(--panel);border:1px solid var(--line);color:var(--mut);border-radius:20px;padding:6px 12px;font:inherit;cursor:pointer}
+#anims button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#info{position:absolute;left:14px;top:60px;color:var(--mut);font-size:12px;z-index:4;line-height:1.5}
+#legend{position:absolute;right:12px;bottom:70px;max-height:45vh;overflow:auto;background:#1b1d24cc;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:none;z-index:4}
+#legend div{display:flex;gap:6px;align-items:center;margin:2px 0}#legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);z-index:3}
+canvas{display:block}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="top">
+  <div class="seg" id="views">
+    <button data-v="tex" class="on">Textura</button><button data-v="parts">Piezas</button>
+    <button data-v="weights">Pesos</button><button data-v="clay">Arcilla</button>
+  </div>
+  <div class="sp"></div>
+  <div class="dd" id="light"><button class="btn">☀ Luz ▾</button><div class="menu">
+    <button data-l="estudio">Estudio</button><button data-l="exterior">Exterior (sol)</button>
+    <button data-l="atardecer">Atardecer</button><button data-l="dramatica">Dramática</button><button data-l="plana">Plana (revisar textura)</button></div></div>
+  <div class="dd" id="camm"><button class="btn">🎥 Cámara ▾</button><div class="menu">
+    <button data-c="0,0">Frente</button><button data-c="180,0">Espalda</button><button data-c="90,0">Lado izq.</button>
+    <button data-c="-90,0">Lado der.</button><button data-c="35,18">3/4</button><button data-c="0,80">Arriba</button><button data-c="face">Cara</button></div></div>
+  <div class="dd" id="exp"><button class="btn">Exportar ▾</button><div class="menu" id="expmenu"></div></div>
+</div>
+<div id="load">Cargando modelo…</div>
+<div id="legend"></div>
+<div id="info"></div>
+<div id="bottom">
+  <div id="anims"></div>
+  <div class="seg" id="tools">
+    <button id="rot" class="on">Auto-rotar</button><button id="ctr">Centrar</button>
+    <button id="wire">Polígonos</button><button id="skel">Esqueleto</button><button id="shot">📷 Captura</button>
+  </div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+
+const $=s=>document.querySelector(s);
+const FILES={tex:['modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb']};
+const NICE={'modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
+ 'modelo.blend':'Blender (.blend)','modelo_texturizado.glb':'GLB sin esqueleto','modelo_estatico.obj':'OBJ estático',
+ 'modelo_impresion3d.stl':'STL impresión 3D (mm)','modelo_lod1_50.glb':'LOD ligero 50%','modelo_lod2_15.glb':'LOD muy ligero 15%',
+ 'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
+
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;
+document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x121318);
+const pmrem=new THREE.PMREMGenerator(renderer);const envTex=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+const cam=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,0.01,200);
+const ctl=new OrbitControls(cam,renderer.domElement);ctl.enableDamping=true;ctl.autoRotate=true;ctl.autoRotateSpeed=1.2;
+const grid=new THREE.GridHelper(10,40,0x2e3140,0x22242c);scene.add(grid);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(20,20),new THREE.ShadowMaterial({opacity:.35}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+const hemi=new THREE.HemisphereLight(0xffffff,0x333344,.6);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xffffff,2);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
+const rim=new THREE.DirectionalLight(0x88aaff,1);scene.add(rim);
+
+let cur=null,mixer=null,actions={},clock=new THREE.Clock(),box=new THREE.Box3(),H=1.8,skelHelper=null,info={},avail=new Set();
+const loader=new GLTFLoader();
+
+function light(k){
+  const L={estudio:[0xffffff,2,[2,4,3],0x88aaff,1,.6,1.0,true],exterior:[0xfff2dd,3.2,[5,8,2],0xbfd8ff,.5,.9,.6,true],
+   atardecer:[0xffa060,2.6,[-4,2,2],0x6070ff,1.2,.35,.35,true],dramatica:[0xffffff,3.5,[3,5,-1],0xff5577,1.8,.1,.15,false],plana:[0xffffff,.4,[0,5,5],0xffffff,0,1.6,1.2,false]}[k];
+  sun.color.setHex(L[0]);sun.intensity=L[1];sun.position.set(...L[2]).multiplyScalar(H);rim.color.setHex(L[3]);rim.intensity=L[4];
+  rim.position.set(-2*H,2*H,-3*H);hemi.intensity=L[5];scene.environment=L[7]?envTex:null;scene.environmentIntensity=L[6];
+  if(!L[7]){hemi.intensity=L[5]+.6}
+}
+function bbox(){cur.updateMatrixWorld(true);box.makeEmpty();const b=new THREE.Box3();
+  cur.traverse(o=>{if(o.isMesh){if(o.isSkinnedMesh){o.skeleton.update();o.computeBoundingBox();b.copy(o.boundingBox).applyMatrix4(o.matrixWorld)}
+    else{o.geometry.computeBoundingBox();b.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld)}box.union(b)}});return box}
+function frame(az=35,el=12){
+  bbox();const c=box.getCenter(new THREE.Vector3()),s=box.getSize(new THREE.Vector3());H=Math.max(s.y,.01);
+  const d=Math.max(s.x,s.y,s.z)*1.9/Math.tan(cam.fov*Math.PI/360)/2;
+  const a=az*Math.PI/180,e=el*Math.PI/180;
+  cam.position.set(c.x+Math.sin(a)*Math.cos(e)*d,c.y+Math.sin(e)*d,c.z+Math.cos(a)*Math.cos(e)*d);
+  ctl.target.copy(c);cam.near=d/200;cam.far=d*50;cam.updateProjectionMatrix();ctl.update();
+}
+function stats(){let t=0,v=0;cur.traverse(o=>{if(o.isMesh){const g=o.geometry;v+=g.attributes.position.count;t+=g.index?g.index.count/3:g.attributes.position.count/3}});
+  const s=box.getSize(new THREE.Vector3());
+  $('#info').innerHTML=`${Math.round(t).toLocaleString()} triángulos · ${v.toLocaleString()} vértices<br>${s.x.toFixed(2)} × ${s.y.toFixed(2)} × ${s.z.toFixed(2)} m`+
+   (info.huesos?` · ${info.huesos} huesos`:'')}
+async function exists(f){try{const r=await fetch(f,{method:'HEAD'});return r.ok}catch(e){return false}}
+
+async function show(view){
+  const cands=FILES[view];let file=null;for(const f of cands)if(avail.has(f)){file=f;break}
+  if(!file)return;
+  $('#load').style.display='flex';
+  const g=await loader.loadAsync(file);
+  if(cur){scene.remove(cur)}if(skelHelper){scene.remove(skelHelper);skelHelper=null}
+  cur=g.scene;cur.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;
+    if(view==='clay')o.material=new THREE.MeshStandardMaterial({color:0xb9bcc6,roughness:.55,metalness:.05});
+    if(view==='weights'){o.material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.7})}}});
+  scene.add(cur);
+  bbox();const mn=box.min.y;cur.position.y-=mn;floor.position.y=0;grid.position.y=0;
+  mixer=null;actions={};$('#anims').innerHTML='';
+  if(g.animations.length){mixer=new THREE.AnimationMixer(cur);
+    const order=['Reposo','Caminar','Correr','Saludar','Saltar','Bailar','Pose_T'];
+    g.animations.sort((a,b)=>(order.indexOf(a.name)+99)%99-(order.indexOf(b.name)+99)%99);
+    for(const c of g.animations){actions[c.name]=mixer.clipAction(c);
+      const b=document.createElement('button');b.textContent=c.name.replace('_',' ');b.onclick=()=>play(c.name);$('#anims').appendChild(b)}
+    play(actions['Reposo']?'Reposo':g.animations[0].name);mixer.update(0.01)}
+  let hasSkel=false;cur.traverse(o=>{if(o.isSkinnedMesh)hasSkel=true});$('#skel').disabled=!hasSkel;$('#skel').classList.remove('on');
+  setWire($('#wire').classList.contains('on'));
+  $('#legend').style.display=view==='weights'||view==='parts'?'block':'none';
+  $('#legend').innerHTML=view==='weights'?'<b>Pesos</b><br>Cada color = un hueso.<br>Donde se mezclan, la malla se dobla.':
+    view==='parts'?'<b>Piezas</b><br>'+(info.piezas||'')+' piezas, una por hueso':'';
+  frame();light(curLight);stats();$('#load').style.display='none';
+  document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+}
+let curAnim=null;
+function play(n){const a=actions[n];if(!a)return;if(curAnim&&curAnim!==a)curAnim.fadeOut(.3);a.reset().fadeIn(.3).play();curAnim=a;
+  document.querySelectorAll('#anims button').forEach(b=>b.classList.toggle('on',b.textContent===n.replace('_',' ')))}
+function setWire(on){cur&&cur.traverse(o=>{if(o.isMesh){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.wireframe=on)}})}
+
+let curLight='estudio';
+document.querySelectorAll('.dd>.btn').forEach(b=>b.onclick=e=>{e.stopPropagation();const d=b.parentElement;const o=d.classList.contains('open');
+  document.querySelectorAll('.dd').forEach(x=>x.classList.remove('open'));if(!o)d.classList.add('open')});
+document.addEventListener('click',()=>document.querySelectorAll('.dd').forEach(x=>x.classList.remove('open')));
+document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{curLight=b.dataset.l;light(curLight)});
+document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ctl.autoRotate=false;$('#rot').classList.remove('on');
+  if(b.dataset.c==='face'){bbox();const c=box.getCenter(new THREE.Vector3());const t=new THREE.Vector3(c.x,box.max.y-H*.07,c.z);
+    cam.position.set(t.x,t.y,t.z+H*.55);ctl.target.copy(t);ctl.update();return}
+  const [a,e]=b.dataset.c.split(',').map(Number);frame(a,e)});
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+$('#rot').onclick=()=>{ctl.autoRotate=!ctl.autoRotate;$('#rot').classList.toggle('on',ctl.autoRotate)};
+$('#ctr').onclick=()=>frame();
+$('#wire').onclick=()=>{const on=!$('#wire').classList.contains('on');$('#wire').classList.toggle('on',on);setWire(on)};
+$('#skel').onclick=()=>{const on=!$('#skel').classList.contains('on');$('#skel').classList.toggle('on',on);
+  if(on){skelHelper=new THREE.SkeletonHelper(cur);skelHelper.material.depthTest=false;skelHelper.material.linewidth=2;scene.add(skelHelper);
+    cur.traverse(o=>{if(o.isMesh){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{m.transparent=true;m.opacity=.35})}})}
+  else{scene.remove(skelHelper);skelHelper=null;cur.traverse(o=>{if(o.isMesh){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{m.opacity=1;m.transparent=false})}})}};
+$('#shot').onclick=()=>{renderer.render(scene,cam);const a=document.createElement('a');a.href=renderer.domElement.toDataURL('image/png');a.download='captura.png';a.click()};
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt);ctl.update();renderer.render(scene,cam)});
+
+(async()=>{
+  try{info=await (await fetch('rig_info.json')).json()}catch(e){}
+  const all=new Set(Object.values(info.archivos||{}));
+  for(const f of ['modelo_animado.glb','modelo_texturizado.glb','piezas.glb','pesos.glb','arcilla.glb'])all.add(f);
+  for(const f of Object.keys(NICE))all.add(f);
+  await Promise.all([...all].map(async f=>{if(await exists(f))avail.add(f)}));
+  document.querySelectorAll('#views button').forEach(b=>b.disabled=!FILES[b.dataset.v].some(f=>avail.has(f)));
+  const m=$('#expmenu');
+  for(const f of Object.keys(NICE))if(avail.has(f)){const a=document.createElement('a');a.href=f;a.download=f;a.innerHTML=NICE[f]+` <small>${f.split('.').pop()}</small>`;m.appendChild(a)}
+  for(const f of avail)if(!NICE[f]){const a=document.createElement('a');a.href=f;a.download=f;a.textContent=f;m.appendChild(a)}
+  await show('tex');
+})();
+</script></body></html>

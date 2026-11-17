@@ -43,7 +43,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--in", dest="inp", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--rig", default="humanoide",
-                choices=["humanoide", "cuadrupedo", "ninguno"])
+                choices=["auto", "humanoide", "cuadrupedo", "ninguno"])
 ap.add_argument("--height", type=float, default=1.8)
 ap.add_argument("--rotate", type=float, default=0.0,
                 help="giro extra en grados alrededor de Z")
@@ -52,6 +52,8 @@ ap.add_argument("--video_res", type=int, default=1080)
 ap.add_argument("--samples", type=int, default=48)
 ap.add_argument("--turntable", type=int, default=1)
 ap.add_argument("--loops", type=int, default=3)
+ap.add_argument("--relieve", type=float, default=0.6,
+                help="fuerza del mapa de relieve (normal) sacado de la textura; 0 = sin relieve")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -147,6 +149,12 @@ H = float(co[:, 2].max())
 INFO.update(vertices=len(obj.data.vertices), caras=len(obj.data.polygons),
             altura_m=round(H, 3))
 log("malla", INFO["vertices"], "vertices", INFO["caras"], "caras")
+if args.rig == "auto":
+    # Mas largo (de frente a cola) que alto -> animal de cuatro patas
+    largo = float(co[:, 1].max() - co[:, 1].min())
+    args.rig = "cuadrupedo" if largo > 1.05 * H else "humanoide"
+    INFO["rig"] = args.rig
+    log("esqueleto automatico:", args.rig)
 
 # Material: asegurar que se vea en Cycles / Eevee / visores
 for slot in obj.material_slots:
@@ -705,6 +713,67 @@ def set_anim(name):
     return n
 
 
+# ------------------------------------------------------------ relieve
+def add_relief(strength):
+    """Crea un mapa de normales a partir de la textura (luminancia -> altura,
+    filtro Sobel) y lo conecta al material: arrugas, costuras y detalles
+    se ven con volumen. Se exporta en GLB/FBX/BLEND."""
+    done = 0
+    for m in obj.data.materials:
+        if m is None or not m.use_nodes:
+            continue
+        nt = m.node_tree
+        bs = next((n for n in nt.nodes if n.type == "BSDF_PRINCIPLED"), None)
+        if bs is None or bs.inputs["Normal"].is_linked:
+            continue
+        lk = bs.inputs["Base Color"].links
+        if not lk or lk[0].from_node.type != "TEX_IMAGE" or lk[0].from_node.image is None:
+            continue
+        src = lk[0].from_node.image
+        w, h = src.size
+        if w * h == 0:
+            continue
+        px = np.empty(w * h * 4, dtype=np.float32)
+        src.pixels.foreach_get(px)
+        px = px.reshape(h, w, 4)
+        hgt = px[..., :3] @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+        # suavizado leve para no amplificar ruido de la IA
+        hgt = (hgt + np.roll(hgt, 1, 0) + np.roll(hgt, -1, 0)
+               + np.roll(hgt, 1, 1) + np.roll(hgt, -1, 1)) / 5
+        gx = (np.roll(hgt, -1, 1) - np.roll(hgt, 1, 1)) * 0.5
+        gy = (np.roll(hgt, -1, 0) - np.roll(hgt, 1, 0)) * 0.5
+        k = 6.0
+        n = np.dstack([-gx * k, -gy * k, np.ones_like(hgt)])
+        n /= np.linalg.norm(n, axis=2, keepdims=True)
+        out = np.ones((h, w, 4), dtype=np.float32)
+        out[..., :3] = n * 0.5 + 0.5
+        img = bpy.data.images.new(m.name + "_normal", w, h, alpha=False, float_buffer=False)
+        img.colorspace_settings.name = "Non-Color"
+        img.pixels.foreach_set(out.ravel())
+        img.pack()
+        tn = nt.nodes.new("ShaderNodeTexImage")
+        tn.image = img
+        tn.location = (lk[0].from_node.location.x, lk[0].from_node.location.y - 320)
+        nm = nt.nodes.new("ShaderNodeNormalMap")
+        nm.inputs["Strength"].default_value = strength
+        nm.location = (tn.location.x + 300, tn.location.y)
+        uvl = lk[0].from_node.inputs["Vector"].links
+        if uvl:
+            nt.links.new(uvl[0].from_socket, tn.inputs["Vector"])
+        nt.links.new(tn.outputs["Color"], nm.inputs["Color"])
+        nt.links.new(nm.outputs["Normal"], bs.inputs["Normal"])
+        done += 1
+    return done
+
+
+if args.relieve > 0:
+    try:
+        INFO["mapas_relieve"] = add_relief(args.relieve)
+        log("mapas de relieve:", INFO["mapas_relieve"])
+    except Exception as e:
+        INFO["avisos"].append(f"relieve: {e}")
+
+
 # ------------------------------------------------------------ exportar
 OUT = args.out
 files = {}
@@ -858,6 +927,52 @@ if arm is not None:
             bpy.data.objects.remove(o, do_unlink=True)
 
     export("piezas", _piezas, p_pz)
+
+    # Mapa de pesos: cada hueso con su color, mezclados segun el peso.
+    # Donde un color se funde con otro es donde la malla se dobla.
+    p_ps = os.path.join(OUT, "pesos.glb")
+
+    def _pesos():
+        pw = obj.copy()
+        pw.data = obj.data.copy()
+        pw.name = "Pesos"
+        scene.collection.objects.link(pw)
+        pw.modifiers.clear()
+        pw.parent = None
+        me = pw.data
+        names = [g.name for g in pw.vertex_groups]
+        rng = np.random.default_rng(3)
+        cols = rng.random((max(1, len(names)), 3)) * 0.75 + 0.25
+        vc = np.full((len(me.vertices), 3), 0.08)
+        for v in me.vertices:
+            tot = sum(e.weight for e in v.groups)
+            if tot > 1e-6:
+                vc[v.index] = sum(cols[e.group] * e.weight for e in v.groups) / tot
+        attr = me.color_attributes.new("Pesos", "FLOAT_COLOR", "POINT")
+        rgba = np.ones((len(me.vertices), 4), dtype=np.float32)
+        rgba[:, :3] = vc
+        attr.data.foreach_set("color", rgba.ravel())
+        me.color_attributes.active_color = attr
+        me.materials.clear()
+        m = bpy.data.materials.new("pesos")
+        m.use_nodes = True
+        bs = next(nd for nd in m.node_tree.nodes if nd.type == "BSDF_PRINCIPLED")
+        ca = m.node_tree.nodes.new("ShaderNodeVertexColor")
+        ca.layer_name = "Pesos"
+        m.node_tree.links.new(ca.outputs["Color"], bs.inputs["Base Color"])
+        me.materials.append(m)
+        pw.vertex_groups.clear()
+        deselect_all()
+        pw.select_set(True)
+        vl.objects.active = pw
+        kw = dict(filepath=p_ps, export_format="GLB", use_selection=True, export_yup=True)
+        try:
+            bpy.ops.export_scene.gltf(**kw, export_vertex_color="ACTIVE")
+        except TypeError:
+            bpy.ops.export_scene.gltf(**kw, export_colors=True)
+        bpy.data.objects.remove(pw, do_unlink=True)
+
+    export("pesos", _pesos, p_ps)
 
 # LOD: versiones mas ligeras (mismo esqueleto y animaciones) para
 # juegos, web y celulares.

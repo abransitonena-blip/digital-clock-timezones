@@ -275,7 +275,7 @@ class Engine:
             steps=None, octree=None, faces=None, tex=None, seed=1234,
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
-            texture=True, progress=lambda f, m: None):
+            texture=True, relieve=0.6, progress=lambda f, m: None):
         if not self.ready:
             self.load()
         P = self.p
@@ -299,7 +299,7 @@ class Engine:
         opts = dict(steps=steps, octree=octree, faces=faces, tex=tex, seed=int(seed),
                     guidance=guidance, rig=rig, height=height, rotate=rotate,
                     video=video, video_res=video_res, samples=samples,
-                    turntable=bool(turntable), texture=bool(texture))
+                    turntable=bool(turntable), texture=bool(texture), relieve=float(relieve))
         k = self.key(views, opts)
         if k in self.cache and os.path.isdir(self.cache[k]["dir"]):
             self.log("Resultado en cache:", k)
@@ -337,9 +337,10 @@ class Engine:
         os.makedirs(out, exist_ok=True)
         fut = self.blender_pool.submit(
             self.blender, os.path.join(work, "modelo_texturizado.glb"), out,
-            rig, height, rotate, video, video_res, samples, turntable)
+            rig, height, rotate, video, video_res, samples, turntable, relieve)
         blog = fut.result()
 
+        shutil.copy(os.path.join(HERE, "estudio.html"), out)
         for f in ("arcilla.glb", "modelo_texturizado.glb") + tuple(
                 f"vista_{n}.png" for n in VIEWS):
             src = os.path.join(work, f)
@@ -365,12 +366,13 @@ class Engine:
         self.log_mem()
         return res
 
-    def blender(self, inp, out, rig, height, rotate, video, video_res, samples, turntable):
+    def blender(self, inp, out, rig, height, rotate, video, video_res, samples, turntable,
+                relieve=0.6):
         cmd = [config.BLENDER, "-b", "--factory-startup", "-t", "0", "-P",
                os.path.join(HERE, "blender_rig.py"), "--", "--in", inp, "--out", out,
                "--rig", rig, "--height", str(height), "--rotate", str(rotate),
                "--video", video, "--video_res", str(video_res), "--samples", str(samples),
-               "--turntable", "1" if turntable else "0"]
+               "--turntable", "1" if turntable else "0", "--relieve", str(relieve)]
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
         logtxt = "\n".join(l for l in (r.stdout + "\n" + r.stderr).splitlines()
                            if "Append frame" not in l and not l.startswith("Fra:"))

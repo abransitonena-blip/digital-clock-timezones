@@ -8,7 +8,7 @@ import os
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = ["__init__.py", "config.py", "engine.py", "blender_rig.py", "app.py"]
+SRC = ["__init__.py", "config.py", "engine.py", "blender_rig.py", "app.py", "estudio.html"]
 
 
 def md(text):
