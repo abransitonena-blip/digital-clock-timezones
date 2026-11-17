@@ -2676,10 +2676,35 @@ def _roblox():
             deselect_all()
             rb.select_set(True)
             vl.objects.active = rb
-            bpy.ops.wm.obj_export(filepath=os.path.join(dobj, "modelo.obj"),
-                                  export_selected_objects=True, export_materials=True,
-                                  path_mode="COPY", export_animation=False, apply_modifiers=True,
-                                  forward_axis="NEGATIVE_Z", up_axis="Y")
+            # el exportador OBJ no escribe imagenes empaquetadas: se guardan
+            # junto al .obj y el .mtl apunta a ellas por nombre
+            rutas = {}
+            for slot in rb.material_slots:
+                nt = getattr(slot.material, "node_tree", None) if slot.material else None
+                for n in (nt.nodes if nt else []):
+                    im = getattr(n, "image", None) if n.type == "TEX_IMAGE" else None
+                    if im is None or im.name in rutas:
+                        continue
+                    nom = bpy.path.clean_name(im.name) + ".png"
+                    dst = os.path.join(dobj, nom)
+                    if im.packed_file and im.file_format == "PNG":
+                        open(dst, "wb").write(im.packed_file.data)
+                    else:
+                        im2 = im.copy()
+                        im2.filepath_raw = dst
+                        im2.file_format = "PNG"
+                        im2.save()
+                        bpy.data.images.remove(im2)
+                    rutas[im.name] = (im, im.filepath_raw)
+                    im.filepath_raw = dst
+            try:
+                bpy.ops.wm.obj_export(filepath=os.path.join(dobj, "modelo.obj"),
+                                      export_selected_objects=True, export_materials=True,
+                                      path_mode="STRIP", export_animation=False, apply_modifiers=True,
+                                      forward_axis="NEGATIVE_Z", up_axis="Y")
+            finally:
+                for im, fp in rutas.values():
+                    im.filepath_raw = fp
             files["obj"] = "obj/modelo.obj"
         except Exception as e:
             INFO["avisos"].append(f"OBJ: {e}")
