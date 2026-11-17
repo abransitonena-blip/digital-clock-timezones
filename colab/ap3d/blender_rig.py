@@ -60,6 +60,7 @@ ap.add_argument("--stage", default="all", choices=["all", "export", "extra", "vi
 ap.add_argument("--preview", type=int, default=1, help="0 = no renderizar vista_previa.png")
 ap.add_argument("--detalle", type=int, default=1,
                 help="1 = esqueleto detallado: dedos de manos y pies, ojos y mandibula")
+ap.add_argument("--memoria", default="", help="json con correcciones de tipo del usuario")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -217,6 +218,24 @@ def classify(co, H):
         tipo = "cabeza"
     else:
         tipo = "objeto"
+    # Lo aprendido del usuario: si corrigio antes un modelo con medidas
+    # parecidas, se usa su eleccion (vecino mas cercano).
+    try:
+        if args.memoria and os.path.exists(args.memoria):
+            ej = json.load(open(args.memoria)).get("tipos", [])
+            fv = np.array([float(medida.get(k, 0)) for k in
+                           ("ancho", "largo", "base", "piernas", "patas", "brazos", "cuello")])
+            mejor = None
+            for e in ej:
+                dist = float(np.linalg.norm(fv - np.array(e["f"])))
+                if mejor is None or dist < mejor[0]:
+                    mejor = (dist, e["tipo"])
+            if mejor is not None and mejor[0] < 0.35 and mejor[1] != tipo:
+                log("aprendido: el usuario corrigio un modelo parecido ->", mejor[1])
+                medida["aprendido_de"] = tipo
+                tipo = mejor[1]
+    except Exception as e:
+        log("memoria no leida:", e)
     INFO["clasificacion"] = dict(medida, tipo=tipo)
     return tipo
 

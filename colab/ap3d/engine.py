@@ -94,6 +94,14 @@ def quiet_logs():
         pass
 
 
+def _memoria_path():
+    try:
+        from .memoria import path
+        return path()
+    except Exception:
+        return ""
+
+
 class Engine:
     def __init__(self, prof=None, log=print):
         self.p = prof or config.detect()
@@ -779,6 +787,41 @@ class Engine:
                 z.write(os.path.join(out, f), f, compress_type=comp)
         os.replace(tmp, zp)
 
+    def rerig(self, d, rig, progress=lambda f, m: None):
+        """Vuelve a poner esqueleto/animaciones a un modelo ya generado con el
+        tipo que eligio el usuario (sin repetir la IA). Unos 30-60 s."""
+        inp = os.path.join(d, "modelo_texturizado.glb")
+        ip = os.path.join(d, "rig_info.json")
+        info = json.load(open(ip)) if os.path.exists(ip) else {}
+        a = info.get("ajustes", {})
+        args = (inp, d, rig, a.get("height", 1.8), a.get("rotate", 0.0), a.get("video", "Caminar"),
+                a.get("video_res", 720), a.get("samples", 16), False, a.get("relieve", 0.8))
+        progress(0.1, f"Poniendo esqueleto de tipo {rig}")
+        fe = self.blender_pool.submit(self.blender, *args, "export", None, None)
+        fx = self.blender_pool.submit(self.blender, *args, "extra", None, None)
+        log_ = fe.result() + "\n\n" + fx.result()
+        new = json.load(open(ip)) if os.path.exists(ip) else {}
+        ipx = os.path.join(d, "rig_info_extra.json")
+        if os.path.exists(ipx):
+            ix = json.load(open(ipx))
+            new.setdefault("archivos", {}).update(ix.get("archivos", {}))
+            for k_ in ("lod_caras", "piezas", "quads_caras"):
+                if k_ in ix:
+                    new[k_] = ix[k_]
+            os.remove(ipx)
+        for k_ in ("segundos_forma", "segundos_textura", "multivista", "textura_ia",
+                   "ajustes", "caras_alta", "turbo", "perfil", "gpu"):
+            if k_ in info:
+                new[k_] = info[k_]
+        new.setdefault("ajustes", {})["rig"] = rig
+        new["corregido_por_usuario"] = rig
+        json.dump(new, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
+        with open(os.path.join(d, "blender.log"), "a") as fh:
+            fh.write("\n\n=== re-esqueleto ===\n" + log_)
+        self._zip(d, d + ".zip")
+        progress(1.0, "Listo")
+        return new
+
     # Hitos del log de Blender -> avance (0..1) de cada proceso
     MILESTONES = {
         "export": [("malla", .05, "Blender: preparando la malla"),
@@ -808,6 +851,7 @@ class Engine:
                "--video", video, "--video_res", str(video_res), "--samples", str(samples),
                "--turntable", "1" if turntable else "0", "--relieve", str(relieve),
                "--detalle", "1" if getattr(self, "_detalle", True) else "0",
+               "--memoria", _memoria_path(),
                "--stage", stage, "--preview", "1" if stage != "export" or self._preview else "0"]
         ms = self.MILESTONES.get(stage, self.MILESTONES["export"])
         lines = []

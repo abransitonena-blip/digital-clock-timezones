@@ -245,7 +245,71 @@ def step_final(jid, progress=gr.Progress()):
             _done_html(), _done_html(),
             vid, _exists(d, "video_giro360.mp4"), files,
             f"✅ **Modelo listo en {time.time() - st['t0']:.0f} s**\n\n" + _summary(info),
-            monitor_html())
+            monitor_html(), d, _review_md(info), _tipo_actual(info))
+
+
+# ------------------------------------------------------------ aprender del usuario
+TIPOS_UI = {"humanoide": "Persona", "cuadrupedo": "Animal de 4 patas",
+            "cabeza": "Cabeza / busto", "objeto": "Objeto"}
+UI_TIPOS = {v: k for k, v in TIPOS_UI.items()}
+
+
+def _tipo_actual(info):
+    t = (info.get("clasificacion") or {}).get("tipo", info.get("rig"))
+    return TIPOS_UI.get(t, "Persona")
+
+
+def _review_md(info):
+    t = _tipo_actual(info)
+    extra = " (aprendido de tus correcciones)" if (info.get("clasificacion") or {}).get(
+        "aprendido_de") else ""
+    return (f"### ¿Salió bien?\nEl modelo se detectó como **{t}**{extra}. Vota cada parte: "
+            "con 👎 el proyecto lo anota y evita repetir el error.")
+
+
+def _info_of(d):
+    try:
+        return json.load(open(os.path.join(d, "rig_info.json")))
+    except Exception:
+        return {}
+
+
+def do_vote(d, pregunta, ok, comentario):
+    if not d:
+        raise gr.Error("Primero genera o abre un modelo.")
+    from . import memoria
+    memoria.vote(d, _info_of(d), pregunta, ok, comentario or "")
+    consejo = ""
+    if not ok:
+        consejo = {
+            "forma": "Prueba con otra **semilla** (Avanzado › Aleatoria), el motor **TripoSG** o "
+                     "subir la **espalda y perfiles** en «Más vistas».",
+            "textura": "Prueba sin «Textura rápida», o con una foto con mejor luz y fondo liso.",
+            "esqueleto": "Si el tipo está mal, corrígelo arriba. Si no, prueba quitando "
+                         "«Esqueleto detallado» o subiendo la foto en pose T/A.",
+            "tipo": "Elige el tipo correcto y pulsa **Corregir esqueleto**.",
+        }.get(pregunta, "")
+    return (f"Anotado: {pregunta} {'👍' if ok else '👎'}. " + consejo, memoria.stats_md())
+
+
+def fix_type(d, tipo_ui, progress=gr.Progress()):
+    """El usuario corrige el tipo: se aprende y se rehace el esqueleto."""
+    if not d:
+        raise gr.Error("Primero genera o abre un modelo.")
+    from . import memoria
+    rig = UI_TIPOS.get(tipo_ui, "humanoide")
+    info = _info_of(d)
+    if memoria.teach_type(info, rig):
+        aviso = f"Aprendido: modelos parecidos serán **{tipo_ui}**. "
+    else:
+        aviso = ""
+    memoria.vote(d, info, "tipo", rig == (info.get("clasificacion") or {}).get("tipo"),
+                 f"correcto: {tipo_ui}")
+    new = get_engine().rerig(d, rig, progress=lambda f, m: progress(f, desc=m))
+    zp = d + ".zip"
+    return (viewer_html(d), gr.update(selected="estudio"),
+            ([zp] if os.path.exists(zp) else []) + _files(d),
+            aviso + "Esqueleto rehecho.\n\n" + _summary(new), memoria.stats_md())
 
 
 def batch(files, rig, video, progress=gr.Progress()):
@@ -296,7 +360,8 @@ def open_model(evt: gr.SelectData):
     zp = d + ".zip"
     return (viewer_html(d), gr.update(selected="estudio"),
             _done_html(), _done_html(), vid, _exists(d, "video_giro360.mp4"),
-            ([zp] if os.path.exists(zp) else []) + _files(d), _summary(info), monitor_html())
+            ([zp] if os.path.exists(zp) else []) + _files(d), _summary(info), monitor_html(),
+            d, _review_md(info), _tipo_actual(info))
 
 
 def history():
@@ -402,6 +467,9 @@ body, .gradio-container {background:#17181d !important}
       font-size:17px !important; border-radius:12px !important; box-shadow:0 0 24px #5b5bf055}
 #rigsel .wrap {gap:6px} #rigsel label {border-radius:20px !important}
 footer {display:none !important}
+#review {border:1px solid #3b3d8f !important; border-radius:14px; padding:6px;
+         background:linear-gradient(180deg,#20223a,#1b1d24) !important}
+#votes button {min-width:0 !important}
 """
 
 
@@ -528,8 +596,26 @@ def build_ui():
                         m_tex = gr.HTML(viewer_html(msg="Aquí aparecerá el modelo con textura"))
                     with gr.Tab("3 · Estudio animado", id="estudio"):
                         view = gr.HTML(viewer_html())
+                with gr.Group(elem_id="review"):
+                    review = gr.Markdown("### ¿Salió bien?\nCuando termine un modelo, vota "
+                                         "aquí. El proyecto aprende de tus respuestas.")
+                    with gr.Row():
+                        tipo_fix = gr.Dropdown(list(TIPOS_UI.values()), value="Persona",
+                                               label="Tipo de modelo", scale=3)
+                        fix_btn = gr.Button("Corregir esqueleto", variant="primary", scale=2)
+                    comentario = gr.Textbox(label="Comentario (opcional): ¿qué salió mal?",
+                                            lines=1, max_lines=3)
+                    votes = []
+                    with gr.Row(elem_id="votes"):
+                        for q, lab in (("forma", "Forma"), ("textura", "Textura"),
+                                       ("esqueleto", "Esqueleto")):
+                            votes.append((q, True, gr.Button(f"👍 {lab}", size="sm")))
+                            votes.append((q, False, gr.Button(f"👎 {lab}", size="sm")))
+                    review_out = gr.Markdown("")
                 out_files = gr.File(label="Descargas (ZIP con todo + archivos sueltos)",
                                     file_count="multiple")
+                with gr.Accordion("Lo que el proyecto ha aprendido", open=False):
+                    learn_md = gr.Markdown("")
                 with gr.Accordion("Videos (solo si activaste «Generar videos»)", open=False):
                     with gr.Row():
                         v_anim = gr.Video(label="Animación", height=280)
@@ -538,6 +624,7 @@ def build_ui():
                     mon = gr.HTML(monitor_html(), elem_id="mon")
                     mon_btn = gr.Button("Actualizar monitor", size="sm")
         job = gr.State("")
+        cur_dir = gr.State("")
 
         def apply_preset(name):
             s, o, f, t = PRESETS[name]
@@ -545,7 +632,8 @@ def build_ui():
 
         preset.change(apply_preset, preset, [steps, octree, faces, tex])
         preset.change(lambda n: n == "Turbo", preset, tex_rapida)
-        final_outs = [view, tabs, m_clay, m_tex, v_anim, v_360, out_files, status, mon]
+        final_outs = [view, tabs, m_clay, m_tex, v_anim, v_360, out_files, status, mon,
+                      cur_dir, review, tipo_fix]
         (btn.click(step_malla,
                    [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                     faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
@@ -558,11 +646,19 @@ def build_ui():
             .success(step_final, job, final_outs, concurrency_id="gen",
                      **_spo(status)))
         mon_btn.click(monitor_html, None, mon)
+        for q, ok, b in votes:
+            b.click(lambda d, c, q=q, ok=ok: do_vote(d, q, ok, c), [cur_dir, comentario],
+                    [review_out, learn_md])
+        fix_btn.click(fix_type, [cur_dir, tipo_fix], [view, tabs, out_files, status, learn_md],
+                      concurrency_id="gen")
         g_btn.click(lambda: (my_models(), history()), None, [gal, h_out])
         gal.select(open_model, None, final_outs)
         b_btn.click(batch, [b_files, b_rig, b_video], [b_out, b_log], concurrency_id="gen")
         r_btn.click(resources, None, r_out)
-        demo.load(lambda: (my_models(), history()), None, [gal, h_out])
+        def _on_load():
+            from . import memoria
+            return my_models(), history(), memoria.stats_md()
+        demo.load(_on_load, None, [gal, h_out, learn_md])
     demo.queue(default_concurrency_limit=P["workers"], max_size=20)
     return demo
 
