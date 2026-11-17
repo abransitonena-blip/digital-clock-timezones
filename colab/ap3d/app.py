@@ -149,10 +149,8 @@ def _wait(st, name, progress):
 
 
 def _spo(comp):
-    """show_progress_on solo si esta version de Gradio lo admite."""
-    import inspect
-    ok = "show_progress_on" in inspect.signature(gr.Button.click).parameters
-    return {"show_progress_on": [comp]} if ok else {}
+    """La barra de Gradio se oculta: el avance se ve en el monitor de arriba."""
+    return {"show_progress": "hidden"}
 
 
 def _done_html():
@@ -565,6 +563,70 @@ def _sample():
     return vals, vram_txt, vm, pw
 
 
+# ------------------------------------------------------------ monitor en vivo
+_MON = {"hilo": None}
+LIVE_JS = r"""
+<script>
+(function(){
+ const LIM={gpu:97,vram:92,ram:90,cpu:95,temp:83};
+ const FC={Cola:'#e5484d',Fondo:'#8a90a8',Forma:'#4d7dff',Limpieza:'#9b7bff',Textura:'#e0a030',Blender:'#1f9d6b',ZIP:'#4fb3d9',Carga:'#e5484d'};
+ function sp(h,c,max){if(!h||h.length<2)return '';const W=300,H=40;
+   return `<polyline fill="none" stroke="${c}" stroke-width="1.6" points="${h.map((v,i)=>`${(W*i/(h.length-1)).toFixed(1)},${(H-H*Math.min(v,max)/max).toFixed(1)}`).join(' ')}"/>`}
+ async function tick(){const el=document.getElementById('livebox');if(!el)return;
+  let d;try{d=await (await fetch('gradio_api/file=__PATH__?t='+Date.now())).json()}catch(e){return}
+  const ch=[['GPU',d.gpu,'%','gpu'],['VRAM',d.vram,'%','vram'],['Temp',d.temp,'°C','temp'],['CPU',d.cpu,'%','cpu'],['RAM',d.ram,'%','ram']];
+  const alert=ch.filter(c=>c[1]>=LIM[c[3]]).map(c=>c[0]);if(d.cola>0)alert.push(d.cola+' en cola');
+  let h=`<div class="lv-top"><span class="${alert.length?'lv-bad':'lv-ok'}">${alert.length?'⚠ '+alert.join(', '):'● Todo normal'}</span><span class="lv-sub">${d.vram_txt} · ${Math.round(d.pw)} W</span></div>`;
+  h+='<div class="lv-chips">'+ch.map(c=>`<span class="lv-chip ${c[1]>=LIM[c[3]]?'bad':''}"><i>${c[0]}</i><b>${Math.round(c[1])}${c[2]}</b></span>`).join('')+'</div>';
+  h+=`<svg class="lv-spark" viewBox="0 0 300 40" preserveAspectRatio="none">${sp(d.h_gpu,'#4d7dff',100)}${sp(d.h_temp,'#e0a030',100)}${sp(d.h_vram,'#9b7bff',100)}</svg>`;
+  const s=d.status;const fases=s.activo?s.fases:s.ultimo;
+  if(s.activo){const p=Math.round(s.pct*100);h+=`<div class="lv-job"><div class="lv-row"><span>${s.msg}</span><b>${p}% · ${Math.round(s.seg)} s</b></div><div class="lv-bar"><div style="width:${p}%"></div></div></div>`}
+  if(fases&&fases.length){const tot=fases.reduce((a,f)=>a+Math.max(f[2]-f[1],0.01),0);
+   h+=`<div class="lv-row lv-sub"><span>${s.activo?'Tiempo por fase (en curso)':'Último modelo: tiempo por fase'}</span><b>${Math.round(tot)} s</b></div><div class="lv-stack">`+
+     fases.map(f=>{const dur=f[2]-f[1],w=100*Math.max(dur,0.01)/tot,lento=d.normal[f[0]]&&dur>2.2*d.normal[f[0]]&&dur>20;
+       return `<div title="${f[0]} ${dur.toFixed(1)} s" class="${lento?'slow':''}" style="width:${w}%;background:${FC[f[0]]||'#666'}">${w>9?f[0]+' '+Math.round(dur)+'s':''}</div>`}).join('')+'</div>';
+   const lentos=fases.filter(f=>d.normal[f[0]]&&(f[2]-f[1])>2.2*d.normal[f[0]]&&(f[2]-f[1])>20);
+   if(lentos.length)h+=`<div class="lv-bad lv-why">⚠ Lento: ${lentos.map(f=>`${f[0]} ${Math.round(f[2]-f[1])} s (normal ~${Math.round(d.normal[f[0]])} s)`).join(' · ')}${d.gpu>90?' — GPU al tope':''}${d.cola>0?' — hay trabajos en cola':''}</div>`}
+  el.innerHTML=h}
+ setInterval(tick,1500);setTimeout(tick,300);
+})();
+</script>"""
+
+
+def start_monitor():
+    """Hilo que cada segundo escribe el estado (GPU, temperatura, fase actual
+    y tiempos por fase) en un JSON que la pagina lee directamente."""
+    if _MON["hilo"] is not None:
+        return
+    from . import engine as _eng
+    path = os.path.join(config.OUT_DIR, "_monitor.json")
+
+    def loop():
+        while True:
+            try:
+                vals, vram_txt, vm, pw = _sample()
+                st = _eng.STATUS
+                e = get_engine()
+                n = {"Forma": e.eta.get("forma", 8), "Textura": e.eta.get("textura", 35),
+                     "Blender": e.eta.get("blender", 40), "Limpieza": 8, "Fondo": 2, "ZIP": 3}
+                d = dict(vals, vram_txt=vram_txt, pw=pw, h_gpu=_HIST["gpu"][-60:],
+                         h_temp=_HIST["temp"][-60:], h_vram=_HIST["vram"][-60:],
+                         cola=getattr(e, "jobs", {}).get("en_cola", 0), normal=n,
+                         status={"activo": st["activo"], "msg": st["msg"], "pct": st["pct"],
+                                 "seg": (time.time() - st["t0"]) if st["t0"] else 0,
+                                 "fases": st["fases"], "ultimo": st["ultimo"]})
+                tmp = path + ".tmp"
+                with open(tmp, "w") as fh:
+                    json.dump(d, fh)
+                os.replace(tmp, path)
+            except Exception:
+                pass
+            time.sleep(1.0)
+
+    _MON["hilo"] = threading.Thread(target=loop, daemon=True)
+    _MON["hilo"].start()
+
+
 def monitor_html():
     """Grafica en vivo (90 s). Rojo cuando algo pasa del limite o hay cola."""
     try:
@@ -625,6 +687,21 @@ body, .gradio-container {background:#17181d !important}
       font-size:17px !important; border-radius:12px !important; box-shadow:0 0 24px #5b5bf055}
 #rigsel .wrap {gap:6px} #rigsel label {border-radius:20px !important}
 footer {display:none !important}
+#livebox {background:#151824; border:1px solid #2a2f45; border-radius:14px; padding:8px 12px;
+          color:#c9cee0; font-size:12px; margin-bottom:6px}
+.lv-top,.lv-row {display:flex; justify-content:space-between; gap:8px; align-items:center}
+.lv-ok {color:#1f9d6b} .lv-bad {color:#e5484d; font-weight:600} .lv-sub {color:#8a90a8}
+.lv-chips {display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:6px 0}
+.lv-chip {background:#1d2130; border:1px solid #2a2f45; border-radius:10px; padding:4px 6px; text-align:center}
+.lv-chip i {display:block; font-style:normal; color:#8a90a8; font-size:10px}
+.lv-chip b {color:#8fb0ff; font-size:15px} .lv-chip.bad {border-color:#e5484d} .lv-chip.bad b {color:#e5484d}
+.lv-spark {width:100%; height:34px; display:block}
+.lv-job {margin:6px 0} .lv-bar {height:8px; background:#0f1118; border-radius:5px; overflow:hidden; margin-top:3px}
+.lv-bar div {height:100%; background:linear-gradient(90deg,#3d6bff,#9b7bff); transition:width .6s}
+.lv-stack {display:flex; height:18px; border-radius:6px; overflow:hidden; margin-top:3px}
+.lv-stack div {color:#fff; font-size:10px; line-height:18px; text-align:center; white-space:nowrap; overflow:hidden}
+.lv-stack div.slow {outline:2px solid #e5484d; outline-offset:-2px}
+.lv-why {margin-top:4px}
 .tab .tcs {display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
 .tc {border:1px solid #2a2f45; border-radius:10px; padding:6px 2px; text-align:center;
      color:#5d6380; background:#151824; font-size:11px}
@@ -683,12 +760,16 @@ def build_ui():
         checkbox_label_background_fill="#2a2d36", checkbox_label_background_fill_dark="#2a2d36",
         checkbox_label_text_color="#e8e9ee", checkbox_label_text_color_dark="#e8e9ee")
     best = "Detallado" if P["vram_gb"] >= 38 else "Turbo"
-    with gr.Blocks(title="AP Model 3D Foto", theme=theme, css=CSS,
+    os.makedirs(config.OUT_DIR, exist_ok=True)
+    start_monitor()
+    live_js = LIVE_JS.replace("__PATH__", os.path.join(config.OUT_DIR, "_monitor.json"))
+    with gr.Blocks(title="AP Model 3D Foto", theme=theme, css=CSS, head=live_js,
                    js="()=>{document.body.classList.add('dark')}") as demo:
         with gr.Row(elem_id="hdr"):
             gr.HTML(f"<div class='hdr'><div class='ttl'>AP Model 3D Foto</div>"
                     f"<div class='chip'><span class='dot'></span>{P['gpu'].replace('NVIDIA ', '')[:18]}"
                     f"<br><small>{P['perfil'].capitalize()}</small></div></div>")
+        gr.HTML("<div id='livebox'>Conectando con el monitor…</div>")
         with gr.Row(equal_height=False, elem_id="main"):
             # ------------------------------------------------ panel izquierdo
             with gr.Column(scale=3, min_width=320, elem_id="side"):
@@ -849,7 +930,7 @@ def build_ui():
                     with gr.Row():
                         v_anim = gr.Video(label="Animación", height=280)
                         v_360 = gr.Video(label="Giro 360", height=280)
-                with gr.Accordion("Monitor de GPU / RAM", open=True):
+                with gr.Accordion("Monitor de GPU / RAM (detalle)", open=False):
                     mon = gr.HTML(monitor_html(), elem_id="mon")
                     mon_btn = gr.Button("Actualizar monitor", size="sm")
         job = gr.State("")

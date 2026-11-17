@@ -73,6 +73,40 @@ def cleanup_outputs(keep=80, min_free_gb=10):
         pass
 
 
+# Estado del trabajo en curso (lo lee el monitor en vivo de la pagina)
+STATUS = {"msg": "En espera", "pct": 0.0, "t0": None, "fases": [], "ultimo": [], "activo": False}
+FASES = (("En cola", "Cola"), ("Quitando fondo", "Fondo"), ("Generando la forma", "Forma"),
+         ("Limpiando", "Limpieza"), ("Reduciendo", "Limpieza"), ("Pintando", "Textura"),
+         ("Empaquetando", "ZIP"), ("Cargando el modelo", "Carga"))
+
+
+def fase_de(msg):
+    for k, v in FASES:
+        if msg.startswith(k):
+            return v
+    return "Blender"
+
+
+def track(progress):
+    """Envuelve el progreso: guarda % y mensaje, y el tiempo de cada fase."""
+    STATUS.update(t0=time.time(), fases=[], activo=True, pct=0.0)
+
+    def p(f, m):
+        STATUS["pct"] = max(STATUS["pct"], float(f))
+        STATUS["msg"] = m
+        now = time.time() - STATUS["t0"]
+        fz = fase_de(m)
+        fs = STATUS["fases"]
+        if not fs or fs[-1][0] != fz:
+            if fs:
+                fs[-1][2] = now
+            fs.append([fz, now, now])
+        else:
+            fs[-1][2] = now
+        progress(f, m)
+    return p
+
+
 def quiet_logs():
     """Oculta avisos que no afectan al resultado (torch.range, pasos de
     difusion, INFO de hy3dgen) para que el registro muestre solo el avance."""
@@ -192,12 +226,15 @@ def render_preview(mesh, size=384, az=30.0):
     py = (size / 2 - c[:, 1] * s).astype(int)
     ok = (px >= 0) & (px < size) & (py >= 0) & (py < size)
     order = np.argsort(c[:, 2])          # de atras hacia adelante
+    order = order[ok[order]]
     img = np.full((size, size), 0.09)
-    zb = np.full((size, size), -1e9)
     r = max(1, int(size / 220))
-    for i in order[ok[order]]:
-        x0, y0 = px[i], py[i]
-        img[max(0, y0 - r):y0 + r + 1, max(0, x0 - r):x0 + r + 1] = luz[i]
+    # numpy: con indices repetidos gana la ultima escritura = la cara mas cercana
+    for dy in range(-r, r + 1):
+        for dx in range(-r, r + 1):
+            yy = np.clip(py[order] + dy, 0, size - 1)
+            xx = np.clip(px[order] + dx, 0, size - 1)
+            img[yy, xx] = luz[order]
     rgb = np.stack([img * 0.85, img * 0.88, img], -1)
     return Image.fromarray((np.clip(rgb, 0, 1) * 255).astype(np.uint8))
 
@@ -369,19 +406,9 @@ class Engine:
                     p.to("cpu")
         self.ready = True
         self.warmup()
+        self._diferidos = diferidos
         if diferidos:
-            def _late():
-                try:
-                    if "forma" in diferidos:
-                        self.shape = self._shape_pipe("tencent/Hunyuan3D-2", "hunyuan3d-dit-v2-0", False)
-                    if "mv" in diferidos:
-                        self.shape_mv = self._shape_pipe("tencent/Hunyuan3D-2mv",
-                                                         "hunyuan3d-dit-v2-mv", False)
-                    self.log("Modelos de calidad (50 pasos) listos en segundo plano")
-                except Exception as e:
-                    self.log("  modelos de calidad no cargados:", e)
-            threading.Thread(target=_late, daemon=True).start()
-            self.log("Turbo listo. Los modelos de 50 pasos se cargan en segundo plano.")
+            self.log("Turbo listo. Los modelos de 50 pasos se cargan solo si eliges «Maxima».")
         self.log(f"Modelos listos en {time.time() - t:.0f}s")
         self.log_mem()
 
@@ -423,13 +450,6 @@ class Engine:
         with GPU_LOCK:
             for sd in seeds:
                 mesh, _ = self._shape(views, 5, 256, sd, 5.0, True, motor)
-                try:
-                    from hy3dgen.shapegen import FaceReducer, FloaterRemover
-                    mesh = FloaterRemover()(mesh)
-                    if len(mesh.faces) > 40000:
-                        mesh = FaceReducer()(mesh, max_facenum=40000)
-                except Exception:
-                    pass
                 out.append((sd, render_preview(mesh)))
         return out
 
@@ -612,7 +632,18 @@ class Engine:
             mesh = FaceReducer()(mesh, max_facenum=max_faces)
         return mesh
 
+    def _load_quality(self):
+        d = getattr(self, "_diferidos", [])
+        if "forma" in d and self.shape is None:
+            STATUS["msg"] = "Cargando el modelo de 50 pasos (solo la primera vez)"
+            self.shape = self._shape_pipe("tencent/Hunyuan3D-2", "hunyuan3d-dit-v2-0", False)
+        if "mv" in d and self.shape_mv is None:
+            self.shape_mv = self._shape_pipe("tencent/Hunyuan3D-2mv", "hunyuan3d-dit-v2-mv", False)
+        self._diferidos = []
+
     def _shape(self, views, steps, octree, seed, guidance, turbo, motor):
+        if not turbo:
+            self._load_quality()
         if motor == "triposg" and getattr(self, "tripo", None) is not None:
             try:
                 mesh = self.shape_triposg(views["front"], steps, seed, guidance)
@@ -686,6 +717,24 @@ class Engine:
             videos=False, on_stage=None, detalle=True, motor="hunyuan", tex_rapida=False):
         self._ensure()
         quiet_logs()
+        progress = track(progress)
+        try:
+            return self._run(front, back, left, right, sheet, sheet_order, remove_bg, steps,
+                             octree, faces, tex, seed, guidance, rig, height, rotate, video,
+                             video_res, samples, turntable, texture, relieve, turbo, progress,
+                             on_partial, videos, on_stage, detalle, motor, tex_rapida)
+        finally:
+            fs = STATUS["fases"]
+            if fs:
+                fs[-1][2] = time.time() - STATUS["t0"]
+            STATUS["ultimo"] = [list(x) for x in fs]
+            STATUS["activo"] = False
+            STATUS["msg"] = "Listo" if STATUS["pct"] >= 0.99 else "Detenido"
+
+    def _run(self, front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
+             faces, tex, seed, guidance, rig, height, rotate, video, video_res, samples,
+             turntable, texture, relieve, turbo, progress, on_partial, videos, on_stage,
+             detalle, motor, tex_rapida):
         if not self.ready:
             self.load()
         P = self.p
