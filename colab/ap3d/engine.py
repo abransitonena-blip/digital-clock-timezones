@@ -570,9 +570,10 @@ class Engine:
                             width=1024, max_sequence_length=256, generator=g).images[0]
         return pipe(prompt + ", full body, centered, plain background", seed=int(seed))
 
-    def load_triposg(self, root="/content/TripoSG"):
+    def load_triposg(self, root=None):
         """TripoSG (VAST / Tripo AI): forma de alta fidelidad desde 1 foto."""
         import torch
+        root = root or config.TRIPOSG_DIR
         if getattr(self, "tripo", None) is not None:
             return True
         try:
@@ -581,7 +582,7 @@ class Engine:
                 sys.path.insert(0, os.path.join(root, "scripts"))
             from triposg.pipelines.pipeline_triposg import TripoSGPipeline
             from briarmbg import BriaRMBG
-            w = os.path.join(root, "pretrained_weights")
+            w = config.TRIPOSG_PESOS if root == config.TRIPOSG_DIR else os.path.join(root, "pretrained_weights")
             self.tripo_rmbg = BriaRMBG.from_pretrained(os.path.join(w, "RMBG-1.4")).to("cuda").eval()
             self.tripo = TripoSGPipeline.from_pretrained(os.path.join(w, "TripoSG")).to(
                 "cuda", torch.float16)
