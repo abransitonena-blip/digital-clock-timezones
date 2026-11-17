@@ -178,13 +178,14 @@ def descargar_modelos(triposg: bool = True, texto_a_3d: bool = True, calidad: bo
         finally:
             cache_vol.commit()          # lo descargado queda guardado aunque algo falle despues
 
-    pats = ["hunyuan3d-dit-v2-0-turbo/*", "hunyuan3d-paint-v2-0-turbo/*",
+    # el VAE turbo lo usa FlashVDM; si un patron no existe simplemente no baja nada
+    pats = ["hunyuan3d-dit-v2-0-turbo/*", "hunyuan3d-vae-v2-0-turbo/*", "hunyuan3d-paint-v2-0-turbo/*",
             "hunyuan3d-paint-v2-0/*", "hunyuan3d-delight-v2-0/*"]
     if calidad:
         pats.append("hunyuan3d-dit-v2-0/*")
     paso("Hunyuan3D-2", lambda: snapshot_download("tencent/Hunyuan3D-2", allow_patterns=pats,
                                                    max_workers=W))
-    mv = ["hunyuan3d-dit-v2-mv-turbo/*"] + (["hunyuan3d-dit-v2-mv/*"] if calidad else [])
+    mv = ["hunyuan3d-dit-v2-mv-turbo/*", "hunyuan3d-vae-v2-mv-turbo/*"] + (["hunyuan3d-dit-v2-mv/*"] if calidad else [])
     paso("Hunyuan3D-2mv", lambda: snapshot_download("tencent/Hunyuan3D-2mv", allow_patterns=mv,
                                                      max_workers=W))
     if triposg:
@@ -276,7 +277,21 @@ def lanzar_web(port=PORT, user=None, password=None):
 class Estudio:
     @modal.enter()
     def cargar(self):
+        import threading
+        import time
         self.eng = _cargar_motor()
+
+        def guardar_cada_minuto():
+            # resultados y aprendizaje.json quedan en el volumen aunque el
+            # contenedor se corte de golpe
+            while True:
+                time.sleep(60)
+                for v in (data_vol, cache_vol):
+                    try:
+                        v.commit()
+                    except Exception:
+                        pass
+        threading.Thread(target=guardar_cada_minuto, daemon=True).start()
 
     @modal.web_server(PORT, startup_timeout=600, label="ap3d")
     def web(self):
