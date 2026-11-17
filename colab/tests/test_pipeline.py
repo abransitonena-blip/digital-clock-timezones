@@ -129,6 +129,66 @@ def test_aristas_duras():
     check((d.get("roblox_triangulos") or 1e9) <= 1500, f"Roblox <= 1500 ({d.get('roblox_triangulos')})")
 
 
+def _denso(m, n=3):
+    m = m.copy()
+    for _ in range(n):
+        m = m.subdivide()
+    return m
+
+
+def _persona():
+    partes = [trimesh.creation.box((0.4, 0.22, 0.6)), trimesh.creation.icosphere(radius=0.12)]
+    partes[0].apply_translation((0, 0, 1.25))
+    partes[1].apply_translation((0, 0, 1.72))
+    for x in (0.1, -0.1):
+        p = trimesh.creation.cylinder(0.07, 0.95)
+        p.apply_translation((x, 0, 0.47))
+        partes.append(p)
+    for x in (0.5, -0.5):
+        p = trimesh.creation.cylinder(0.05, 0.75)
+        p.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, (0, 1, 0)))
+        p.apply_translation((x, 0, 1.48))
+        partes.append(p)
+    cuello = trimesh.creation.cylinder(0.05, 0.12)
+    cuello.apply_translation((0, 0, 1.6))
+    partes.append(cuello)
+    return trimesh.util.concatenate(partes)
+
+
+def test_clasificacion_auto():
+    print("6) Modo Auto: figura sobre caja = prop (sin rig); busto y persona se respetan")
+    caja = _denso(trimesh.creation.box((0.4, 0.4, 0.4)), 4)
+    caja.apply_translation((0, 0, 0.2))
+    resorte = _denso(trimesh.creation.cylinder(0.05, 0.15), 2)
+    resorte.apply_translation((0, 0, 0.47))
+    torso = _denso(trimesh.creation.box((0.16, 0.1, 0.2)), 3)
+    torso.apply_translation((0, 0, 0.64))
+    brazos = _denso(trimesh.creation.box((0.5, 0.05, 0.05)), 3)
+    brazos.apply_translation((0, 0, 0.7))
+    cabeza = _denso(trimesh.creation.icosphere(radius=0.08), 1)
+    cabeza.apply_translation((0, 0, 0.82))
+    jack = trimesh.util.concatenate([caja, resorte, torso, brazos, cabeza])
+    pecho = trimesh.creation.icosphere(subdivisions=4, radius=1.0)
+    pecho.apply_scale((0.22, 0.13, 0.2))
+    pecho.vertices[:, 2] = np.maximum(pecho.vertices[:, 2], -0.12)     # busto cortado abajo
+    pecho.apply_translation((0, 0, 0.12))
+    cuello = _denso(trimesh.creation.cylinder(0.045, 0.1), 2)
+    cuello.apply_translation((0, 0, 0.33))
+    cab = trimesh.creation.icosphere(subdivisions=4, radius=0.11)
+    cab.apply_translation((0, 0, 0.48))
+    busto = trimesh.util.concatenate([pecho, cuello, cab])
+    for nom, m, ok in (("jack", jack, lambda d: d["rig"] == "ninguno"),
+                       ("busto", busto, lambda d: d["rig"] != "ninguno"),
+                       ("persona_auto", _denso(_persona(), 2), lambda d: d["rig"] == "humanoide")):
+        glb = os.path.join(TMP, nom + ".glb")
+        m.export(glb)
+        d = blender(glb, os.path.join(TMP, nom), "--rig", "auto", "--tipo_activo", "auto",
+                    "--roblox_tris", "0")
+        c = d.get("clasificacion") or {}
+        check(ok(d), f"{nom}: rig {d['rig']} (tipo {c.get('tipo')}, base_caja {c.get('base_caja')}, "
+                     f"rect {c.get('rect_base')})")
+
+
 def test_personaje():
     print("3) Personaje (rig Mixamo)")
     partes = [trimesh.creation.box((0.4, 0.22, 0.6)), trimesh.creation.icosphere(radius=0.12)]
@@ -184,5 +244,6 @@ if __name__ == "__main__":
     test_texturas_non_color()
     if "--self-test" not in sys.argv or "--todo" in sys.argv:
         test_aristas_duras()
+        test_clasificacion_auto()
     print("\n" + ("TODO OK" if not FALLAS else f"{len(FALLAS)} FALLAS: " + "; ".join(FALLAS)))
     sys.exit(1 if FALLAS else 0)

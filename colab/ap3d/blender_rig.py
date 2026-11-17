@@ -191,6 +191,42 @@ def has_gap(vals, bins=24):
     return bool(len(inner)) and (inner.min() <= 0.02 * h.max())
 
 
+def rectangularity(p):
+    """Area del casco convexo / area de su rectangulo minimo alineado al
+    casco (1.0 = rectangulo, 0.785 = elipse, 0.5 = triangulo)."""
+    p = np.unique(np.round(p, 5), axis=0)
+    if len(p) < 4:
+        return None
+    p = p[np.lexsort((p[:, 1], p[:, 0]))]
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, up = [], []
+    for q in p:
+        while len(lo) >= 2 and cross(lo[-2], lo[-1], q) <= 0:
+            lo.pop()
+        lo.append(q)
+    for q in p[::-1]:
+        while len(up) >= 2 and cross(up[-2], up[-1], q) <= 0:
+            up.pop()
+        up.append(q)
+    h = np.array(lo[:-1] + up[:-1])
+    if len(h) < 3:
+        return None
+    area = 0.5 * abs(np.dot(h[:, 0], np.roll(h[:, 1], 1)) - np.dot(h[:, 1], np.roll(h[:, 0], 1)))
+    best = None
+    for i in range(len(h)):
+        e = h[(i + 1) % len(h)] - h[i]
+        n_ = np.linalg.norm(e)
+        if n_ < 1e-12:
+            continue
+        u = e / n_
+        w = np.array([-u[1], u[0]])
+        a_ = np.ptp(h @ u) * np.ptp(h @ w)
+        best = a_ if best is None else min(best, a_)
+    return float(area / best) if best else None
+
+
 def classify(co, H):
     """persona / cuadrupedo / cabeza (busto) / objeto, midiendo la malla:
     piernas separadas, brazos (hombros mucho mas anchos que la cintura),
@@ -224,7 +260,23 @@ def classify(co, H):
         if arriba > 1.6 * w and abajo > 1.6 * w:
             cuello = True
             break
+    # base en forma de caja / pedestal (Jack-in-the-Box, caja musical,
+    # vitrina): seccion rectangular (casco convexo ~ su rectangulo) y ancho
+    # constante en el 5-30 % inferior. Un busto tiene seccion eliptica (~0.78).
+    rects, anchos = [], []
+    for i in range(1, 6):
+        sl = co[(z >= i * 0.05 * H) & (z < (i + 1) * 0.05 * H)][:, :2]
+        if len(sl) < 30:
+            continue
+        r_ = rectangularity(sl)
+        if r_ is not None:
+            rects.append(r_)
+            anchos.append(prof[i])
+    base_caja = (len(rects) >= 3 and float(np.median(rects)) > 0.9
+                 and max(anchos) < 1.15 * max(min(anchos), 1e-6)
+                 and max(anchos) > 0.45 * max(prof) and not piernas_x)
     medida = {"ancho": round(ancho / H, 2), "largo": round(largo / H, 2),
+              "base_caja": bool(base_caja), "rect_base": round(float(np.median(rects)), 2) if rects else None,
               "piernas": bool(piernas_x), "patas": bool(patas_y), "brazos": bool(brazos),
               "cuello": cuello, "base": round(frac_low, 3)}
     L_ = max(ancho, largo)
@@ -233,6 +285,8 @@ def classify(co, H):
     medida["ruedas"] = bool(ruedas)
     if H < 0.55 * L_ and ruedas and not brazos:
         tipo = "vehiculo"
+    elif base_caja:
+        tipo = "objeto"                       # figura sobre caja/pedestal: prop
     elif largo > 1.05 * H and patas_y and frac_low < 0.15:
         tipo = "cuadrupedo"
     elif (piernas_x and H > 1.15 * largo) or brazos:
