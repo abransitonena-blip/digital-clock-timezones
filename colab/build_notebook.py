@@ -90,7 +90,7 @@ sh("apt-get -qq update && apt-get -qq install -y libxi6 libxkbcommon0 libsm6 lib
    "libxxf86vm1 libxfixes3 libgl1 libegl1 libglu1-mesa libopengl0 > /dev/null", check=False)
 
 # --- Python
-sh(f"{sys.executable} -m pip install -q 'gradio>=5.9,<6' diffusers transformers accelerate "
+sh(f"{sys.executable} -m pip install -q 'gradio>=5.9,<6' 'diffusers==0.32.2' 'transformers==4.49.0' 'accelerate>=1.2,<1.6' "
    "einops omegaconf trimesh pymeshlab pygltflib xatlas rembg onnxruntime-gpu "
    "opencv-python-headless ninja pybind11 psutil hf_transfer 'huggingface_hub>=0.25'")
 print(f"Paquetes listos ({time.time()-t0:.0f}s)")
@@ -164,6 +164,15 @@ os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 sys.path.insert(0, "/content/ap3d_app")
 sys.path.insert(0, "/content/Hunyuan3D-2")
+# Hunyuan3D-2 necesita transformers 4.49: con versiones nuevas su codificador
+# de imagen (DINOv2) no carga ("Missing key(s) ... main_image_encoder").
+import importlib.metadata as _md, subprocess
+if _md.version("transformers") != "4.49.0" or not _md.version("diffusers").startswith("0.32"):
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "transformers==4.49.0",
+                    "diffusers==0.32.2", "accelerate>=1.2,<1.6"], check=True)
+    if "transformers" in sys.modules:
+        raise SystemExit("Versiones corregidas. Ve a Entorno de ejecución › Reiniciar sesión "
+                         "y vuelve a ejecutar la celda 1 y después esta celda 3.")
 import torch
 from huggingface_hub import snapshot_download
 from ap3d import config

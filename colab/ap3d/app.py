@@ -268,7 +268,31 @@ def build_ui():
 _SERVERS = {}
 
 
+def _free_port(port):
+    """Cierra lo que esta celda lanzo antes y busca un puerto libre."""
+    import socket
+    for k in ("inline", "web"):
+        d = _SERVERS.pop(k, None)
+        if d is not None:
+            try:
+                d.close()
+            except Exception:
+                pass
+    t = _SERVERS.pop("tunnel", None)
+    if t is not None:
+        t.terminate()
+    for p in range(port, port + 40):
+        with socket.socket() as s:
+            try:
+                s.bind(("0.0.0.0", p))
+                return p
+            except OSError:
+                continue
+    return port
+
+
 def launch_inline(port=7860):
+    port = _free_port(port)
     demo = build_ui()
     demo.launch(server_name="0.0.0.0", server_port=port, inline=True, share=False,
                 prevent_thread_lock=True, show_error=True, height=1100,
@@ -290,6 +314,7 @@ def _cloudflared():
 def launch_web(password="", user="ap", port=7861):
     if not password:
         password = secrets.token_urlsafe(9)
+    port = _free_port(port)
     demo = build_ui()
     demo.launch(server_name="0.0.0.0", server_port=port, share=False, auth=(user, password),
                 auth_message="AP Model 3D Foto", prevent_thread_lock=True, show_error=True,
