@@ -1059,6 +1059,9 @@ class Engine:
             if ix.get("roblox_triangulos") is not None:
                 info["roblox_triangulos"] = ix["roblox_triangulos"]
                 info.setdefault("qa", {})["roblox_triangles"] = ix["roblox_triangulos"]
+            if ix.get("roblox_deriva_aristas_m") is not None:
+                info["roblox_deriva_aristas_m"] = ix["roblox_deriva_aristas_m"]
+                info.setdefault("qa", {})["corner_drift_m"] = ix["roblox_deriva_aristas_m"]
             for k_ in ("lod_caras", "piezas", "quads_caras"):
                 if k_ in ix:
                     info[k_] = ix[k_]

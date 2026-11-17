@@ -101,6 +101,27 @@ def test_prop_rigido():
     check(not any(n in fbx for n in (b"Suelo", b"Camara", b"Luz_")), "el FBX no trae Suelo, Camara ni Luz_*")
 
 
+def test_aristas_duras():
+    print("5) Hard surface: las esquinas no se redondean al reducir para Roblox")
+    caja = trimesh.creation.box((0.4, 0.3, 0.4))
+    for _ in range(5):
+        caja = caja.subdivide()                 # ~24k triangulos, caja densa
+    caja.merge_vertices()
+    # ruido de 0.8 mm como una malla generada por IA (sin proteccion las
+    # aristas se movian 4.1 mm; con proteccion 0 mm)
+    caja.vertices += np.random.default_rng(0).normal(0, 0.0008, caja.vertices.shape)
+    caja.apply_translation((0, 0, 0.2))
+    glb = os.path.join(TMP, "caja_densa.glb")
+    caja.export(glb)
+    out = os.path.join(TMP, "caja_densa")
+    d = blender(glb, out, "--rig", "auto", "--tipo_activo", "prop_rigid", "--altura_prop", "0.40",
+                "--roblox_tris", "1500")
+    der = d.get("roblox_deriva_aristas_m")
+    check(d.get("roblox_aristas_protegidas", 0) > 0, f"aristas protegidas ({d.get('roblox_aristas_protegidas')})")
+    check(der is not None and der < 0.001, f"deriva de esquinas < 1 mm ({der} m)")
+    check((d.get("roblox_triangulos") or 1e9) <= 1500, f"Roblox <= 1500 ({d.get('roblox_triangulos')})")
+
+
 def test_personaje():
     print("3) Personaje (rig Mixamo)")
     partes = [trimesh.creation.box((0.4, 0.22, 0.6)), trimesh.creation.icosphere(radius=0.12)]
@@ -154,5 +175,7 @@ if __name__ == "__main__":
     test_prop_rigido()
     test_personaje()
     test_texturas_non_color()
+    if "--self-test" not in sys.argv or "--todo" in sys.argv:
+        test_aristas_duras()
     print("\n" + ("TODO OK" if not FALLAS else f"{len(FALLAS)} FALLAS: " + "; ".join(FALLAS)))
     sys.exit(1 if FALLAS else 0)

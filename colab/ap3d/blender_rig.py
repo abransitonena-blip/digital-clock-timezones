@@ -2427,6 +2427,27 @@ def _lod(ratio, path):
 p_rbx = os.path.join(OUT, "modelo_roblox.fbx")
 
 
+def _aristas_duras(o, grados=35.0):
+    """Vertices en aristas con angulo diedro > 35 grados (esquinas de cajas,
+    pedestales, marcos): se protegen al reducir triangulos."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    lim = math.radians(grados)
+    out = set()
+    for e in bm.edges:
+        if len(e.link_faces) == 2:
+            try:
+                if e.calc_face_angle() > lim:
+                    out.update(v.index for v in e.verts)
+            except ValueError:
+                pass
+        elif len(e.link_faces) == 1:
+            out.update(v.index for v in e.verts)      # borde abierto
+    bm.free()
+    return sorted(out)
+
+
 def _roblox():
     obj.data.calc_loop_triangles()
     tris = len(obj.data.loop_triangles)
@@ -2439,11 +2460,36 @@ def _roblox():
     arms = [m for m in rb.modifiers if m.type == "ARMATURE"]
     for m in arms:
         rb.modifiers.remove(m)
+    duras = []
     if tris > target:
         dm = rb.modifiers.new("Dec", "DECIMATE")
         dm.ratio = target / tris
         dm.use_collapse_triangulate = True
+        if INFO.get("tipo_activo", "").startswith("prop"):
+            # hard surface: los vertices de aristas > 35 grados no se colapsan
+            duras = _aristas_duras(rb)
+            if duras and len(duras) < 0.5 * len(rb.data.vertices) and not os.environ.get("AP3D_SIN_ARISTAS"):
+                g = rb.vertex_groups.new(name="Decimar")
+                g.add(list(range(len(rb.data.vertices))), 1.0, "REPLACE")
+                g.add(duras, 0.0, "REPLACE")
+                dm.vertex_group = g.name
+                dm.vertex_group_factor = 1.0
+        co0 = [rb.matrix_world @ rb.data.vertices[i].co for i in duras]
         bpy.ops.object.modifier_apply(modifier=dm.name)
+        if co0:
+            # deriva de esquinas: cuanto se movieron las aristas duras
+            from mathutils.bvhtree import BVHTree
+            dg = bpy.context.evaluated_depsgraph_get()
+            tree = BVHTree.FromObject(rb, dg)
+            mw_i = rb.matrix_world.inverted()
+            paso = max(1, len(co0) // 4000)
+            dmax = max((tree.find_nearest(mw_i @ c)[3] or 0) for c in co0[::paso])
+            esc = max(rb.matrix_world.to_scale())
+            INFO["roblox_deriva_aristas_m"] = round(float(dmax * esc), 5)
+            INFO["roblox_aristas_protegidas"] = len(duras)
+        for gg in list(rb.vertex_groups):
+            if gg.name == "Decimar":
+                rb.vertex_groups.remove(gg)
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     if arm is not None:
         am2 = rb.modifiers.new("Armature", "ARMATURE")
@@ -2995,6 +3041,9 @@ def qa_gate():
     if ta == "prop_rigid" and arm is not None:
         crit.append("prop rigido con esqueleto")
     rt = INFO.get("roblox_triangulos")
+    der = INFO.get("roblox_deriva_aristas_m")
+    if der is not None and der > 0.01 * max(dims.max(), 1e-6):
+        w.append(f"las aristas se movieron {der * 1000:.1f} mm al reducir para Roblox")
     if rt and rt > 15000:
         crit.append(f"FBX Roblox con {rt:,} triangulos (> 15,000)")
     INFO["qa"] = {"islands": 1 + flot, "mesh_parts": partes, "non_manifold_edges": nm,
@@ -3002,6 +3051,8 @@ def qa_gate():
                   "dimensions_m": [round(float(x), 3) for x in dims],
                   "has_rig": arm is not None, "textures_packed": bool(TEXTURAS_EMPAQUETADAS),
                   "asset_type": ta or "auto", "roblox_triangles": rt,
+                  "hard_surface": ta.startswith("prop"),
+                  "corner_drift_m": der,
                   "roblox_ready": bool(rt) and rt <= 15000 and bool(TEXTURAS_EMPAQUETADAS),
                   "warnings": crit + w, "critical": crit, "passed": not crit}
     log("QA:", INFO["qa"])
