@@ -46,6 +46,8 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Huesos de tela con movimiento secundario**: en túnicas, faldas y capas se crean 4 cadenas de huesos (frente, atrás, izquierda, derecha) que se balancean con retraso e inercia en cada animación. Queda grabado en GLB, FBX y .blend.
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Aprende de ti**: bajo cada modelo, **¿Salió bien?** con 👍/👎 para forma, textura y esqueleto, más un comentario. Si corriges el tipo (persona/animal/cabeza/objeto), rehace el esqueleto al momento y **recuerda la corrección**: los modelos parecidos salen bien solos. La memoria se guarda en Drive si está montado (celda 6).
+* **Vehículos**: detecta autos (bajo, largo y con ruedas), mide el radio real de las ruedas y crea raíz, carrocería, 4 ruedas y **pivotes de dirección** en las delanteras (la «T» de los rigs de autos). Pesos rígidos. Animaciones: Avanzar, Girar, Suspensión y Frenar.
+* **Dashboard**: tarjetas de modelos, tiempo medio, % de votos positivos y memoria GPU; galería con miniatura 3D y filtros por tipo.
 * **Física**: volumen, masa, centro de masa, base de apoyo, si se sostiene solo y filamento/horas para imprimir a 15 cm; `fisica.json` (masa, centro de masa, inercia) para Unity/Unreal. En el visor, **física en vivo**: la tela se balancea con resortes según el movimiento, y botón **Centro de masa**.
 * **Tablero de tarjetas** (Foto → Forma → Textura → Esqueleto → Animaciones → Física → Exportar) que se encienden en azul según avanza.
 * **🎲 4 variantes de forma** en segundos para elegir antes de texturizar (contra la aleatoriedad que critican los desarrolladores).

@@ -60,8 +60,8 @@ def _summary(info):
     c = info.get("clasificacion")
     if c:
         tipos = {"humanoide": "persona", "cuadrupedo": "animal de 4 patas",
-                 "cabeza": "cabeza / busto", "objeto": "objeto"}
-        rasgos = [k for k in ("piernas", "brazos", "cuello", "patas") if c.get(k)]
+                 "cabeza": "cabeza / busto", "vehiculo": "vehículo", "objeto": "objeto"}
+        rasgos = [k for k in ("piernas", "brazos", "cuello", "patas", "ruedas") if c.get(k)]
         lines.append(f"Detectado como **{tipos.get(c.get('tipo'), c.get('tipo'))}**"
                      + (f" (vio: {', '.join(rasgos)})" if rasgos else ""))
     uv = info.get("uv")
@@ -103,7 +103,8 @@ def _summary(info):
 
 
 RIGS = {"Auto": "auto", "Humano": "humanoide", "Criatura": "cuadrupedo",
-        "Cabeza / busto": "cabeza", "Objeto": "objeto", "Sin esqueleto": "ninguno"}
+        "Cabeza / busto": "cabeza", "Vehículo": "vehiculo", "Objeto": "objeto",
+        "Sin esqueleto": "ninguno"}
 
 
 def viewer_html(d=None, height=600, view=None, wire=False, etapa=None, msg=None):
@@ -325,7 +326,7 @@ def datos_html(info):
 
 # ------------------------------------------------------------ aprender del usuario
 TIPOS_UI = {"humanoide": "Persona", "cuadrupedo": "Animal de 4 patas",
-            "cabeza": "Cabeza / busto", "objeto": "Objeto"}
+            "cabeza": "Cabeza / busto", "vehiculo": "Vehículo", "objeto": "Objeto"}
 UI_TIPOS = {v: k for k, v in TIPOS_UI.items()}
 
 
@@ -404,24 +405,70 @@ def batch(files, rig, video, progress=gr.Progress()):
     return zips, "\n\n".join(log)
 
 
-def my_models():
-    """Galeria de modelos guardados (vista previa o foto de frente)."""
-    items = []
+FILTROS = {"Todos": None, "Personas": "humanoide", "Vehículos": "vehiculo",
+           "Animales": "cuadrupedo", "Cabezas": "cabeza", "Objetos": "objeto"}
+
+
+def _model_dirs(filtro="Todos"):
+    want = FILTROS.get(filtro)
+    out = []
     for d in sorted(glob.glob(os.path.join(config.OUT_DIR, "*")), reverse=True):
         if not os.path.isdir(d):
             continue
-        img = next((os.path.join(d, f) for f in ("vista_previa.png", "vista_front.png")
+        img = next((os.path.join(d, f) for f in ("miniatura.png", "vista_previa.png", "vista_front.png")
                     if os.path.exists(os.path.join(d, f))), None)
-        if img:
-            items.append((img, os.path.basename(d)[:15].replace("_", " ")))
-    return items[:60]
+        if not img:
+            continue
+        try:
+            inf = json.load(open(os.path.join(d, "rig_info.json")))
+        except Exception:
+            inf = {}
+        tipo = (inf.get("clasificacion") or {}).get("tipo", inf.get("rig"))
+        if want and tipo != want:
+            continue
+        out.append((d, img, tipo, inf))
+    return out[:60]
 
 
-def open_model(evt: gr.SelectData):
-    dirs = [d for d in sorted(glob.glob(os.path.join(config.OUT_DIR, "*")), reverse=True)
-            if os.path.isdir(d) and any(os.path.exists(os.path.join(d, f)) for f in
-                                        ("vista_previa.png", "vista_front.png"))]
-    d = dirs[evt.index]
+def my_models(filtro="Todos"):
+    """Galeria de modelos guardados, con su tipo y numero de huesos."""
+    return [(img, f"{TIPOS_UI.get(t, t or '?')} · {inf.get('huesos', 0)} huesos · "
+                  f"{os.path.basename(d)[9:15]}")
+            for d, img, t, inf in _model_dirs(filtro)]
+
+
+def kpis_html():
+    """Tarjetas de resumen (estilo dashboard): modelos, tiempo medio,
+    aprobacion de tus votos y GPU."""
+    ds = _model_dirs()
+    tiempos = [inf.get("segundos_total") for _, _, _, inf in ds if inf.get("segundos_total")]
+    medio = f"{sum(tiempos) / len(tiempos):.0f} s" if tiempos else "—"
+    try:
+        from . import memoria
+        v = memoria.load().get("votos", [])
+        ok = f"{100 * sum(x['ok'] for x in v) // len(v)} %" if v else "—"
+    except Exception:
+        ok = "—"
+    try:
+        import torch
+        fr, tot = torch.cuda.mem_get_info()
+        gpu = f"{100 * (tot - fr) // tot} %"
+    except Exception:
+        gpu = "—"
+    ic = {"m": "<path d='M6 18l18-10 18 10-18 10z'/><path d='M6 26l18 10 18-10M6 34l18 10 18-10'/>",
+          "t": "<circle cx='24' cy='24' r='17'/><path d='M24 14v11l7 5'/>",
+          "v": "<path d='M14 22v18h-6V22zM14 38l6 2h14l6-14-4-4H28l2-10-4-2-12 12'/>",
+          "g": "<rect x='12' y='12' width='24' height='24' rx='3'/><rect x='19' y='19' width='10' height='10'/>"
+               "<path d='M18 6v6M30 6v6M18 36v6M30 36v6M6 18h6M6 30h6M36 18h6M36 30h6'/>"}
+    cards = [("m", "Modelos", str(len(ds))), ("t", "Tiempo medio", medio),
+             ("v", "Te gustaron", ok), ("g", "Memoria GPU", gpu)]
+    return ("<div class='kpis'>" + "".join(
+        f"<div class='kpi'><svg viewBox='0 0 48 48'>{ic[k]}</svg><span>{lab}</span><b>{val}</b></div>"
+        for k, lab, val in cards) + "</div>")
+
+
+def open_model(filtro, evt: gr.SelectData):
+    d = _model_dirs(filtro)[evt.index][0]
     if not os.path.exists(os.path.join(d, "estudio.html")):
         import shutil
         shutil.copy(os.path.join(os.path.dirname(__file__), "estudio.html"), d)
@@ -557,6 +604,12 @@ footer {display:none !important}
 .td > b {color:#8fb0ff; font-size:12px; text-transform:uppercase; letter-spacing:.04em}
 .kv {display:flex; justify-content:space-between; gap:8px; border-bottom:1px dashed #252a3d;
      padding:3px 0} .kv:last-child {border:0} .kv span {color:#8a90a8}
+.kpis {display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px}
+.kpi {border:1px solid #2a2f45; border-radius:14px; padding:10px; background:#151824; color:#8a90a8;
+      font-size:12px} .kpi svg {width:22px; height:22px; fill:none; stroke:#4d7dff; stroke-width:2.6;
+      stroke-linecap:round; stroke-linejoin:round; display:block; margin-bottom:4px}
+.kpi b {display:block; color:#4d7dff; font-size:24px; margin-top:2px}
+#filtros label {border-radius:20px !important; padding:4px 10px !important}
 @media (max-width:820px) {.tab .tcs {grid-template-columns:repeat(4,1fr)} .tc {font-size:10px}}
 .hdr {display:flex; justify-content:space-between; align-items:center; width:100%}
 .hdr .ttl {font-size:26px; font-weight:700; color:#e8e9ee}
@@ -670,6 +723,9 @@ def build_ui():
                         if ex:
                             gr.Examples(ex, inputs=[front], label="Ejemplos")
                     with gr.Tab("Mis Modelos"):
+                        kpis = gr.HTML(kpis_html())
+                        filtro = gr.Radio(list(FILTROS), value="Todos", show_label=False,
+                                          elem_id="filtros")
                         g_btn = gr.Button("Actualizar", size="sm")
                         gal = gr.Gallery(label="Toca uno para abrirlo en el estudio",
                                          columns=2, height=520, allow_preview=False)
@@ -808,14 +864,15 @@ def build_ui():
                     [review_out, learn_md])
         fix_btn.click(fix_type, [cur_dir, tipo_fix], [view, tabs, out_files, status, learn_md],
                       concurrency_id="gen")
-        g_btn.click(lambda: (my_models(), history()), None, [gal, h_out])
-        gal.select(open_model, None, final_outs)
+        g_btn.click(lambda f_: (my_models(f_), history(), kpis_html()), filtro, [gal, h_out, kpis])
+        filtro.change(my_models, filtro, gal)
+        gal.select(open_model, filtro, final_outs)
         b_btn.click(batch, [b_files, b_rig, b_video], [b_out, b_log], concurrency_id="gen")
         r_btn.click(resources, None, r_out)
         def _on_load():
             from . import memoria
-            return my_models(), history(), memoria.stats_md()
-        demo.load(_on_load, None, [gal, h_out, learn_md])
+            return my_models(), history(), memoria.stats_md(), kpis_html()
+        demo.load(_on_load, None, [gal, h_out, learn_md, kpis])
     demo.queue(default_concurrency_limit=P["workers"], max_size=20)
     return demo
 

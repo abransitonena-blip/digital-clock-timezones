@@ -43,7 +43,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--in", dest="inp", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--rig", default="humanoide",
-                choices=["auto", "humanoide", "cuadrupedo", "cabeza", "objeto", "ninguno"])
+                choices=["auto", "humanoide", "cuadrupedo", "cabeza", "objeto", "vehiculo", "ninguno"])
 ap.add_argument("--height", type=float, default=1.8)
 ap.add_argument("--rotate", type=float, default=0.0,
                 help="giro extra en grados alrededor de Z")
@@ -210,7 +210,13 @@ def classify(co, H):
     medida = {"ancho": round(ancho / H, 2), "largo": round(largo / H, 2),
               "piernas": bool(piernas_x), "patas": bool(patas_y), "brazos": bool(brazos),
               "cuello": cuello, "base": round(frac_low, 3)}
-    if largo > 1.05 * H and patas_y and frac_low < 0.15:
+    L_ = max(ancho, largo)
+    low_l = low[:, 1] if largo >= ancho else low[:, 0]
+    ruedas = has_gap(low_l) if len(low) else False
+    medida["ruedas"] = bool(ruedas)
+    if H < 0.55 * L_ and ruedas and not brazos:
+        tipo = "vehiculo"
+    elif largo > 1.05 * H and patas_y and frac_low < 0.15:
         tipo = "cuadrupedo"
     elif (piernas_x and H > 1.15 * largo) or brazos:
         tipo = "humanoide"
@@ -556,6 +562,94 @@ def object_bones(co, H):
     return [(n, Vector(h), Vector(t), p) for n, h, t, p in B]
 
 
+VEH = {}
+
+
+def vehicle_bones(co, H):
+    """Vehiculo: raiz, carroceria y 4 ruedas. Cada rueda delantera cuelga de
+    un pivote de direccion vertical (la "T" que se usa en rigs de autos):
+    el pivote gira para doblar y la rueda gira sobre su eje para avanzar."""
+    x, y, z = co[:, 0], co[:, 1], co[:, 2]
+    li = 1 if np.ptp(y) >= np.ptp(x) else 0       # eje largo
+    si = 1 - li                                      # eje lateral
+    L = float(np.ptp(co[:, li]))
+    lmin, lmax = float(co[:, li].min()), float(co[:, li].max())
+    smin, smax = float(co[:, si].min()), float(co[:, si].max())
+    smid = (smin + smax) / 2
+    r = min(0.42 * H, 0.17 * L)
+    piso = co[z < 0.05 * H]
+    ejes = []
+    for half in (0, 1):
+        lo, hi = (lmin, lmin + L / 2) if half == 0 else (lmin + L / 2, lmax)
+        p = piso[(piso[:, li] >= lo) & (piso[:, li] < hi)]
+        ejes.append(float(np.median(p[:, li])) if len(p) > 10 else lo + (0.18 if half == 0 else 0.32) * L)
+    lado = 0.5 * (smax - smin) * 0.82
+    # radio real: la cuerda de la rueda a una altura h cumple r = (w^2 + h^2) / 2h
+    h_ = 0.10 * H
+    est = []
+    for e in ejes:
+        band = co[(co[:, 2] < h_) & (np.abs(co[:, li] - e) < 0.3 * L)]
+        if len(band) > 20:
+            w = 0.5 * float(np.percentile(band[:, li], 97) - np.percentile(band[:, li], 3))
+            est.append((w * w + h_ * h_) / (2 * h_))
+    if est:
+        r = float(np.clip(np.median(est), 0.12 * H, 0.45 * H))
+    B = []
+
+    def P(lv, sv, zv):
+        v = [0.0, 0.0, zv]
+        v[li] = lv
+        v[si] = sv
+        return Vector(v)
+
+    lc = (lmin + lmax) / 2
+    B.append(("Raiz", P(lc, smid, 0), P(lc, smid, 0.1 * H), None))
+    B.append(("Carroceria", P(lc, smid, r), P(lc, smid, H), "Raiz"))
+    VEH.update(li=li, si=si, r=r, ruedas={}, smid=smid)
+    for eje, (pref, frente) in zip(ejes, (("D", True), ("T", False))):
+        for sgn, ln in ((-1, "I"), (1, "D")):
+            nm = f"Rueda_{pref}{ln}"
+            c = P(eje, smid + sgn * lado, r)
+            padre = "Raiz"
+            if frente:
+                piv = f"Direccion_{pref}{ln}"
+                B.append((piv, c, c + Vector((0, 0, 0.6 * r)), "Raiz"))   # pivote vertical
+                padre = piv
+            eje_v = [0.0, 0.0, 0.0]
+            eje_v[si] = sgn * 0.5 * r
+            B.append((nm, c, c + Vector(eje_v), padre))                    # eje de la rueda
+            VEH["ruedas"][nm] = (np.array(c), sgn)
+    INFO["vehiculo"] = {"radio_rueda_m": round(r, 3), "ejes": [round(e, 3) for e in ejes],
+                        "eje_largo": "Y" if li == 1 else "X"}
+    return [(n, Vector(h), Vector(t), p) for n, h, t, p in B]
+
+
+def vehicle_weights():
+    """Pesos rigidos: cada punto dentro del cilindro de una rueda es 100 % de
+    esa rueda; el resto, carroceria (un auto no se deforma como un cuerpo)."""
+    li, si, r = VEH["li"], VEH["si"], VEH["r"]
+    co_ = verts_np(obj)
+    for g in list(obj.vertex_groups):
+        obj.vertex_groups.remove(g)
+    gb = obj.vertex_groups.new(name="Carroceria")
+    asign = np.full(len(co_), -1)
+    nombres = list(VEH["ruedas"])
+    for k, nm in enumerate(nombres):
+        c, sgn = VEH["ruedas"][nm]
+        d = np.hypot(co_[:, li] - c[li], co_[:, 2] - c[2])
+        lado_ok = (co_[:, si] - VEH["smid"]) * sgn > 0.45 * abs(c[si] - VEH["smid"])
+        asign[(d < 1.06 * r) & lado_ok & (asign < 0)] = k
+    for k, nm in enumerate(nombres):
+        g = obj.vertex_groups.new(name=nm)
+        idx = np.nonzero(asign == k)[0].tolist()
+        if idx:
+            g.add(idx, 1.0, "REPLACE")
+    rest = np.nonzero(asign < 0)[0].tolist()
+    gb.add(rest, 1.0, "REPLACE")
+    INFO["vertices_por_rueda"] = {nm: int((asign == k).sum()) for k, nm in enumerate(nombres)}
+    log("ruedas:", INFO["vertices_por_rueda"])
+
+
 BONES = []          # (nombre, cabeza, cola, padre)
 
 
@@ -740,6 +834,8 @@ if args.rig != "ninguno":
         BONES = head_bones(co, H)
     elif args.rig == "objeto":
         BONES = object_bones(co, H)
+    elif args.rig == "vehiculo":
+        BONES = vehicle_bones(co, H)
     else:
         BONES = quadruped_bones(co, H)
 
@@ -1027,6 +1123,9 @@ if args.rig != "ninguno":
         INFO["avisos"].append("huesos sin zona: " + ", ".join(vacios))
     log("pesos reparados:", sin_peso, "vertices; huesos vacios:", len(vacios))
 
+    if args.rig == "vehiculo":
+        vehicle_weights()
+        INFO["pesos"] = "rigidos (vehiculo)"
     obj.parent = arm
     am = obj.modifiers.new("Armature", "ARMATURE")
     am.object = arm
@@ -1367,6 +1466,57 @@ def head_anims():
     build_action("Sorpresa", 40, surprise)
 
 
+def vehicle_anims():
+    S, pi = math.sin, math.pi
+    si = VEH["si"]
+    eje = [0, 0, 0]
+    eje[si] = 1
+    eje = tuple(eje)
+    largo = [0, 0, 0]
+    largo[VEH["li"]] = 1
+    largo = tuple(largo)
+    Z = (0, 0, 1)
+    ruedas = list(VEH["ruedas"])
+
+    def spin(t, vueltas):
+        return {n: wrot(n, (eje, -2 * pi * vueltas * t)) for n in ruedas}
+
+    def idle(t):
+        a = 2 * pi * t
+        return {"Carroceria": wrot("Carroceria", (largo, 0.004 * S(a)), (eje, 0.004 * S(2 * a)))}
+
+    def drive(t):
+        p = spin(t, 2)
+        a = 2 * pi * t
+        p["Carroceria"] = wrot("Carroceria", (eje, 0.012 * S(4 * a)))
+        return p
+
+    def turn(t):
+        a = 2 * pi * t
+        ang = 0.45 * S(a)
+        p = spin(t, 2)
+        for n in ("Direccion_DI", "Direccion_DD"):
+            p[n] = wrot(n, (Z, ang))
+        p["Carroceria"] = wrot("Carroceria", (largo, -0.05 * S(a)))   # se inclina en la curva
+        return p
+
+    def suspension(t):
+        a = 2 * pi * t
+        return {"Carroceria": wrot("Carroceria", (largo, 0.06 * S(a)), (eje, 0.04 * S(2 * a + 1)))}
+
+    def brake(t):
+        k = math.sin(min(1.0, t * 2.5) * pi) if t < 0.4 else math.exp(-(t - 0.4) * 6) * math.cos((t - 0.4) * 30)
+        p = spin(min(t, 0.4), 1)
+        p["Carroceria"] = wrot("Carroceria", (eje, 0.07 * k))      # cabeceo al frenar
+        return p
+
+    build_action("Reposo", 72, idle, step=3)
+    build_action("Avanzar", 48, drive)
+    build_action("Girar", 72, turn, step=3)
+    build_action("Suspension", 48, suspension)
+    build_action("Frenar", 48, brake)
+
+
 def object_anims():
     S, pi = math.sin, math.pi
     X, Y, Z = (1, 0, 0), (0, 1, 0), (0, 0, 1)
@@ -1418,6 +1568,8 @@ if arm is not None:
         head_anims()
     elif args.rig == "objeto":
         object_anims()
+    elif args.rig == "vehiculo":
+        vehicle_anims()
     else:
         quadruped_anims()
     bpy.ops.object.mode_set(mode="OBJECT")

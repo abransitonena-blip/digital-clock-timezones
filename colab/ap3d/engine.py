@@ -102,7 +102,8 @@ def _memoria_path():
         return ""
 
 
-DENSIDADES = {"humanoide": 985.0, "cuadrupedo": 1000.0, "cabeza": 1100.0, "objeto": 600.0}
+DENSIDADES = {"humanoide": 985.0, "cuadrupedo": 1000.0, "cabeza": 1100.0, "objeto": 600.0,
+              "vehiculo": 150.0}   # auto: carroceria hueca, ~1.2-1.6 t
 
 
 def physics_data(mesh, height_m, tipo="humanoide"):
@@ -789,6 +790,10 @@ class Engine:
                     mesh = FaceReducer()(mesh, max_facenum=faces)
                 mesh.export(os.path.join(work, "arcilla.glb"))
                 shutil.copy(os.path.join(work, "arcilla.glb"), out)
+                try:
+                    render_preview(mesh, 320).save(os.path.join(out, "miniatura.png"))
+                except Exception:
+                    pass
                 stage("malla", out)          # etapa 1: la malla ya se ve
                 ts = time.time()
                 if texture:
