@@ -111,6 +111,7 @@ class Engine:
         d.setdefault("_eta_path", os.path.join(config.OUT_DIR, "tiempos.json"))
         d.setdefault("cache", {})
         d.setdefault("tripo", None)
+        d.setdefault("t2i", None)
         if d.get("blender_pool") is None:
             d["blender_pool"] = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
 
@@ -256,6 +257,17 @@ class Engine:
             self.log(f"GPU calentada en {time.time() - t:.0f}s")
         except Exception as e:
             self.log("  calentamiento omitido:", e)
+
+    def text_to_image(self, prompt, seed=0):
+        """Texto -> imagen de referencia (HunyuanDiT, incluido con Hunyuan3D-2).
+        Se carga la primera vez que se usa. Entiende mejor ingles o chino."""
+        if getattr(self, "t2i", None) is None:
+            from hy3dgen.text2image import HunyuanDiTPipeline
+            self.log("Cargando HunyuanDiT (texto a imagen)...")
+            self.t2i = HunyuanDiTPipeline("Tencent-Hunyuan/HunyuanDiT-v1.1-Diffusers-Distilled")
+        prompt = str(prompt).strip()[:300]
+        img = self.t2i(prompt + ", full body, centered, plain background", seed=int(seed))
+        return img
 
     def load_triposg(self, root="/content/TripoSG"):
         """TripoSG (VAST / Tripo AI): forma de alta fidelidad desde 1 foto."""

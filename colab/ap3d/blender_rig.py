@@ -248,7 +248,10 @@ def cloth_chains():
     que cuelgan de la cadera hasta el borde de la tunica. Los vertices de
     tela pasan a esos huesos segun su angulo y altura, y las animaciones
     les dan movimiento secundario (inercia y balanceo)."""
-    if len(CLOTH) < 200:
+    # Solo si de verdad hay tela suelta (tunica, falda, capa larga)
+    if len(CLOTH) < max(1500, 0.04 * len(obj.data.vertices)):
+        return 0
+    if sum(1 for k in CLOTH.values() if k > 0.5) < 600:
         return 0
     P = "mixamorig:"
     co_ = verts_np(obj)
@@ -811,7 +814,7 @@ if args.rig != "ninguno":
             if e.weight > 0.05:
                 cnt[gi2name[e.group]] += 1
     INFO["vertices_por_hueso"] = cnt
-    _fino = ("Thumb", "Index", "Middle", "Ring", "Pinky", "Toe", "Eye", "Jaw")
+    _fino = ("Thumb", "Index", "Middle", "Ring", "Pinky", "Toe", "Eye", "Jaw", "Tela")
     vacios = [n for n, c in cnt.items() if c == 0 and not n.endswith("_End")
               and not any(x in n for x in _fino)]
     INFO["huesos_finos_sin_zona"] = sum(1 for n, c in cnt.items()

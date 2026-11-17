@@ -140,13 +140,19 @@ def _exists(d, f):
 def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-               detalle=True, motor="Hunyuan3D (rápido)", progress=gr.Progress()):
+               detalle=True, motor="Hunyuan3D (rápido)", prompt="", progress=gr.Progress()):
     """Etapa 1: lanza el trabajo y devuelve la malla en cuanto existe."""
-    if front is None and sheet is None:
-        raise gr.Error("Sube al menos la foto de frente (o una hoja de vistas).")
     if rand_seed:
         seed = random.randint(0, 2**31 - 1)
     eng = get_engine()
+    if front is None and sheet is None:
+        if not (prompt or "").strip():
+            raise gr.Error("Sube una foto o escribe una descripción.")
+        progress(0.01, desc="Creando la imagen desde el texto…")
+        try:
+            front = eng.text_to_image(prompt, seed)
+        except Exception as e:
+            raise gr.Error(f"No se pudo crear la imagen desde el texto: {e}")
     if front is None:
         front = eng.split_sheet(sheet, sheet_order).get("front")
     jid = secrets.token_hex(6)
@@ -187,7 +193,7 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
     threading.Thread(target=work, daemon=True).start()
     _wait(st, "malla", progress)
     d = st["dir"]
-    return (jid, viewer_html(d, view="hi" if _exists(d, "malla_alta.glb") else "clay", wire=True,
+    return (front, jid, viewer_html(d, view="hi" if _exists(d, "malla_alta.glb") else "clay", wire=True,
                              etapa="Etapa 1/3 · Malla en alta resolución"),
             gr.update(selected="malla"),
             f"**Etapa 1/3 · Malla lista** ({time.time() - st['t0']:.0f} s). Pintando la textura…",
@@ -408,6 +414,11 @@ def build_ui():
             with gr.Column(scale=3, min_width=320, elem_id="side"):
                 with gr.Tabs():
                     with gr.Tab("Generar"):
+                        prompt = gr.Textbox(label="O descríbelo con texto (como Tripo)",
+                                            placeholder="Ej.: a medieval knight with silver armor",
+                                            info="Si no subes foto, se crea una imagen desde el "
+                                                 "texto y luego el 3D. Funciona mejor en inglés.",
+                                            lines=2, max_lines=4)
                         front = gr.Image(label="Foto de frente", type="pil",
                                          image_mode="RGBA", height=230)
                         with gr.Accordion("Más vistas (espalda, perfiles, hoja)", open=False):
@@ -516,8 +527,8 @@ def build_ui():
                    [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                     faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                     video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-                    detalle, motor],
-                   [job, m_clay, tabs, status, seed], concurrency_id="gen",
+                    detalle, motor, prompt],
+                   [front, job, m_clay, tabs, status, seed], concurrency_id="gen",
                    concurrency_limit=P["workers"], **_spo(status))
             .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",
                      **_spo(status))
