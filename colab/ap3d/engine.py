@@ -313,6 +313,26 @@ def fix_islands(mesh, keep_area=0.015, dust_area=0.002, near=0.08, touch=0.002, 
     return out, rep
 
 
+def material_blanco(mesh):
+    """Con textura de color, el color base del material debe ser blanco: el
+    material por defecto de trimesh es gris 0.4 y Blender lo multiplica por la
+    textura (modelo 2.5 veces mas oscuro y el FBX sin textura)."""
+    try:
+        import trimesh
+        vis = mesh.visual
+        if getattr(vis, "kind", None) != "texture":
+            return mesh
+        mat = vis.material
+        if isinstance(mat, trimesh.visual.material.SimpleMaterial):
+            mat = mat.to_pbr()
+            vis.material = mat
+        if getattr(mat, "baseColorTexture", None) is not None:
+            mat.baseColorFactor = [255, 255, 255, 255]
+    except Exception:
+        pass
+    return mesh
+
+
 def render_preview(mesh, size=384, az=30.0, elev=0.0):
     """Imagen de una malla sin GPU grafica: proyeccion ortografica con
     z-buffer de caras y luz por normales (para elegir variantes).
@@ -995,6 +1015,7 @@ class Engine:
                 else:
                     textured, ok_tex = mesh, False
                 t_tex = time.time() - ts
+                material_blanco(textured)
                 textured.export(os.path.join(work, "modelo_texturizado.glb"))
                 try:
                     # PLY con color en cada vertice: slicers multicolor (Bambu, Prusa)

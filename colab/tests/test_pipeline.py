@@ -192,6 +192,32 @@ def test_clasificacion_auto():
                      f"rect {c.get('rect_base')})")
 
 
+def test_texturas_roblox():
+    print("7) Roblox: texturas a 1024 px embebidas (el modelo principal sigue en 2048)")
+    from PIL import Image
+    caja = _denso(trimesh.creation.box((0.4, 0.3, 0.4)), 3)
+    caja.apply_translation((0, 0, 0.2))
+    v = caja.vertices
+    uv = np.c_[(v[:, 0] + v[:, 1] + 0.4) / 0.8, v[:, 2] / 0.4]          # proyeccion simple
+    rng = np.random.default_rng(0)
+    img = Image.fromarray(rng.integers(0, 255, (2048, 2048, 3), dtype=np.uint8))
+    caja.visual = trimesh.visual.TextureVisuals(uv=uv, image=img)
+    caja.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, (1, 0, 0)))
+    glb = os.path.join(TMP, "caja_tex.glb")
+    caja.export(glb)
+    out = os.path.join(TMP, "caja_tex")
+    d = blender(glb, out, "--rig", "auto", "--tipo_activo", "prop_rigid", "--roblox_tris", "12000")
+    fbx = os.path.join(out, "modelo_roblox.fbx")
+    check(d.get("roblox_textura_px") == 1024, f"textura Roblox 1024 px ({d.get('roblox_textura_px')})")
+    mb = os.path.getsize(fbx) / 1e6 if os.path.exists(fbx) else 0
+    check(0.3 < mb < 6, f"FBX Roblox con textura embebida y ligero ({mb:.1f} MB)")
+    check(d["qa"]["textures_packed"], "texturas empaquetadas")
+    check(d.get("texturas_conectadas_directo", 0) >= 1, "textura conectada directo al material (sin gris 0.4)")
+    rig = os.path.join(out, "modelo_rig.fbx")
+    mb2 = os.path.getsize(rig) / 1e6 if os.path.exists(rig) else 0
+    check(mb2 > 0.3, f"modelo_rig.fbx tambien lleva la textura ({mb2:.1f} MB)")
+
+
 def test_personaje():
     print("3) Personaje (rig Mixamo)")
     partes = [trimesh.creation.box((0.4, 0.22, 0.6)), trimesh.creation.icosphere(radius=0.12)]
@@ -250,5 +276,6 @@ if __name__ == "__main__":
     if "--self-test" not in sys.argv or "--todo" in sys.argv:
         test_aristas_duras()
         test_clasificacion_auto()
+        test_texturas_roblox()
     print("\n" + ("TODO OK" if not FALLAS else f"{len(FALLAS)} FALLAS: " + "; ".join(FALLAS)))
     sys.exit(1 if FALLAS else 0)

@@ -2142,9 +2142,27 @@ def verify_textures():
     """Mapas de datos (normal, rugosidad, metal, ORM) en Non-Color y todas las
     imagenes empaquetadas antes de exportar FBX/GLB."""
     fixed = 0
+    directas = 0
     for m in bpy.data.materials:
         if not getattr(m, "node_tree", None):
             continue
+        # imagen -> MIX (multiplicar por un color fijo) -> Base Color: lo crea
+        # el importador glTF por el baseColorFactor. Se conecta la imagen
+        # directa: color real y el exportador FBX ya ve (y embebe) la textura.
+        nt = m.node_tree
+        for l in list(nt.links):
+            mx = l.from_node
+            if l.to_socket.name != "Base Color" or mx.type not in ("MIX", "MIX_RGB"):
+                continue
+            if getattr(mx, "blend_type", "") != "MULTIPLY":
+                continue
+            imgs = [i.links[0].from_socket for i in mx.inputs
+                    if i.enabled and i.is_linked and i.links[0].from_node.type == "TEX_IMAGE"]
+            otros = [i for i in mx.inputs if i.enabled and i.is_linked
+                     and i.links[0].from_node.type != "TEX_IMAGE"]
+            if len(imgs) == 1 and not otros:
+                nt.links.new(imgs[0], l.to_socket)
+                directas += 1
         for l in m.node_tree.links:
             n = l.from_node
             if n.type != "TEX_IMAGE" or n.image is None:
@@ -2154,6 +2172,12 @@ def verify_textures():
                 if n.image.colorspace_settings.name != "Non-Color":
                     n.image.colorspace_settings.name = "Non-Color"
                     fixed += 1
+    for k_, img in enumerate(bpy.data.images):
+        # el exportador FBX distingue imagenes por su ruta: sin ruta, todas
+        # chocan y solo se embebe una (o ninguna)
+        if not img.filepath and img.source in ("FILE", "GENERATED"):
+            ext = {"JPEG": ".jpg"}.get(img.file_format, ".png")
+            img.filepath_raw = f"//tex_{k_}_{bpy.path.clean_name(img.name)}{ext}"
     for img in bpy.data.images:
         if img.source in ("FILE", "GENERATED") and not img.packed_file and img.has_data:
             try:
@@ -2163,6 +2187,7 @@ def verify_textures():
     packed = all(bool(i.packed_file) for i in bpy.data.images
                  if i.users and i.source in ("FILE", "GENERATED") and i.has_data)
     INFO["texturas_non_color_corregidas"] = fixed
+    INFO["texturas_conectadas_directo"] = directas
     return packed
 
 
@@ -2506,6 +2531,76 @@ def _aristas_duras(o, grados=35.0):
     return sorted(out)
 
 
+def _texturas_roblox(o, lado=1024):
+    """Roblox reduce toda textura a 1024 px al importar: se embeben copias a
+    1024 (el modelo principal conserva las de 2048). Devuelve lo creado para
+    borrarlo despues."""
+    mats, imgs, por_img = [], [], {}
+    for slot in o.material_slots:
+        m = slot.material
+        if not m or not getattr(m, "node_tree", None):
+            continue
+        cambia = []
+        for n in m.node_tree.nodes:
+            if n.type == "TEX_IMAGE" and n.image:
+                if not n.image.has_data:
+                    try:
+                        n.image.pixels[0]          # cargar pixeles (empaquetada)
+                    except Exception:
+                        pass
+                if max(n.image.size) > lado:
+                    cambia.append(n)
+        if not cambia:
+            continue
+        m2 = m.copy()
+        m2.name = m.name + "_roblox"
+        mats.append(m2)
+        for n in m2.node_tree.nodes:
+            if n.type != "TEX_IMAGE" or not n.image or n.image.name not in [c.image.name for c in cambia]:
+                continue
+            im = por_img.get(n.image.name)
+            if im is None:
+                src = n.image
+                w, h = src.size
+                k = lado / max(w, h)
+                w2, h2 = max(1, int(w * k)), max(1, int(h * k))
+                tmp = src.copy()
+                tmp.scale(w2, h2)
+                px = np.empty(w2 * h2 * 4, dtype=np.float32)
+                tmp.pixels.foreach_get(px)
+                bpy.data.images.remove(tmp)
+                # imagen NUEVA (no copia de archivo): al empaquetar guarda los
+                # pixeles reducidos y no el archivo original de 2048
+                im = bpy.data.images.new(src.name + "_1k", w2, h2, alpha=True,
+                                         float_buffer=False, is_data=src.colorspace_settings.name == "Non-Color")
+                im.pixels.foreach_set(px)
+                # guardar como PNG real y cargarlo como archivo: el exportador
+                # FBX solo embebe imagenes de archivo
+                pth = os.path.join(OUT, f"_roblox_{len(por_img)}_{bpy.path.clean_name(src.name)}_1k.png")
+                im.filepath_raw = pth
+                im.file_format = "PNG"
+                im.save()
+                bpy.data.images.remove(im)
+                im = bpy.data.images.load(pth)
+                im.name = src.name + "_1k"
+                im.colorspace_settings.name = src.colorspace_settings.name
+                im.pack()
+                try:
+                    os.remove(pth)
+                except OSError:
+                    pass
+                por_img[n.image.name] = im
+                imgs.append(im)
+            n.image = im
+        slot.material = m2
+    if imgs:
+        INFO["roblox_textura_px"] = max(max(i.size) for i in imgs)
+    return mats, imgs
+
+
+rb_mats, rb_imgs = [], []
+
+
 def _roblox():
     obj.data.calc_loop_triangles()
     tris = len(obj.data.loop_triangles)
@@ -2549,6 +2644,12 @@ def _roblox():
             if gg.name == "Decimar":
                 rb.vertex_groups.remove(gg)
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    global rb_mats, rb_imgs
+    try:
+        rb_mats, rb_imgs = _texturas_roblox(rb)
+    except Exception as e:
+        rb_mats, rb_imgs = [], []
+        INFO["avisos"].append(f"texturas Roblox a 1024: {e}")
     if arm is not None:
         am2 = rb.modifiers.new("Armature", "ARMATURE")
         am2.object = arm
@@ -2568,6 +2669,10 @@ def _roblox():
                                  axis_forward="-Z", axis_up="Y")
     finally:
         bpy.data.objects.remove(rb, do_unlink=True)
+        for m in rb_mats:
+            bpy.data.materials.remove(m)
+        for im in rb_imgs:
+            bpy.data.images.remove(im)
 
 
 if args.roblox_tris > 0:
