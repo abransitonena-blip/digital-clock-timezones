@@ -48,6 +48,11 @@ class Engine:
         self.jobs = {"activos": 0, "en_cola": 0}
         # tiempos medidos (media movil) para estimar cuanto falta
         self.eta = {"forma": 8.0, "textura": 35.0, "blender": 60.0}
+        self._eta_path = os.path.join(config.OUT_DIR, "tiempos.json")
+        try:
+            self.eta.update(json.load(open(self._eta_path)))
+        except Exception:
+            pass
         self.cache = {}
         self.ready = False
         self.blender_pool = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
@@ -169,8 +174,32 @@ class Engine:
                 if p is not None and p is not self.shape_t:
                     p.to("cpu")
         self.ready = True
+        self.warmup()
         self.log(f"Modelos listos en {time.time() - t:.0f}s")
         self.log_mem()
+
+    def warmup(self):
+        """Una pasada minima al cargar: compila los kernels de CUDA y elige
+        los algoritmos de cuDNN, asi la primera foto ya va a toda velocidad."""
+        import torch
+        pipe = self.shape_t or self.shape
+        if pipe is None or not torch.cuda.is_available():
+            return
+        t = time.time()
+        try:
+            from PIL import ImageDraw
+            im = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+            d = ImageDraw.Draw(im)
+            d.ellipse((176, 40, 336, 200), fill=(200, 170, 150, 255))
+            d.rectangle((196, 190, 316, 470), fill=(60, 80, 160, 255))
+            g = torch.Generator(device="cuda").manual_seed(0)
+            with torch.inference_mode(), torch.autocast("cuda", dtype=torch.float16):
+                pipe(image=im, num_inference_steps=2, octree_resolution=128,
+                     num_chunks=self.p["chunks"], generator=g, output_type="trimesh")
+            torch.cuda.synchronize()
+            self.log(f"GPU calentada en {time.time() - t:.0f}s")
+        except Exception as e:
+            self.log("  calentamiento omitido:", e)
 
     def _set_texture_size(self, size):
         if self.paint is None:
@@ -335,7 +364,7 @@ class Engine:
             steps=None, octree=None, faces=None, tex=None, seed=1234,
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
-            texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None):
+            texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None, on_partial=None):
         if not self.ready:
             self.load()
         P = self.p
@@ -450,18 +479,26 @@ class Engine:
                 avg = sum(state.values()) / len(state)
             progress(f_tex + (0.97 - f_tex) * avg, msg)
 
-        futs = [self.blender_pool.submit(
-            self.blender, inp, out, rig, height, rotate, video, video_res, samples,
-            turntable, relieve, st, lambda x, m, st=st: bprog(st, x, m)) for st in stages]
-        blog = "\n\n".join(f_.result() for f_ in futs)
-        E["blender"] = 0.5 * E["blender"] + 0.5 * (time.time() - tb)
-
+        # Lo que ya existe se copia antes: el estudio puede abrir el modelo
+        # en cuanto termina la exportacion, sin esperar a los videos.
         shutil.copy(os.path.join(HERE, "estudio.html"), out)
         for f in ("arcilla.glb", "modelo_texturizado.glb") + tuple(
                 f"vista_{n}.png" for n in VIEWS):
             src = os.path.join(work, f)
             if os.path.exists(src):
                 shutil.copy(src, out)
+        futs = [self.blender_pool.submit(
+            self.blender, inp, out, rig, height, rotate, video, video_res, samples,
+            turntable, relieve, st, lambda x, m, st=st: bprog(st, x, m),
+            (lambda: on_partial(out)) if (on_partial and st == "export") else None)
+            for st in stages]
+        blog = "\n\n".join(f_.result() for f_ in futs)
+        E["blender"] = 0.5 * E["blender"] + 0.5 * (time.time() - tb)
+        try:
+            json.dump(E, open(self._eta_path, "w"))
+        except Exception:
+            pass
+
         info = {}
         ip = os.path.join(out, "rig_info.json")
         if os.path.exists(ip):
@@ -502,6 +539,7 @@ class Engine:
                    ("pesos reparados", .35, "Blender: pesos listos"),
                    ("mapas de relieve", .40, "Blender: relieve"),
                    ("exportado modelo_animado", .55, "Exportando GLB animado"),
+                   ("exportado modelo_web.glb", .60, "GLB ligero para web"),
                    ("exportado modelo_rig.fbx", .65, "Exportando FBX"),
                    ("exportado piezas", .72, "Piezas por hueso"),
                    ("exportado pesos", .78, "Mapa de pesos"),
@@ -515,7 +553,7 @@ class Engine:
     }
 
     def blender(self, inp, out, rig, height, rotate, video, video_res, samples, turntable,
-                relieve=0.6, stage="all", on_progress=None):
+                relieve=0.6, stage="all", on_progress=None, on_ready=None):
         cmd = [config.BLENDER, "-b", "--factory-startup", "-t", "0", "-P",
                os.path.join(HERE, "blender_rig.py"), "--", "--in", inp, "--out", out,
                "--rig", rig, "--height", str(height), "--rotate", str(rotate),
@@ -534,6 +572,9 @@ class Engine:
                     on_progress(min(.95, .3 + int(m.group(1)) / 400), "Renderizando video")
                 continue
             lines.append(line.rstrip())
+            if on_ready and ("exportado modelo_web.glb" in line or "exportado modelo_rig.fbx" in line):
+                on_ready()          # el estudio ya puede abrir el modelo
+                on_ready = None
             if line.startswith("[rig") and on_progress:
                 for i, (key, x, msg) in enumerate(ms):
                     if i >= done and key in line:

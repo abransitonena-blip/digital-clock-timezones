@@ -831,6 +831,36 @@ def _glb():
 
 export("glb_animado", _glb, p)
 
+# GLB ligero para el visor web y el celular: malla comprimida con Draco y
+# texturas JPEG. Pesa ~4-8 veces menos y carga mucho mas rapido por el tunel.
+p_web = os.path.join(OUT, "modelo_web.glb")
+
+
+def _glb_web():
+    sel_export_objects()
+    kw = dict(filepath=p_web, export_format="GLB", use_selection=True,
+              export_apply=False, export_yup=True, export_texcoords=True,
+              export_normals=True, export_materials="EXPORT",
+              export_draco_mesh_compression_enable=True,
+              export_draco_mesh_compression_level=6,
+              export_draco_position_quantization=14,
+              export_draco_normal_quantization=10,
+              export_draco_texcoord_quantization=12)
+    for extra in (dict(export_image_format="JPEG", export_jpeg_quality=88),
+                  dict(export_image_format="JPEG"), {}):
+        try:
+            if arm is not None:
+                bpy.ops.export_scene.gltf(**kw, **extra, export_animations=True,
+                                          export_skins=True, export_animation_mode="ACTIONS")
+            else:
+                bpy.ops.export_scene.gltf(**kw, **extra)
+            return
+        except TypeError:
+            continue
+
+
+export("glb_web", _glb_web, p_web)
+
 p_fbx = os.path.join(OUT, "modelo_rig.fbx")
 
 

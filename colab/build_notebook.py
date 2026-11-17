@@ -39,6 +39,7 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Usa la RAM a fondo**: carga en la RAM los pesos de los modelos (cerca de 30 GB) y deja **todos los modelos cargados a la vez** en la GPU (1 foto, varias vistas y textura). Trabaja en `/dev/shm`, un disco en RAM, guarda en caché los resultados y deja que Blender corra **en paralelo** con la siguiente generación.
 * **Pesos sin manchas**: los calcula Blender (método de calor) sobre una copia cerrada de la malla y los pasa al modelo real. Cada hueso mueve su zona completa, no solo una banda.
 * **Turbo**: forma con 5 pasos + FlashVDM, textura turbo y Blender en dos procesos a la vez (archivos y videos). Barra con **porcentaje y tiempo restante** y **monitor en vivo** de GPU/VRAM/RAM/CPU/temperatura que se pone **en rojo** si algo se satura o hay cola.
+* **Ves el modelo antes**: el estudio se abre en cuanto está el GLB animado, mientras los videos siguen renderizándose. El visor usa un **GLB ligero** (Draco + JPEG) que carga mucho más rápido en el celular. La GPU se **precalienta** al cargar y los tiempos aprendidos se guardan entre sesiones.
 * **Malla reparada**: quita trozos sueltos, cierra agujeros y orienta las caras.
 * **Cero vértices sin peso**: si alguno queda suelto, copia el peso de su vecino; el informe dice cuántos vértices mueve cada hueso.
 * **LOD para juegos**: además del modelo completo, versiones al 50 % y 15 % con el mismo esqueleto y animaciones.

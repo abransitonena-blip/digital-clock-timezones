@@ -27,7 +27,7 @@ EXAMPLES_DIR = "/content/Hunyuan3D-2/assets/example_images"
 
 
 def _files(d):
-    order = ["modelo_animado.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
+    order = ["modelo_animado.glb", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
              "modelo_estatico.obj", "modelo_estatico.mtl", "modelo_impresion3d.stl",
              "piezas.glb", "pesos.glb", "arcilla.glb", "rig_info.json"]
     fs = [os.path.join(d, f) for f in order if os.path.exists(os.path.join(d, f))]
@@ -141,7 +141,8 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
                                 RIGS.get(rig, rig), height, rotate, video, video_res,
                                 samples, turntable, texture,
                                 relieve=float(relieve) if relieve_on else 0.0,
-                                turbo=int(steps) <= 10, progress=prog)
+                                turbo=int(steps) <= 10, progress=prog,
+                                on_partial=lambda d: st.__setitem__("partial", d))
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -150,8 +151,17 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
     th = threading.Thread(target=work, daemon=True)
     th.start()
     keep = (gr.update(),) * 4
+    shown = False
     while th.is_alive():
-        yield keep + (gr.update(), gr.update(), progress_html(st["f"], st["m"], t0))
+        if st.get("partial") and not shown:
+            # Modelo listo: se abre ya en el estudio mientras se renderizan los videos
+            shown = True
+            yield ((viewer_html(st["partial"]),) + (gr.update(),) * 3 +
+                   ("**Modelo listo** – ya puedes verlo y descargarlo desde Exportar. "
+                    "Terminando los videos…", gr.update(),
+                    progress_html(st["f"], st["m"], t0)))
+        else:
+            yield keep + (gr.update(), gr.update(), progress_html(st["f"], st["m"], t0))
         th.join(0.5)
     if st["err"]:
         yield keep + (gr.update(), gr.update(), progress_html(st["f"], "", t0, error=st["err"]))

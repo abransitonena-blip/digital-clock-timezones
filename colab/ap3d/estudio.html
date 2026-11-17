@@ -59,11 +59,12 @@ canvas{display:block}
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s);
-const FILES={tex:['modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb']};
-const NICE={'modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
+const FILES={tex:['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb']};
+const NICE={'modelo_web.glb':'GLB ligero web (Draco + JPEG)','modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
  'modelo.blend':'Blender (.blend)','modelo_texturizado.glb':'GLB sin esqueleto','modelo_estatico.obj':'OBJ estático',
  'modelo_impresion3d.stl':'STL impresión 3D (mm)','modelo_lod1_50.glb':'LOD ligero 50%','modelo_lod2_15.glb':'LOD muy ligero 15%',
  'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
@@ -83,7 +84,7 @@ const sun=new THREE.DirectionalLight(0xffffff,2);sun.castShadow=true;sun.shadow.
 const rim=new THREE.DirectionalLight(0x88aaff,1);scene.add(rim);
 
 let cur=null,mixer=null,actions={},clock=new THREE.Clock(),box=new THREE.Box3(),H=1.8,skelHelper=null,info={},avail=new Set();
-const loader=new GLTFLoader();
+const loader=new GLTFLoader();const draco=new DRACOLoader();draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');loader.setDRACOLoader(draco);
 
 function light(k){
   const L={estudio:[0xffffff,2,[2,4,3],0x88aaff,1,.6,1.0,true],exterior:[0xfff2dd,3.2,[5,8,2],0xbfd8ff,.5,.9,.6,true],
@@ -112,7 +113,7 @@ async function show(view){
   const cands=FILES[view];let file=null;for(const f of cands)if(avail.has(f)){file=f;break}
   if(!file)return;
   $('#load').style.display='flex';
-  const g=await loader.loadAsync(file);
+  const g=await loader.loadAsync(file,e=>{if(e.total)$('#load').textContent=`Cargando modelo… ${Math.round(100*e.loaded/e.total)}%`});
   if(cur){scene.remove(cur)}if(skelHelper){scene.remove(skelHelper);skelHelper=null}
   cur=g.scene;cur.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;
     if(view==='clay')o.material=new THREE.MeshStandardMaterial({color:0xb9bcc6,roughness:.55,metalness:.05});
@@ -163,7 +164,7 @@ renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt)
 (async()=>{
   try{info=await (await fetch('rig_info.json')).json()}catch(e){}
   const all=new Set(Object.values(info.archivos||{}));
-  for(const f of ['modelo_animado.glb','modelo_texturizado.glb','piezas.glb','pesos.glb','arcilla.glb'])all.add(f);
+  for(const f of ['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb','piezas.glb','pesos.glb','arcilla.glb'])all.add(f);
   for(const f of Object.keys(NICE))all.add(f);
   await Promise.all([...all].map(async f=>{if(await exists(f))avail.add(f)}));
   document.querySelectorAll('#views button').forEach(b=>b.disabled=!FILES[b.dataset.v].some(f=>avail.has(f)));
