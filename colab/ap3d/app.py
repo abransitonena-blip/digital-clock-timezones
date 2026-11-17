@@ -18,7 +18,7 @@ from .engine import get_engine
 ANIMS = ["Caminar", "Correr", "Saludar", "Saltar", "Bailar", "Reposo"]
 PRESETS = {
     # nombre: (pasos, octree, caras, textura). 10 pasos o menos = modelo Turbo
-    "Turbo": (5, 384, 100000, 2048),
+    "Turbo": (5, 384, 60000, 2048),
     "Detallado": (8, 512, 150000, 2048),
     "Rapido": (25, 256, 40000, 2048),
     "Alta": (40, 384, 80000, 2048),
@@ -420,7 +420,8 @@ def build_ui():
                         with gr.Accordion("Calidad", open=False):
                             preset = gr.Radio(list(PRESETS), value=best, label="Preajuste",
                                               info="Detallado: Turbo con malla 512 y 150 000 caras (recomendado). "
-                                                   "Turbo: el mas rapido. Maxima: 50 pasos, el mas lento")
+                                                   "Turbo: el mas rapido (60 000 caras; la textura tarda menos "
+                                                   "con menos caras). Maxima: 50 pasos, el mas lento")
                             tex = gr.Dropdown(["1024", "2048", "4096"], value=str(PRESETS[best][3]),
                                               label="Textura (px)")
                             with gr.Row():

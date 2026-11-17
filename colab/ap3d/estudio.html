@@ -28,6 +28,17 @@
 #legend div{display:flex;gap:6px;align-items:center;margin:2px 0}#legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 #load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);z-index:3}
 canvas{display:block}
+@media (max-width:640px){
+ #top{gap:6px;top:8px;left:8px;right:8px}
+ .seg button,.btn{padding:6px 9px;font-size:13px}
+ #info{top:auto;bottom:8px;left:8px;right:8px;text-align:center;font-size:11px}
+ #info br{display:none}
+ #bottom{bottom:30px}
+ #tools{max-width:96vw;overflow-x:auto}
+ #anims button{padding:5px 10px;font-size:13px}
+ #stagebadge{top:auto;bottom:150px;right:8px}
+ #legend{bottom:150px;font-size:11px}
+}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head><body>
