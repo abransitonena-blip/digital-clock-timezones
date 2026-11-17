@@ -280,15 +280,35 @@ class Engine:
             self.log("  calentamiento omitido:", e)
 
     def text_to_image(self, prompt, seed=0):
-        """Texto -> imagen de referencia (HunyuanDiT, incluido con Hunyuan3D-2).
-        Se carga la primera vez que se usa. Entiende mejor ingles o chino."""
+        """Texto -> imagen de referencia. FLUX.1-schnell (2024, 4 pasos, licencia
+        Apache 2.0, gran calidad); si no esta, HunyuanDiT. Se carga al usarlo."""
+        import torch
+        prompt = str(prompt).strip()[:400]
+        full = (prompt + ", single character or object, full body, centered, front view, "
+                "plain white background, soft studio light, 3D render style, high detail")
         if getattr(self, "t2i", None) is None:
-            from hy3dgen.text2image import HunyuanDiTPipeline
-            self.log("Cargando HunyuanDiT (texto a imagen)...")
-            self.t2i = HunyuanDiTPipeline("Tencent-Hunyuan/HunyuanDiT-v1.1-Diffusers-Distilled")
-        prompt = str(prompt).strip()[:300]
-        img = self.t2i(prompt + ", full body, centered, plain background", seed=int(seed))
-        return img
+            try:
+                from diffusers import FluxPipeline
+                self.log("Cargando FLUX.1-schnell (texto a imagen)...")
+                pipe = FluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell",
+                                                    torch_dtype=torch.bfloat16)
+                if self.p["vram_gb"] >= 60:
+                    pipe.to("cuda")
+                else:
+                    pipe.enable_model_cpu_offload()
+                self.t2i = ("flux", pipe)
+            except Exception as e:
+                self.log("  FLUX no disponible, se usa HunyuanDiT:", e)
+                from hy3dgen.text2image import HunyuanDiTPipeline
+                self.t2i = ("hunyuan", HunyuanDiTPipeline(
+                    "Tencent-Hunyuan/HunyuanDiT-v1.1-Diffusers-Distilled"))
+        kind, pipe = self.t2i
+        if kind == "flux":
+            g = torch.Generator("cpu").manual_seed(int(seed))
+            with torch.inference_mode():
+                return pipe(full, guidance_scale=0.0, num_inference_steps=4, height=1024,
+                            width=1024, max_sequence_length=256, generator=g).images[0]
+        return pipe(prompt + ", full body, centered, plain background", seed=int(seed))
 
     def load_triposg(self, root="/content/TripoSG"):
         """TripoSG (VAST / Tripo AI): forma de alta fidelidad desde 1 foto."""

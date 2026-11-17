@@ -432,8 +432,8 @@ def build_ui():
                     with gr.Tab("Generar"):
                         prompt = gr.Textbox(label="O descríbelo con texto (como Tripo)",
                                             placeholder="Ej.: a medieval knight with silver armor",
-                                            info="Si no subes foto, se crea una imagen desde el "
-                                                 "texto y luego el 3D. Funciona mejor en inglés.",
+                                            info="Si no subes foto, FLUX crea la imagen desde el texto "
+                                                 "y luego el 3D. Funciona mejor en inglés.",
                                             lines=2, max_lines=4)
                         front = gr.Image(label="Foto de frente", type="pil",
                                          image_mode="RGBA", height=230)

@@ -244,6 +244,7 @@ def detect_humanoid(co, H):
     # Entrepierna: punto mas alto sin malla en la franja central bajo 0.6H
     strip = co[(np.abs(x) < 0.025 * H) & (z < 0.62 * H) & (z > 0.12 * H)]
     crotch = float(strip[:, 2].min()) if len(strip) else 0.48 * H
+    crotch_raw = crotch
     if not (0.42 * H <= crotch <= 0.55 * H):
         crotch = 0.48 * H        # muslos juntos: proporcion humana media
     hip_z = crotch + 0.04 * H
@@ -266,18 +267,46 @@ def detect_humanoid(co, H):
             leg_x = float(np.median(bl[:, 0]))
     leg_x = min(max(leg_x, 0.05 * H), 0.14 * H)
 
-    # Torso: ancho en el pecho
-    chest = co[(z > 0.70 * H) & (z < 0.78 * H) & (np.abs(x) < 0.26 * H)]
+    # Cuello real: franja central mas estrecha entre 45 % y 92 % de la altura
+    # con la cabeza (mas ancha) encima. Personajes cabezones (chibi, mascotas)
+    # tienen el cuello mucho mas abajo que el 86 % humano.
+    neck_z = 0.86 * H
+    cen = co[np.abs(x) < 0.30 * H]
+    best = None
+    for zz in np.linspace(0.45 * H, 0.92 * H, 48):
+        sl = cen[np.abs(cen[:, 2] - zz) < 0.012 * H]
+        if len(sl) < 15:
+            continue
+        w = float(np.percentile(sl[:, 0], 95) - np.percentile(sl[:, 0], 5))
+        above = cen[(cen[:, 2] > zz + 0.03 * H) & (cen[:, 2] < zz + 0.15 * H)]
+        if len(above) < 15:
+            continue
+        wa = float(np.percentile(above[:, 0], 95) - np.percentile(above[:, 0], 5))
+        if wa > 1.25 * w and (best is None or w / wa < best[0]):
+            best = (w / wa, float(zz))
+    if best is not None:
+        neck_z = best[1]
+    neck_z = min(max(neck_z, 0.45 * H), 0.9 * H)
+    cabezon = neck_z < 0.78 * H
+    if cabezon:
+        # cuerpo corto: la entrepierna real esta mas abajo
+        lim = neck_z - 0.15 * H
+        crotch = crotch_raw if 0.06 * H <= crotch_raw <= lim else min(crotch, 0.45 * neck_z)
+        hip_z = crotch + 0.04 * H
+
+    # Torso: ancho en el pecho (justo bajo el cuello)
+    c0, c1 = (neck_z - 0.16 * H, neck_z - 0.08 * H)
+    chest = co[(z > c0) & (z < c1) & (np.abs(x) < 0.30 * H)]
     sh_x = float(np.abs(chest[:, 0]).max()) * 0.80 if len(chest) else 0.11 * H
-    sh_x = min(max(sh_x, 0.08 * H), 0.16 * H)
-    sh_z = 0.815 * H
+    sh_x = min(max(sh_x, 0.06 * H), 0.2 * H)
+    sh_z = neck_z - 0.045 * H
     torso_y = float(np.median(chest[:, 1])) if len(chest) else 0.0
 
     # Manos: el punto mas lejano a cada lado entre 0.40H y 0.95H
     def hand(side):
-        c = co[(z > 0.40 * H) & (z < 0.95 * H) & (side * x > sh_x + 0.06 * H)]
+        c = co[(z > 0.25 * H) & (z < neck_z) & (side * x > sh_x + 0.04 * H)]
         if len(c) < 20:
-            return Vector((side * (sh_x + 0.06 * H), torso_y, 0.50 * H)), False
+            return Vector((side * (sh_x + 0.10 * H), torso_y, sh_z - 0.25 * (sh_z - hip_z))), False
         i = int(np.argmax(side * c[:, 0] + 0.15 * c[:, 2] / H))
         tip = c[i]
         near = c[np.linalg.norm(c - tip, axis=1) < 0.05 * H]
@@ -291,7 +320,8 @@ def detect_humanoid(co, H):
                               "proporciones estandar")
     return dict(H=H, crotch=crotch, hip_z=hip_z, fx_l=fx_l, fx_r=fx_r,
                 toe_y=toe_y, heel_y=heel_y, leg_x=leg_x, sh_x=sh_x,
-                sh_z=sh_z, torso_y=torso_y, hand_l=hl, hand_r=hr)
+                sh_z=sh_z, torso_y=torso_y, hand_l=hl, hand_r=hr,
+                neck_z=neck_z, cabezon=cabezon)
 
 
 CLOTH = {}          # vertice de tela (falda/tunica) -> cuanto cuelga (0..1)
@@ -509,17 +539,18 @@ def humanoid_bones(d):
     H, ty = d["H"], d["torso_y"]
     P = "mixamorig:"
     hz = d["hip_z"]
-    sp = [hz, hz + 0.09 * H, hz + 0.18 * H, hz + 0.27 * H]
-    neck_z = 0.86 * H
-    head_z = 0.895 * H
+    neck_z = d.get("neck_z", 0.86 * H)
+    head_z = min(neck_z + 0.035 * H, 0.93 * H)
+    top_sp = max(neck_z - 0.04 * H, hz + 0.06 * H)
+    sp = [hz + (top_sp - hz) * f for f in (0.0, 0.33, 0.66, 1.0)]
     B = [
-        ("Hips", (0, ty, d["crotch"] + 0.01 * H), (0, ty, sp[1]), None),
+        ("Hips", (0, ty, min(d["crotch"] + 0.01 * H, sp[1] - 0.01 * H)), (0, ty, sp[1]), None),
         ("Spine", (0, ty, sp[1]), (0, ty, sp[2]), "Hips"),
         ("Spine1", (0, ty, sp[2]), (0, ty, sp[3]), "Spine"),
         ("Spine2", (0, ty, sp[3]), (0, ty, neck_z), "Spine1"),
         ("Neck", (0, ty, neck_z), (0, ty, head_z), "Spine2"),
-        ("Head", (0, ty, head_z), (0, ty, 0.98 * H), "Neck"),
-        ("HeadTop_End", (0, ty, 0.98 * H), (0, ty, 1.0 * H), "Head"),
+        ("Head", (0, ty, head_z), (0, ty, head_z + 0.8 * (H - head_z)), "Neck"),
+        ("HeadTop_End", (0, ty, head_z + 0.8 * (H - head_z)), (0, ty, 1.0 * H), "Head"),
     ]
     for side, name, hand in ((1, "Left", d["hand_l"]), (-1, "Right", d["hand_r"])):
         sh = Vector((side * d["sh_x"], ty, d["sh_z"]))
@@ -679,7 +710,7 @@ if args.rig != "ninguno":
         D = detect_humanoid(co, H)
         D["co"] = co
         BONES = humanoid_bones(D)
-        INFO["proporciones"] = {k: (round(v, 3) if isinstance(v, float) else list(map(lambda q: round(q, 3), v)))
+        INFO["proporciones"] = {k: (v if isinstance(v, bool) else round(v, 3) if isinstance(v, float) else list(map(lambda q: round(q, 3), v)))
                                 for k, v in D.items() if k not in ("co", "dedos")}
     elif args.rig == "cabeza":
         BONES = head_bones(co, H)

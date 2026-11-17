@@ -130,7 +130,7 @@ sh("apt-get -qq update && apt-get -qq install -y libxi6 libxkbcommon0 libsm6 lib
 # --- Python
 sh(f"{sys.executable} -m pip install -q 'gradio>=5.9,<6' 'diffusers==0.32.2' 'transformers==4.49.0' 'accelerate>=1.2,<1.6' "
    "einops omegaconf trimesh pymeshlab pygltflib xatlas rembg onnxruntime-gpu "
-   "opencv-python-headless ninja pybind11 psutil hf_transfer 'huggingface_hub>=0.25'")
+   "opencv-python-headless ninja pybind11 psutil hf_transfer 'huggingface_hub>=0.25' sentencepiece protobuf")
 print(f"Paquetes listos ({time.time()-t0:.0f}s)")
 
 # --- Hunyuan3D-2
@@ -233,55 +233,91 @@ from huggingface_hub import snapshot_download
 from ap3d import config
 from ap3d.engine import get_engine
 
+# ---- reloj de pasos: duracion de cada uno y fin estimado ----
+_T0 = time.time()
+_RES = []
+_EST = {"Hunyuan3D-2": 90, "Hunyuan3D-2mv": 45, "TripoSG": 60, "Texto a imagen (FLUX)": 150,
+        "Precargar pesos en RAM": 45, "Cargar modelos en GPU": 100, "TripoSG en GPU": 25}
+_PEND = [k for k in _EST]
+def paso(nombre, fn, activo=True):
+    if nombre in _PEND:
+        _PEND.remove(nombre)
+    if not activo:
+        _RES.append((nombre, 0, "omitido"))
+        return None
+    resto = sum(_EST[k] for k in _PEND)
+    print(f"[{(time.time()-_T0)/60:4.1f} min] ▶ {nombre}… (despues faltan ~{resto/60:.0f} min)", flush=True)
+    t = time.time()
+    try:
+        r = fn()
+        _RES.append((nombre, time.time() - t, "ok"))
+        print(f"           ✓ {nombre} en {time.time()-t:.0f} s", flush=True)
+        return r
+    except Exception as e:
+        _RES.append((nombre, time.time() - t, f"fallo: {str(e)[:120]}"))
+        print(f"           ⚠ {nombre}: {e}", flush=True)
+        return None
+
 print("CUDA:", torch.cuda.is_available())
 P = config.detect()
 print(config.describe(P))
+print(f"Inicio. Primera vez: unos {sum(_EST.values())/60:.0f} min (despues de reiniciar, mucho menos: ya esta descargado).")
 
-t = time.time()
 pats = ["hunyuan3d-dit-v2-0-turbo/*"] + (["hunyuan3d-dit-v2-0/*"] if MODO_CALIDAD_TAMBIEN else [])
 if CARGAR_TEXTURA:
     pats += ["hunyuan3d-paint-v2-0-turbo/*", "hunyuan3d-paint-v2-0/*", "hunyuan3d-delight-v2-0/*"]
-snapshot_download("tencent/Hunyuan3D-2", allow_patterns=pats, max_workers=16)
-if CARGAR_MULTIVISTA:
-    snapshot_download("tencent/Hunyuan3D-2mv", allow_patterns=["hunyuan3d-dit-v2-mv-turbo/*"]
-                      + (["hunyuan3d-dit-v2-mv/*"] if MODO_CALIDAD_TAMBIEN else []), max_workers=16)
-if CARGAR_TRIPOSG and os.path.exists("/content/TripoSG"):
-    try:
-        snapshot_download("VAST-AI/TripoSG", local_dir="/content/TripoSG/pretrained_weights/TripoSG", max_workers=16)
-        snapshot_download("briaai/RMBG-1.4", local_dir="/content/TripoSG/pretrained_weights/RMBG-1.4", max_workers=16)
-    except Exception as e:
-        print("TripoSG no se pudo descargar:", e)
-        CARGAR_TRIPOSG = False
-if CARGAR_TEXTO_A_3D:
-    try:
-        snapshot_download("Tencent-Hunyuan/HunyuanDiT-v1.1-Diffusers-Distilled", max_workers=16)
-    except Exception as e:
-        print("Texto a 3D no disponible:", e)
-print(f"Modelos descargados ({time.time()-t:.0f}s)")
+paso("Hunyuan3D-2", lambda: snapshot_download("tencent/Hunyuan3D-2", allow_patterns=pats, max_workers=16))
+paso("Hunyuan3D-2mv", lambda: snapshot_download("tencent/Hunyuan3D-2mv", allow_patterns=["hunyuan3d-dit-v2-mv-turbo/*"]
+     + (["hunyuan3d-dit-v2-mv/*"] if MODO_CALIDAD_TAMBIEN else []), max_workers=16), CARGAR_MULTIVISTA)
+def _tripo():
+    snapshot_download("VAST-AI/TripoSG", local_dir="/content/TripoSG/pretrained_weights/TripoSG", max_workers=16)
+    snapshot_download("briaai/RMBG-1.4", local_dir="/content/TripoSG/pretrained_weights/RMBG-1.4", max_workers=16)
+    return True
+CARGAR_TRIPOSG = bool(paso("TripoSG", _tripo, CARGAR_TRIPOSG and os.path.exists("/content/TripoSG")))
+paso("Texto a imagen (FLUX)", lambda: snapshot_download(
+     "black-forest-labs/FLUX.1-schnell", max_workers=16,
+     ignore_patterns=["flux1-schnell.safetensors", "ae.safetensors", "*.md"]), CARGAR_TEXTO_A_3D)
 
 eng = get_engine()
-if P["preload_weights"]:
-    eng.preload_weights()          # deja todos los pesos en la RAM
-eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=CARGAR_TEXTURA, want_turbo=True,
-         want_quality=MODO_CALIDAD_TAMBIEN)
-if CARGAR_TRIPOSG:
-    eng.load_triposg()
-print("Todo listo. Sigue con la celda 4 o 5.")
+paso("Precargar pesos en RAM", eng.preload_weights, P["preload_weights"])
+paso("Cargar modelos en GPU", lambda: eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=CARGAR_TEXTURA,
+     want_turbo=True, want_quality=MODO_CALIDAD_TAMBIEN))
+paso("TripoSG en GPU", eng.load_triposg, CARGAR_TRIPOSG)
+
+print("\n======== RESUMEN (mandame esto para revisar) ========")
+for n, sec, st in _RES:
+    print(f"{n:28s} {sec:6.0f} s   {'✅' if st == 'ok' else ('—' if st == 'omitido' else '⚠️')} {st}")
+print(f"{'TOTAL':28s} {time.time()-_T0:6.0f} s")
+print(f"GPU {P['gpu']} · VRAM usada {torch.cuda.memory_allocated()/2**30:.1f} GB · "
+      f"TripoSG {'si' if getattr(eng, 'tripo', None) is not None else 'no'} · "
+      f"texto a 3D {'si' if CARGAR_TEXTO_A_3D else 'no'}")
+print("Todo listo. Sigue con la celda 3b (prueba de 1 min) o con la 4/5.")
 '''
 
 CELLT = r'''
-# @title 3b. Prueba rápida SIN página web (confirma que el motor funciona y mide tiempos)
+# @title 3b. Prueba corta SIN página web (~1-2 min): confirma que todo funciona y mide tiempos
 import glob, sys, time
 sys.path.insert(0, "/content/ap3d_app")
 from ap3d.engine import get_engine
 _img = sorted(glob.glob("/content/Hunyuan3D-2/assets/example_images/*.png"))[0]
 _t = time.time()
-_r = get_engine().run(_img, steps=5, octree=384, faces=100000, tex=2048, rig="auto",
-                      progress=lambda f, m: print(f"{int(f*100):3d}%  {m}", flush=True) if int(f*100) % 10 == 0 else None)
+_last = [None]
+def _p(f, m):
+    if m != _last[0]:
+        _last[0] = m
+        print(f"[{time.time()-_t:5.0f} s] {int(f*100):3d}%  {m}", flush=True)
+_r = get_engine().run(_img, steps=5, octree=384, faces=60000, tex=2048, rig="auto",
+                      tex_rapida=True, progress=_p)
 _i = _r["info"]
-print(f"\nLISTO en {time.time()-_t:.0f}s  ->  {_r['zip']}")
-print("forma", _i.get("segundos_forma"), "s · textura", _i.get("segundos_textura"),
-      "s · Blender", _i.get("segundos_blender"), "s · avisos:", _i.get("avisos"))
+print(f"\n======== RESULTADO (mandame esto para revisar) ========")
+print(f"Listo en {time.time()-_t:.0f} s  ->  {_r['zip']}")
+print(f"Tiempos: forma {_i.get('segundos_forma')} s · textura {_i.get('segundos_textura')} s · "
+      f"Blender {_i.get('segundos_blender')} s")
+print(f"Detectado: {(_i.get('clasificacion') or {}).get('tipo', _i.get('rig'))} · huesos {_i.get('huesos')} · "
+      f"pesos por {_i.get('pesos')} · malla IA {_i.get('caras_alta')} -> {_i.get('caras')} caras · "
+      f"cuadros {_i.get('quads_caras')}")
+print("Archivos:", ", ".join(sorted((_i.get('archivos') or {}).values())))
+print("Avisos:", _i.get("avisos") or "ninguno")
 '''
 
 CELL4 = r'''
