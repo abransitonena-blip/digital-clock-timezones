@@ -84,17 +84,39 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 4. Abre la **5. Página web** (o la 4 dentro del notebook). Verás tres pestañas que se llenan en orden: **1 · Malla → 2 · Textura → 3 · Estudio animado**.
 5. Para no perder tus modelos, usa la **6. Guardar en Drive**.
 
-**Para actualizar a un notebook nuevo sin reiniciar:** ejecuta la celda **1** (cambia el código y conserva los modelos cargados) y después la **5**.
+**Para actualizar sin subir nada:** la celda **1** descarga la última versión del código desde GitHub. Vuelve a ejecutar la **1** (conserva los modelos cargados en la GPU) y después la **5**. Si GitHub falla, usa el código que trae el notebook.
 """
 
 CELL1 = r'''
-# @title 1. Proyecto (código incluido: no necesita Drive ni subir nada)
-import base64, json, os, subprocess, sys, zlib
+# @title 1. Proyecto (descarga la última versión desde GitHub; si falla usa la incluida)
+FUENTE = "GitHub (última versión)"  # @param ["GitHub (última versión)", "Incluido en el notebook"]
+RAMA = "claude/practical-gates-go63pg"  # @param {type:"string"}
+import base64, io, json, os, subprocess, sys, tarfile, urllib.request, zlib
 APP = "/content/ap3d_app"
+REPO = "abransitonena-blip/digital-clock-timezones"
 os.makedirs(f"{APP}/ap3d", exist_ok=True)
-_FILES = json.loads(r"""__BLOB__""")
-for _n, _d in _FILES.items():
-    open(f"{APP}/ap3d/{_n}", "wb").write(zlib.decompress(base64.b64decode(_d)))
+_desde = "notebook"
+if FUENTE.startswith("GitHub"):
+    try:
+        # todo el codigo (engine, blender, app, estudio.html...) en un solo .tar.gz
+        _url = f"https://codeload.github.com/{REPO}/tar.gz/refs/heads/{RAMA}"
+        _tar = tarfile.open(fileobj=io.BytesIO(urllib.request.urlopen(_url, timeout=60).read()))
+        _n_ok = 0
+        for _m in _tar.getmembers():
+            _p = _m.name.split("/", 1)[-1]
+            if _m.isfile() and _p.startswith("colab/ap3d/") and _p.count("/") == 2:
+                open(f"{APP}/ap3d/{os.path.basename(_p)}", "wb").write(_tar.extractfile(_m).read())
+                _n_ok += 1
+        if _n_ok < 5:
+            raise RuntimeError(f"solo {_n_ok} archivos")
+        _desde = f"GitHub ({RAMA}, {_n_ok} archivos)"
+    except Exception as _e:
+        print("GitHub no disponible, uso el codigo incluido:", str(_e)[:120])
+if _desde == "notebook":
+    _FILES = json.loads(r"""__BLOB__""")
+    for _n, _d in _FILES.items():
+        open(f"{APP}/ap3d/{_n}", "wb").write(zlib.decompress(base64.b64decode(_d)))
+print("Codigo cargado desde:", _desde)
 if APP not in sys.path:
     sys.path.insert(0, APP)
 # Si ya habia una version cargada, se cambia por la nueva SIN perder los
