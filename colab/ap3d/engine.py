@@ -46,6 +46,7 @@ class Engine:
         self.paint = None
         self.paint_kind = ""
         self.jobs = {"activos": 0, "en_cola": 0}
+        self._preview = False
         # tiempos medidos (media movil) para estimar cuanto falta
         self.eta = {"forma": 8.0, "textura": 35.0, "blender": 60.0}
         self._eta_path = os.path.join(config.OUT_DIR, "tiempos.json")
@@ -364,7 +365,8 @@ class Engine:
             steps=None, octree=None, faces=None, tex=None, seed=1234,
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
-            texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None, on_partial=None):
+            texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None, on_partial=None,
+            videos=False):
         if not self.ready:
             self.load()
         P = self.p
@@ -389,7 +391,7 @@ class Engine:
                     guidance=guidance, rig=rig, height=height, rotate=rotate,
                     video=video, video_res=video_res, samples=samples,
                     turntable=bool(turntable), texture=bool(texture), relieve=float(relieve),
-                    turbo=bool(turbo))
+                    turbo=bool(turbo), videos=bool(videos))
         k = self.key(views, opts)
         if k in self.cache and os.path.isdir(self.cache[k]["dir"]):
             self.log("Resultado en cache:", k)
@@ -469,7 +471,9 @@ class Engine:
         os.makedirs(out, exist_ok=True)
         tb = time.time()
         inp = os.path.join(work, "modelo_texturizado.glb")
-        stages = ["export", "video"] if (turntable or rig != "ninguno") else ["export"]
+        # Por defecto solo el modelo interactivo: sin videos ni render de Cycles
+        stages = ["export", "video"] if videos else ["export"]
+        self._preview = bool(videos)
         vstate = {"f": 0.0, "msg": "", "done": "video" not in stages}
         estate = {"f": 0.0}
 
@@ -593,7 +597,7 @@ class Engine:
                "--rig", rig, "--height", str(height), "--rotate", str(rotate),
                "--video", video, "--video_res", str(video_res), "--samples", str(samples),
                "--turntable", "1" if turntable else "0", "--relieve", str(relieve),
-               "--stage", stage]
+               "--stage", stage, "--preview", "1" if stage != "export" or self._preview else "0"]
         ms = self.MILESTONES.get(stage, self.MILESTONES["export"])
         lines = []
         pr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

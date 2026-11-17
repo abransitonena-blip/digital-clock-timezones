@@ -57,6 +57,7 @@ ap.add_argument("--relieve", type=float, default=0.6,
 ap.add_argument("--stage", default="all", choices=["all", "export", "video"],
                 help="export: archivos y vista previa; video: solo videos. "
                      "Se lanzan los dos a la vez en procesos separados para ir el doble de rapido")
+ap.add_argument("--preview", type=int, default=1, help="0 = no renderizar vista_previa.png")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -1222,7 +1223,7 @@ def set_video_output(path):
 
 videos_ok = True
 DO_VIDEOS = args.stage in ("all", "video")
-DO_PREVIEW = args.stage in ("all", "export")
+DO_PREVIEW = args.stage in ("all", "export") and bool(args.preview)
 try:
     cam = setup_render()
 except Exception as e:

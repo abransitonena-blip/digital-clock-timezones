@@ -119,7 +119,7 @@ def progress_html(frac, msg, t0, done=False, error=None, extra="", ready=None):
 
 def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
              faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
-             video_res, samples, turntable, texture, relieve_on, relieve):
+             video_res, samples, turntable, texture, relieve_on, relieve, make_videos=False):
     if front is None and sheet is None:
         raise gr.Error("Sube al menos la foto de frente (o una hoja de vistas).")
     if rand_seed:
@@ -142,7 +142,7 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
                                 RIGS.get(rig, rig), height, rotate, video, video_res,
                                 samples, turntable, texture,
                                 relieve=float(relieve) if relieve_on else 0.0,
-                                turbo=int(steps) <= 10, progress=prog,
+                                turbo=int(steps) <= 10, progress=prog, videos=bool(make_videos),
                                 on_partial=lambda d: st.__setitem__("partial", d))
         except Exception as e:
             import traceback
@@ -394,7 +394,9 @@ def build_ui():
                             with gr.Row():
                                 remove_bg = gr.Checkbox(True, label="Quitar fondo")
                                 texture = gr.Checkbox(True, label="Textura con IA")
-                        with gr.Accordion("Animación y video", open=False):
+                        with gr.Accordion("Videos (opcional, más lento)", open=False):
+                            make_videos = gr.Checkbox(False, label="Generar videos MP4",
+                                                      info="No hace falta: el modelo interactivo ya trae todas las animaciones")
                             video = gr.Dropdown(ANIMS, value="Caminar", label="Animación del video")
                             turntable = gr.Checkbox(True, label="Video giro 360")
                         btn = gr.Button("Generar 3D con IA + Esqueleto", elem_id="gen", size="lg")
@@ -437,7 +439,7 @@ def build_ui():
                 prog = gr.HTML(progress_html(0, "Esperando foto", time.time()), elem_id="prog")
                 view = gr.HTML(viewer_html())
                 status = gr.Markdown("")
-                with gr.Accordion("Videos", open=False):
+                with gr.Accordion("Videos (solo si activaste «Generar videos»)", open=False):
                     with gr.Row():
                         v_anim = gr.Video(label="Animación", height=280)
                         v_360 = gr.Video(label="Giro 360", height=280)
@@ -453,7 +455,7 @@ def build_ui():
         btn.click(generate,
                   [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                    faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
-                   video_res, samples, turntable, texture, relieve_on, relieve],
+                   video_res, samples, turntable, texture, relieve_on, relieve, make_videos],
                   outs + [prog], concurrency_limit=P["workers"], concurrency_id="gen",
                   show_progress="hidden")
         timer = gr.Timer(1.0)
