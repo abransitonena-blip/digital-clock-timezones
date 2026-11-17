@@ -48,11 +48,12 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 
 ## Cómo usarlo
 1. *Entorno de ejecución › Cambiar tipo de entorno de ejecución* → **GPU (A100 recomendado)** y **RAM alta**.
-2. Ejecuta las celdas **1, 2 y 3** en orden. La primera vez tardan unos 6–10 min: la 2 compila Hunyuan3D-2 y la 3 descarga los modelos y los carga en la RAM.
-3. Abre la **4. Estudio** dentro del notebook, o la **5. Página web** con contraseña para usarla desde el celular.
-4. Para no perder tus modelos, usa la **6. Guardar en Drive**.
+2. Ejecuta las celdas **1, 2 y 3** en orden (la primera vez tardan unos minutos).
+3. **Opcional pero recomendado:** ejecuta la **3b**. Genera un modelo de ejemplo sin página web y muestra los tiempos. Si esa celda termina con "LISTO", el motor funciona.
+4. Abre la **5. Página web** (o la 4 dentro del notebook). Verás tres pestañas que se llenan en orden: **1 · Malla → 2 · Textura → 3 · Estudio animado**.
+5. Para no perder tus modelos, usa la **6. Guardar en Drive**.
 
-> **Aviso "No se ha podido completar el guardado automático"**: aparece cuando el notebook está abierto en dos pestañas o dispositivos a la vez. Ciérralo en los demás y usa *Archivo › Guardar una copia en Drive*. No afecta a lo que se está ejecutando.
+**Para actualizar a un notebook nuevo sin reiniciar:** ejecuta la celda **1** (cambia el código y conserva los modelos cargados) y después la **5**.
 """
 
 CELL1 = r'''
@@ -65,6 +66,29 @@ for _n, _d in _FILES.items():
     open(f"{APP}/ap3d/{_n}", "wb").write(zlib.decompress(base64.b64decode(_d)))
 if APP not in sys.path:
     sys.path.insert(0, APP)
+# Si ya habia una version cargada, se cambia por la nueva SIN perder los
+# modelos que ya estan en la GPU (antes Colab seguia usando el codigo viejo).
+_old = sys.modules.get("ap3d.engine")
+_eng = getattr(_old, "_ENGINE", None)
+_app = sys.modules.get("ap3d.app")
+if _app is not None:
+    for _k in ("inline", "web"):
+        try:
+            _app._SERVERS.pop(_k).close()
+        except Exception:
+            pass
+    try:
+        _app._SERVERS.pop("tunnel").terminate()
+    except Exception:
+        pass
+for _m in [m for m in sys.modules if m == "ap3d" or m.startswith("ap3d.")]:
+    del sys.modules[_m]
+if _eng is not None:
+    from ap3d import engine as _e
+    _eng.__class__ = _e.Engine
+    _eng._ensure()
+    _e._ENGINE = _eng
+    print("Código actualizado; los modelos siguen cargados en la GPU.")
 print(subprocess.run("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader",
                      shell=True, capture_output=True, text=True).stdout.strip() or "SIN GPU: cambia el entorno a GPU")
 import psutil
@@ -204,6 +228,21 @@ eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=CARGAR_TEXTURA, want_turbo=True,
 print("Todo listo. Sigue con la celda 4 o 5.")
 '''
 
+CELLT = r'''
+# @title 3b. Prueba rápida SIN página web (confirma que el motor funciona y mide tiempos)
+import glob, sys, time
+sys.path.insert(0, "/content/ap3d_app")
+from ap3d.engine import get_engine
+_img = sorted(glob.glob("/content/Hunyuan3D-2/assets/example_images/*.png"))[0]
+_t = time.time()
+_r = get_engine().run(_img, steps=5, octree=384, faces=100000, tex=2048, rig="auto",
+                      progress=lambda f, m: print(f"{int(f*100):3d}%  {m}", flush=True) if int(f*100) % 10 == 0 else None)
+_i = _r["info"]
+print(f"\nLISTO en {time.time()-_t:.0f}s  ->  {_r['zip']}")
+print("forma", _i.get("segundos_forma"), "s · textura", _i.get("segundos_textura"),
+      "s · Blender", _i.get("segundos_blender"), "s · avisos:", _i.get("avisos"))
+'''
+
 CELL4 = r'''
 # @title 4. Estudio (dentro del notebook)
 import sys; sys.path.insert(0, "/content/ap3d_app")
@@ -268,6 +307,8 @@ nb = {
         code(CELL2),
         md("## 3. Comprobar GPU, Blender y modelos de IA (carga todo en RAM y GPU)"),
         code(CELL3),
+        md("## 3b. Prueba rápida sin página web (opcional)"),
+        code(CELLT),
         md("## 4. Estudio"),
         code(CELL4),
         md("## 5. Abrir la página web con contraseña"),

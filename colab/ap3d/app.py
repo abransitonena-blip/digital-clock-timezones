@@ -19,7 +19,7 @@ ANIMS = ["Caminar", "Correr", "Saludar", "Saltar", "Bailar", "Reposo"]
 PRESETS = {
     # nombre: (pasos, octree, caras, textura). 10 pasos o menos = modelo Turbo
     "Turbo": (5, 384, 100000, 2048),
-    "Detallado": (8, 512, 200000, 4096),
+    "Detallado": (8, 512, 150000, 2048),
     "Rapido": (25, 256, 40000, 2048),
     "Alta": (40, 384, 80000, 2048),
     "Maxima": (50, 512, 150000, 4096),
@@ -71,14 +71,14 @@ def _summary(info):
 RIGS = {"Auto": "auto", "Humano": "humanoide", "Criatura": "cuadrupedo", "Sin esqueleto": "ninguno"}
 
 
-def viewer_html(d=None, height=640, view=None, wire=False, etapa=None):
+def viewer_html(d=None, height=600, view=None, wire=False, etapa=None, msg=None):
     """Estudio 3D (three.js) en un iframe servido desde la carpeta del resultado."""
     if not d or not os.path.exists(os.path.join(d, "estudio.html")):
         return (f"<div style='height:{height}px;display:flex;align-items:center;"
                 "justify-content:center;flex-direction:column;gap:10px;background:#121318;"
                 "border-radius:14px;color:#9a9daa;font-family:system-ui'>"
-                "<div style='font-size:46px'>🧍</div><div>Sube una foto y pulsa "
-                "<b style='color:#e8e9ee'>Generar 3D con IA + Esqueleto</b></div></div>")
+                "<div style='font-size:46px'>🧍</div><div>" + (msg or "Sube una foto y pulsa "
+                "<b style='color:#e8e9ee'>Generar 3D con IA + Esqueleto</b>") + "</div></div>")
     from urllib.parse import quote
     q = f"t={int(time.time() * 1000)}"
     if view:
@@ -95,54 +95,66 @@ def viewer_html(d=None, height=640, view=None, wire=False, etapa=None):
             "style='color:#8b8bff;font-size:13px'>Abrir en pantalla completa ↗</a></div>")
 
 
-def _outputs(d, info, seed):
-    p = lambda f: (os.path.join(d, f) if os.path.exists(os.path.join(d, f))
-                   and os.path.getsize(os.path.join(d, f)) > 2000 else None)
-    vid = None
-    for f in sorted(os.listdir(d)):
-        if f.startswith("video_") and "giro360" not in f and p(f):
-            vid = os.path.join(d, f)
-    zp = d + ".zip"
-    files = ([zp] if os.path.exists(zp) else []) + _files(d)
-    return (viewer_html(d), vid, p("video_giro360.mp4"), files, _summary(info), seed)
+# ------------------------------------------------------------ generar por etapas
+# Mismo formato que la app oficial de Hunyuan3D: funciones simples encadenadas
+# (malla -> textura -> esqueleto). Cada una devuelve su resultado y la pagina
+# lo muestra al terminar esa etapa. Sin transmision en vivo ni temporizadores.
+JOBS = {}
 
 
-
-def progress_html(frac, msg, t0, done=False, error=None, extra="", ready=None):
-    pct = max(0, min(100, int(round(frac * 100))))
-    el = ready if ready is not None else time.time() - t0
-    eta = (el / frac * (1 - frac)) if frac > 0.03 and not done else None
-    col = "#e5484d" if error else ("#1f9d6b" if done else "#5b5bf0")
-    txt = (f"❌ {error}" if error else
-           f"✅ Modelo listo en {el:.0f} s" + (f" · {extra}" if extra else "") if done else
-           f"{msg} · {el:.0f} s" + (f" · faltan ~{eta:.0f} s" if eta is not None else ""))
-    return (f"<div style='background:#20222b;border:1px solid #2a2d36;border-radius:12px;"
-            f"padding:10px 14px;font-family:system-ui;color:#e8e9ee'>"
-            f"<div style='display:flex;justify-content:space-between;margin-bottom:6px'>"
-            f"<span>{txt}</span><b style='font-size:20px;color:{col}'>{pct}%</b></div>"
-            f"<div style='height:10px;background:#17181d;border-radius:6px;overflow:hidden'>"
-            f"<div style='width:{pct}%;height:100%;background:{col};transition:width .4s;"
-            f"{'' if done or error else 'background-image:linear-gradient(90deg,#5b5bf0,#9b7bff,#5b5bf0);background-size:200% 100%;animation:apmv 1.5s linear infinite;'}'></div></div>"
-            "<style>@keyframes apmv{from{background-position:0 0}to{background-position:-200% 0}}</style></div>")
+def _wait(st, name, progress):
+    """Espera a que el trabajo llegue a la etapa `name` mostrando el avance."""
+    while name not in st["names"] and not st["done"]:
+        progress(min(0.99, st["f"]), desc=f"{st['m']} · {time.time() - st['t0']:.0f} s")
+        time.sleep(0.5)
+    if st["err"]:
+        raise gr.Error(f"Fallo: {st['err']}")
 
 
-def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
-             faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
-             video_res, samples, turntable, texture, relieve_on, relieve, make_videos=False):
+def _spo(comp):
+    """show_progress_on solo si esta version de Gradio lo admite."""
+    import inspect
+    ok = "show_progress_on" in inspect.signature(gr.Button.click).parameters
+    return {"show_progress_on": [comp]} if ok else {}
+
+
+def _done_html():
+    # Un solo visor 3D vivo a la vez: el celular no se queda sin memoria
+    return viewer_html(msg="Etapa terminada. Todo está en «3 · Estudio animado»: los botones "
+                           "Arcilla y Polígonos muestran la malla")
+
+
+def _exists(d, f):
+    p = os.path.join(d, f)
+    return p if os.path.exists(p) and os.path.getsize(p) > 500 else None
+
+
+def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
+               faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
+               video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
+               progress=gr.Progress()):
+    """Etapa 1: lanza el trabajo y devuelve la malla en cuanto existe."""
     if front is None and sheet is None:
         raise gr.Error("Sube al menos la foto de frente (o una hoja de vistas).")
     if rand_seed:
         seed = random.randint(0, 2**31 - 1)
     eng = get_engine()
-    if front is None:          # solo hoja de vistas
-        parts = eng.split_sheet(sheet, sheet_order)
-        front = parts.get("front")
-    st = {"f": 0.0, "m": "Preparando", "res": None, "err": None}
-    t0 = time.time()
+    if front is None:
+        front = eng.split_sheet(sheet, sheet_order).get("front")
+    jid = secrets.token_hex(6)
+    st = {"f": 0.0, "m": "Preparando", "res": None, "err": None, "done": False,
+          "names": [], "dir": None, "t0": time.time()}
+    JOBS[jid] = st
+    for old in list(JOBS)[:-20]:
+        JOBS.pop(old, None)
 
     def prog(fr, m):
         st["f"] = max(st["f"], float(fr))
         st["m"] = m
+
+    def on_stage(name, d):
+        st["dir"] = d
+        st["names"].append(name)
 
     def work():
         try:
@@ -151,53 +163,56 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
                                 RIGS.get(rig, rig), height, rotate, video, video_res,
                                 samples, turntable, texture,
                                 relieve=float(relieve) if relieve_on else 0.0,
-                                turbo=int(steps) <= 10, progress=prog, videos=bool(make_videos),
-                                on_stage=lambda n, d: st.setdefault("stages", []).append((n, d)))
+                                turbo=int(steps) <= 10, progress=prog,
+                                videos=bool(make_videos), on_stage=on_stage)
+            st["dir"] = st["res"]["dir"]
         except Exception as e:
             import traceback
-            traceback.print_exc()
-            st["err"] = str(e)
+            st["err"] = f"{type(e).__name__}: {e}"
+            st["trace"] = traceback.format_exc()
+            print(st["trace"])
+        finally:
+            st["done"] = True
 
-    th = threading.Thread(target=work, daemon=True)
-    th.start()
-    keep = (gr.update(),) * 4
-    ETAPAS = {"malla": ("clay", True, "Etapa 1/3 · Malla (forma)"),
-              "textura": ("tex", False, "Etapa 2/3 · Textura"),
-              "esqueleto": ("tex", False, "Etapa 3/3 · Esqueleto y animaciones")}
-    seen = 0
-    while th.is_alive():
-        stages = st.get("stages", [])
-        if len(stages) > seen:
-            # Nueva etapa: el estudio se actualiza para mostrarla
-            seen = len(stages)
-            name, d = stages[-1]
-            v, w, label = ETAPAS.get(name, ("tex", False, name))
-            yield ((viewer_html(d, view=v, wire=w, etapa=label),) + (gr.update(),) * 3 +
-                   (f"**{label}** lista. Sigue trabajando…", gr.update(),
-                    progress_html(st["f"], st["m"], t0)))
-        else:
-            yield keep + (gr.update(), gr.update(), progress_html(st["f"], st["m"], t0))
-        th.join(0.5)
-    if st["err"]:
-        yield keep + (gr.update(), gr.update(), progress_html(st["f"], "", t0, error=st["err"]))
-        return
+    threading.Thread(target=work, daemon=True).start()
+    _wait(st, "malla", progress)
+    d = st["dir"]
+    return (jid, viewer_html(d, view="clay", wire=True, etapa="Etapa 1/3 · Malla"),
+            gr.update(selected="malla"),
+            f"**Etapa 1/3 · Malla lista** ({time.time() - st['t0']:.0f} s). Pintando la textura…",
+            int(seed))
+
+
+def step_textura(jid, progress=gr.Progress()):
+    """Etapa 2: devuelve el modelo con textura."""
+    st = JOBS.get(jid)
+    if st is None:
+        raise gr.Error("Trabajo no encontrado; vuelve a generar.")
+    _wait(st, "textura", progress)
+    d = st["dir"]
+    return (viewer_html(d, view="tex", etapa="Etapa 2/3 · Textura"),
+            gr.update(selected="textura"),
+            f"**Etapa 2/3 · Textura lista** ({time.time() - st['t0']:.0f} s). "
+            "Poniendo esqueleto y animaciones…")
+
+
+def step_final(jid, progress=gr.Progress()):
+    """Etapa 3: esqueleto, animaciones y archivos."""
+    st = JOBS.get(jid)
+    if st is None:
+        raise gr.Error("Trabajo no encontrado; vuelve a generar.")
+    _wait(st, "__fin__", progress)
     r = st["res"]
-    t_ready = time.time() - t0
-    vf, vs = r.get("video_future"), r.get("video_state") or {}
-    out = _outputs(r["dir"], r["info"], int(seed))
-    if vf is None or vs.get("done"):
-        yield out + (progress_html(1, "", t0, done=True),)
-        return
-    # Modelo entregado; los videos siguen en segundo plano
-    yield out + (progress_html(1, "", t0, done=True, extra=f"videos {int(vs['f'] * 100)}%"),)
-    while not vs.get("done"):
-        time.sleep(1.0)
-        yield ((gr.update(),) * 6 + (progress_html(
-            1, "", t0, done=True, ready=t_ready,
-            extra=f"🎬 videos {int(vs['f'] * 100)}% · {vs.get('msg', '')}"),))
-    out = _outputs(r["dir"], r["info"], int(seed))
-    yield ((gr.update(),) + out[1:4] + (out[4], gr.update(),
-           progress_html(1, "", t0, done=True, ready=t_ready, extra="🎬 videos listos")))
+    d, info = r["dir"], r["info"]
+    vid = next((os.path.join(d, f) for f in sorted(os.listdir(d))
+                if f.startswith("video_") and "giro360" not in f and _exists(d, f)), None)
+    zp = d + ".zip"
+    files = ([zp] if os.path.exists(zp) else []) + _files(d)
+    return (viewer_html(d), gr.update(selected="estudio"),
+            _done_html(), _done_html(),
+            vid, _exists(d, "video_giro360.mp4"), files,
+            f"✅ **Modelo listo en {time.time() - st['t0']:.0f} s**\n\n" + _summary(info),
+            monitor_html())
 
 
 def batch(files, rig, video, progress=gr.Progress()):
@@ -243,7 +258,12 @@ def open_model(evt: gr.SelectData):
         info = json.load(open(os.path.join(d, "rig_info.json")))
     except Exception:
         pass
-    return _outputs(d, info, info.get("ajustes", {}).get("seed", 1234))
+    vid = next((os.path.join(d, f) for f in sorted(os.listdir(d))
+                if f.startswith("video_") and "giro360" not in f and _exists(d, f)), None)
+    zp = d + ".zip"
+    return (viewer_html(d), gr.update(selected="estudio"),
+            _done_html(), _done_html(), vid, _exists(d, "video_giro360.mp4"),
+            ([zp] if os.path.exists(zp) else []) + _files(d), _summary(info), monitor_html())
 
 
 def history():
@@ -349,8 +369,6 @@ body, .gradio-container {background:#17181d !important}
       font-size:17px !important; border-radius:12px !important; box-shadow:0 0 24px #5b5bf055}
 #rigsel .wrap {gap:6px} #rigsel label {border-radius:20px !important}
 footer {display:none !important}
-#mon, #mon *, #prog, #prog * {opacity:1 !important}
-#mon .wrap, #prog .wrap {display:none !important}
 """
 
 
@@ -401,7 +419,7 @@ def build_ui():
                             relieve = gr.Slider(0.1, 2.0, 0.6, step=0.1, label="Intensidad")
                         with gr.Accordion("Calidad", open=False):
                             preset = gr.Radio(list(PRESETS), value=best, label="Preajuste",
-                                              info="Detallado: Turbo con malla 512 y textura 4K (recomendado). "
+                                              info="Detallado: Turbo con malla 512 y 150 000 caras (recomendado). "
                                                    "Turbo: el mas rapido. Maxima: 50 pasos, el mas lento")
                             tex = gr.Dropdown(["1024", "2048", "4096"], value=str(PRESETS[best][3]),
                                               label="Textura (px)")
@@ -449,33 +467,46 @@ def build_ui():
                         r_out = gr.Markdown()
             # ------------------------------------------------ escenario
             with gr.Column(scale=7, elem_id="stage"):
-                mon = gr.HTML(monitor_html(), elem_id="mon")
-                prog = gr.HTML(progress_html(0, "Esperando foto", time.time()), elem_id="prog")
-                view = gr.HTML(viewer_html())
-                status = gr.Markdown("")
+                status = gr.Markdown("Sube una foto y pulsa **Generar**. Veras primero la "
+                                     "malla, luego la textura y al final el modelo animado.",
+                                     min_height=70)
+                with gr.Tabs() as tabs:
+                    with gr.Tab("1 · Malla", id="malla"):
+                        m_clay = gr.HTML(viewer_html(msg="Aquí aparecerá la malla"))
+                    with gr.Tab("2 · Textura", id="textura"):
+                        m_tex = gr.HTML(viewer_html(msg="Aquí aparecerá el modelo con textura"))
+                    with gr.Tab("3 · Estudio animado", id="estudio"):
+                        view = gr.HTML(viewer_html())
+                out_files = gr.File(label="Descargas (ZIP con todo + archivos sueltos)",
+                                    file_count="multiple")
                 with gr.Accordion("Videos (solo si activaste «Generar videos»)", open=False):
                     with gr.Row():
                         v_anim = gr.Video(label="Animación", height=280)
                         v_360 = gr.Video(label="Giro 360", height=280)
-                out_files = gr.File(label="Descargas (ZIP con todo + archivos sueltos)",
-                                    file_count="multiple")
+                with gr.Accordion("Monitor de GPU / RAM", open=True):
+                    mon = gr.HTML(monitor_html(), elem_id="mon")
+                    mon_btn = gr.Button("Actualizar monitor", size="sm")
+        job = gr.State("")
 
         def apply_preset(name):
             s, o, f, t = PRESETS[name]
             return s, o, f, str(t)
 
-        outs = [view, v_anim, v_360, out_files, status, seed]
         preset.change(apply_preset, preset, [steps, octree, faces, tex])
-        btn.click(generate,
-                  [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
-                   faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
-                   video_res, samples, turntable, texture, relieve_on, relieve, make_videos],
-                  outs + [prog], concurrency_limit=P["workers"], concurrency_id="gen",
-                  show_progress="hidden", trigger_mode="multiple")
-        timer = gr.Timer(1.0)
-        timer.tick(monitor_html, None, mon, show_progress="hidden", queue=False)
+        final_outs = [view, tabs, m_clay, m_tex, v_anim, v_360, out_files, status, mon]
+        (btn.click(step_malla,
+                   [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
+                    faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
+                    video_res, samples, turntable, texture, relieve_on, relieve, make_videos],
+                   [job, m_clay, tabs, status, seed], concurrency_id="gen",
+                   concurrency_limit=P["workers"], **_spo(status))
+            .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",
+                     **_spo(status))
+            .success(step_final, job, final_outs, concurrency_id="gen",
+                     **_spo(status)))
+        mon_btn.click(monitor_html, None, mon)
         g_btn.click(lambda: (my_models(), history()), None, [gal, h_out])
-        gal.select(open_model, None, outs)
+        gal.select(open_model, None, final_outs)
         b_btn.click(batch, [b_files, b_rig, b_video], [b_out, b_log], concurrency_id="gen")
         r_btn.click(resources, None, r_out)
         demo.load(lambda: (my_models(), history()), None, [gal, h_out])

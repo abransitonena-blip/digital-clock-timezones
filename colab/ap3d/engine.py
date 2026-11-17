@@ -97,6 +97,21 @@ class Engine:
         self.blender_pool = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
         os.makedirs(config.OUT_DIR, exist_ok=True)
 
+    def _ensure(self):
+        """Si el codigo se actualizo con los modelos ya cargados, completa los
+        atributos nuevos para no tener que reiniciar la sesion."""
+        d = self.__dict__
+        d.setdefault("shape_t", None)
+        d.setdefault("shape_mv_t", None)
+        d.setdefault("paint_kind", "")
+        d.setdefault("jobs", {"activos": 0, "en_cola": 0})
+        d.setdefault("_preview", False)
+        d.setdefault("eta", {"forma": 8.0, "textura": 35.0, "blender": 60.0})
+        d.setdefault("_eta_path", os.path.join(config.OUT_DIR, "tiempos.json"))
+        d.setdefault("cache", {})
+        if d.get("blender_pool") is None:
+            d["blender_pool"] = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
+
     # ------------------------------------------------------------ carga
     def preload_weights(self, repos=("tencent/Hunyuan3D-2", "tencent/Hunyuan3D-2mv")):
         """Lee todos los archivos de pesos para dejarlos en la RAM."""
@@ -406,6 +421,7 @@ class Engine:
             video="Caminar", video_res=None, samples=None, turntable=True,
             texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None, on_partial=None,
             videos=False, on_stage=None):
+        self._ensure()
         if not self.ready:
             self.load()
         P = self.p
