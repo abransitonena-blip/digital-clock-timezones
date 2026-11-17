@@ -63,6 +63,10 @@ def _summary(info):
         rasgos = [k for k in ("piernas", "brazos", "cuello", "patas") if c.get(k)]
         lines.append(f"Detectado como **{tipos.get(c.get('tipo'), c.get('tipo'))}**"
                      + (f" (vio: {', '.join(rasgos)})" if rasgos else ""))
+    uv = info.get("uv")
+    if uv:
+        lines.append(f"UV ({uv['nota']}): textura aprovechada {uv['cobertura_pct']} % · "
+                     f"triángulos estirados {uv['estirados_pct']} % · invertidos {uv['invertidos_pct']} %")
     if info.get("quads_caras"):
         lines.append(f"Malla en cuadrados limpia: **{info['quads_caras']:,} caras** con color y relieve "
                      "horneados de la original (`modelo_quads.glb`, pestaña *Cuadros*)")
@@ -611,6 +615,7 @@ def build_ui():
                                        ("esqueleto", "Esqueleto")):
                             votes.append((q, True, gr.Button(f"👍 {lab}", size="sm")))
                             votes.append((q, False, gr.Button(f"👎 {lab}", size="sm")))
+                    retry_btn = gr.Button("🔁 Reintentar con lo aprendido", variant="secondary")
                     review_out = gr.Markdown("")
                 out_files = gr.File(label="Descargas (ZIP con todo + archivos sueltos)",
                                     file_count="multiple")
@@ -634,17 +639,33 @@ def build_ui():
         preset.change(lambda n: n == "Turbo", preset, tex_rapida)
         final_outs = [view, tabs, m_clay, m_tex, v_anim, v_360, out_files, status, mon,
                       cur_dir, review, tipo_fix]
-        (btn.click(step_malla,
-                   [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
-                    faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
-                    video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-                    detalle, motor, prompt, tex_rapida],
-                   [front, job, m_clay, tabs, status, seed], concurrency_id="gen",
-                   concurrency_limit=P["workers"], **_spo(status))
-            .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",
-                     **_spo(status))
-            .success(step_final, job, final_outs, concurrency_id="gen",
-                     **_spo(status)))
+        gen_inputs = [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
+                      faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
+                      video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
+                      detalle, motor, prompt, tex_rapida]
+
+        def chain(ev):
+            return (ev.then(step_malla, gen_inputs, [front, job, m_clay, tabs, status, seed],
+                            concurrency_id="gen", concurrency_limit=P["workers"], **_spo(status))
+                    .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",
+                             **_spo(status))
+                    .success(step_final, job, final_outs, concurrency_id="gen", **_spo(status)))
+
+        chain(btn.click(lambda: None, None, None))
+
+        def apply_learned(d, mo, tr, de, sd):
+            from . import memoria
+            cambios, why = memoria.recommend(d, mo, tr, de)
+            if cambios.get("nueva_semilla"):
+                sd = random.randint(0, 2**31 - 1)
+            if "motor" in cambios:
+                mo = "TripoSG (más detalle)" if cambios["motor"] == "triposg" else "Hunyuan3D (rápido)"
+            tr = cambios.get("tex_rapida", tr)
+            de = cambios.get("detalle", de)
+            return mo, tr, de, sd, f"🔁 Reintentando con: **{why}**…"
+
+        chain(retry_btn.click(apply_learned, [cur_dir, motor, tex_rapida, detalle, seed],
+                              [motor, tex_rapida, detalle, seed, review_out]))
         mon_btn.click(monitor_html, None, mon)
         for q, ok, b in votes:
             b.click(lambda d, c, q=q, ok=ok: do_vote(d, q, ok, c), [cur_dir, comentario],

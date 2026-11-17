@@ -46,6 +46,8 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Huesos de tela con movimiento secundario**: en túnicas, faldas y capas se crean 4 cadenas de huesos (frente, atrás, izquierda, derecha) que se balancean con retraso e inercia en cada animación. Queda grabado en GLB, FBX y .blend.
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Aprende de ti**: bajo cada modelo, **¿Salió bien?** con 👍/👎 para forma, textura y esqueleto, más un comentario. Si corriges el tipo (persona/animal/cabeza/objeto), rehace el esqueleto al momento y **recuerda la corrección**: los modelos parecidos salen bien solos. La memoria se guarda en Drive si está montado (celda 6).
+* **🔁 Reintentar con lo aprendido**: según tus 👎 cambia la semilla, pasa al motor que mejor te sale, quita «Textura rápida» o usa el esqueleto simple, y vuelve a generar solo.
+* **Revisión de UV** en el resumen: textura aprovechada, triángulos estirados e invertidos.
 * **Malla en cuadrados limpia** (como *Smart Mesh* de Tripo): retopología QuadriFlow (o rejilla de voxeles si falla), UV nuevas y **color + relieve horneados** desde la malla original para no perder detalle. Con esqueleto y animaciones (`modelo_quads.glb`).
 * **Detecta qué es**: persona, animal de 4 patas, **cabeza/busto** (mandíbula, ojos y cuello: Hablar, Mirar, Asentir, Negar, Sorpresa) u **objeto** (Flotar, Girar, Rebotar, Bailar, Saludar).
 * **Texto a 3D** (como Tripo): escribe una descripción y se crea la imagen con HunyuanDiT y luego el modelo.

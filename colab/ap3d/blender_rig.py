@@ -1436,6 +1436,57 @@ def set_anim(name):
     return n
 
 
+# ------------------------------------------------------------ calidad de UV
+def uv_quality():
+    """Revision rapida de las UV (lo que piden los modeladores): cuanto de la
+    textura se aprovecha, triangulos invertidos y estiramiento."""
+    me = obj.data
+    if not me.uv_layers:
+        return None
+    me.calc_loop_triangles()
+    nt = len(me.loop_triangles)
+    if nt == 0:
+        return None
+    uvd = np.zeros(len(me.loops) * 2, dtype=np.float32)
+    me.uv_layers.active.data.foreach_get("uv", uvd)
+    uvd = uvd.reshape(-1, 2)
+    li = np.zeros(nt * 3, dtype=np.int64)
+    me.loop_triangles.foreach_get("loops", li)
+    vi = np.zeros(nt * 3, dtype=np.int64)
+    me.loop_triangles.foreach_get("vertices", vi)
+    co_ = np.zeros(len(me.vertices) * 3, dtype=np.float32)
+    me.vertices.foreach_get("co", co_)
+    co_ = co_.reshape(-1, 3)
+    u = uvd[li].reshape(nt, 3, 2)
+    p = co_[vi].reshape(nt, 3, 3)
+    a_uv = 0.5 * ((u[:, 1, 0] - u[:, 0, 0]) * (u[:, 2, 1] - u[:, 0, 1])
+                  - (u[:, 2, 0] - u[:, 0, 0]) * (u[:, 1, 1] - u[:, 0, 1]))
+    a3 = 0.5 * np.linalg.norm(np.cross(p[:, 1] - p[:, 0], p[:, 2] - p[:, 0]), axis=1)
+    invertidos = float((a_uv < 0).mean())
+    ok = a3 > 1e-12
+    r = np.abs(a_uv[ok]) / a3[ok]
+    r = r / max(np.median(r), 1e-12)
+    estir = float(np.mean((r < 0.33) | (r > 3.0)))
+    # cobertura: rasteriza los centros de triangulo en una rejilla de 256
+    g = np.zeros((256, 256), dtype=np.int32)
+    cx = np.clip((u.mean(1)[:, 0] % 1) * 255, 0, 255).astype(int)
+    cy = np.clip((u.mean(1)[:, 1] % 1) * 255, 0, 255).astype(int)
+    np.add.at(g, (cy, cx), 1)
+    cobertura = float(np.abs(a_uv).sum())
+    return {"cobertura_pct": round(min(cobertura, 1.0) * 100, 1),
+            "invertidos_pct": round(invertidos * 100, 2),
+            "estirados_pct": round(estir * 100, 2),
+            "nota": "buena" if estir < 0.05 and cobertura > 0.5 else
+                    ("aceptable" if estir < 0.15 else "revisar")}
+
+
+try:
+    INFO["uv"] = uv_quality()
+    log("UV:", INFO["uv"])
+except Exception as e:
+    INFO["avisos"].append(f"revision de UV: {e}")
+
+
 # ------------------------------------------------------------ relieve
 def add_relief(strength):
     """Crea un mapa de normales a partir de la textura (luminancia -> altura,

@@ -99,3 +99,35 @@ def stats_md():
         lines.append("\n**Últimos problemas que anotaste:**")
         lines += [f"- {x['pregunta']}: {x['comentario']}" for x in malos]
     return "\n".join(lines)
+
+
+def recommend(d, motor, tex_rapida, detalle):
+    """Ajustes para reintentar segun los votos: devuelve (cambios, explicacion)."""
+    m = load()
+    v = m.get("votos", [])
+    mine = [x for x in v if x.get("modelo") == os.path.basename(d or "")]
+    malo = {q: any(not x["ok"] for x in mine if x["pregunta"] == q)
+            for q in ("forma", "textura", "esqueleto")}
+    cambios, why = {}, []
+    if malo["forma"] or not mine:
+        cambios["nueva_semilla"] = True
+        why.append("otra semilla para la forma")
+        # motor que mejor sale en tus votos (minimo 3 votos de cada uno)
+        rate = {}
+        for mo in ("hunyuan", "triposg"):
+            qs = [x for x in v if x["pregunta"] == "forma" and x.get("motor") == mo]
+            if len(qs) >= 3:
+                rate[mo] = sum(x["ok"] for x in qs) / len(qs)
+        actual = "triposg" if str(motor).startswith("Tripo") else "hunyuan"
+        otro = "hunyuan" if actual == "triposg" else "triposg"
+        if otro in rate and rate[otro] > rate.get(actual, 0) + 0.15:
+            cambios["motor"] = otro
+            why.append(f"motor {otro} (te sale mejor: {int(rate[otro] * 100)} % bien)")
+    if malo["textura"] and tex_rapida:
+        cambios["tex_rapida"] = False
+        why.append("textura completa (sin «rápida»)")
+    if malo["esqueleto"] and detalle:
+        # con dedos/ojos falla mas en mallas simples: probar el basico
+        cambios["detalle"] = False
+        why.append("esqueleto simple (23 huesos)")
+    return cambios, ", ".join(why) or "otra semilla"
