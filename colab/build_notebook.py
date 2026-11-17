@@ -46,6 +46,9 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Huesos de tela con movimiento secundario**: en túnicas, faldas y capas se crean 4 cadenas de huesos (frente, atrás, izquierda, derecha) que se balancean con retraso e inercia en cada animación. Queda grabado en GLB, FBX y .blend.
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Aprende de ti**: bajo cada modelo, **¿Salió bien?** con 👍/👎 para forma, textura y esqueleto, más un comentario. Si corriges el tipo (persona/animal/cabeza/objeto), rehace el esqueleto al momento y **recuerda la corrección**: los modelos parecidos salen bien solos. La memoria se guarda en Drive si está montado (celda 6).
+* **🎲 4 variantes de forma** en segundos para elegir antes de texturizar (contra la aleatoriedad que critican los desarrolladores).
+* **PBR básico** (rugosidad estimada, metal = 0), **PLY con color** para impresión multicolor y **malla en cuadrados también en FBX**.
+* **Panel para celular**: visor arriba, botón Generar siempre a mano y estado de la GPU en la cabecera.
 * **🔁 Reintentar con lo aprendido**: según tus 👎 cambia la semilla, pasa al motor que mejor te sale, quita «Textura rápida» o usa el esqueleto simple, y vuelve a generar solo.
 * **Revisión de UV** en el resumen: textura aprovechada, triángulos estirados e invertidos.
 * **Malla en cuadrados limpia** (como *Smart Mesh* de Tripo): retopología QuadriFlow (o rejilla de voxeles si falla), UV nuevas y **color + relieve horneados** desde la malla original para no perder detalle. Con esqueleto y animaciones (`modelo_quads.glb`).

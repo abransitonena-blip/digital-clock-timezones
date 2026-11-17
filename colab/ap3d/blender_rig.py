@@ -301,7 +301,12 @@ def detect_humanoid(co, H):
         if len(above) < 15:
             continue
         wa = float(np.percentile(above[:, 0], 95) - np.percentile(above[:, 0], 5))
-        if wa > 1.25 * w and (best is None or w / wa < best[0]):
+        below = cen[(cen[:, 2] < zz - 0.03 * H) & (cen[:, 2] > zz - 0.15 * H)]
+        if len(below) < 15:
+            continue
+        wb = float(np.percentile(below[:, 0], 95) - np.percentile(below[:, 0], 5))
+        # cuello real: mas estrecho que lo de arriba (cabeza) Y que lo de abajo
+        if wa > 1.25 * w and wb > 1.15 * w and (best is None or w / wa < best[0]):
             best = (w / wa, float(zz))
     if best is not None:
         neck_z = best[1]
@@ -1549,6 +1554,55 @@ def add_relief(strength):
     return done
 
 
+def add_pbr():
+    """PBR basico (critica de los modeladores: sin roughness/metallic, o metal
+    al 100 %). Metal = 0 y un mapa de rugosidad estimado del color: zonas
+    claras y saturadas algo mas brillantes, oscuras y grises mas mates."""
+    n = 0
+    for m in obj.data.materials:
+        if m is None or not m.use_nodes:
+            continue
+        nt = m.node_tree
+        bs = next((x for x in nt.nodes if x.type == "BSDF_PRINCIPLED"), None)
+        if bs is None:
+            continue
+        if not bs.inputs["Metallic"].is_linked:
+            bs.inputs["Metallic"].default_value = 0.0
+        lk = bs.inputs["Base Color"].links
+        if bs.inputs["Roughness"].is_linked or not lk or lk[0].from_node.type != "TEX_IMAGE":
+            continue
+        src = lk[0].from_node.image
+        if src is None or src.size[0] == 0:
+            continue
+        w, h = src.size
+        px = np.empty(w * h * 4, dtype=np.float32)
+        src.pixels.foreach_get(px)
+        px = px.reshape(h, w, 4)[..., :3]
+        mx, mn = px.max(2), px.min(2)
+        sat = (mx - mn) / np.maximum(mx, 1e-4)
+        lum = px @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+        r = np.clip(0.82 - 0.25 * sat - 0.18 * lum, 0.35, 0.95)
+        out = np.ones((h, w, 4), dtype=np.float32)
+        out[..., 0] = out[..., 1] = out[..., 2] = r
+        img = bpy.data.images.new(m.name + "_rugosidad", w, h, alpha=False)
+        img.colorspace_settings.name = "Non-Color"
+        img.pixels.foreach_set(out.ravel())
+        img.pack()
+        tn = nt.nodes.new("ShaderNodeTexImage")
+        tn.image = img
+        uvl = lk[0].from_node.inputs["Vector"].links
+        if uvl:
+            nt.links.new(uvl[0].from_socket, tn.inputs["Vector"])
+        nt.links.new(tn.outputs["Color"], bs.inputs["Roughness"])
+        n += 1
+    return n
+
+
+try:
+    INFO["mapas_rugosidad"] = add_pbr()
+except Exception as e:
+    INFO["avisos"].append(f"PBR: {e}")
+
 if args.relieve > 0:
     try:
         INFO["mapas_relieve"] = add_relief(args.relieve)
@@ -2011,6 +2065,16 @@ def _quads():
                                       export_animation_mode="ACTIONS")
         else:
             bpy.ops.export_scene.gltf(**kw)
+        try:
+            pf = os.path.join(OUT, "modelo_quads.fbx")
+            bpy.ops.export_scene.fbx(filepath=pf, use_selection=True, add_leaf_bones=False,
+                                     bake_anim=arm is not None, bake_anim_use_all_actions=True,
+                                     bake_anim_use_nla_strips=False, path_mode="COPY",
+                                     embed_textures=True, mesh_smooth_type="FACE",
+                                     axis_forward="-Z", axis_up="Y")
+            files["quads_fbx"] = os.path.basename(pf)
+        except Exception as e:
+            INFO["avisos"].append(f"quads FBX: {e}")
     finally:
         INFO["quads_caras"] = nq
         bpy.data.objects.remove(q, do_unlink=True)

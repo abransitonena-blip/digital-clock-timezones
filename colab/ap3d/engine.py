@@ -102,6 +102,35 @@ def _memoria_path():
         return ""
 
 
+def render_preview(mesh, size=384, az=30.0):
+    """Imagen de una malla sin GPU grafica: proyeccion ortografica con
+    z-buffer de caras y luz por normales (para elegir variantes)."""
+    v = np.asarray(mesh.vertices, dtype=np.float64)
+    f = np.asarray(mesh.faces)
+    a = np.radians(az)
+    R = np.array([[np.cos(a), 0, np.sin(a)], [0, 1, 0], [-np.sin(a), 0, np.cos(a)]])
+    v = v @ R.T
+    v -= v.mean(0)
+    s = 0.9 * size / max(np.ptp(v[:, 0]), np.ptp(v[:, 1]), 1e-6)
+    tri = v[f]
+    n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-12
+    luz = np.clip(n @ np.array([0.35, 0.5, 0.8]) / 1.0, 0, 1) * 0.75 + 0.2
+    c = tri.mean(1)
+    px = (c[:, 0] * s + size / 2).astype(int)
+    py = (size / 2 - c[:, 1] * s).astype(int)
+    ok = (px >= 0) & (px < size) & (py >= 0) & (py < size)
+    order = np.argsort(c[:, 2])          # de atras hacia adelante
+    img = np.full((size, size), 0.09)
+    zb = np.full((size, size), -1e9)
+    r = max(1, int(size / 220))
+    for i in order[ok[order]]:
+        x0, y0 = px[i], py[i]
+        img[max(0, y0 - r):y0 + r + 1, max(0, x0 - r):x0 + r + 1] = luz[i]
+    rgb = np.stack([img * 0.85, img * 0.88, img], -1)
+    return Image.fromarray((np.clip(rgb, 0, 1) * 255).astype(np.uint8))
+
+
 class Engine:
     def __init__(self, prof=None, log=print):
         self.p = prof or config.detect()
@@ -307,6 +336,31 @@ class Engine:
             self.log(f"GPU calentada en {time.time() - t:.0f}s")
         except Exception as e:
             self.log("  calentamiento omitido:", e)
+
+    def shape_variants(self, front, n=4, seed0=None, remove_bg=True, motor="hunyuan"):
+        """Varias formas rapidas (Turbo, octree 256) con semillas distintas para
+        elegir la buena antes de texturizar. Responde a la critica de que la IA
+        da resultados distintos en cada intento: aqui los ves todos y eliges."""
+        import random as _r
+        self._ensure()
+        if not self.ready:
+            self.load()
+        views = {"front": self.prep(front, remove_bg), "back": None, "left": None, "right": None}
+        seeds = [int(seed0) + i * 7919 if seed0 is not None else _r.randint(0, 2**31 - 1)
+                 for i in range(n)]
+        out = []
+        with GPU_LOCK:
+            for sd in seeds:
+                mesh, _ = self._shape(views, 5, 256, sd, 5.0, True, motor)
+                try:
+                    from hy3dgen.shapegen import FaceReducer, FloaterRemover
+                    mesh = FloaterRemover()(mesh)
+                    if len(mesh.faces) > 40000:
+                        mesh = FaceReducer()(mesh, max_facenum=40000)
+                except Exception:
+                    pass
+                out.append((sd, render_preview(mesh)))
+        return out
 
     def text_to_image(self, prompt, seed=0):
         """Texto -> imagen de referencia. FLUX.1-schnell (2024, 4 pasos, licencia
@@ -676,6 +730,13 @@ class Engine:
                     textured, ok_tex = mesh, False
                 t_tex = time.time() - ts
                 textured.export(os.path.join(work, "modelo_texturizado.glb"))
+                try:
+                    # PLY con color en cada vertice: slicers multicolor (Bambu, Prusa)
+                    cm = textured.copy()
+                    cm.visual = cm.visual.to_color()
+                    cm.export(os.path.join(out, "modelo_color_impresion.ply"))
+                except Exception as e:
+                    self.log("  PLY de color omitido:", e)
                 shutil.copy(os.path.join(work, "modelo_texturizado.glb"), out)
                 stage("textura", out)        # etapa 2: con color
                 try:

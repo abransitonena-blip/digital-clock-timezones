@@ -28,8 +28,9 @@ EXAMPLES_DIR = "/content/Hunyuan3D-2/assets/example_images"
 
 
 def _files(d):
-    order = ["modelo_animado.glb", "modelo_quads.glb", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
+    order = ["modelo_animado.glb", "modelo_quads.glb", "modelo_quads.fbx", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
              "modelo_estatico.obj", "modelo_estatico.mtl", "modelo_impresion3d.stl",
+             "modelo_color_impresion.ply",
              "piezas.glb", "pesos.glb", "arcilla.glb", "rig_info.json"]
     fs = [os.path.join(d, f) for f in order if os.path.exists(os.path.join(d, f))]
     fs += [f for f in sorted(glob.glob(os.path.join(d, "*")))
@@ -73,6 +74,8 @@ def _summary(info):
     if info.get("lod_caras"):
         lines.append("LOD ligeros: " + ", ".join(
             f"{k} ({v:,} caras)" for k, v in info["lod_caras"].items()))
+    if info.get("mapas_rugosidad"):
+        lines.append("PBR: rugosidad estimada y metal = 0 (no brilla como metal en Unity/Unreal)")
     if info.get("mapas_relieve"):
         lines.append("Relieve: mapa de normales creado desde la textura")
     if info.get("vertices_tela"):
@@ -100,7 +103,7 @@ RIGS = {"Auto": "auto", "Humano": "humanoide", "Criatura": "cuadrupedo",
 def viewer_html(d=None, height=600, view=None, wire=False, etapa=None, msg=None):
     """Estudio 3D (three.js) en un iframe servido desde la carpeta del resultado."""
     if not d or not os.path.exists(os.path.join(d, "estudio.html")):
-        return (f"<div style='height:{height}px;display:flex;align-items:center;"
+        return (f"<div class='vph' style='height:{height}px;display:flex;align-items:center;"
                 "justify-content:center;flex-direction:column;gap:10px;background:#121318;"
                 "border-radius:14px;color:#9a9daa;font-family:system-ui'>"
                 "<div style='font-size:46px'>🧍</div><div>" + (msg or "Sube una foto y pulsa "
@@ -471,6 +474,21 @@ body, .gradio-container {background:#17181d !important}
       font-size:17px !important; border-radius:12px !important; box-shadow:0 0 24px #5b5bf055}
 #rigsel .wrap {gap:6px} #rigsel label {border-radius:20px !important}
 footer {display:none !important}
+.hdr {display:flex; justify-content:space-between; align-items:center; width:100%}
+.hdr .ttl {font-size:26px; font-weight:700; color:#e8e9ee}
+.hdr .chip {text-align:right; color:#9a9daa; font-size:12px; line-height:1.3}
+.hdr .dot {display:inline-block; width:9px; height:9px; border-radius:50%; background:#3d6bff;
+           box-shadow:0 0 10px #3d6bff; margin-right:6px}
+@media (max-width: 820px) {
+  .gradio-container {padding:6px !important}
+  #main {flex-direction:column !important}
+  #stage {order:-1; padding:4px !important}          /* el visor primero, como una app */
+  #side {padding:6px !important}
+  #gen {position:sticky; bottom:10px; z-index:30}      /* Generar siempre a mano */
+  #stage iframe, #stage .vph {height:56vh !important; min-height:340px}
+  #review button {padding:6px 2px !important; font-size:12px !important}
+  .hdr .ttl {font-size:21px}
+}
 #review {border:1px solid #3b3d8f !important; border-radius:14px; padding:6px;
          background:linear-gradient(180deg,#20223a,#1b1d24) !important}
 #votes button {min-width:0 !important}
@@ -496,8 +514,10 @@ def build_ui():
     with gr.Blocks(title="AP Model 3D Foto", theme=theme, css=CSS,
                    js="()=>{document.body.classList.add('dark')}") as demo:
         with gr.Row(elem_id="hdr"):
-            gr.Markdown(f"# AP Model 3D Foto\n{config.describe(P)}")
-        with gr.Row(equal_height=False):
+            gr.HTML(f"<div class='hdr'><div class='ttl'>AP Model 3D Foto</div>"
+                    f"<div class='chip'><span class='dot'></span>{P['gpu'].replace('NVIDIA ', '')[:18]}"
+                    f"<br><small>{P['perfil'].capitalize()}</small></div></div>")
+        with gr.Row(equal_height=False, elem_id="main"):
             # ------------------------------------------------ panel izquierdo
             with gr.Column(scale=3, min_width=320, elem_id="side"):
                 with gr.Tabs():
@@ -554,6 +574,13 @@ def build_ui():
                                                       info="No hace falta: el modelo interactivo ya trae todas las animaciones")
                             video = gr.Dropdown(ANIMS, value="Caminar", label="Animación del video")
                             turntable = gr.Checkbox(True, label="Video giro 360")
+                        with gr.Accordion("🎲 Ver 4 variantes de forma antes (10-20 s)", open=False):
+                            gr.Markdown("<small>La IA da formas distintas con cada semilla. "
+                                        "Mira 4 y toca la que te guste: se usará esa.</small>")
+                            var_btn = gr.Button("Generar 4 variantes", size="sm")
+                            var_gal = gr.Gallery(columns=2, height=360, allow_preview=False,
+                                                 show_label=False)
+                            var_msg = gr.Markdown("")
                         btn = gr.Button("Generar 3D con IA + Esqueleto", elem_id="gen", size="lg")
                         ex = sorted(glob.glob(os.path.join(EXAMPLES_DIR, "*.png")))[:8]
                         if ex:
@@ -667,6 +694,27 @@ def build_ui():
         chain(retry_btn.click(apply_learned, [cur_dir, motor, tex_rapida, detalle, seed],
                               [motor, tex_rapida, detalle, seed, review_out]))
         mon_btn.click(monitor_html, None, mon)
+        var_seeds = gr.State([])
+
+        def do_variants(img, mo, sd, prompt_, progress=gr.Progress()):
+            eng = get_engine()
+            if img is None:
+                if not (prompt_ or "").strip():
+                    raise gr.Error("Sube una foto o escribe una descripción.")
+                img = eng.text_to_image(prompt_, int(sd))
+            progress(0.1, desc="Creando 4 formas…")
+            res = eng.shape_variants(img, 4, None,
+                                     motor="triposg" if str(mo).startswith("Tripo") else "hunyuan")
+            return ([(im, f"Semilla {s_}") for s_, im in res], [s_ for s_, _ in res],
+                    "Toca la que te guste y luego pulsa **Generar**.")
+
+        def pick_variant(seeds, evt: gr.SelectData):
+            sd = seeds[evt.index]
+            return sd, False, f"✅ Elegida la variante {evt.index + 1} (semilla {sd}). Pulsa **Generar**."
+
+        var_btn.click(do_variants, [front, motor, seed, prompt], [var_gal, var_seeds, var_msg],
+                      concurrency_id="gen")
+        var_gal.select(pick_variant, var_seeds, [seed, rand_seed, var_msg])
         for q, ok, b in votes:
             b.click(lambda d, c, q=q, ok=ok: do_vote(d, q, ok, c), [cur_dir, comentario],
                     [review_out, learn_md])
