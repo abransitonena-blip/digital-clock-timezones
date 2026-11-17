@@ -221,7 +221,12 @@ print(("✅" if ok else "⚠️"), f"Instalación lista en {time.time()-t0:.0f} 
 '''
 
 CELL3 = r'''
-# 3. Descargar los modelos y cargarlos en la GPU
+# 3. Modo de esta página y modelos
+# "Optimizar": NO carga la IA. Sube un .glb/.fbx/.obj que ya tienes (por ejemplo
+#   del Colab A100) y aquí se reduce de polígonos, se repara, se hace Roblox y QA.
+#   Arranca en segundos y deja la T4 libre.
+# "Generar": carga la IA Turbo (forma + textura) como en Colab, más lento en la T4.
+MODO = "Optimizar"  # @param ["Optimizar", "Generar"]
 CARGAR_MULTIVISTA = False   # varias fotos (espalda, perfiles): +5 GB de disco y ~6 GB de RAM
 CARGAR_TEXTO_A_3D = False   # texto -> imagen -> 3D con HunyuanDiT (FLUX no cabe en una T4 con 29 GB de RAM)
 import os, sys, time
@@ -255,25 +260,31 @@ def paso(nombre, fn):
     except Exception as e:
         print(f"  ⚠ {nombre}: {e}", flush=True)
 
-# En la T4 solo se usan los modelos Turbo (5 pasos): los de 50 pasos no caben junto a la textura.
-paso("Hunyuan3D-2 (forma Turbo + textura)", lambda: snapshot_download("tencent/Hunyuan3D-2", max_workers=16,
-     allow_patterns=["hunyuan3d-dit-v2-0-turbo/*", "hunyuan3d-vae-v2-0-turbo/*",
-                     "hunyuan3d-paint-v2-0-turbo/*", "hunyuan3d-paint-v2-0/*", "hunyuan3d-delight-v2-0/*"]))
-if CARGAR_MULTIVISTA:
-    paso("Hunyuan3D-2mv Turbo", lambda: snapshot_download("tencent/Hunyuan3D-2mv", max_workers=16,
-         allow_patterns=["hunyuan3d-dit-v2-mv-turbo/*", "hunyuan3d-vae-v2-mv-turbo/*"]))
-if CARGAR_TEXTO_A_3D:
-    paso("HunyuanDiT", lambda: snapshot_download("Tencent-Hunyuan/HunyuanDiT-v1.1-Diffusers-Distilled",
-                                                 max_workers=16))
+os.environ["AP3D_MODO"] = MODO.lower()
+if MODO == "Optimizar":
+    eng = get_engine()
+    print("Modo Optimizar listo: sin modelos de IA. Sigue con la celda 4 (página web) y usa "
+          "la pestaña «Optimizar».")
+else:
+    # En la T4 solo se usan los modelos Turbo (5 pasos): los de 50 pasos no caben junto a la textura.
+    paso("Hunyuan3D-2 (forma Turbo + textura)", lambda: snapshot_download("tencent/Hunyuan3D-2", max_workers=16,
+         allow_patterns=["hunyuan3d-dit-v2-0-turbo/*", "hunyuan3d-vae-v2-0-turbo/*",
+                         "hunyuan3d-paint-v2-0-turbo/*", "hunyuan3d-paint-v2-0/*", "hunyuan3d-delight-v2-0/*"]))
+    if CARGAR_MULTIVISTA:
+        paso("Hunyuan3D-2mv Turbo", lambda: snapshot_download("tencent/Hunyuan3D-2mv", max_workers=16,
+             allow_patterns=["hunyuan3d-dit-v2-mv-turbo/*", "hunyuan3d-vae-v2-mv-turbo/*"]))
+    if CARGAR_TEXTO_A_3D:
+        paso("HunyuanDiT", lambda: snapshot_download("Tencent-Hunyuan/HunyuanDiT-v1.1-Diffusers-Distilled",
+                                                     max_workers=16))
 
-eng = get_engine()
-paso("Cargar modelos en la GPU", lambda: eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=True,
-                                                   want_turbo=True, want_quality=False))
-if os.path.isdir(os.path.join(config.TRIPOSG_PESOS, "TripoSG")):
-    paso("TripoSG", eng.load_triposg)
-print(f"\nGPU {P['gpu']} · VRAM usada {torch.cuda.memory_allocated()/2**30:.1f} GB · "
-      f"textura IA {'sí' if eng.paint is not None else 'NO'} · total {time.time()-t0:.0f} s")
-print("Listo. Sigue con la 3b (prueba) o la 4 (página web).")
+    eng = get_engine()
+    paso("Cargar modelos en la GPU", lambda: eng.load(want_mv=CARGAR_MULTIVISTA, want_paint=True,
+                                                       want_turbo=True, want_quality=False))
+    if os.path.isdir(os.path.join(config.TRIPOSG_PESOS, "TripoSG")):
+        paso("TripoSG", eng.load_triposg)
+    print(f"\nGPU {P['gpu']} · VRAM usada {torch.cuda.memory_allocated()/2**30:.1f} GB · "
+          f"textura IA {'sí' if eng.paint is not None else 'NO'} · total {time.time()-t0:.0f} s")
+    print("Listo. Sigue con la 3b (prueba) o la 4 (página web).")
 '''
 
 CELLT = r'''
