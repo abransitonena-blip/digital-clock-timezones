@@ -689,7 +689,13 @@ LIVE_JS = r"""
   let d;try{d=await (await fetch('gradio_api/file=__PATH__?t='+Date.now())).json()}catch(e){return}
   const ch=[['GPU',d.gpu,'%','gpu'],['VRAM',d.vram,'%','vram'],['Temp',d.temp,'°C','temp'],['CPU',d.cpu,'%','cpu'],['RAM',d.ram,'%','ram']];
   const alert=ch.filter(c=>c[1]>=LIM[c[3]]).map(c=>c[0]);if(d.cola>0)alert.push(d.cola+' en cola');
-  let h=`<div class="lv-top"><span class="${alert.length?'lv-bad':'lv-ok'}">${alert.length?'⚠ '+alert.join(', '):'● Todo normal'}</span><span class="lv-sub">${d.vram_txt} · ${Math.round(d.pw)} W</span></div>`;
+  const s0=d.status,p0=Math.round((s0.pct||0)*100);
+  // linea compacta (telefono): estado + fase + temperatura; tocar = ver todo
+  let mini=`<div class="lv-mini"><span class="${alert.length?'lv-bad':'lv-ok'}">${alert.length?'⚠ '+alert.join(', '):'●'}</span> `+
+    (s0.activo?`<b>${s0.msg}</b> <span class="lv-sub">${p0}% · ${Math.round(s0.seg)} s</span>`:`<span class="lv-sub">Listo · GPU ${Math.round(d.gpu)}%</span>`)+
+    ` <span class="lv-sub">· ${Math.round(d.temp)}°C</span><span class="lv-more">${el.classList.contains('open')?'▲':'▼'}</span></div>`+
+    (s0.activo?`<div class="lv-bar lv-minibar"><div style="width:${p0}%"></div></div>`:'');
+  let h=mini+`<div class="lv-full"><div class="lv-top"><span class="${alert.length?'lv-bad':'lv-ok'}">${alert.length?'⚠ '+alert.join(', '):'● Todo normal'}</span><span class="lv-sub">${d.vram_txt} · ${Math.round(d.pw)} W</span></div>`;
   h+='<div class="lv-chips">'+ch.map(c=>`<span class="lv-chip ${c[1]>=LIM[c[3]]?'bad':''}"><i>${c[0]}</i><b>${Math.round(c[1])}${c[2]}</b></span>`).join('')+'</div>';
   h+=`<svg class="lv-spark" viewBox="0 0 300 40" preserveAspectRatio="none">${sp(d.h_gpu,'#4d7dff',100)}${sp(d.h_temp,'#e0a030',100)}${sp(d.h_vram,'#9b7bff',100)}</svg>`;
   const s=d.status;const fases=s.activo?s.fases:s.ultimo;
@@ -700,7 +706,11 @@ LIVE_JS = r"""
        return `<div title="${f[0]} ${dur.toFixed(1)} s" class="${lento?'slow':''}" style="width:${w}%;background:${FC[f[0]]||'#666'}">${w>9?f[0]+' '+Math.round(dur)+'s':''}</div>`}).join('')+'</div>';
    const lentos=fases.filter(f=>d.normal[f[0]]&&(f[2]-f[1])>2.2*d.normal[f[0]]&&(f[2]-f[1])>20);
    if(lentos.length)h+=`<div class="lv-bad lv-why">⚠ Lento: ${lentos.map(f=>`${f[0]} ${Math.round(f[2]-f[1])} s (normal ~${Math.round(d.normal[f[0]])} s)`).join(' · ')}${d.gpu>90?' — GPU al tope':''}${d.cola>0?' — hay trabajos en cola':''}</div>`}
-  el.innerHTML=h}
+  el.innerHTML=h+'</div>'}
+ function toggle(){const el=document.getElementById('livebox');if(!el)return;el.classList.toggle('open');
+  try{localStorage.setItem('ap3d_mon',el.classList.contains('open')?'1':'0')}catch(e){};tick()}
+ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.lv-mini'))toggle()});
+ setTimeout(()=>{try{if(localStorage.getItem('ap3d_mon')==='1'){const el=document.getElementById('livebox');el&&el.classList.add('open')}}catch(e){}},400);
  setInterval(tick,1500);setTimeout(tick,300);
 })();
 </script>"""
@@ -815,6 +825,26 @@ footer {display:none !important}
 .lv-stack div {color:#fff; font-size:10px; line-height:18px; text-align:center; white-space:nowrap; overflow:hidden}
 .lv-stack div.slow {outline:2px solid #e5484d; outline-offset:-2px}
 .lv-why {margin-top:4px}
+.lv-mini {display:none; cursor:pointer; align-items:center; gap:6px; font-size:13px; white-space:nowrap;
+          overflow:hidden; text-overflow:ellipsis}
+.lv-more {margin-left:auto; color:#8a90a8; padding-left:8px}
+.lv-minibar {display:none; height:4px; margin-top:4px}
+@media (max-width:820px) {
+  #livebox {padding:6px 10px !important}
+  .lv-mini {display:flex}
+  .lv-minibar {display:block}
+  #livebox:not(.open) .lv-full {display:none}
+  #livebox.open .lv-full {margin-top:6px}
+  .lv-chips {grid-template-columns:repeat(3,1fr)}
+  /* tarjetas del proceso: solo iconos, en una fila */
+  .tab .tcs {grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:3px !important}
+  #livebox .lv-full .lv-job {display:none}          /* ya esta en la linea compacta */
+  #main > *, #stage, #side {min-width:0 !important; max-width:100% !important}
+  .gradio-container, #main {overflow-x:hidden !important}
+  .tab .tc span {display:none}
+  .tab .tc {padding:4px 0 !important; min-height:0 !important}
+  .tab .tc svg {width:20px; height:20px}
+}
 .tab .tcs {display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
 .tc {border:1px solid #2a2f45; border-radius:10px; padding:6px 2px; text-align:center;
      color:#5d6380; background:#151824; font-size:11px}
@@ -837,7 +867,7 @@ footer {display:none !important}
       stroke-linecap:round; stroke-linejoin:round; display:block; margin-bottom:4px}
 .kpi b {display:block; color:#4d7dff; font-size:24px; margin-top:2px}
 #filtros label {border-radius:20px !important; padding:4px 10px !important}
-@media (max-width:820px) {.tab .tcs {grid-template-columns:repeat(4,1fr)} .tc {font-size:10px}}
+/* (tarjetas en telefono: ver bloque de arriba) */
 .hdr {display:flex; justify-content:space-between; align-items:center; width:100%}
 .hdr .ttl {font-size:26px; font-weight:700; color:#e8e9ee}
 .hdr .chip {text-align:right; color:#9a9daa; font-size:12px; line-height:1.3}
@@ -1045,7 +1075,7 @@ def build_ui():
                         m_clay = gr.HTML(viewer_html(msg="Aquí aparecerá la malla"))
                     with gr.Tab("2 · Textura", id="textura"):
                         m_tex = gr.HTML(viewer_html(msg="Aquí aparecerá el modelo con textura"))
-                    with gr.Tab("3 · Estudio animado", id="estudio"):
+                    with gr.Tab("3 · Estudio", id="estudio"):
                         view = gr.HTML(viewer_html())
                 with gr.Group(elem_id="review"):
                     review = gr.Markdown("### ¿Salió bien?\nCuando termine un modelo, vota "
