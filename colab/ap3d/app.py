@@ -56,6 +56,13 @@ def _summary(info):
     ]
     if info.get("animaciones"):
         lines.append("Animaciones: " + ", ".join(info["animaciones"]))
+    c = info.get("clasificacion")
+    if c:
+        tipos = {"humanoide": "persona", "cuadrupedo": "animal de 4 patas",
+                 "cabeza": "cabeza / busto", "objeto": "objeto"}
+        rasgos = [k for k in ("piernas", "brazos", "cuello", "patas") if c.get(k)]
+        lines.append(f"Detectado como **{tipos.get(c.get('tipo'), c.get('tipo'))}**"
+                     + (f" (vio: {', '.join(rasgos)})" if rasgos else ""))
     if info.get("lod_caras"):
         lines.append("LOD ligeros: " + ", ".join(
             f"{k} ({v:,} caras)" for k, v in info["lod_caras"].items()))
@@ -79,7 +86,8 @@ def _summary(info):
     return "\n\n".join(lines)
 
 
-RIGS = {"Auto": "auto", "Humano": "humanoide", "Criatura": "cuadrupedo", "Sin esqueleto": "ninguno"}
+RIGS = {"Auto": "auto", "Humano": "humanoide", "Criatura": "cuadrupedo",
+        "Cabeza / busto": "cabeza", "Objeto": "objeto", "Sin esqueleto": "ninguno"}
 
 
 def viewer_html(d=None, height=600, view=None, wire=False, etapa=None, msg=None):
@@ -439,6 +447,9 @@ def build_ui():
                         with gr.Accordion("Esqueleto (Rig)", open=True):
                             rig = gr.Radio(list(RIGS), value="Auto", show_label=False,
                                            elem_id="rigsel")
+                            gr.Markdown("<small>Auto detecta persona, animal de 4 patas, "
+                                        "cabeza/busto (mueve boca, ojos y cabeza) u objeto "
+                                        "(flota, gira, rebota, baila).</small>")
                             detalle = gr.Checkbox(True, label="Esqueleto detallado",
                                                   info="Dedos de manos y pies, ojos y mandíbula "
                                                        "(66 huesos en vez de 23)")

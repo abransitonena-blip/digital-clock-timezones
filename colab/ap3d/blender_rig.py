@@ -43,7 +43,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--in", dest="inp", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--rig", default="humanoide",
-                choices=["auto", "humanoide", "cuadrupedo", "ninguno"])
+                choices=["auto", "humanoide", "cuadrupedo", "cabeza", "objeto", "ninguno"])
 ap.add_argument("--height", type=float, default=1.8)
 ap.add_argument("--rotate", type=float, default=0.0,
                 help="giro extra en grados alrededor de Z")
@@ -164,12 +164,67 @@ H = float(co[:, 2].max())
 INFO.update(vertices=len(obj.data.vertices), caras=len(obj.data.polygons),
             altura_m=round(H, 3))
 log("malla", INFO["vertices"], "vertices", INFO["caras"], "caras")
+def has_gap(vals, bins=24):
+    """Hay un hueco en el centro (dos piernas separadas, patas...)."""
+    if len(vals) < 50:
+        return False
+    h, _ = np.histogram(vals, bins)
+    inner = h[3:-3]
+    return bool(len(inner)) and (inner.min() <= 0.02 * h.max())
+
+
+def classify(co, H):
+    """persona / cuadrupedo / cabeza (busto) / objeto, midiendo la malla:
+    piernas separadas, brazos (hombros mucho mas anchos que la cintura),
+    cuello (franja estrecha bajo una parte ancha) y proporciones."""
+    x, y, z = co[:, 0], co[:, 1], co[:, 2]
+    ancho = float(x.max() - x.min())
+    largo = float(y.max() - y.min())
+    low = co[z < 0.07 * H]
+    frac_low = len(low) / max(len(co), 1)
+    piernas_x = has_gap(low[:, 0]) if len(low) else False
+    patas_y = has_gap(low[:, 1]) if len(low) else False
+
+    def width(z0, z1):
+        sl = co[(z >= z0 * H) & (z < z1 * H)]
+        if len(sl) < 20:
+            return 0.0
+        return float(np.percentile(sl[:, 0], 98) - np.percentile(sl[:, 0], 2))
+
+    prof = [width(i / 20, (i + 1) / 20) for i in range(20)]
+    cintura = max(width(0.40, 0.60), 1e-6)
+    hombros = max(prof[14:19])
+    brazos = hombros > 1.8 * cintura and H > 1.5 * largo
+    # cuello: un tramo estrecho con algo bastante mas ancho encima y debajo
+    cuello = False
+    for i in range(2, 15):
+        w = prof[i]
+        if w <= 0:
+            continue
+        arriba = max(prof[i + 1:])
+        abajo = max(prof[:i])
+        if arriba > 1.6 * w and abajo > 1.6 * w:
+            cuello = True
+            break
+    medida = {"ancho": round(ancho / H, 2), "largo": round(largo / H, 2),
+              "piernas": bool(piernas_x), "patas": bool(patas_y), "brazos": bool(brazos),
+              "cuello": cuello, "base": round(frac_low, 3)}
+    if largo > 1.05 * H and patas_y and frac_low < 0.15:
+        tipo = "cuadrupedo"
+    elif (piernas_x and H > 1.15 * largo) or brazos:
+        tipo = "humanoide"
+    elif cuello:
+        tipo = "cabeza"
+    else:
+        tipo = "objeto"
+    INFO["clasificacion"] = dict(medida, tipo=tipo)
+    return tipo
+
+
 if args.rig == "auto":
-    # Mas largo (de frente a cola) que alto -> animal de cuatro patas
-    largo = float(co[:, 1].max() - co[:, 1].min())
-    args.rig = "cuadrupedo" if largo > 1.05 * H else "humanoide"
+    args.rig = classify(co, H)
     INFO["rig"] = args.rig
-    log("esqueleto automatico:", args.rig)
+    log("esqueleto automatico:", args.rig, INFO.get("clasificacion"))
 
 # Material: asegurar que se vea en Cycles / Eevee / visores
 for slot in obj.material_slots:
@@ -402,6 +457,51 @@ def region_of(bone):
     return core + lado
 
 
+def head_bones(co, H):
+    """Busto o cabeza: raiz, cuello, cabeza, mandibula y dos ojos."""
+    P = "mixamorig:"
+    z = co[:, 2]
+    ty = float(np.median(co[:, 1]))
+    # cuello = franja mas estrecha entre 15 % y 60 % de la altura
+    best, neck_z = 1e9, 0.35 * H
+    for zz in np.linspace(0.15 * H, 0.6 * H, 19):
+        sl = co[np.abs(z - zz) < 0.02 * H]
+        if len(sl) > 30:
+            w = float(np.percentile(sl[:, 0], 97) - np.percentile(sl[:, 0], 3))
+            if w < best:
+                best, neck_z = w, float(zz)
+    head_z = neck_z + 0.04 * H
+    hv = co[z > head_z]
+    front = float(np.percentile(hv[:, 1], 2)) if len(hv) else ty - 0.3 * H
+    hw = float(np.percentile(hv[:, 0], 98) - np.percentile(hv[:, 0], 2)) if len(hv) else 0.6 * H
+    hh = H - head_z
+    ez = head_z + 0.55 * hh
+    ex = 0.2 * hw
+    dz = 0.1 * hh
+    B = [("Hips", (0, ty, 0), (0, ty, max(neck_z - 0.1 * H, 0.05 * H)), None),
+         ("Neck", (0, ty, max(neck_z - 0.1 * H, 0.05 * H)), (0, ty, head_z), "Hips"),
+         ("Head", (0, ty, head_z), (0, ty, H), "Neck"),
+         ("Jaw", (0, (front + ty) / 2, head_z + 0.3 * hh),
+          (0, front + 0.02 * hh, head_z + 0.08 * hh), "Head")]
+    for side, name in ((1, "Left"), (-1, "Right")):
+        B.append((name + "Eye", (side * ex, front + 0.12 * hh, ez),
+                  (side * ex, front + 0.01 * hh, ez), "Head"))
+    INFO["cabeza"] = {"cuello_z": round(neck_z / H, 2)}
+    return [(P + n, Vector(h), Vector(t), (P + p) if p else None) for n, h, t, p in B]
+
+
+def object_bones(co, H):
+    """Objeto: raiz + 3 huesos de abajo hacia arriba para doblarlo, saltar,
+    flotar o bailar con estilo de dibujo animado."""
+    cx = float(np.median(co[:, 0]))
+    cy = float(np.median(co[:, 1]))
+    B = [("Raiz", (cx, cy, 0), (cx, cy, 0.05 * H), None),
+         ("Base", (cx, cy, 0.05 * H), (cx, cy, 0.38 * H), "Raiz"),
+         ("Medio", (cx, cy, 0.38 * H), (cx, cy, 0.7 * H), "Base"),
+         ("Arriba", (cx, cy, 0.7 * H), (cx, cy, H), "Medio")]
+    return [(n, Vector(h), Vector(t), p) for n, h, t, p in B]
+
+
 BONES = []          # (nombre, cabeza, cola, padre)
 
 
@@ -581,6 +681,10 @@ if args.rig != "ninguno":
         BONES = humanoid_bones(D)
         INFO["proporciones"] = {k: (round(v, 3) if isinstance(v, float) else list(map(lambda q: round(q, 3), v)))
                                 for k, v in D.items() if k not in ("co", "dedos")}
+    elif args.rig == "cabeza":
+        BONES = head_bones(co, H)
+    elif args.rig == "objeto":
+        BONES = object_bones(co, H)
     else:
         BONES = quadruped_bones(co, H)
 
@@ -834,7 +938,7 @@ if args.rig != "ninguno":
             gh.add([i], w_ * (1 - k_), "ADD")
         return len(moved)
 
-    if args.rig == "humanoide" and args.detalle:
+    if args.rig in ("humanoide", "cabeza") and (args.detalle or args.rig == "cabeza"):
         for side in ("Left", "Right"):
             b = arm.data.bones.get(f"mixamorig:{side}Eye")
             if b is not None:
@@ -878,7 +982,7 @@ ANIMS = {}
 
 
 def pb(name):
-    if args.rig == "humanoide":
+    if args.rig in ("humanoide", "cabeza"):
         name = "mixamorig:" + name
     return arm.pose.bones.get(name)
 
@@ -1158,11 +1262,107 @@ def quadruped_anims():
     build_action("Correr", 20, lambda t: walk(t, 0.7, 1.0))
 
 
+def head_anims():
+    S, pi = math.sin, math.pi
+    X, Y, Z = (1, 0, 0), (0, 1, 0), (0, 0, 1)
+
+    def eyes(yaw, pitch=0.0):
+        return {"LeftEye": wrot("LeftEye", (Z, yaw), (X, pitch)),
+                "RightEye": wrot("RightEye", (Z, yaw), (X, pitch))}
+
+    def idle(t):
+        a = 2 * pi * t
+        p = {"Neck": wrot("Neck", (X, 0.02 * S(a))), "Head": wrot("Head", (Z, 0.04 * S(a + 1)))}
+        p.update(eyes(0.12 * S(2 * a), 0.03 * S(a)))
+        return p
+
+    def talk(t):
+        a = 2 * pi * t
+        p = idle(t)
+        p["Jaw"] = wrot("Jaw", (X, 0.22 * abs(S(3 * a)) + 0.06 * abs(S(7 * a))))
+        p["Head"] = wrot("Head", (X, 0.05 * S(2 * a)), (Z, 0.06 * S(a)))
+        return p
+
+    def look(t):
+        a = 2 * pi * t
+        yaw = 0.45 * S(a)
+        p = {"Head": wrot("Head", (Z, 0.35 * S(a - 0.4))), "Neck": wrot("Neck", (Z, 0.1 * S(a - 0.6)))}
+        p.update(eyes(yaw, 0.1 * S(2 * a)))
+        return p
+
+    def nod(t):
+        a = 2 * pi * t
+        return {"Head": wrot("Head", (X, 0.22 * S(2 * a))), "Neck": wrot("Neck", (X, 0.06 * S(2 * a)))}
+
+    def shake(t):
+        a = 2 * pi * t
+        return {"Head": wrot("Head", (Z, 0.35 * S(3 * a))), "Neck": wrot("Neck", (Z, 0.08 * S(3 * a)))}
+
+    def surprise(t):
+        k = math.sin(min(1.0, t * 3) * pi / 2) * (1 - max(0.0, t - 0.7) / 0.3)
+        p = {"Jaw": wrot("Jaw", (X, 0.35 * k)), "Head": wrot("Head", (X, -0.18 * k))}
+        p.update(eyes(0.0, -0.15 * k))
+        return p
+
+    build_action("Reposo", 72, idle, step=3)
+    build_action("Hablar", 48, talk)
+    build_action("Mirar", 72, look, step=3)
+    build_action("Asentir", 36, nod)
+    build_action("Negar", 36, shake)
+    build_action("Sorpresa", 40, surprise)
+
+
+def object_anims():
+    S, pi = math.sin, math.pi
+    X, Y, Z = (1, 0, 0), (0, 1, 0), (0, 0, 1)
+
+    def up(dz):
+        return Vector((0, dz, 0))      # la raiz apunta hacia +Z
+
+    def idle(t):
+        a = 2 * pi * t
+        return {"Medio": wrot("Medio", (Y, 0.03 * S(a))), "Arriba": wrot("Arriba", (Y, 0.04 * S(a + 0.5)))}
+
+    def float_(t):
+        a = 2 * pi * t
+        return {"Raiz": up(0.06 * H * (1 + S(a))), "Base": wrot("Base", (Z, 0.15 * S(a)))}
+
+    def spin(t):
+        return {"Raiz": wrot("Raiz", (Z, 2 * pi * t))}
+
+    def bounce(t):
+        a = 2 * pi * t
+        h = abs(S(a))
+        return {"Raiz": up(0.25 * H * h),
+                "Medio": wrot("Medio", (X, 0.18 * (1 - h))),
+                "Arriba": wrot("Arriba", (X, -0.22 * (1 - h)))}
+
+    def dance(t):
+        a = 2 * pi * t
+        return {"Base": wrot("Base", (Y, 0.12 * S(2 * a))), "Medio": wrot("Medio", (Y, -0.2 * S(2 * a))),
+                "Arriba": wrot("Arriba", (Y, 0.25 * S(2 * a + 0.6))), "Raiz": up(0.03 * H * abs(S(2 * a)))}
+
+    def wave(t):
+        a = 2 * pi * t
+        return {"Medio": wrot("Medio", (X, 0.15 * S(a))), "Arriba": wrot("Arriba", (X, 0.25 * S(a - 0.8)))}
+
+    build_action("Reposo", 72, idle, step=3)
+    build_action("Flotar", 72, float_, step=3)
+    build_action("Girar", 96, spin, step=4)
+    build_action("Rebotar", 36, bounce)
+    build_action("Bailar", 48, dance)
+    build_action("Saludar", 48, wave)
+
+
 if arm is not None:
     activate(arm)
     bpy.ops.object.mode_set(mode="POSE")
     if args.rig == "humanoide":
         humanoid_anims(D)
+    elif args.rig == "cabeza":
+        head_anims()
+    elif args.rig == "objeto":
+        object_anims()
     else:
         quadruped_anims()
     bpy.ops.object.mode_set(mode="OBJECT")

@@ -593,12 +593,18 @@ class Engine:
                 t_shape = time.time() - ts
                 progress(f_shape, "Limpiando y cerrando agujeros")
                 # 1) malla completa en alta resolucion (todo el detalle de la IA)
-                mesh = self._repair(mesh, None)
+                # Primero se reduce (las mallas de 1 millon de caras tardaban
+                # ~50 s en repararse) y despues se repara la malla ya ligera.
                 info_alta = len(mesh.faces)
+                if info_alta > 300000:
+                    try:
+                        from hy3dgen.shapegen import FaceReducer
+                        mesh = FaceReducer()(mesh, max_facenum=300000)
+                    except Exception as e:
+                        self.log("  reduccion previa omitida:", e)
+                mesh = self._repair(mesh, None)
                 try:
-                    from hy3dgen.shapegen import FaceReducer
-                    hi = mesh if len(mesh.faces) <= 600000 else FaceReducer()(mesh, max_facenum=600000)
-                    hi.export(os.path.join(out, "malla_alta.glb"))
+                    mesh.export(os.path.join(out, "malla_alta.glb"))
                 except Exception as e:
                     self.log("  malla alta omitida:", e)
                 # 2) se reduce despues a las caras pedidas (para textura y esqueleto)
