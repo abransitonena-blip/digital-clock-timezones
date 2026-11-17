@@ -15,7 +15,7 @@ import gradio as gr
 from . import config
 from .engine import get_engine
 
-ANIMS = ["Caminar", "Correr", "Saludar", "Saltar", "Bailar", "Reposo"]
+ANIMS = ["Caminar", "Correr", "Saludar", "Saltar", "Bailar", "Reposo", "Manos", "Hablar"]
 PRESETS = {
     # nombre: (pasos, octree, caras, textura). 10 pasos o menos = modelo Turbo
     "Turbo": (5, 384, 60000, 2048),
@@ -132,7 +132,7 @@ def _exists(d, f):
 def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
                video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
-               progress=gr.Progress()):
+               detalle=True, progress=gr.Progress()):
     """Etapa 1: lanza el trabajo y devuelve la malla en cuanto existe."""
     if front is None and sheet is None:
         raise gr.Error("Sube al menos la foto de frente (o una hoja de vistas).")
@@ -164,7 +164,8 @@ def step_malla(front, back, left, right, sheet, sheet_order, remove_bg, steps, o
                                 samples, turntable, texture,
                                 relieve=float(relieve) if relieve_on else 0.0,
                                 turbo=int(steps) <= 10, progress=prog,
-                                videos=bool(make_videos), on_stage=on_stage)
+                                videos=bool(make_videos), on_stage=on_stage,
+                                detalle=bool(detalle))
             st["dir"] = st["res"]["dir"]
         except Exception as e:
             import traceback
@@ -412,11 +413,14 @@ def build_ui():
                         with gr.Accordion("Esqueleto (Rig)", open=True):
                             rig = gr.Radio(list(RIGS), value="Auto", show_label=False,
                                            elem_id="rigsel")
+                            detalle = gr.Checkbox(True, label="Esqueleto detallado",
+                                                  info="Dedos de manos y pies, ojos y mandíbula "
+                                                       "(66 huesos en vez de 23)")
                         with gr.Accordion("Altura real", open=True):
                             height = gr.Slider(0.2, 5, 1.7, step=0.01, label="metros")
                         with gr.Accordion("Mapas de relieve", open=False):
                             relieve_on = gr.Checkbox(True, label="Relieve realista desde la textura")
-                            relieve = gr.Slider(0.1, 2.0, 0.6, step=0.1, label="Intensidad")
+                            relieve = gr.Slider(0.1, 2.5, 0.8, step=0.1, label="Intensidad")
                         with gr.Accordion("Calidad", open=False):
                             preset = gr.Radio(list(PRESETS), value=best, label="Preajuste",
                                               info="Detallado: Turbo con malla 512 y 150 000 caras (recomendado). "
@@ -498,7 +502,8 @@ def build_ui():
         (btn.click(step_malla,
                    [front, back, left, right, sheet, sheet_order, remove_bg, steps, octree,
                     faces, tex, seed, rand_seed, guidance, rig, height, rotate, video,
-                    video_res, samples, turntable, texture, relieve_on, relieve, make_videos],
+                    video_res, samples, turntable, texture, relieve_on, relieve, make_videos,
+                    detalle],
                    [job, m_clay, tabs, status, seed], concurrency_id="gen",
                    concurrency_limit=P["workers"], **_spo(status))
             .success(step_textura, job, [m_tex, tabs, status], concurrency_id="gen",

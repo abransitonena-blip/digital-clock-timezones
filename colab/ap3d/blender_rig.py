@@ -52,12 +52,14 @@ ap.add_argument("--video_res", type=int, default=1080)
 ap.add_argument("--samples", type=int, default=48)
 ap.add_argument("--turntable", type=int, default=1)
 ap.add_argument("--loops", type=int, default=2)
-ap.add_argument("--relieve", type=float, default=0.6,
+ap.add_argument("--relieve", type=float, default=0.8,
                 help="fuerza del mapa de relieve (normal) sacado de la textura; 0 = sin relieve")
 ap.add_argument("--stage", default="all", choices=["all", "export", "video"],
                 help="export: archivos y vista previa; video: solo videos. "
                      "Se lanzan los dos a la vez en procesos separados para ir el doble de rapido")
 ap.add_argument("--preview", type=int, default=1, help="0 = no renderizar vista_previa.png")
+ap.add_argument("--detalle", type=int, default=1,
+                help="1 = esqueleto detallado: dedos de manos y pies, ojos y mandibula")
 ap.add_argument("--fast", type=int, default=0, help="pruebas: video corto")
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -270,7 +272,100 @@ def humanoid_bones(d):
             (name + "Foot", ankle, ball, name + "Leg"),
             (name + "ToeBase", ball, toe, name + "Foot"),
         ]
+    if args.detalle:
+        B += detail_bones(d, B)
     return [(P + n, Vector(h), Vector(t), (P + p) if p else None) for n, h, t, p in B]
+
+
+def detail_bones(d, base):
+    """Dedos de las manos (5 x 3 falanges), dedos de los pies, ojos y
+    mandibula. Todo se coloca midiendo la malla: largo y ancho real de cada
+    mano y pie, y el frente y ancho de la cabeza. Nombres de Mixamo en los
+    dedos de la mano (LeftHandIndex1...)."""
+    H, ty, co = d["H"], d["torso_y"], d["co"]
+    out = []
+    byname = {n: (Vector(h), Vector(t)) for n, h, t, _ in base}
+    d["dedos"] = {}
+    Yv = Vector((0, 1, 0))
+    for side, name in ((1, "Left"), (-1, "Right")):
+        wrist, tip0 = byname[name + "Hand"]
+        u = (tip0 - wrist)
+        if u.length < 1e-6:
+            continue
+        u.normalize()
+        w = Yv - u * Yv.dot(u)          # eje a lo ancho de la mano
+        if w.length < 0.2:
+            w = Vector((0, 0, 1)) - u * u.z
+        w.normalize()
+        rel = co - np.array(wrist)
+        pu = rel @ np.array(u)
+        pw = rel @ np.array(w)
+        pn = rel @ np.array(u.cross(w))
+        m = (pu > -0.005 * H) & (pu < 0.16 * H) & (np.abs(pw) < 0.09 * H) & (np.abs(pn) < 0.07 * H)
+        if m.sum() > 30:
+            L = float(np.percentile(pu[m], 99))
+            w0, w1 = float(np.percentile(pw[m], 3)), float(np.percentile(pw[m], 97))
+        else:
+            L, w0, w1 = 0.10 * H, -0.035 * H, 0.035 * H
+        L = min(max(L, 0.06 * H), 0.15 * H)
+        W = min(max(w1 - w0, 0.035 * H), 0.11 * H)
+        wc = (w0 + w1) / 2
+        knuck = wrist + u * (0.45 * L) + w * wc
+        # la mano termina en los nudillos
+        for i, (n, h, t, p) in enumerate(base):
+            if n == name + "Hand":
+                base[i] = (n, h, tuple(knuck), p)
+        d["dedos"][name] = (tuple(w), side)
+        # indice hacia el frente (-Y), menique hacia atras
+        front = -1.0 if w.y > 0 else 1.0
+        for fname, off, ln in (("Index", -0.36, 1.0), ("Middle", -0.12, 1.08),
+                               ("Ring", 0.12, 1.0), ("Pinky", 0.36, 0.82)):
+            a = knuck + w * (front * -off * W * -1)
+            prev = name + "Hand"
+            for k, seg in enumerate((0.26, 0.17, 0.12), 1):
+                b_ = a + u * (seg * L * ln)
+                out.append((f"{name}Hand{fname}{k}", tuple(a), tuple(b_), prev))
+                prev, a = f"{name}Hand{fname}{k}", b_
+        tdir = (u * 0.75 + w * (front * 0.65)).normalized()
+        a = wrist + u * (0.12 * L) + w * (wc + front * 0.42 * W)
+        prev = name + "Hand"
+        for k, seg in enumerate((0.20, 0.15, 0.12), 1):
+            b_ = a + tdir * (seg * L)
+            out.append((f"{name}HandThumb{k}", tuple(a), tuple(b_), prev))
+            prev, a = f"{name}HandThumb{k}", b_
+
+        # Dedos del pie: 5 huesos repartidos en el ancho real del pie
+        fx = d["fx_l"] if side > 0 else d["fx_r"]
+        fm = (co[:, 2] < 0.05 * H) & (side * co[:, 0] > 0) & (co[:, 1] < d["toe_y"] + 0.09 * H)
+        if fm.sum() > 20:
+            x0, x1 = float(np.percentile(co[fm, 0], 4)), float(np.percentile(co[fm, 0], 96))
+        else:
+            x0, x1 = fx - 0.035 * H, fx + 0.035 * H
+        if x1 - x0 < 0.03 * H:
+            x0, x1 = fx - 0.03 * H, fx + 0.03 * H
+        for k in range(5):
+            xx = x0 + (x1 - x0) * (k + 0.5) / 5
+            out.append((f"{name}Toe{k + 1}", (xx, d["toe_y"] + 0.045 * H, 0.014 * H),
+                        (xx, d["toe_y"] + 0.004 * H, 0.010 * H), name + "ToeBase"))
+
+    # Cabeza: ojos y mandibula
+    head_z = byname["Head"][0].z
+    hv = co[co[:, 2] > head_z + 0.01 * H]
+    if len(hv) > 50:
+        front = float(np.percentile(hv[:, 1], 2))
+        hw = float(np.percentile(hv[:, 0], 98) - np.percentile(hv[:, 0], 2))
+    else:
+        front, hw = ty - 0.07 * H, 0.12 * H
+    hh = H - head_z
+    ez = head_z + 0.50 * hh
+    ex = min(max(0.21 * hw, 0.018 * H), 0.05 * H)
+    for side, name in ((1, "Left"), (-1, "Right")):
+        out.append((name + "Eye", (side * ex, front + 0.035 * H, ez),
+                    (side * ex, front + 0.003 * H, ez), "Head"))
+    out.append(("Jaw", (0, (front + ty) / 2, head_z + 0.22 * hh),
+                (0, front + 0.012 * H, head_z + 0.06 * hh), "Head"))
+    INFO["esqueleto_detallado"] = True
+    return out
 
 
 def quadruped_bones(co, H):
@@ -310,9 +405,10 @@ arm = None
 if args.rig != "ninguno":
     if args.rig == "humanoide":
         D = detect_humanoid(co, H)
+        D["co"] = co
         BONES = humanoid_bones(D)
         INFO["proporciones"] = {k: (round(v, 3) if isinstance(v, float) else list(map(lambda q: round(q, 3), v)))
-                                for k, v in D.items()}
+                                for k, v in D.items() if k not in ("co", "dedos")}
     else:
         BONES = quadruped_bones(co, H)
 
@@ -464,6 +560,46 @@ if args.rig != "ninguno":
             for n, w in ws:
                 obj.vertex_groups[n].add([i], w, "REPLACE")
     INFO["vertices_sin_peso_reparados"] = int(sin_peso)
+
+    # Ojos y mandibula: solo su zona real. El calor les daba media cabeza;
+    # lo que queda fuera vuelve al hueso de la cabeza.
+    def limit_group(gname, keep_fn, to="mixamorig:Head"):
+        g = obj.vertex_groups.get(gname)
+        gh = obj.vertex_groups.get(to)
+        if g is None or gh is None:
+            return 0
+        moved = []
+        for v in me.vertices:
+            for e in v.groups:
+                if e.group == g.index and e.weight > 0:
+                    k_ = keep_fn(v.co)
+                    if k_ < 1.0:
+                        moved.append((v.index, e.weight, k_))
+        for i, w_, k_ in moved:
+            if k_ <= 0:
+                g.remove([i])
+            else:
+                g.add([i], w_ * k_, "REPLACE")
+            gh.add([i], w_ * (1 - k_), "ADD")
+        return len(moved)
+
+    if args.rig == "humanoide" and args.detalle:
+        for side in ("Left", "Right"):
+            b = arm.data.bones.get(f"mixamorig:{side}Eye")
+            if b is not None:
+                c = b.tail_local.copy()
+                r = 0.016 * H
+                limit_group(b.name, lambda p, c=c, r=r: max(0.0, min(1.0, 2.0 - (p - c).length / r)))
+        b = arm.data.bones.get("mixamorig:Jaw")
+        if b is not None:
+            jz, jy, tipz = b.head_local.z, b.head_local.y, b.tail_local.z
+
+            def jaw_keep(p):
+                if p.z > jz or p.y > jy + 0.01 * H:
+                    return 0.0
+                # suave: 1 en la barbilla, 0 al llegar a la altura del eje
+                return max(0.0, min(1.0, (jz - p.z) / max(jz - tipz, 1e-4)))
+            limit_group(b.name, jaw_keep)
     # Cobertura por hueso (para ver de un vistazo si un hueso no mueve nada)
     cnt = {g.name: 0 for g in obj.vertex_groups}
     for v in me.vertices:
@@ -471,7 +607,11 @@ if args.rig != "ninguno":
             if e.weight > 0.05:
                 cnt[gi2name[e.group]] += 1
     INFO["vertices_por_hueso"] = cnt
-    vacios = [n for n, c in cnt.items() if c == 0 and not n.endswith("_End")]
+    _fino = ("Thumb", "Index", "Middle", "Ring", "Pinky", "Toe", "Eye", "Jaw")
+    vacios = [n for n, c in cnt.items() if c == 0 and not n.endswith("_End")
+              and not any(x in n for x in _fino)]
+    INFO["huesos_finos_sin_zona"] = sum(1 for n, c in cnt.items()
+                                        if c == 0 and any(x in n for x in _fino))
     if vacios:
         INFO["avisos"].append("huesos sin zona: " + ", ".join(vacios))
     log("pesos reparados:", sin_peso, "vertices; huesos vacios:", len(vacios))
@@ -652,7 +792,52 @@ def humanoid_anims(D):
         p["Head"] = wrot("Head", (Y, -0.1 * S(2 * a)))
         return p
 
+    FING = ("Thumb", "Index", "Middle", "Ring", "Pinky")
+
+    def fingers(curl_l, curl_r=None):
+        """Cierra los dedos (0 = abiertos, 1 = puno)."""
+        out = {}
+        curl_r = curl_l if curl_r is None else curl_r
+        for name, c in (("Left", curl_l), ("Right", curl_r)):
+            info = D.get("dedos", {}).get(name)
+            if not info:
+                continue
+            axis, side = info
+            for fn in FING:
+                amp = 0.55 if fn == "Thumb" else 1.25
+                for k in (1, 2, 3):
+                    out[f"{name}Hand{fn}{k}"] = wrot(f"{name}Hand{fn}{k}", (axis, side * amp * c))
+        return out
+
+    HAS_F = bool(D.get("dedos"))
+    if HAS_F:
+        # dedos relajados en todas las animaciones y puno al correr
+        _idle, _walk, _run, _wave, _dance = idle, walk, run, wave, dance
+        idle = lambda t: {**_idle(t), **fingers(0.22 + 0.04 * S(2 * pi * t))}
+        walk = lambda t: {**_walk(t), **fingers(0.3)}
+        run = lambda t: {**_run(t), **fingers(0.85)}
+        wave = lambda t: {**_wave(t), **fingers(0.25, 0.03)}
+        dance = lambda t: {**_dance(t), **fingers(0.4 + 0.3 * S(4 * pi * t))}
+
+    def hands(t):
+        # abrir y cerrar las manos, una desfasada de la otra
+        a = 2 * pi * t
+        p = arms(0, 0, 0.9, extra_l=0.5, extra_r=0.5)
+        p.update(fingers(0.5 - 0.5 * math.cos(a), 0.5 + 0.5 * math.cos(a)))
+        return p
+
+    def talk(t):
+        a = 2 * pi * t
+        p = idle(t)
+        p["Jaw"] = wrot("Jaw", (X, 0.16 * abs(S(3 * a)) + 0.05 * abs(S(7 * a))))
+        p["Head"] = wrot("Head", (X, 0.06 * S(2 * a)), (Z, 0.08 * S(a)))
+        return p
+
     build_action("Reposo", 72, idle, step=3)
+    if HAS_F:
+        build_action("Manos", 48, hands)
+    if pb("Jaw") is not None:
+        build_action("Hablar", 48, talk)
     build_action("Caminar", 32, walk)
     build_action("Correr", 20, run)
     build_action("Saludar", 48, wave)
@@ -746,7 +931,16 @@ def add_relief(strength):
                + np.roll(hgt, 1, 1) + np.roll(hgt, -1, 1)) / 5
         gx = (np.roll(hgt, -1, 1) - np.roll(hgt, 1, 1)) * 0.5
         gy = (np.roll(hgt, -1, 0) - np.roll(hgt, 1, 0)) * 0.5
-        k = 6.0
+        # Dos escalas: detalle fino (poros, costuras) + formas medianas (pliegues)
+        big = hgt.copy()
+        for sh_ in (2, 4, 8):
+            big = (big + np.roll(big, sh_, 0) + np.roll(big, -sh_, 0)
+                   + np.roll(big, sh_, 1) + np.roll(big, -sh_, 1)) / 5
+        gx2 = (np.roll(big, -4, 1) - np.roll(big, 4, 1)) * 0.125
+        gy2 = (np.roll(big, -4, 0) - np.roll(big, 4, 0)) * 0.125
+        k = 7.0
+        gx = gx + 2.5 * gx2
+        gy = gy + 2.5 * gy2
         n = np.dstack([-gx * k, -gy * k, np.ones_like(hgt)])
         n /= np.linalg.norm(n, axis=2, keepdims=True)
         out = np.ones((h, w, 4), dtype=np.float32)

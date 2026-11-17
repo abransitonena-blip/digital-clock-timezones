@@ -419,8 +419,8 @@ class Engine:
             steps=None, octree=None, faces=None, tex=None, seed=1234,
             guidance=5.0, rig="humanoide", height=1.8, rotate=0.0,
             video="Caminar", video_res=None, samples=None, turntable=True,
-            texture=True, relieve=0.6, turbo=True, progress=lambda f, m: None, on_partial=None,
-            videos=False, on_stage=None):
+            texture=True, relieve=0.8, turbo=True, progress=lambda f, m: None, on_partial=None,
+            videos=False, on_stage=None, detalle=True):
         self._ensure()
         if not self.ready:
             self.load()
@@ -446,7 +446,7 @@ class Engine:
                     guidance=guidance, rig=rig, height=height, rotate=rotate,
                     video=video, video_res=video_res, samples=samples,
                     turntable=bool(turntable), texture=bool(texture), relieve=float(relieve),
-                    turbo=bool(turbo), videos=bool(videos))
+                    turbo=bool(turbo), videos=bool(videos), detalle=bool(detalle))
         k = self.key(views, opts)
         if k in self.cache and os.path.isdir(self.cache[k]["dir"]):
             self.log("Resultado en cache:", k)
@@ -536,6 +536,7 @@ class Engine:
         # Por defecto solo el modelo interactivo: sin videos ni render de Cycles
         stages = ["export", "video"] if videos else ["export"]
         self._preview = bool(videos)
+        self._detalle = bool(detalle)
         vstate = {"f": 0.0, "msg": "", "done": "video" not in stages}
         estate = {"f": 0.0}
 
@@ -659,6 +660,7 @@ class Engine:
                "--rig", rig, "--height", str(height), "--rotate", str(rotate),
                "--video", video, "--video_res", str(video_res), "--samples", str(samples),
                "--turntable", "1" if turntable else "0", "--relieve", str(relieve),
+               "--detalle", "1" if getattr(self, "_detalle", True) else "0",
                "--stage", stage, "--preview", "1" if stage != "export" or self._preview else "0"]
         ms = self.MILESTONES.get(stage, self.MILESTONES["export"])
         lines = []
