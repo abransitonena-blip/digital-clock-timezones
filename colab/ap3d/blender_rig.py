@@ -1463,7 +1463,7 @@ files = {}
 
 # "export": lo principal (GLB, web, FBX, .blend). "extra": lo demas, en otro
 # proceso a la vez (OBJ, STL, piezas, pesos, LOD). Asi Blender tarda la mitad.
-EXTRA = {"obj", "stl_mm", "piezas", "pesos", "lod1_50", "lod2_15", "visor_web"}
+EXTRA = {"obj", "stl_mm", "piezas", "pesos", "lod1_50", "lod2_15", "visor_web", "quads"}
 
 
 def export(kind, fn, path):
@@ -1741,6 +1741,181 @@ for _r, _tag in ((0.5, "lod1_50"), (0.15, "lod2_15")):
     if _nf * _r >= 1500:
         _pl = os.path.join(OUT, f"modelo_{_tag}.glb")
         export(_tag, lambda r=_r, pth=_pl: _lod(r, pth), _pl)
+
+# Malla en cuadrados limpios (como "Smart Mesh" de Tripo): QuadriFlow +
+# horneado del color y del relieve de la malla original, para no perder
+# detalle. Lleva el mismo esqueleto y animaciones.
+p_quads = os.path.join(OUT, "modelo_quads.glb")
+
+
+def _quads():
+    target = int(min(max(len(obj.data.polygons) // 4, 4000), 24000))
+    # copia en pose de descanso, sin esqueleto
+    q = obj.copy()
+    q.data = obj.data.copy()
+    q.name = "Quads"
+    scene.collection.objects.link(q)
+    q.parent = None
+    q.modifiers.clear()
+    q.vertex_groups.clear()
+    q.matrix_world = obj.matrix_world.copy()
+    activate(q)
+    # QuadriFlow necesita una malla cerrada y sin "pellizcos" (vertices donde
+    # se tocan dos partes). Se cierra con voxeles, se arreglan los pellizcos y
+    # se reintenta con otro tamano de voxel si hace falta.
+    base = q.data.copy()
+    ok = False
+    for div in (260.0, 200.0, 150.0):
+        old_me = q.data
+        q.data = base.copy()
+        if old_me is not base and old_me.users == 0:
+            bpy.data.meshes.remove(old_me)
+        activate(q)
+        rm = q.modifiers.new("Cerrar", "REMESH")
+        rm.mode = "VOXEL"
+        rm.voxel_size = H / div
+        bpy.ops.object.modifier_apply(modifier=rm.name)
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_mode(type="VERT")
+        bpy.ops.mesh.select_all(action="DESELECT")
+        bpy.ops.mesh.select_non_manifold(extend=False, use_wire=True, use_boundary=False,
+                                         use_multi_face=True, use_non_contiguous=True,
+                                         use_verts=True)
+        bpy.ops.mesh.delete(type="VERT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.mesh.fill_holes(sides=0)
+        bpy.ops.mesh.normals_make_consistent(inside=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        nf0 = len(q.data.polygons)
+        r = bpy.ops.object.quadriflow_remesh(target_faces=target, use_mesh_symmetry=False,
+                                             use_preserve_sharp=False, use_preserve_boundary=False,
+                                             smooth_normals=True, seed=0)
+        if "FINISHED" in r and len(q.data.polygons) < 0.8 * nf0:
+            ok = True
+            break
+        log("quads: reintento con otro voxel")
+    metodo = "QuadriFlow"
+    if not ok:
+        # Respaldo seguro: el remallado de voxeles de Blender tambien da solo
+        # cuadrados (rejilla uniforme). Tamano calculado para ~target caras.
+        old_me = q.data
+        q.data = base.copy()
+        if old_me.users == 0:
+            bpy.data.meshes.remove(old_me)
+        activate(q)
+        area = sum(p.area for p in q.data.polygons)
+        rm = q.modifiers.new("Cuadros", "REMESH")
+        rm.mode = "VOXEL"
+        rm.voxel_size = max(math.sqrt(area / target), H / 400)
+        bpy.ops.object.modifier_apply(modifier=rm.name)
+        sm = q.modifiers.new("Suave", "SMOOTH")
+        sm.factor = 0.5
+        sm.iterations = 3
+        bpy.ops.object.modifier_apply(modifier=sm.name)
+        nf0 = 10 ** 9
+        metodo = "voxeles"
+        ok = len(q.data.polygons) > 100
+    bpy.data.meshes.remove(base)
+    if not ok:
+        bpy.data.objects.remove(q, do_unlink=True)
+        raise RuntimeError("no se pudo remallar en cuadrados")
+    INFO["quads_metodo"] = metodo
+    nq = len(q.data.polygons)
+    if nq >= 0.8 * nf0 or nq == 0:
+        bpy.data.objects.remove(q, do_unlink=True)
+        raise RuntimeError("QuadriFlow no pudo remallar este modelo")
+    # UV nuevas y textura horneada desde la malla original
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.003)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    q.data.materials.clear()
+    size = 2048
+    img_c = bpy.data.images.new("quads_color", size, size)
+    img_n = bpy.data.images.new("quads_normal", size, size, float_buffer=False)
+    img_n.colorspace_settings.name = "Non-Color"
+    mat = bpy.data.materials.new("quads")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bs = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+    tc = nt.nodes.new("ShaderNodeTexImage"); tc.image = img_c
+    tn = nt.nodes.new("ShaderNodeTexImage"); tn.image = img_n
+    nm = nt.nodes.new("ShaderNodeNormalMap")
+    q.data.materials.append(mat)
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = 1
+    scene.cycles.use_denoising = False
+    try:
+        scene.cycles.device = "GPU" if INFO.get("render") in ("CUDA", "OPTIX") else "CPU"
+    except Exception:
+        pass
+    bk = scene.render.bake
+    bk.use_selected_to_active = True
+    bk.cage_extrusion = 0.02 * H
+    bk.max_ray_distance = 0.06 * H
+    bk.margin = 8
+    # el original debe estar en la misma pose (descanso) y visible
+    am_ = [m for m in obj.modifiers if m.type == "ARMATURE"]
+    for m in am_:
+        m.show_render = m.show_viewport = False
+    try:
+        deselect_all()
+        obj.select_set(True)
+        q.select_set(True)
+        vl.objects.active = q
+        nt.nodes.active = tc
+        bk.use_pass_direct = bk.use_pass_indirect = False
+        bk.use_pass_color = True
+        bpy.ops.object.bake(type="DIFFUSE")
+        nt.nodes.active = tn
+        bpy.ops.object.bake(type="NORMAL")
+    finally:
+        for m in am_:
+            m.show_render = m.show_viewport = True
+    img_c.pack()
+    img_n.pack()
+    nt.links.new(tc.outputs["Color"], bs.inputs["Base Color"])
+    nt.links.new(tn.outputs["Color"], nm.inputs["Color"])
+    nt.links.new(nm.outputs["Normal"], bs.inputs["Normal"])
+    # pesos del esqueleto desde la malla original
+    if arm is not None:
+        for g in obj.vertex_groups:
+            q.vertex_groups.new(name=g.name)
+        activate(q)
+        dt = q.modifiers.new("Pesos", "DATA_TRANSFER")
+        dt.object = obj
+        dt.use_vert_data = True
+        dt.data_types_verts = {"VGROUP_WEIGHTS"}
+        dt.vert_mapping = "POLYINTERP_NEAREST"
+        dt.layers_vgroup_select_src = "ALL"
+        dt.layers_vgroup_select_dst = "NAME"
+        bpy.ops.object.modifier_apply(modifier=dt.name)
+        bpy.ops.object.mode_set(mode="WEIGHT_PAINT")
+        bpy.ops.object.vertex_group_limit_total(group_select_mode="ALL", limit=4)
+        bpy.ops.object.vertex_group_normalize_all(group_select_mode="ALL", lock_active=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        q.parent = arm
+        amq = q.modifiers.new("Armature", "ARMATURE")
+        amq.object = arm
+    deselect_all()
+    q.select_set(True)
+    if arm is not None:
+        arm.select_set(True)
+        vl.objects.active = arm
+    kw = dict(filepath=p_quads, export_format="GLB", use_selection=True, export_yup=True,
+              export_materials="EXPORT", export_apply=False)
+    try:
+        if arm is not None:
+            bpy.ops.export_scene.gltf(**kw, export_animations=True, export_skins=True,
+                                      export_animation_mode="ACTIONS")
+        else:
+            bpy.ops.export_scene.gltf(**kw)
+    finally:
+        INFO["quads_caras"] = nq
+        bpy.data.objects.remove(q, do_unlink=True)
+
+
+export("quads", _quads, p_quads)
 
 # Visor web: abre visor.html (junto a los .glb) y elige la animacion.
 def _visor():

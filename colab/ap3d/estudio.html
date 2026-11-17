@@ -48,7 +48,7 @@ canvas{display:block}
 <div id="top">
   <div class="seg" id="views">
     <button data-v="tex" class="on">Textura</button><button data-v="parts">Piezas</button>
-    <button data-v="weights">Pesos</button><button data-v="clay">Arcilla</button><button data-v="hi">Alta</button>
+    <button data-v="weights">Pesos</button><button data-v="clay">Arcilla</button><button data-v="hi">Alta</button><button data-v="quads">Cuadros</button>
   </div>
   <div class="sp"></div>
   <div class="dd" id="light"><button class="btn">☀ Luz ▾</button><div class="menu">
@@ -78,11 +78,11 @@ import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s);
-const FILES={tex:['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb'],hi:['malla_alta.glb']};
+const FILES={tex:['modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb'],parts:['piezas.glb'],weights:['pesos.glb'],clay:['arcilla.glb'],hi:['malla_alta.glb'],quads:['modelo_quads.glb']};
 const NICE={'modelo_web.glb':'GLB ligero web (Draco + JPEG)','modelo_animado.glb':'GLB animado (web, Godot, Three.js)','modelo_rig.fbx':'FBX con esqueleto (Unity, Unreal, Mixamo)',
  'modelo.blend':'Blender (.blend)','modelo_texturizado.glb':'GLB sin esqueleto','modelo_estatico.obj':'OBJ estático',
  'modelo_impresion3d.stl':'STL impresión 3D (mm)','modelo_lod1_50.glb':'LOD ligero 50%','modelo_lod2_15.glb':'LOD muy ligero 15%',
- 'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','malla_alta.glb':'Malla alta resolución (sin reducir)','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
+ 'piezas.glb':'Piezas por hueso','pesos.glb':'Mapa de pesos','arcilla.glb':'Solo forma','malla_alta.glb':'Malla alta resolución (sin reducir)','modelo_quads.glb':'Malla en cuadrados limpia (retopología + textura horneada)','video_caminar.mp4':'Video animación','video_giro360.mp4':'Video 360°','vista_previa.png':'Imagen de vista previa'};
 
 const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
@@ -187,7 +187,7 @@ renderer.setAnimationLoop(()=>{const dt=clock.getDelta();mixer&&mixer.update(dt)
 (async()=>{
   try{info=await (await fetch('rig_info.json')).json()}catch(e){}
   const all=new Set(Object.values(info.archivos||{}));
-  for(const f of ['malla_alta.glb','modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb','piezas.glb','pesos.glb','arcilla.glb'])all.add(f);
+  for(const f of ['modelo_quads.glb','malla_alta.glb','modelo_web.glb','modelo_animado.glb','modelo_texturizado.glb','piezas.glb','pesos.glb','arcilla.glb'])all.add(f);
   for(const f of Object.keys(NICE))all.add(f);
   await Promise.all([...all].map(async f=>{if(await exists(f))avail.add(f)}));
   document.querySelectorAll('#views button').forEach(b=>b.disabled=!FILES[b.dataset.v].some(f=>avail.has(f)));

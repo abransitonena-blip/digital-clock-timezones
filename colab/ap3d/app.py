@@ -28,7 +28,7 @@ EXAMPLES_DIR = "/content/Hunyuan3D-2/assets/example_images"
 
 
 def _files(d):
-    order = ["modelo_animado.glb", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
+    order = ["modelo_animado.glb", "modelo_quads.glb", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
              "modelo_estatico.obj", "modelo_estatico.mtl", "modelo_impresion3d.stl",
              "piezas.glb", "pesos.glb", "arcilla.glb", "rig_info.json"]
     fs = [os.path.join(d, f) for f in order if os.path.exists(os.path.join(d, f))]
@@ -63,6 +63,9 @@ def _summary(info):
         rasgos = [k for k in ("piernas", "brazos", "cuello", "patas") if c.get(k)]
         lines.append(f"Detectado como **{tipos.get(c.get('tipo'), c.get('tipo'))}**"
                      + (f" (vio: {', '.join(rasgos)})" if rasgos else ""))
+    if info.get("quads_caras"):
+        lines.append(f"Malla en cuadrados limpia: **{info['quads_caras']:,} caras** con color y relieve "
+                     "horneados de la original (`modelo_quads.glb`, pestaña *Cuadros*)")
     if info.get("lod_caras"):
         lines.append("LOD ligeros: " + ", ".join(
             f"{k} ({v:,} caras)" for k, v in info["lod_caras"].items()))

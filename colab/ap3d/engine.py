@@ -700,7 +700,7 @@ class Engine:
         if os.path.exists(ipx):
             ix = json.load(open(ipx))
             info.setdefault("archivos", {}).update(ix.get("archivos", {}))
-            for k_ in ("lod_caras", "piezas"):
+            for k_ in ("lod_caras", "piezas", "quads_caras"):
                 if k_ in ix:
                     info[k_] = ix[k_]
             info.setdefault("avisos", []).extend(
