@@ -291,13 +291,25 @@ def fix_islands(mesh, keep_area=0.015, dust_area=0.002, near=0.08, touch=0.002, 
     return out, rep
 
 
-def render_preview(mesh, size=384, az=30.0):
+def render_preview(mesh, size=384, az=30.0, elev=0.0):
     """Imagen de una malla sin GPU grafica: proyeccion ortografica con
-    z-buffer de caras y luz por normales (para elegir variantes)."""
+    z-buffer de caras y luz por normales (para elegir variantes).
+    az gira alrededor del eje vertical (Y); elev=90 mira desde arriba."""
     v = np.asarray(mesh.vertices, dtype=np.float64)
     f = np.asarray(mesh.faces)
+    # caras grandes (mallas simples): subdividir para que se pinten llenas
+    try:
+        lado = float(np.ptp(v, axis=0).max()) / (size / 1.6)
+        if len(f) < 300000 and lado > 0:
+            import trimesh
+            v, f = trimesh.remesh.subdivide_to_size(v, f, max_edge=lado, max_iter=8)
+    except Exception:
+        pass
     a = np.radians(az)
     R = np.array([[np.cos(a), 0, np.sin(a)], [0, 1, 0], [-np.sin(a), 0, np.cos(a)]])
+    if elev:
+        e = np.radians(elev)
+        R = np.array([[1, 0, 0], [0, np.cos(e), -np.sin(e)], [0, np.sin(e), np.cos(e)]]) @ R
     v = v @ R.T
     v -= v.mean(0)
     s = 0.9 * size / max(np.ptp(v[:, 0]), np.ptp(v[:, 1]), 1e-6)
@@ -321,6 +333,25 @@ def render_preview(mesh, size=384, az=30.0):
             img[yy, xx] = luz[order]
     rgb = np.stack([img * 0.85, img * 0.88, img], -1)
     return Image.fromarray((np.clip(rgb, 0, 1) * 255).astype(np.uint8))
+
+
+ANGULOS_QA = (("Frontal", 0, 0), ("Izquierda", -90, 0), ("Derecha", 90, 0),
+              ("Trasera", 180, 0), ("Cenital", 0, 90), ("3/4", 35, 20))
+
+
+def qa_sheet(mesh, size=300):
+    """Hoja de revision en 6 angulos (Frontal, Izquierda, Derecha, Trasera,
+    Cenital y 3/4), como pide el checklist antes de entregar."""
+    from PIL import ImageDraw
+    hoja = Image.new("RGB", (size * 3, size * 2 + 26), (20, 22, 28))
+    for i, (nom, az, el) in enumerate(ANGULOS_QA):
+        im = render_preview(mesh, size, az=az, elev=el)
+        x, y = (i % 3) * size, (i // 3) * size + 26
+        hoja.paste(im, (x, y))
+        ImageDraw.Draw(hoja).text((x + 8, y + 6), nom, fill=(235, 200, 120))
+    ImageDraw.Draw(hoja).text((8, 6), "Revision QA en 6 angulos: busca piezas flotando o caras rotas",
+                              fill=(220, 220, 220))
+    return hoja
 
 
 class Engine:
@@ -1046,6 +1077,10 @@ class Engine:
                       open(os.path.join(out, "fisica.json"), "w"), indent=2)
         except Exception as e:
             self.log("  datos fisicos omitidos:", e)
+        try:
+            qa_sheet(textured).save(os.path.join(out, "revision_6_angulos.png"))
+        except Exception as e:
+            self.log("  hoja de 6 angulos omitida:", e)
         isl = getattr(self, "last_islands", None)
         info["islas_malla"] = isl
         qa = info.get("qa")

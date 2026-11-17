@@ -28,7 +28,7 @@ EXAMPLES_DIR = os.path.join(config.HY3D_DIR, "assets", "example_images")
 
 
 def _files(d):
-    order = ["modelo_animado.glb", "modelo_roblox.fbx", "modelo_quads.glb", "modelo_quads.fbx", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
+    order = ["modelo_animado.glb", "modelo_roblox.fbx", "revision_6_angulos.png", "modelo_quads.glb", "modelo_quads.fbx", "modelo_web.glb", "modelo_rig.fbx", "modelo.blend", "modelo_texturizado.glb",
              "modelo_estatico.obj", "modelo_estatico.mtl", "modelo_impresion3d.stl",
              "modelo_color_impresion.ply",
              "piezas.glb", "pesos.glb", "arcilla.glb", "rig_info.json"]

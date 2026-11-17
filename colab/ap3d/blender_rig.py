@@ -2959,7 +2959,15 @@ def qa_gate():
             if k == cuerpo:
                 continue
             vv = {v.index: v.co for f_ in fs for v in f_.verts}
-            d = min((tree.find_nearest(c)[3] or 1e9) for c in list(vv.values())[::max(1, len(vv) // 3000)])
+            d = 1e9
+            for c in list(vv.values())[::max(1, len(vv) // 3000)]:
+                loc, nor, _i, dd = tree.find_nearest(c)
+                if loc is None:
+                    continue
+                if (c - loc).dot(nor) < 0:      # vertice DENTRO del cuerpo: esta soldada
+                    d = 0.0
+                    break
+                d = min(d, dd)
             if d > 0.004 * ext:
                 flot += 1
     nverts = len(bm.verts)
