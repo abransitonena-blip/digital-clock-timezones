@@ -59,6 +59,10 @@ def vote(d, info, pregunta, ok, comentario=""):
             "motor": a.get("motor", "hunyuan"), "preset_pasos": a.get("steps"),
             "caras": a.get("faces"), "tipo": (info.get("clasificacion") or {}).get("tipo",
                                                                                   info.get("rig")),
+            # ajustes completos: para aprender que combinacion te sale mejor
+            "ajustes": {k: a.get(k) for k in ("steps", "octree", "faces", "tex", "guidance",
+                                              "tex_rapida", "detalle", "motor", "relieve")},
+            "segundos": info.get("segundos_total"),
         })
         save(m)
 
@@ -94,6 +98,11 @@ def stats_md():
         if len(qs) >= 2:
             ok = sum(x["ok"] for x in qs)
             lines.append(f"- Forma con {motor}: {100 * ok // len(qs)} % bien ({len(qs)} votos)")
+    _, mejor = best_settings()
+    lines.append("\n" + mejor)
+    bt = by_type_md()
+    if bt:
+        lines.append(bt)
     malos = [x for x in v if not x["ok"] and x.get("comentario")][-5:]
     if malos:
         lines.append("\n**Últimos problemas que anotaste:**")
@@ -131,3 +140,47 @@ def recommend(d, motor, tex_rapida, detalle):
         cambios["detalle"] = False
         why.append("esqueleto simple (23 huesos)")
     return cambios, ", ".join(why) or "otra semilla"
+
+
+def _key(aj):
+    return json.dumps({k: aj.get(k) for k in ("steps", "octree", "faces", "tex_rapida",
+                                              "detalle", "motor", "guidance")}, sort_keys=True)
+
+
+def best_settings(min_votos=3):
+    """La combinacion de ajustes con mas 👍 (forma+textura+esqueleto), con
+    suavizado bayesiano para no premiar 1 solo voto. Devuelve (ajustes, texto)."""
+    v = [x for x in load().get("votos", []) if x.get("ajustes")]
+    grupos = {}
+    for x in v:
+        g = grupos.setdefault(_key(x["ajustes"]), {"ok": 0, "n": 0, "aj": x["ajustes"], "t": []})
+        g["n"] += 1
+        g["ok"] += int(x["ok"])
+        if x.get("segundos"):
+            g["t"].append(x["segundos"])
+    cand = [g for g in grupos.values() if g["n"] >= min_votos]
+    if not cand:
+        return None, f"Aún faltan votos: necesito {min_votos} con los mismos ajustes."
+    # (aciertos + 1) / (votos + 2): estimacion que no se fia de pocos votos
+    best = max(cand, key=lambda g: ((g["ok"] + 1) / (g["n"] + 2), -sum(g["t"] or [0])))
+    p = 100 * best["ok"] // best["n"]
+    aj = best["aj"]
+    t = f" · ~{sum(best['t']) / len(best['t']):.0f} s" if best["t"] else ""
+    return aj, (f"Tus mejores ajustes: {p} % bien en {best['n']} votos{t} "
+                f"(pasos {aj.get('steps')}, caras {aj.get('faces')}, motor {aj.get('motor')}, "
+                f"textura {'rápida' if aj.get('tex_rapida') else 'completa'}, "
+                f"esqueleto {'detallado' if aj.get('detalle', True) else 'simple'})")
+
+
+def by_type_md():
+    """Aprobacion del esqueleto por tipo de modelo (donde falla mas)."""
+    v = [x for x in load().get("votos", []) if x["pregunta"] in ("esqueleto", "tipo")]
+    tipos = {}
+    for x in v:
+        t = tipos.setdefault(x.get("tipo") or "?", [0, 0])
+        t[0] += int(x["ok"])
+        t[1] += 1
+    if not tipos:
+        return ""
+    return "\n**Esqueleto por tipo:** " + " · ".join(
+        f"{k} {100 * a // n} % ({n})" for k, (a, n) in sorted(tipos.items(), key=lambda z: -z[1][1]))

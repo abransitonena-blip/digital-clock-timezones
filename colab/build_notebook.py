@@ -8,7 +8,7 @@ import os
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = ["__init__.py", "config.py", "engine.py", "blender_rig.py", "app.py", "memoria.py", "estudio.html"]
+SRC = ["__init__.py", "config.py", "engine.py", "blender_rig.py", "escena.py", "app.py", "memoria.py", "estudio.html"]
 
 
 def md(text):
@@ -47,6 +47,9 @@ Foto → modelo 3D con textura HD, **esqueleto automático compatible con Mixamo
 * **Piezas con nombre**: Cabeza, Torso, Brazo izq., Mano der., Dedos pie izq.…
 * **Aprende de ti**: bajo cada modelo, **¿Salió bien?** con 👍/👎 para forma, textura y esqueleto, más un comentario. Si corriges el tipo (persona/animal/cabeza/objeto), rehace el esqueleto al momento y **recuerda la corrección**: los modelos parecidos salen bien solos. La memoria se guarda en Drive si está montado (celda 6).
 * **Vehículos**: detecta autos (bajo, largo y con ruedas), mide el radio real de las ruedas y crea raíz, carrocería, 4 ruedas y **pivotes de dirección** en las delanteras (la «T» de los rigs de autos). Pesos rígidos. Animaciones: Avanzar, Girar, Suspensión y Frenar.
+* **Muebles**: detecta puertas y cajones por las ranuras del frente; puertas con bisagra en el borde exterior (abren ~100°) y cajones que se deslizan. Animaciones: Abrir todo, Abrir puertas, Abrir cajones.
+* **Escenas** (pestaña *Escena*): escribe una lista de objetos con su altura, se genera cada uno con esqueleto y Blender arma un cuarto (piso, paredes, luz) con los grandes contra las paredes y los chicos al centro sin encimarse. Exporta `escena.glb` (con animaciones) y `escena.blend`.
+* **Aprendizaje mejorado**: guarda los ajustes de cada voto y encuentra tu combinación con mejor aprobación (botón **⭐ Usar mis mejores ajustes**); la corrección de tipo usa 3 vecinos con confianza; estadísticas por tipo.
 * **Dashboard**: tarjetas de modelos, tiempo medio, % de votos positivos y memoria GPU; galería con miniatura 3D y filtros por tipo.
 * **Física**: volumen, masa, centro de masa, base de apoyo, si se sostiene solo y filamento/horas para imprimir a 15 cm; `fisica.json` (masa, centro de masa, inercia) para Unity/Unreal. En el visor, **física en vivo**: la tela se balancea con resortes según el movimiento, y botón **Centro de masa**.
 * **Tablero de tarjetas** (Foto → Forma → Textura → Esqueleto → Animaciones → Física → Exportar) que se encienden en azul según avanza.

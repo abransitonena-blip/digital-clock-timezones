@@ -43,7 +43,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--in", dest="inp", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--rig", default="humanoide",
-                choices=["auto", "humanoide", "cuadrupedo", "cabeza", "objeto", "vehiculo", "ninguno"])
+                choices=["auto", "humanoide", "cuadrupedo", "cabeza", "objeto", "vehiculo", "mueble", "ninguno"])
 ap.add_argument("--height", type=float, default=1.8)
 ap.add_argument("--rotate", type=float, default=0.0,
                 help="giro extra en grados alrededor de Z")
@@ -231,23 +231,103 @@ def classify(co, H):
             ej = json.load(open(args.memoria)).get("tipos", [])
             fv = np.array([float(medida.get(k, 0)) for k in
                            ("ancho", "largo", "base", "piernas", "patas", "brazos", "cuello")])
-            mejor = None
-            for e in ej:
-                dist = float(np.linalg.norm(fv - np.array(e["f"])))
-                if mejor is None or dist < mejor[0]:
-                    mejor = (dist, e["tipo"])
-            if mejor is not None and mejor[0] < 0.35 and mejor[1] != tipo:
-                log("aprendido: el usuario corrigio un modelo parecido ->", mejor[1])
-                medida["aprendido_de"] = tipo
-                tipo = mejor[1]
+            # 3 vecinos mas cercanos, voto pesado por cercania
+            vec = sorted(((float(np.linalg.norm(fv - np.array(e["f"]))), e["tipo"]) for e in ej
+                          if len(e.get("f", [])) == len(fv)))[:3]
+            votos = {}
+            for dist, t_ in vec:
+                if dist < 0.35:
+                    votos[t_] = votos.get(t_, 0.0) + 1.0 / (dist + 0.05)
+            if votos:
+                t_best = max(votos, key=votos.get)
+                conf = votos[t_best] / sum(votos.values())
+                medida["confianza_aprendida"] = round(conf, 2)
+                if t_best != tipo and conf >= 0.6:
+                    log("aprendido de tus correcciones ->", t_best, "confianza", round(conf, 2))
+                    medida["aprendido_de"] = tipo
+                    tipo = t_best
     except Exception as e:
         log("memoria no leida:", e)
     INFO["clasificacion"] = dict(medida, tipo=tipo)
     return tipo
 
 
+MUEBLE = {}
+
+
+def find_panels(co, H):
+    """Puertas y cajones en el frente (-Y) de un mueble: mapa de profundidad
+    del frente; las ranuras (zonas mas hundidas) separan los paneles.
+    Panel alto = puerta con bisagra al lado de fuera; ancho = cajon."""
+    x, y, z = co[:, 0], co[:, 1], co[:, 2]
+    ymin, ymax = float(y.min()), float(y.max())
+    D = ymax - ymin
+    if D < 0.05 * H:
+        return []
+    xmin, xmax = float(x.min()), float(x.max())
+    W = xmax - xmin
+    n = 72
+    gx = np.clip(((x - xmin) / max(W, 1e-9) * (n - 1)).astype(int), 0, n - 1)
+    gz = np.clip((z / max(H, 1e-9) * (n - 1)).astype(int), 0, n - 1)
+    depth = np.full((n, n), np.nan)
+    order = np.argsort(-y)            # el mas al frente (menor y) queda al final
+    depth[gz[order], gx[order]] = y[order]
+    front = np.nanpercentile(depth, 10)
+    rel = depth - front
+    face = rel < 0.06 * D                       # celdas del plano frontal
+    groove = (rel >= 0.006 * D) & (rel < 0.25 * D)
+    panel = face & ~groove
+    # componentes conexas (4-vecinos)
+    lab = np.zeros((n, n), dtype=int)
+    k = 0
+    comps = []
+    for i in range(n):
+        for j in range(n):
+            if panel[i, j] and lab[i, j] == 0:
+                k += 1
+                st, cells = [(i, j)], []
+                lab[i, j] = k
+                while st:
+                    a, b = st.pop()
+                    cells.append((a, b))
+                    for da, db in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                        u, v = a + da, b + db
+                        if 0 <= u < n and 0 <= v < n and panel[u, v] and lab[u, v] == 0:
+                            lab[u, v] = k
+                            st.append((u, v))
+                comps.append(cells)
+    out = []
+    for cells in comps:
+        if len(cells) < 0.015 * n * n or len(cells) > 0.85 * n * n:
+            continue
+        c = np.array(cells)
+        z0, z1 = c[:, 0].min() / (n - 1) * H, (c[:, 0].max() + 1) / (n - 1) * H
+        x0 = xmin + c[:, 1].min() / (n - 1) * W
+        x1 = xmin + (c[:, 1].max() + 1) / (n - 1) * W
+        fill = len(cells) / max((np.ptp(c[:, 0]) + 1) * (np.ptp(c[:, 1]) + 1), 1)
+        if fill < 0.6:
+            continue
+        w, h = x1 - x0, z1 - z0
+        kind = "cajon" if w > 1.4 * h else "puerta"
+        # bisagra hacia el borde exterior del mueble
+        hinge = x0 if (x0 + x1) / 2 < (xmin + xmax) / 2 else x1
+        out.append(dict(kind=kind, x0=x0, x1=x1, z0=z0, z1=z1, hinge=hinge, front=ymin, D=D))
+    # Un mueble de verdad tiene ranuras que separan al menos 2 paneles
+    if len(out) < 2 or groove.sum() < 0.01 * n * n:
+        return []
+    return out[:8]
+
+
 if args.rig == "auto":
     args.rig = classify(co, H)
+    if args.rig == "objeto":
+        try:
+            _pn = find_panels(co, H)
+            if _pn:
+                args.rig = "mueble"
+                INFO["clasificacion"]["tipo"] = "mueble"
+        except Exception as e:
+            log("paneles:", e)
     INFO["rig"] = args.rig
     log("esqueleto automatico:", args.rig, INFO.get("clasificacion"))
 
@@ -650,6 +730,51 @@ def vehicle_weights():
     log("ruedas:", INFO["vertices_por_rueda"])
 
 
+def furniture_bones(co, H):
+    pan = find_panels(co, H)
+    cx, cy = float(np.median(co[:, 0])), float(np.median(co[:, 1]))
+    B = [("Raiz", (cx, cy, 0), (cx, cy, 0.05 * H), None),
+         ("Cuerpo", (cx, cy, 0.05 * H), (cx, cy, H), "Raiz")]
+    MUEBLE["paneles"] = []
+    np_, nc_ = 0, 0
+    for p in pan:
+        if p["kind"] == "puerta":
+            np_ += 1
+            nm = f"Puerta_{np_}"
+            hd = (p["hinge"], p["front"], p["z0"])
+            B.append((nm, hd, (p["hinge"], p["front"], p["z1"]), "Cuerpo"))   # eje = bisagra
+        else:
+            nc_ += 1
+            nm = f"Cajon_{nc_}"
+            zc = (p["z0"] + p["z1"]) / 2
+            xc = (p["x0"] + p["x1"]) / 2
+            B.append((nm, (xc, p["front"] + 0.3 * p["D"], zc), (xc, p["front"], zc), "Cuerpo"))
+        MUEBLE["paneles"].append((nm, p))
+    INFO["mueble"] = {"puertas": np_, "cajones": nc_}
+    return [(n, Vector(h), Vector(t), pa) for n, h, t, pa in B]
+
+
+def furniture_weights():
+    co_ = verts_np(obj)
+    for g in list(obj.vertex_groups):
+        obj.vertex_groups.remove(g)
+    gb = obj.vertex_groups.new(name="Cuerpo")
+    asign = np.full(len(co_), -1)
+    for k, (nm, p) in enumerate(MUEBLE["paneles"]):
+        prof = 0.6 * p["D"] if p["kind"] == "cajon" else 0.08 * p["D"]
+        m = ((co_[:, 0] >= p["x0"]) & (co_[:, 0] <= p["x1"]) & (co_[:, 2] >= p["z0"])
+             & (co_[:, 2] <= p["z1"]) & (co_[:, 1] <= p["front"] + prof) & (asign < 0))
+        asign[m] = k
+    for k, (nm, p) in enumerate(MUEBLE["paneles"]):
+        g = obj.vertex_groups.new(name=nm)
+        idx = np.nonzero(asign == k)[0].tolist()
+        if idx:
+            g.add(idx, 1.0, "REPLACE")
+    gb.add(np.nonzero(asign < 0)[0].tolist(), 1.0, "REPLACE")
+    INFO["vertices_por_panel"] = {nm: int((asign == k).sum())
+                                  for k, (nm, _) in enumerate(MUEBLE["paneles"])}
+
+
 BONES = []          # (nombre, cabeza, cola, padre)
 
 
@@ -836,6 +961,8 @@ if args.rig != "ninguno":
         BONES = object_bones(co, H)
     elif args.rig == "vehiculo":
         BONES = vehicle_bones(co, H)
+    elif args.rig == "mueble":
+        BONES = furniture_bones(co, H)
     else:
         BONES = quadruped_bones(co, H)
 
@@ -1126,6 +1253,9 @@ if args.rig != "ninguno":
     if args.rig == "vehiculo":
         vehicle_weights()
         INFO["pesos"] = "rigidos (vehiculo)"
+    elif args.rig == "mueble":
+        furniture_weights()
+        INFO["pesos"] = "rigidos (mueble)"
     obj.parent = arm
     am = obj.modifiers.new("Armature", "ARMATURE")
     am.object = arm
@@ -1191,6 +1321,7 @@ def build_action(name, frames, pose_fn, step=2):
     for b in arm.pose.bones:
         b.rotation_mode = "QUATERNION"
     keyed = set()
+    movidos = set()
     for f in list(range(0, frames, step)) + [frames]:
         t = (f % frames) / frames
         scene.frame_set(f)
@@ -1208,9 +1339,10 @@ def build_action(name, frames, pose_fn, step=2):
                 b.rotation_quaternion = val
             else:
                 b.location = val
+                movidos.add(b.name)
         for b in arm.pose.bones:
             b.keyframe_insert("rotation_quaternion", frame=f)
-            if b.parent is None:
+            if b.parent is None or b.name in movidos:
                 b.keyframe_insert("location", frame=f)
             keyed.add(b.name)
     for fc in fcurves_of(act):
@@ -1517,6 +1649,40 @@ def vehicle_anims():
     build_action("Frenar", 48, brake)
 
 
+def furniture_anims():
+    pi = math.pi
+    pan = MUEBLE.get("paneles", [])
+
+    def amount(t):           # 0 -> abre -> se queda -> cierra
+        if t < 0.35:
+            u = t / 0.35
+        elif t < 0.65:
+            u = 1.0
+        else:
+            u = 1 - (t - 0.65) / 0.35
+        return u * u * (3 - 2 * u)
+
+    def pose(t, solo=None):
+        k = amount(t)
+        p = {}
+        for nm, d in pan:
+            if solo and not nm.startswith(solo):
+                continue
+            if d["kind"] == "puerta":
+                sgn = -1 if d["hinge"] <= (d["x0"] + d["x1"]) / 2 else 1
+                p[nm] = wrot(nm, ((0, 0, 1), sgn * 1.75 * k))     # ~100 grados
+            else:
+                p[nm] = Vector((0, 0.55 * d["D"] * k, 0))          # el cajon sale
+        return p
+
+    build_action("Reposo", 24, lambda t: {}, step=4)
+    build_action("Abrir todo", 72, pose, step=2)
+    if any(d["kind"] == "puerta" for _, d in pan):
+        build_action("Abrir puertas", 72, lambda t: pose(t, "Puerta"), step=2)
+    if any(d["kind"] == "cajon" for _, d in pan):
+        build_action("Abrir cajones", 72, lambda t: pose(t, "Cajon"), step=2)
+
+
 def object_anims():
     S, pi = math.sin, math.pi
     X, Y, Z = (1, 0, 0), (0, 1, 0), (0, 0, 1)
@@ -1570,6 +1736,8 @@ if arm is not None:
         object_anims()
     elif args.rig == "vehiculo":
         vehicle_anims()
+    elif args.rig == "mueble":
+        furniture_anims()
     else:
         quadruped_anims()
     bpy.ops.object.mode_set(mode="OBJECT")

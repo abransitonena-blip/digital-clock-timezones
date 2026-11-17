@@ -137,7 +137,7 @@ async function show(view){
   bbox();const mn=box.min.y;cur.position.y-=mn;floor.position.y=0;grid.position.y=0;
   mixer=null;actions={};$('#anims').innerHTML='';
   if(g.animations.length){mixer=new THREE.AnimationMixer(cur);
-    const order=['Reposo','Avanzar','Girar','Suspension','Frenar','Hablar','Mirar','Asentir','Negar','Sorpresa','Flotar','Girar','Rebotar','Caminar','Correr','Saludar','Saltar','Bailar','Manos','Pose_T'];
+    const order=['Reposo','Abrir todo','Abrir puertas','Abrir cajones','Avanzar','Girar','Suspension','Frenar','Hablar','Mirar','Asentir','Negar','Sorpresa','Flotar','Girar','Rebotar','Caminar','Correr','Saludar','Saltar','Bailar','Manos','Pose_T'];
     g.animations.sort((a,b)=>(order.indexOf(a.name)+99)%99-(order.indexOf(b.name)+99)%99);
     for(const c of g.animations){actions[c.name]=mixer.clipAction(c);
       const b=document.createElement('button');b.textContent=c.name.replace('_',' ');b.onclick=()=>play(c.name);$('#anims').appendChild(b)}

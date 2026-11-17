@@ -103,7 +103,7 @@ def _memoria_path():
 
 
 DENSIDADES = {"humanoide": 985.0, "cuadrupedo": 1000.0, "cabeza": 1100.0, "objeto": 600.0,
-              "vehiculo": 150.0}   # auto: carroceria hueca, ~1.2-1.6 t
+              "vehiculo": 150.0, "mueble": 450.0}   # auto: carroceria hueca, ~1.2-1.6 t
 
 
 def physics_data(mesh, height_m, tipo="humanoide"):
@@ -992,6 +992,51 @@ class Engine:
         self._zip(d, d + ".zip")
         progress(1.0, "Listo")
         return new
+
+    def build_scene(self, lineas, ancho=5.0, fondo=4.0, progress=lambda f, m: None):
+        """Escena/cuarto desde una lista de texto: cada linea "objeto | altura_m".
+        Cada objeto se genera (texto -> imagen -> 3D -> esqueleto) y despues
+        Blender los acomoda en un cuarto (paredes, piso, luz)."""
+        items, hechos = [], []
+        lineas = [l.strip() for l in str(lineas).splitlines() if l.strip()][:12]
+        if not lineas:
+            raise ValueError("Escribe al menos un objeto (uno por linea)")
+        for i, l in enumerate(lineas):
+            nombre, _, alto = l.partition("|")
+            nombre = nombre.strip()
+            try:
+                alto = float(alto.strip().replace(",", ".")) if alto.strip() else 1.0
+            except ValueError:
+                alto = 1.0
+            base = i / len(lineas)
+            progress(base, f"Objeto {i + 1}/{len(lineas)}: {nombre} (imagen)")
+            img = self.text_to_image(nombre, seed=1000 + i)
+            progress(base + 0.3 / len(lineas), f"Objeto {i + 1}/{len(lineas)}: {nombre} (3D)")
+            r = self.run(img, faces=40000, tex=2048, rig="auto", height=alto, tex_rapida=True)
+            glb = os.path.join(r["dir"], "modelo_animado.glb")
+            if not os.path.exists(glb):
+                glb = os.path.join(r["dir"], "modelo_texturizado.glb")
+            items.append({"glb": glb, "nombre": nombre, "alto": alto})
+            hechos.append(r["dir"])
+        out = os.path.join(config.OUT_DIR, time.strftime("%Y%m%d_%H%M%S_") + "escena")
+        os.makedirs(out, exist_ok=True)
+        ij = os.path.join(out, "items.json")
+        json.dump(items, open(ij, "w"), ensure_ascii=False)
+        progress(0.95, "Acomodando el cuarto en Blender")
+        r = subprocess.run([config.BLENDER, "-b", "--factory-startup", "-P",
+                            os.path.join(HERE, "escena.py"), "--", "--items", ij, "--out", out,
+                            "--ancho", str(ancho), "--fondo", str(fondo)],
+                           capture_output=True, text=True, timeout=1800)
+        if not os.path.exists(os.path.join(out, "escena.glb")):
+            raise RuntimeError("Blender no pudo armar la escena: " + (r.stdout + r.stderr)[-600:])
+        shutil.copy(os.path.join(out, "escena.glb"), os.path.join(out, "modelo_texturizado.glb"))
+        shutil.copy(os.path.join(HERE, "estudio.html"), out)
+        info = json.load(open(os.path.join(out, "escena.json")))
+        info["modelos"] = [os.path.basename(h) for h in hechos]
+        json.dump(info, open(os.path.join(out, "escena.json"), "w"), indent=2, ensure_ascii=False)
+        self._zip(out, out + ".zip")
+        progress(1.0, "Escena lista")
+        return out, info
 
     # Hitos del log de Blender -> avance (0..1) de cada proceso
     MILESTONES = {

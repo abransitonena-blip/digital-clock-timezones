@@ -60,7 +60,8 @@ def _summary(info):
     c = info.get("clasificacion")
     if c:
         tipos = {"humanoide": "persona", "cuadrupedo": "animal de 4 patas",
-                 "cabeza": "cabeza / busto", "vehiculo": "vehículo", "objeto": "objeto"}
+                 "cabeza": "cabeza / busto", "vehiculo": "vehículo", "mueble": "mueble",
+                 "objeto": "objeto"}
         rasgos = [k for k in ("piernas", "brazos", "cuello", "patas", "ruedas") if c.get(k)]
         lines.append(f"Detectado como **{tipos.get(c.get('tipo'), c.get('tipo'))}**"
                      + (f" (vio: {', '.join(rasgos)})" if rasgos else ""))
@@ -103,7 +104,7 @@ def _summary(info):
 
 
 RIGS = {"Auto": "auto", "Humano": "humanoide", "Criatura": "cuadrupedo",
-        "Cabeza / busto": "cabeza", "Vehículo": "vehiculo", "Objeto": "objeto",
+        "Cabeza / busto": "cabeza", "Vehículo": "vehiculo", "Mueble": "mueble", "Objeto": "objeto",
         "Sin esqueleto": "ninguno"}
 
 
@@ -326,7 +327,8 @@ def datos_html(info):
 
 # ------------------------------------------------------------ aprender del usuario
 TIPOS_UI = {"humanoide": "Persona", "cuadrupedo": "Animal de 4 patas",
-            "cabeza": "Cabeza / busto", "vehiculo": "Vehículo", "objeto": "Objeto"}
+            "cabeza": "Cabeza / busto", "vehiculo": "Vehículo", "mueble": "Mueble",
+            "objeto": "Objeto"}
 UI_TIPOS = {v: k for k, v in TIPOS_UI.items()}
 
 
@@ -406,7 +408,8 @@ def batch(files, rig, video, progress=gr.Progress()):
 
 
 FILTROS = {"Todos": None, "Personas": "humanoide", "Vehículos": "vehiculo",
-           "Animales": "cuadrupedo", "Cabezas": "cabeza", "Objetos": "objeto"}
+           "Animales": "cuadrupedo", "Cabezas": "cabeza", "Muebles": "mueble",
+           "Objetos": "objeto"}
 
 
 def _model_dirs(filtro="Todos"):
@@ -730,6 +733,22 @@ def build_ui():
                         gal = gr.Gallery(label="Toca uno para abrirlo en el estudio",
                                          columns=2, height=520, allow_preview=False)
                         h_out = gr.File(file_count="multiple", label="ZIPs guardados")
+                    with gr.Tab("Escena"):
+                        gr.Markdown("**Crea un cuarto completo.** Un objeto por línea, con su "
+                                    "altura en metros después de «|». Se genera cada uno (texto → "
+                                    "3D con esqueleto) y se acomodan: los grandes contra las "
+                                    "paredes, los chicos al centro. Mejor en inglés.")
+                        esc_txt = gr.Textbox(lines=6, label="Objetos",
+                                             value="wooden wardrobe with two doors | 1.9\n"
+                                                   "modern grey sofa | 0.85\n"
+                                                   "small round coffee table | 0.45\n"
+                                                   "floor lamp | 1.6\n"
+                                                   "cat | 0.3")
+                        with gr.Row():
+                            esc_w = gr.Slider(3, 10, 5, step=0.5, label="Ancho del cuarto (m)")
+                            esc_d = gr.Slider(3, 10, 4, step=0.5, label="Fondo (m)")
+                        esc_btn = gr.Button("Crear escena", variant="primary")
+                        esc_msg = gr.Markdown("")
                     with gr.Tab("Avanzado"):
                         with gr.Row():
                             steps = gr.Slider(3, 100, PRESETS[best][0], step=1,
@@ -783,7 +802,9 @@ def build_ui():
                                        ("esqueleto", "Esqueleto")):
                             votes.append((q, True, gr.Button(f"👍 {lab}", size="sm")))
                             votes.append((q, False, gr.Button(f"👎 {lab}", size="sm")))
-                    retry_btn = gr.Button("🔁 Reintentar con lo aprendido", variant="secondary")
+                    with gr.Row():
+                        retry_btn = gr.Button("🔁 Reintentar con lo aprendido", variant="secondary")
+                        best_btn = gr.Button("⭐ Usar mis mejores ajustes", variant="secondary")
                     review_out = gr.Markdown("")
                 datos = gr.HTML("")
                 with gr.Accordion("Resumen técnico completo", open=False):
@@ -835,9 +856,38 @@ def build_ui():
             de = cambios.get("detalle", de)
             return mo, tr, de, sd, f"🔁 Reintentando con: **{why}**…"
 
+        def apply_best(mo, tr, de, st, oc, fa):
+            from . import memoria
+            aj, txt = memoria.best_settings()
+            if not aj:
+                return mo, tr, de, st, oc, fa, "⭐ " + txt
+            mo = "TripoSG (más detalle)" if aj.get("motor") == "triposg" else "Hunyuan3D (rápido)"
+            return (mo, bool(aj.get("tex_rapida")), aj.get("detalle", True) is not False,
+                    aj.get("steps") or st, aj.get("octree") or oc, aj.get("faces") or fa,
+                    "⭐ Aplicados. " + txt)
+
+        best_btn.click(apply_best, [motor, tex_rapida, detalle, steps, octree, faces],
+                       [motor, tex_rapida, detalle, steps, octree, faces, review_out])
         chain(retry_btn.click(apply_learned, [cur_dir, motor, tex_rapida, detalle, seed],
                               [motor, tex_rapida, detalle, seed, review_out]))
         mon_btn.click(monitor_html, None, mon)
+
+        def do_scene(txt, w_, d_, progress=gr.Progress()):
+            try:
+                out, inf = get_engine().build_scene(txt, w_, d_,
+                                                    progress=lambda f, m: progress(f, desc=m))
+            except Exception as e:
+                raise gr.Error(str(e))
+            zp = out + ".zip"
+            msg = (f"✅ Escena de {inf['cuarto_m'][0]} × {inf['cuarto_m'][1]} m con "
+                   f"{len(inf['colocados'])} objetos" +
+                   (f" · no cupieron: {', '.join(inf['no_cupieron'])}" if inf["no_cupieron"] else "") +
+                   ". Archivos: `escena.glb` (con animaciones) y `escena.blend`.")
+            return (viewer_html(out, view="tex"), gr.update(selected="estudio"),
+                    [zp] + _files(out), msg, msg)
+
+        esc_btn.click(do_scene, [esc_txt, esc_w, esc_d], [view, tabs, out_files, status, esc_msg],
+                      concurrency_id="gen")
         var_seeds = gr.State([])
 
         def do_variants(img, mo, sd, prompt_, progress=gr.Progress()):
