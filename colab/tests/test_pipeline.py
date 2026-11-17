@@ -71,6 +71,13 @@ def test_islas():
     t = cKDTree(np.vstack([parts[0].vertices, trimesh.sample.sample_surface(parts[0], 40000, seed=1)[0]]))
     gaps = [float(t.query(trimesh.sample.sample_surface(p, 3000, seed=1)[0])[0].min()) for p in parts[1:]]
     check(all(g < 0.01 for g in gaps), f"ninguna pieza queda flotando (huecos {[round(g, 4) for g in gaps]} m)")
+    # triangulos sueltos (como image_rig.blend: 17,324 islas falsas)
+    c = caja_con_piezas()
+    sopa = trimesh.Trimesh(c.vertices[c.faces].reshape(-1, 3), np.arange(len(c.faces) * 3).reshape(-1, 3),
+                           process=False)
+    _, r2 = fix_islands(sopa)
+    check(r2["vertices_soldados"] > 0 and r2["islas"] == 4 and r2["finales"] == 1,
+          f"suelda triangulos sueltos antes de contar islas ({r2['islas']} islas reales)")
 
 
 def test_prop_rigido():

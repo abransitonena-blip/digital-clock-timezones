@@ -220,7 +220,22 @@ def fix_islands(mesh, keep_area=0.015, dust_area=0.002, near=0.08, touch=0.002, 
     Devuelve (malla, informe)."""
     import trimesh
     rep = {"islas": 0, "eliminadas": 0, "ancladas": 0, "puentes": 0, "separadas": 0,
-           "finales": 1, "distancias_m": []}
+           "finales": 1, "distancias_m": [], "vertices_soldados": 0}
+    # 1) soldar: triangulos sueltos (vertices duplicados) no son islas reales
+    try:
+        n0 = len(mesh.vertices)
+        mesh = mesh.copy()
+        mesh.merge_vertices(merge_tex=True, merge_norm=True)
+        ext0 = float(np.max(mesh.extents)) or 1.0
+        # tolerancia 0.001 % del tamano para vertices casi iguales
+        v = np.round(np.asarray(mesh.vertices) / (ext0 * 1e-5)).astype(np.int64)
+        _, inv = np.unique(v, axis=0, return_inverse=True)
+        if len(np.unique(inv)) < len(mesh.vertices):
+            mesh.merge_vertices(digits_vertex=int(-np.floor(np.log10(ext0 * 1e-5))))
+        mesh.remove_unreferenced_vertices()
+        rep["vertices_soldados"] = int(n0 - len(mesh.vertices))
+    except Exception:
+        pass
     try:
         parts = mesh.split(only_watertight=False)
     except Exception:
@@ -287,6 +302,13 @@ def fix_islands(mesh, keep_area=0.015, dust_area=0.002, near=0.08, touch=0.002, 
             rep["separadas"] += 1
             keep.append(p)
     rep["finales"] = 1 + rep["separadas"]
+    # seguro: si la limpieza quitaria mas del 20 % del area, algo raro pasa
+    # (malla rota en mil pedazos): no borrar nada y avisar
+    area_out = sum(p.area for p in keep)
+    if area_out < 0.8 * mesh.area:
+        rep.update(eliminadas=0, ancladas=0, puentes=0, finales=len(parts),
+                   aviso="la limpieza quitaria mas del 20 % del area: malla sin tocar")
+        return mesh, rep
     out = trimesh.util.concatenate(keep)
     return out, rep
 

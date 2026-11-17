@@ -326,7 +326,11 @@ def tablero_html(hecho=0, info=None, activo=None, solo_datos=False):
                   f"{' ✅ listo' if qa.get('roblox_ready') else ''}</b></div>"
                   f"<div class='kv'><span>Islas</span><b>{isl.get('islas', '—')} → {qa.get('islands')} "
                   f"(ancladas {isl.get('ancladas', 0)}, puentes {isl.get('puentes', 0)}, "
-                  f"quitadas {isl.get('eliminadas', 0)})</b></div>"
+                  f"quitadas {isl.get('eliminadas', 0)}, vértices soldados {isl.get('vertices_soldados', 0):,})</b></div>"
+                  + (f"<div class='kv'><span class='warnq'>⚠️ {isl['aviso']}</span></div>" if isl.get('aviso') else "")
+                  + (f"<div class='kv'><span>Deriva de aristas (Roblox)</span><b>{qa['corner_drift_m'] * 1000:.1f} mm</b></div>"
+                     if qa.get('corner_drift_m') is not None else "")
+                  + ""
                   f"<div class='kv'><span>Bordes no manifold</span><b>{qa.get('non_manifold_edges')}</b></div>"
                   f"<div class='kv'><span>Esqueleto</span><b>{'sí' if qa.get('has_rig') else 'no'}</b></div>"
                   f"<div class='kv'><span>Texturas empaquetadas</span><b>{'sí' if qa.get('textures_packed') else 'no'}</b></div>"
