@@ -54,7 +54,7 @@ ap.add_argument("--turntable", type=int, default=1)
 ap.add_argument("--loops", type=int, default=2)
 ap.add_argument("--relieve", type=float, default=0.8,
                 help="fuerza del mapa de relieve (normal) sacado de la textura; 0 = sin relieve")
-ap.add_argument("--stage", default="all", choices=["all", "export", "video"],
+ap.add_argument("--stage", default="all", choices=["all", "export", "extra", "video"],
                 help="export: archivos y vista previa; video: solo videos. "
                      "Se lanzan los dos a la vez en procesos separados para ir el doble de rapido")
 ap.add_argument("--preview", type=int, default=1, help="0 = no renderizar vista_previa.png")
@@ -814,7 +814,7 @@ if args.rig != "ninguno":
             if e.weight > 0.05:
                 cnt[gi2name[e.group]] += 1
     INFO["vertices_por_hueso"] = cnt
-    _fino = ("Thumb", "Index", "Middle", "Ring", "Pinky", "Toe", "Eye", "Jaw", "Tela")
+    _fino = ("Thumb", "Index", "Middle", "Ring", "Pinky", "Toe", "Eye", "Jaw", "Tela", "Neck")
     vacios = [n for n, c in cnt.items() if c == 0 and not n.endswith("_End")
               and not any(x in n for x in _fino)]
     INFO["huesos_finos_sin_zona"] = sum(1 for n, c in cnt.items()
@@ -1216,8 +1216,17 @@ OUT = args.out
 files = {}
 
 
+# "export": lo principal (GLB, web, FBX, .blend). "extra": lo demas, en otro
+# proceso a la vez (OBJ, STL, piezas, pesos, LOD). Asi Blender tarda la mitad.
+EXTRA = {"obj", "stl_mm", "piezas", "pesos", "lod1_50", "lod2_15", "visor_web"}
+
+
 def export(kind, fn, path):
     if args.stage == "video":
+        return
+    if args.stage == "export" and kind in EXTRA:
+        return
+    if args.stage == "extra" and kind not in EXTRA:
         return
     try:
         fn()
@@ -1660,6 +1669,8 @@ def set_video_output(path):
 videos_ok = True
 DO_VIDEOS = args.stage in ("all", "video")
 DO_PREVIEW = args.stage in ("all", "export") and bool(args.preview)
+if args.stage == "extra":
+    DO_VIDEOS = DO_PREVIEW = False
 try:
     cam = setup_render()
 except Exception as e:
@@ -1730,7 +1741,8 @@ export("blend", _blend, p_blend)
 
 INFO["archivos"] = files
 INFO["segundos"] = round(time.time() - T0, 1)
-_info_name = "rig_info_video.json" if args.stage == "video" else "rig_info.json"
+_info_name = {"video": "rig_info_video.json", "extra": "rig_info_extra.json"}.get(
+    args.stage, "rig_info.json")
 with open(os.path.join(OUT, _info_name), "w") as f:
     json.dump(INFO, f, indent=2, ensure_ascii=False, default=str)
 log("listo", json.dumps(files))

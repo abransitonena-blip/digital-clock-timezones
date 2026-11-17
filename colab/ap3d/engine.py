@@ -95,7 +95,7 @@ class Engine:
             pass
         self.cache = {}
         self.ready = False
-        self.blender_pool = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
+        self.blender_pool = cf.ThreadPoolExecutor(max_workers=3 * self.p["workers"])
         os.makedirs(config.OUT_DIR, exist_ok=True)
 
     def _ensure(self):
@@ -113,7 +113,7 @@ class Engine:
         d.setdefault("tripo", None)
         d.setdefault("t2i", None)
         if d.get("blender_pool") is None:
-            d["blender_pool"] = cf.ThreadPoolExecutor(max_workers=2 * self.p["workers"])
+            d["blender_pool"] = cf.ThreadPoolExecutor(max_workers=3 * self.p["workers"])
 
     # ------------------------------------------------------------ carga
     def preload_weights(self, repos=("tencent/Hunyuan3D-2", "tencent/Hunyuan3D-2mv")):
@@ -644,7 +644,15 @@ class Engine:
             fv = self.blender_pool.submit(
                 self.blender, inp, out, rig, height, rotate, video, video_res, samples,
                 turntable, relieve, "video", vprog, None)
+        # Segundo proceso de Blender a la vez: OBJ, STL, piezas, pesos y LOD
+        fx = self.blender_pool.submit(
+            self.blender, inp, out, rig, height, rotate, video, video_res, samples,
+            turntable, relieve, "extra", None, None)
         blog = fe.result()
+        try:
+            blog += "\n\n" + fx.result()
+        except Exception as e:
+            self.log("Blender extra:", e)
         t_bl = time.time() - tb
         E["blender"] = 0.5 * E["blender"] + 0.5 * t_bl
         try:
@@ -656,6 +664,16 @@ class Engine:
         ip = os.path.join(out, "rig_info.json")
         if os.path.exists(ip):
             info = json.load(open(ip))
+        ipx = os.path.join(out, "rig_info_extra.json")
+        if os.path.exists(ipx):
+            ix = json.load(open(ipx))
+            info.setdefault("archivos", {}).update(ix.get("archivos", {}))
+            for k_ in ("lod_caras", "piezas"):
+                if k_ in ix:
+                    info[k_] = ix[k_]
+            info.setdefault("avisos", []).extend(
+                a_ for a_ in ix.get("avisos", []) if a_ not in info.get("avisos", []))
+            os.remove(ipx)
         info.update(caras_alta=locals().get("info_alta"), multivista=used_mv, textura_ia=ok_tex, segundos_forma=round(t_shape, 1),
                     segundos_textura=round(t_tex, 1), segundos_blender=round(t_bl, 1),
                     segundos_total=round(time.time() - t0, 1), turbo=bool(turbo),

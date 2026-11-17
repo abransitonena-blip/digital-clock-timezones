@@ -24,6 +24,7 @@
 #anims button{background:var(--panel);border:1px solid var(--line);color:var(--mut);border-radius:20px;padding:6px 12px;font:inherit;cursor:pointer}
 #anims button.on{background:var(--acc);border-color:var(--acc);color:#fff}
 #info{position:absolute;left:14px;top:60px;color:var(--mut);font-size:12px;z-index:4;line-height:1.5}
+#stagebadge{top:58px;height:auto;max-width:70vw}
 #legend{position:absolute;right:12px;bottom:70px;max-height:45vh;overflow:auto;background:#1b1d24cc;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:none;z-index:4}
 #legend div{display:flex;gap:6px;align-items:center;margin:2px 0}#legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 #load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);z-index:3}
@@ -36,7 +37,7 @@ canvas{display:block}
  #bottom{bottom:30px}
  #tools{max-width:96vw;overflow-x:auto}
  #anims button{padding:5px 10px;font-size:13px}
- #stagebadge{top:auto;bottom:150px;right:8px}
+ #stagebadge{top:auto;bottom:150px;right:8px;font-size:12px}
  #legend{bottom:150px;font-size:11px}
 }
 </style>
@@ -57,7 +58,7 @@ canvas{display:block}
   <div class="dd" id="exp"><button class="btn">Exportar ▾</button><div class="menu" id="expmenu"></div></div>
 </div>
 <div id="load">Cargando modelo…</div>
-<div id="stagebadge" style="display:none;position:absolute;top:58px;right:12px;z-index:5;background:#5b5bf0;color:#fff;padding:6px 12px;border-radius:20px;font-size:13px;box-shadow:0 0 18px #5b5bf088"></div>
+<div id="stagebadge" style="display:none;position:absolute;right:12px;z-index:5;background:#5b5bf0;color:#fff;padding:6px 12px;border-radius:20px;font-size:13px;box-shadow:0 0 18px #5b5bf088"></div>
 <div id="legend"></div>
 <div id="info"></div>
 <div id="bottom">
