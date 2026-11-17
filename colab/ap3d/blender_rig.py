@@ -946,6 +946,21 @@ def _blend():
 
 
 # ------------------------------------------------------------ escena / video
+def render(**kw):
+    """Renderiza; si falla el reductor de ruido, reintenta sin el y luego en CPU."""
+    try:
+        return bpy.ops.render.render(**kw)
+    except Exception as e:
+        log("render fallo:", e, "-> reintento sin reductor de ruido")
+        scene.cycles.use_denoising = False
+    try:
+        return bpy.ops.render.render(**kw)
+    except Exception as e:
+        log("render fallo:", e, "-> reintento en CPU")
+        scene.cycles.device = "CPU"
+        return bpy.ops.render.render(**kw)
+
+
 def setup_render():
     scene.render.engine = "CYCLES"
     dev = "CPU"
@@ -968,7 +983,9 @@ def setup_render():
     scene.cycles.samples = args.samples
     scene.cycles.use_denoising = True
     try:
-        scene.cycles.denoiser = "OPTIX" if dev == "OPTIX" else "OPENIMAGEDENOISE"
+        # OIDN (usa la GPU en Blender 4.2+); OptiX falla en algunas GPU de Colab
+        scene.cycles.denoiser = "OPENIMAGEDENOISE"
+        scene.cycles.denoising_use_gpu = True
     except Exception:
         pass
     scene.render.resolution_x = args.video_res
@@ -1051,7 +1068,7 @@ if videos_ok and arm is not None and ANIMS:
         path = os.path.join(OUT, f"video_{args.video.lower()}.mp4")
         set_video_output(path)
         log("render animacion", args.video, scene.frame_end + 1, "cuadros")
-        bpy.ops.render.render(animation=True)
+        render(animation=True)
         files["video_animacion"] = os.path.basename(path)
     except Exception as e:
         INFO["avisos"].append(f"video animacion: {e}")
@@ -1078,7 +1095,7 @@ if videos_ok and args.turntable:
         path = os.path.join(OUT, "video_giro360.mp4")
         set_video_output(path)
         log("render giro 360")
-        bpy.ops.render.render(animation=True)
+        render(animation=True)
         files["video_360"] = os.path.basename(path)
     except Exception as e:
         INFO["avisos"].append(f"video 360: {e}")
@@ -1096,7 +1113,7 @@ if videos_ok:
             pass
         r.image_settings.file_format = "PNG"
         r.filepath = os.path.join(OUT, "vista_previa.png")
-        bpy.ops.render.render(write_still=True)
+        render(write_still=True)
         files["vista_previa"] = "vista_previa.png"
     except Exception as e:
         INFO["avisos"].append(f"vista previa: {e}")

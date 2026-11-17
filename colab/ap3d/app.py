@@ -82,15 +82,19 @@ def generate(front, back, left, right, sheet, sheet_order, remove_bg, steps, oct
         raise gr.Error(f"Fallo: {e}")
     d = res["dir"]
     info = res["info"]
-    p = lambda f: os.path.join(d, f) if os.path.exists(os.path.join(d, f)) else None
+    p = lambda f: (os.path.join(d, f) if os.path.exists(os.path.join(d, f))
+                   and os.path.getsize(os.path.join(d, f)) > 2000 else None)
     vid = None
     for f in os.listdir(d):
-        if f.startswith("video_") and "giro360" not in f:
+        if f.startswith("video_") and "giro360" not in f and p(f):
             vid = os.path.join(d, f)
     return (p("modelo_animado.glb") or p("modelo_texturizado.glb"),
             p("modelo_texturizado.glb"), p("arcilla.glb"), p("piezas.glb"),
             vid, p("video_giro360.mp4"), [res["zip"]] + _files(d),
-            _summary(info), int(seed))
+            _summary(info) + (f"\n\n🎬 **[Abrir visor animado (botones por animación, AR)]"
+                              f"(/gradio_api/file={os.path.join(d, 'visor.html')})**"
+                              if p("visor.html") is not None or os.path.exists(os.path.join(d, "visor.html")) else ""),
+            int(seed))
 
 
 def batch(files, rig, video, progress=gr.Progress()):
