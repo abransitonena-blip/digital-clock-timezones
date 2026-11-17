@@ -233,6 +233,26 @@ def test_texturas_roblox():
           and pngs, f"OBJ + MTL + textura de respaldo ({pngs})")
 
 
+def test_revision_6_angulos():
+    print("8) Revision en 6 angulos con color y aviso de trasera borrosa")
+    from PIL import Image, ImageFilter
+    from ap3d.engine import aviso_trasera, qa_sheet
+    m = trimesh.creation.icosphere(6)
+    m.apply_scale((0.3, 0.5, 0.3))
+    v = m.vertices
+    uv = np.c_[(np.arctan2(v[:, 2], v[:, 0]) / np.pi + 1) / 2, (v[:, 1] / 0.5 + 1) / 2]
+    tex = np.random.default_rng(0).integers(0, 255, (512, 512, 3), dtype=np.uint8)
+    m.visual = trimesh.visual.TextureVisuals(uv=uv, image=Image.fromarray(tex))
+    hoja = qa_sheet(m)
+    check(hoja.size == (900, 626), f"hoja de 6 vistas ({hoja.size})")
+    check(aviso_trasera(qa_sheet.ultimo) is None, "textura nitida: sin aviso")
+    b = Image.fromarray(tex)
+    b.paste(b.crop((0, 0, 256, 512)).filter(ImageFilter.GaussianBlur(8)), (0, 0))
+    m.visual = trimesh.visual.TextureVisuals(uv=uv, image=b)
+    qa_sheet(m)
+    check(aviso_trasera(qa_sheet.ultimo) is not None, f"detecta trasera borrosa ({qa_sheet.ultimo})")
+
+
 def test_personaje():
     print("3) Personaje (rig Mixamo)")
     partes = [trimesh.creation.box((0.4, 0.22, 0.6)), trimesh.creation.icosphere(radius=0.12)]
@@ -292,5 +312,6 @@ if __name__ == "__main__":
         test_aristas_duras()
         test_clasificacion_auto()
         test_texturas_roblox()
+        test_revision_6_angulos()
     print("\n" + ("TODO OK" if not FALLAS else f"{len(FALLAS)} FALLAS: " + "; ".join(FALLAS)))
     sys.exit(1 if FALLAS else 0)
