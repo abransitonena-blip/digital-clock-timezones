@@ -333,6 +333,30 @@ def material_blanco(mesh):
     return mesh
 
 
+def textura_luz(mesh):
+    """Brillo medio (0-1) de la textura de color y avisos: muy oscura (gris
+    del material, luz mala en la foto) o lavada/quemada."""
+    try:
+        mat = mesh.visual.material
+        img = getattr(mat, "baseColorTexture", None) or getattr(mat, "image", None)
+        if img is None:
+            return None, []
+        a = np.asarray(img.convert("RGBA").resize((256, 256)), dtype=np.float32) / 255.0
+        alfa = a[..., 3] > 0.5
+        rgb = a[..., :3][alfa] if alfa.any() else a[..., :3].reshape(-1, 3)
+        luz = float((rgb @ np.array([0.2126, 0.7152, 0.0722])).mean())
+        fac = np.asarray(getattr(mat, "baseColorFactor", None) or [255] * 4, dtype=np.float32)[:3]
+        luz *= float(fac.mean()) / (255.0 if fac.max() > 1.0 else 1.0)
+        w = []
+        if luz < 0.12:
+            w.append(f"textura muy oscura (brillo {luz:.2f}): revisa la luz de la foto")
+        elif luz > 0.9:
+            w.append(f"textura lavada o quemada (brillo {luz:.2f})")
+        return round(luz, 3), w
+    except Exception:
+        return None, []
+
+
 def render_preview(mesh, size=384, az=30.0, elev=0.0):
     """Imagen de una malla sin GPU grafica: proyeccion ortografica con
     z-buffer de caras y luz por normales (para elegir variantes).
@@ -1139,6 +1163,13 @@ class Engine:
                                     "islands_final": isl.get("finales", 1),
                                     "bridges": isl.get("puentes", 0),
                                     "hard_surface": ta_.startswith("prop")}
+            try:
+                luz, wl = textura_luz(textured)
+                if luz is not None:
+                    qa["texture_brightness"] = luz
+                    qa.setdefault("warnings", []).extend(wl)
+            except NameError:
+                pass
             rt = qa.get("roblox_triangles")
             qa["roblox_ready"] = bool(rt) and rt <= 15000 and bool(qa.get("textures_packed"))
             if rt and rt > 15000:
@@ -1191,10 +1222,13 @@ class Engine:
     def _zip(out, zp):
         tmp = zp + ".tmp"
         with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
-            for f in sorted(os.listdir(out)):
-                comp = zipfile.ZIP_STORED if f.endswith((".mp4", ".png", ".glb", ".blend")) \
-                    else zipfile.ZIP_DEFLATED
-                z.write(os.path.join(out, f), f, compress_type=comp)
+            for raiz, dirs, fs in os.walk(out):
+                dirs.sort()
+                for f in sorted(fs):
+                    p = os.path.join(raiz, f)
+                    comp = zipfile.ZIP_STORED if f.endswith((".mp4", ".png", ".glb", ".blend")) \
+                        else zipfile.ZIP_DEFLATED
+                    z.write(p, os.path.relpath(p, out), compress_type=comp)
         os.replace(tmp, zp)
 
     def rerig(self, d, rig, progress=lambda f, m: None, huesos=""):

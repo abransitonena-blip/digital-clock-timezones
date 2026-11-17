@@ -71,6 +71,14 @@ def test_islas():
     t = cKDTree(np.vstack([parts[0].vertices, trimesh.sample.sample_surface(parts[0], 40000, seed=1)[0]]))
     gaps = [float(t.query(trimesh.sample.sample_surface(p, 3000, seed=1)[0])[0].min()) for p in parts[1:]]
     check(all(g < 0.01 for g in gaps), f"ninguna pieza queda flotando (huecos {[round(g, 4) for g in gaps]} m)")
+    # brillo de textura: aviso si sale muy oscura
+    from ap3d.engine import textura_luz
+    from PIL import Image
+    t = trimesh.creation.box()
+    t.visual = trimesh.visual.TextureVisuals(uv=np.random.rand(len(t.vertices), 2),
+                                             image=Image.new("RGB", (64, 64), (15, 12, 10)))
+    luz, w = textura_luz(t)
+    check(luz is not None and luz < 0.12 and w, f"avisa textura muy oscura (brillo {luz})")
     # triangulos sueltos (como image_rig.blend: 17,324 islas falsas)
     c = caja_con_piezas()
     sopa = trimesh.Trimesh(c.vertices[c.faces].reshape(-1, 3), np.arange(len(c.faces) * 3).reshape(-1, 3),
@@ -177,7 +185,10 @@ def test_clasificacion_auto():
     cab = trimesh.creation.icosphere(subdivisions=4, radius=0.11)
     cab.apply_translation((0, 0, 0.48))
     busto = trimesh.util.concatenate([pecho, cuello, cab])
+    cuadro = _denso(trimesh.creation.box((0.6, 0.03, 0.8)), 4)          # cuadro / marco
+    cuadro.apply_translation((0, 0, 0.4))
     for nom, m, ok in (("jack", jack, lambda d: d["rig"] == "ninguno"),
+                       ("cuadro", cuadro, lambda d: d["rig"] == "ninguno"),
                        ("busto", busto, lambda d: d["rig"] != "ninguno"),
                        ("persona_auto", _denso(_persona(), 2), lambda d: d["rig"] == "humanoide")):
         glb = os.path.join(TMP, nom + ".glb")
@@ -216,6 +227,10 @@ def test_texturas_roblox():
     rig = os.path.join(out, "modelo_rig.fbx")
     mb2 = os.path.getsize(rig) / 1e6 if os.path.exists(rig) else 0
     check(mb2 > 0.3, f"modelo_rig.fbx tambien lleva la textura ({mb2:.1f} MB)")
+    dobj = os.path.join(out, "obj")
+    pngs = [f for f in os.listdir(dobj) if f.lower().endswith((".png", ".jpg"))] if os.path.isdir(dobj) else []
+    check(os.path.exists(os.path.join(dobj, "modelo.obj")) and os.path.exists(os.path.join(dobj, "modelo.mtl"))
+          and pngs, f"OBJ + MTL + textura de respaldo ({pngs})")
 
 
 def test_personaje():

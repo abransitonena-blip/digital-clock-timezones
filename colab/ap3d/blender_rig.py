@@ -280,7 +280,7 @@ def classify(co, H):
                  and max(anchos) < 1.15 * max(min(anchos), 1e-6)
                  and max(anchos) > 0.45 * max(prof))
     medida = {"ancho": round(ancho / H, 2), "largo": round(largo / H, 2),
-              "base_caja": bool(base_caja), "rect_base": round(float(np.median(rects)), 2) if rects else None,
+              "base_caja": bool(base_caja), "plano": bool(min(ancho, largo) < 0.07 * max(ancho, H)), "rect_base": round(float(np.median(rects)), 2) if rects else None,
               "piernas": bool(piernas_x), "patas": bool(patas_y), "brazos": bool(brazos),
               "cuello": cuello, "base": round(frac_low, 3)}
     L_ = max(ancho, largo)
@@ -291,6 +291,8 @@ def classify(co, H):
         tipo = "vehiculo"
     elif base_caja:
         tipo = "objeto"                       # figura sobre caja/pedestal: prop
+    elif min(ancho, largo) < 0.07 * max(ancho, H):
+        tipo = "objeto"                       # plano y fino: cuadro, marco, placa, espejo
     elif largo > 1.05 * H and patas_y and frac_low < 0.15:
         tipo = "cuadrupedo"
     elif (piernas_x and H > 1.15 * largo) or brazos:
@@ -2667,6 +2669,20 @@ def _roblox():
                                  embed_textures=True, mesh_smooth_type="FACE",
                                  apply_scale_options="FBX_SCALE_ALL",
                                  axis_forward="-Z", axis_up="Y")
+        # copia de respaldo en OBJ + MTL + PNG (mismo modelo ligero de Roblox)
+        try:
+            dobj = os.path.join(OUT, "obj")
+            os.makedirs(dobj, exist_ok=True)
+            deselect_all()
+            rb.select_set(True)
+            vl.objects.active = rb
+            bpy.ops.wm.obj_export(filepath=os.path.join(dobj, "modelo.obj"),
+                                  export_selected_objects=True, export_materials=True,
+                                  path_mode="COPY", export_animation=False, apply_modifiers=True,
+                                  forward_axis="NEGATIVE_Z", up_axis="Y")
+            files["obj"] = "obj/modelo.obj"
+        except Exception as e:
+            INFO["avisos"].append(f"OBJ: {e}")
     finally:
         bpy.data.objects.remove(rb, do_unlink=True)
         for m in rb_mats:

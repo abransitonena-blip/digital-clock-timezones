@@ -334,6 +334,9 @@ def tablero_html(hecho=0, info=None, activo=None, solo_datos=False):
                   f"<div class='kv'><span>Bordes no manifold</span><b>{qa.get('non_manifold_edges')}</b></div>"
                   f"<div class='kv'><span>Esqueleto</span><b>{'sí' if qa.get('has_rig') else 'no'}</b></div>"
                   f"<div class='kv'><span>Texturas empaquetadas</span><b>{'sí' if qa.get('textures_packed') else 'no'}</b></div>"
+                  + (f"<div class='kv'><span>Brillo de textura</span><b>{qa['texture_brightness']:.2f}"
+                     f"{' (bien)' if 0.12 <= qa['texture_brightness'] <= 0.9 else ''}</b></div>"
+                     if qa.get('texture_brightness') is not None else "")
                   + "".join(f"<div class='kv'><span class='warnq'>⚠️ {w}</span></div>" for w in ws)
                   + "</div>")
     if info.get("huesos"):
