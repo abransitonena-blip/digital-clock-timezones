@@ -389,6 +389,7 @@ print(f"\n======== RESULTADO (mandame esto para revisar) ========")
 print(f"Listo en {time.time()-_t:.0f} s  ->  {_r['zip']}")
 print(f"Tiempos: forma {_i.get('segundos_forma')} s · textura {_i.get('segundos_textura')} s · "
       f"Blender {_i.get('segundos_blender')} s")
+print("Detalle (s):", _i.get("tiempos_detalle"))
 print(f"Detectado: {(_i.get('clasificacion') or {}).get('tipo', _i.get('rig'))} · huesos {_i.get('huesos')} · "
       f"pesos por {_i.get('pesos')} · malla IA {_i.get('caras_alta')} -> {_i.get('caras')} caras · "
       f"cuadros {_i.get('quads_caras')}")

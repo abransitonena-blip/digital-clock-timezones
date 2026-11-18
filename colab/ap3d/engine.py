@@ -531,6 +531,39 @@ def aviso_trasera(met, umbral=0.35):
     return None
 
 
+_UV_PREV = {}          # id(malla) -> Future con la malla ya desplegada (UV)
+_UV_USADO = set()      # ids cuya UV en paralelo si se uso
+
+
+def _instalar_uv_previo():
+    """Hunyuan3D-Paint despliega la UV (xatlas, CPU) dentro de la textura.
+    Se cambia por una version que usa el resultado calculado antes en paralelo
+    (mientras la GPU hace otra cosa); si no hay, hace lo de siempre."""
+    try:
+        import hy3dgen.texgen.pipelines as Pm
+    except Exception:
+        return None
+    if getattr(Pm, "_ap3d_uv_orig", None) is not None:
+        return Pm._ap3d_uv_orig
+    orig = getattr(Pm, "mesh_uv_wrap", None)
+    if orig is None:
+        return None
+
+    def uv(mesh):
+        fut = _UV_PREV.pop(id(mesh), None)
+        if fut is not None:
+            try:
+                r = fut.result()
+                _UV_USADO.add(id(mesh))
+                return r
+            except Exception:
+                pass
+        return orig(mesh)
+    Pm.mesh_uv_wrap = uv
+    Pm._ap3d_uv_orig = orig
+    return orig
+
+
 class Engine:
     # self.paint: el pintor de textura del hilo actual (si tomo uno del grupo)
     # o el principal. Asi dos modelos pueden pintar a la vez con dos copias.
@@ -569,6 +602,7 @@ class Engine:
 
     def __init__(self, prof=None, log=print):
         self._tl = threading.local()
+        self.cpu_pool = cf.ThreadPoolExecutor(max_workers=4)
         self.p = prof or config.detect()
         self.log = log
         self.rembg = None
@@ -608,6 +642,8 @@ class Engine:
         d.setdefault("t2i", None)
         if d.get("blender_pool") is None:
             d["blender_pool"] = cf.ThreadPoolExecutor(max_workers=3 * self.p["workers"])
+        if d.get("cpu_pool") is None:
+            d["cpu_pool"] = cf.ThreadPoolExecutor(max_workers=4)
         # version anterior: el pintor estaba en "paint"; ahora en "_paint_base" + grupo
         if "paint" in d:
             d["_paint_base"] = d.pop("paint")
@@ -1054,6 +1090,14 @@ class Engine:
         return mesh, use_mv
 
     # ------------------------------------------------------------ textura
+    def uv_previo(self, mesh):
+        """Empieza a desplegar la UV de la malla en otro hilo (CPU)."""
+        orig = _instalar_uv_previo()
+        if orig is None or self.paint is None:
+            return False
+        _UV_PREV[id(mesh)] = self.cpu_pool.submit(lambda m=mesh.copy(): orig(m))
+        return True
+
     def texture(self, mesh, views, tex_size, render=None):
         """render: resolucion interna del horneado. 1024 = textura rapida."""
         if self.paint is None:
@@ -1068,6 +1112,8 @@ class Engine:
         except Exception as e:
             self.log("  textura con varias vistas no admitida, solo frente:", e)
             out = self.paint(mesh, image=imgs[0])
+        finally:
+            _UV_PREV.pop(id(mesh), None)
         return out, True
 
     # ------------------------------------------------------------ todo
@@ -1202,28 +1248,34 @@ class Engine:
                 # Primero se reduce (las mallas de 1 millon de caras tardaban
                 # ~50 s en repararse) y despues se repara la malla ya ligera.
                 info_alta = len(mesh.faces)
+                td = {}
+                t_ = time.time()
                 if info_alta > 200000:
                     try:
                         from hy3dgen.shapegen import FaceReducer
                         mesh = FaceReducer()(mesh, max_facenum=200000)
                     except Exception as e:
                         self.log("  reduccion previa omitida:", e)
+                td["reduccion_previa"] = round(time.time() - t_, 1)
+                t_ = time.time()
                 mesh = self._repair(mesh, None)
-                try:
-                    mesh.export(os.path.join(out, "malla_alta.glb"))
-                except Exception as e:
-                    self.log("  malla alta omitida:", e)
+                td["reparacion"] = round(time.time() - t_, 1)
+                # la malla alta se guarda en otro hilo (no frena la textura)
+                f_alta = self.cpu_pool.submit(mesh.export, os.path.join(out, "malla_alta.glb"))
                 # 2) se reduce despues a las caras pedidas (para textura y esqueleto)
                 progress(f_shape + 0.005, f"Reduciendo de {info_alta:,} a {faces:,} caras")
+                t_ = time.time()
                 if len(mesh.faces) > faces:
                     from hy3dgen.shapegen import FaceReducer
                     mesh = FaceReducer()(mesh, max_facenum=faces)
+                td["reduccion"] = round(time.time() - t_, 1)
+                # UV en paralelo desde ya (xatlas, CPU) mientras se exporta y la
+                # GPU termina otra cosa; la textura la usa al llegar
+                uv_ok = bool(texture) and self.uv_previo(mesh)
                 mesh.export(os.path.join(work, "arcilla.glb"))
                 shutil.copy(os.path.join(work, "arcilla.glb"), out)
-                try:
-                    render_preview(mesh, 320).save(os.path.join(out, "miniatura.png"))
-                except Exception:
-                    pass
+                self.cpu_pool.submit(lambda m=mesh: render_preview(m, 320).save(
+                    os.path.join(out, "miniatura.png")))
                 stage("malla", out)          # etapa 1: la malla ya se ve
                 ts = time.time()
                 if texture:
@@ -1237,6 +1289,13 @@ class Engine:
                 else:
                     textured, ok_tex = mesh, False
                 t_tex = time.time() - ts
+                td["textura"] = round(t_tex, 1)
+                td["uv_en_paralelo"] = bool(uv_ok and id(mesh) in _UV_USADO)
+                _UV_USADO.discard(id(mesh))
+                try:
+                    f_alta.result(timeout=60)
+                except Exception as e:
+                    self.log("  malla alta omitida:", e)
                 material_blanco(textured)
                 textured.export(os.path.join(work, "modelo_texturizado.glb"))
                 try:
@@ -1393,7 +1452,16 @@ class Engine:
                 self.log("  guia Roblox omitida:", e)
         progress(0.98, "Empaquetando ZIP")
         zp = out + ".zip"
+        t_ = time.time()
         self._zip(out, zp)
+        td_ = locals().get("td") or {}
+        td_["zip"] = round(time.time() - t_, 1)
+        td_["blender"] = round(t_bl, 1)
+        info["tiempos_detalle"] = td_
+        try:
+            json.dump(info, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
+        except Exception:
+            pass
         progress(1.0, "Listo")
         res = dict(dir=out, zip=zp, info=info, key=k, video_future=fv, video_state=vstate)
 
@@ -1430,7 +1498,14 @@ class Engine:
 
     @staticmethod
     def _zip(out, zp):
-        Engine._zip_ligero(out, zp[:-4] + "_ligero.zip")
+        # el ligero se arma en otro hilo mientras se arma el completo
+        th = threading.Thread(target=Engine._zip_ligero, args=(out, zp[:-4] + "_ligero.zip"))
+        th.start()
+        Engine._zip_completo(out, zp)
+        th.join()
+
+    @staticmethod
+    def _zip_completo(out, zp):
         tmp = zp + ".tmp"
         with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
             for raiz, dirs, fs in os.walk(out):

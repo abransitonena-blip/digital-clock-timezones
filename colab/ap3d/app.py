@@ -62,6 +62,13 @@ def _summary(info):
         f"{('videos ' + str(info.get('segundos_videos')) + ' s (en segundo plano) · ') if info.get('segundos_videos') else ''}"
         f"**total {info.get('segundos_total', '?')} s**",
     ]
+    td = info.get("tiempos_detalle")
+    if td:
+        nombres = [("reduccion_previa", "reducción previa"), ("reparacion", "reparación"),
+                   ("reduccion", "reducción"), ("textura", "textura"), ("blender", "Blender"),
+                   ("zip", "ZIP")]
+        lines.append("🔬 Detalle: " + " · ".join(f"{n} {td[k]} s" for k, n in nombres if k in td)
+                     + (" · UV en paralelo ✓" if td.get("uv_en_paralelo") else ""))
     if info.get("animaciones"):
         lines.append("Animaciones: " + ", ".join(info["animaciones"]))
     c = info.get("clasificacion")
