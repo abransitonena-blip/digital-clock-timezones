@@ -69,6 +69,12 @@ def _summary(info):
                    ("zip", "ZIP")]
         lines.append("🔬 Detalle: " + " · ".join(f"{n} {td[k]} s" for k, n in nombres if k in td)
                      + (" · UV en paralelo ✓" if td.get("uv_en_paralelo") else ""))
+    for k_, nom in (("tiempos_export", "Blender (proceso 1)"), ("tiempos_export_extra", "Blender (proceso 2)"),
+                    ("tiempos_export_cuadros", "Cuadros (en segundo plano)")):
+        te = info.get(k_)
+        if te:
+            top = sorted(((v, k) for k, v in te.items()), reverse=True)[:5]
+            lines.append(f"🔬 {nom}: " + " · ".join(f"{k} {v} s" for v, k in top))
     if info.get("animaciones"):
         lines.append("Animaciones: " + ", ".join(info["animaciones"]))
     c = info.get("clasificacion")

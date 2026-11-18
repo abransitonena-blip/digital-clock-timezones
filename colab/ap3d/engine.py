@@ -33,6 +33,7 @@ from . import config
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 GPU_LOCK = threading.Lock()
+ZIP_LOCK = threading.RLock()
 # Estaciones de la linea de montaje (A100/H100): forma y textura por separado
 SHAPE_LOCK = threading.Lock()
 PAINT_LOCK = threading.Lock()
@@ -1360,6 +1361,10 @@ class Engine:
         fx = self.blender_pool.submit(
             self.blender, inp, out, rig, height, rotate, video, video_res, samples,
             turntable, relieve, "extra", None, None)
+        # Tercer proceso, en segundo plano: malla en cuadros (la mas lenta)
+        fq = self.blender_pool.submit(
+            self.blender, inp, out, rig, height, rotate, video, video_res, samples,
+            turntable, relieve, "quads", None, None)
         blog = fe.result()
         try:
             blog += "\n\n" + fx.result()
@@ -1389,6 +1394,8 @@ class Engine:
             for k_ in ("lod_caras", "piezas", "quads_caras"):
                 if k_ in ix:
                     info[k_] = ix[k_]
+            if ix.get("tiempos_export"):
+                info["tiempos_export_extra"] = ix["tiempos_export"]
             info.setdefault("avisos", []).extend(
                 a_ for a_ in ix.get("avisos", []) if a_ not in info.get("avisos", []))
             os.remove(ipx)
@@ -1465,9 +1472,12 @@ class Engine:
         progress(1.0, "Listo")
         res = dict(dir=out, zip=zp, info=info, key=k, video_future=fv, video_state=vstate)
 
+        zlock = threading.Lock()
+
         def finish_videos(fut):
             try:
                 vlog = fut.result()
+                zlock.acquire()
                 ipv = os.path.join(out, "rig_info_video.json")
                 inf = json.load(open(ip))
                 if os.path.exists(ipv):
@@ -1485,19 +1495,55 @@ class Engine:
             except Exception as e:
                 self.log("videos:", e)
             finally:
+                if zlock.locked():
+                    zlock.release()
                 vstate["done"] = True
-                shutil.rmtree(work, ignore_errors=True)
+                if res.get("quads_state", {}).get("done", True):
+                    shutil.rmtree(work, ignore_errors=True)
 
+        def finish_quads(fut):
+            try:
+                qlog = fut.result()
+                ipq = os.path.join(out, "rig_info_quads.json")
+                with zlock:
+                    inf = json.load(open(ip))
+                    if os.path.exists(ipq):
+                        iq = json.load(open(ipq))
+                        inf.setdefault("archivos", {}).update(iq.get("archivos", {}))
+                        for k_ in ("quads_caras",):
+                            if k_ in iq:
+                                inf[k_] = iq[k_]
+                        if iq.get("tiempos_export"):
+                            inf["tiempos_export_cuadros"] = iq["tiempos_export"]
+                        os.remove(ipq)
+                    json.dump(inf, open(ip, "w"), indent=2, ensure_ascii=False, default=str)
+                    res["info"] = inf
+                    with open(os.path.join(out, "blender.log"), "a") as fh:
+                        fh.write("\n\n=== cuadros ===\n" + qlog)
+                    self._zip(out, zp)
+            except Exception as e:
+                self.log("cuadros:", e)
+            finally:
+                qstate["done"] = True
+                if fv is None or vstate.get("done"):
+                    shutil.rmtree(work, ignore_errors=True)
+
+        qstate = {"done": False}
+        res["quads_state"] = qstate
+        fq.add_done_callback(finish_quads)
         if fv is not None:
             fv.add_done_callback(finish_videos)
-        else:
-            shutil.rmtree(work, ignore_errors=True)
         self.cache[k] = res
         self.log_mem()
         return res
 
     @staticmethod
     def _zip(out, zp):
+        with ZIP_LOCK:
+            Engine._zip_ambos(out, zp)
+
+    @staticmethod
+    def _zip_ambos(out, zp):
         # el ligero se arma en otro hilo mientras se arma el completo
         th = threading.Thread(target=Engine._zip_ligero, args=(out, zp[:-4] + "_ligero.zip"))
         th.start()
@@ -1516,6 +1562,19 @@ class Engine:
                         else zipfile.ZIP_DEFLATED
                     z.write(p, os.path.relpath(p, out), compress_type=comp)
         os.replace(tmp, zp)
+
+    @staticmethod
+    def _merge_quads(out, info):
+        ipq = os.path.join(out, "rig_info_quads.json")
+        if os.path.exists(ipq):
+            iq = json.load(open(ipq))
+            info.setdefault("archivos", {}).update(iq.get("archivos", {}))
+            if "quads_caras" in iq:
+                info["quads_caras"] = iq["quads_caras"]
+            if iq.get("tiempos_export"):
+                info["tiempos_export_cuadros"] = iq["tiempos_export"]
+            os.remove(ipq)
+        return info
 
     LIGERO = ("modelo_roblox.fbx", "modelo_web.glb", "LEEME_ROBLOX.txt", "revision_6_angulos.png",
               "fisica.json", "miniatura.png")
@@ -1554,8 +1613,10 @@ class Engine:
         progress(0.1, f"Poniendo esqueleto de tipo {rig}")
         fe = self.blender_pool.submit(self.blender, *args, "export", None, None, huesos)
         fx = self.blender_pool.submit(self.blender, *args, "extra", None, None, huesos)
-        log_ = fe.result() + "\n\n" + fx.result()
+        fq = self.blender_pool.submit(self.blender, *args, "quads", None, None, huesos)
+        log_ = fe.result() + "\n\n" + fx.result() + "\n\n" + fq.result()
         new = json.load(open(ip)) if os.path.exists(ip) else {}
+        self._merge_quads(d, new)
         ipx = os.path.join(d, "rig_info_extra.json")
         if os.path.exists(ipx):
             ix = json.load(open(ipx))
@@ -1600,7 +1661,8 @@ class Engine:
         try:
             fe = self.blender_pool.submit(self.blender, *args, "export", None, None, "")
             fx = self.blender_pool.submit(self.blender, *args, "extra", None, None, "")
-            log_ = fe.result() + "\n\n" + fx.result()
+            fq = self.blender_pool.submit(self.blender, *args, "quads", None, None, "")
+            log_ = fe.result() + "\n\n" + fx.result() + "\n\n" + fq.result()
         finally:
             self._caras = 0
         ip = os.path.join(out, "rig_info.json")
@@ -1608,6 +1670,7 @@ class Engine:
             open(os.path.join(out, "blender.log"), "w").write(log_)
             raise RuntimeError("Blender no pudo procesar el archivo (mira blender.log)")
         info = json.load(open(ip))
+        self._merge_quads(out, info)
         ipx = os.path.join(out, "rig_info_extra.json")
         if os.path.exists(ipx):
             ix = json.load(open(ipx))
@@ -1615,6 +1678,8 @@ class Engine:
             for k_ in ("lod_caras", "piezas", "quads_caras", "roblox_textura_px"):
                 if k_ in ix:
                     info[k_] = ix[k_]
+            if ix.get("tiempos_export"):
+                info["tiempos_export_extra"] = ix["tiempos_export"]
             qa = info.setdefault("qa", {})
             if ix.get("roblox_triangulos") is not None:
                 info["roblox_triangulos"] = qa["roblox_triangles"] = ix["roblox_triangulos"]

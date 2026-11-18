@@ -54,7 +54,7 @@ ap.add_argument("--turntable", type=int, default=1)
 ap.add_argument("--loops", type=int, default=2)
 ap.add_argument("--relieve", type=float, default=0.8,
                 help="fuerza del mapa de relieve (normal) sacado de la textura; 0 = sin relieve")
-ap.add_argument("--stage", default="all", choices=["all", "export", "extra", "video"],
+ap.add_argument("--stage", default="all", choices=["all", "export", "extra", "video", "quads"],
                 help="export: archivos y vista previa; video: solo videos. "
                      "Se lanzan los dos a la vez en procesos separados para ir el doble de rapido")
 ap.add_argument("--preview", type=int, default=1, help="0 = no renderizar vista_previa.png")
@@ -2195,7 +2195,10 @@ files = {}
 
 # "export": lo principal (GLB, web, FBX, .blend). "extra": lo demas, en otro
 # proceso a la vez (OBJ, STL, piezas, pesos, LOD). Asi Blender tarda la mitad.
-EXTRA = {"obj", "stl_mm", "piezas", "pesos", "lod1_50", "lod2_15", "visor_web", "quads", "roblox"}
+EXTRA = {"obj", "stl_mm", "piezas", "pesos", "lod1_50", "lod2_15", "visor_web", "roblox"}
+# la malla en cuadros (QuadriFlow + horneado, ~15 s) va en su propio proceso, en
+# segundo plano: no frena la entrega del modelo
+CUADROS = {"quads"}
 
 
 def verify_textures():
@@ -2257,13 +2260,19 @@ TEXTURAS_EMPAQUETADAS = verify_textures()
 def export(kind, fn, path):
     if args.stage == "video":
         return
-    if args.stage == "export" and kind in EXTRA:
+    if args.stage == "export" and (kind in EXTRA or kind in CUADROS):
         return
     if args.stage == "extra" and kind not in EXTRA:
         return
+    if args.stage == "quads" and kind not in CUADROS:
+        return
+    t_ = time.time()
+    if "preparacion_s" not in INFO.setdefault("tiempos_export", {}):
+        INFO["tiempos_export"]["preparacion_s"] = round(t_ - T0, 1)   # importar, rig, pesos
     try:
         fn()
         files[kind] = os.path.basename(path)
+        INFO["tiempos_export"][kind] = round(time.time() - t_, 1)
         log("exportado", os.path.basename(path))
     except Exception as e:
         INFO["avisos"].append(f"{kind}: {e}")
@@ -3125,7 +3134,7 @@ def set_video_output(path):
 videos_ok = True
 DO_VIDEOS = args.stage in ("all", "video")
 DO_PREVIEW = args.stage in ("all", "export") and bool(args.preview)
-if args.stage == "extra":
+if args.stage in ("extra", "quads"):
     DO_VIDEOS = DO_PREVIEW = False
 try:
     cam = setup_render()
@@ -3304,7 +3313,8 @@ try:
 except Exception as e:
     INFO["avisos"].append(f"QA: {e}")
 
-_info_name = {"video": "rig_info_video.json", "extra": "rig_info_extra.json"}.get(
+_info_name = {"video": "rig_info_video.json", "extra": "rig_info_extra.json",
+              "quads": "rig_info_quads.json"}.get(
     args.stage, "rig_info.json")
 with open(os.path.join(OUT, _info_name), "w") as f:
     json.dump(INFO, f, indent=2, ensure_ascii=False, default=str)
