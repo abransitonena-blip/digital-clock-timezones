@@ -608,6 +608,44 @@ class Engine:
         d.setdefault("t2i", None)
         if d.get("blender_pool") is None:
             d["blender_pool"] = cf.ThreadPoolExecutor(max_workers=3 * self.p["workers"])
+        # version anterior: el pintor estaba en "paint"; ahora en "_paint_base" + grupo
+        if "paint" in d:
+            d["_paint_base"] = d.pop("paint")
+        if not isinstance(d.get("_tl"), threading.local):
+            d["_tl"] = threading.local()
+        if d.get("_paint_pool") is None and d.get("_paint_base") is not None:
+            import queue as _q
+            d["_paint_pool"] = _q.Queue()
+            d["_paint_pool"].put(d["_paint_base"])
+        vr = float(self.p.get("vram_gb", 0) or 0)
+        self.p.setdefault("linea", vr >= 40)
+        self.p.setdefault("pinturas", 2 if vr >= 70 else 1)
+
+    def _pintores_extra(self):
+        """Copias extra del pintor de textura (A100): dos texturas a la vez.
+        Se puede llamar otra vez (celda 3) para agregarlas sin reiniciar."""
+        if self.paint is None or self.__dict__.get("_paint_pool") is None:
+            return
+        falta = int(self.p.get("pinturas", 1)) - self.__dict__.get("_n_pintores", 1)
+        if falta <= 0:
+            return
+        from hy3dgen.texgen import Hunyuan3DPaintPipeline
+        for _ in range(falta):
+            try:
+                t_ = time.time()
+                kw = {"subfolder": self.paint_kind} if "turbo" in str(self.paint_kind) else {}
+                extra = Hunyuan3DPaintPipeline.from_pretrained("tencent/Hunyuan3D-2", **kw)
+                self._tl.paint = extra
+                self._set_texture_size(self.p["tex"])
+                self._tl.paint = None
+                self._paint_pool.put(extra)
+                self.__dict__["_n_pintores"] = self.__dict__.get("_n_pintores", 1) + 1
+                self.log(f"  pintor de textura {self._n_pintores} listo en {time.time() - t_:.0f} s "
+                         "(dos texturas a la vez)")
+            except Exception as e:
+                self._tl.paint = None
+                self.log("  pintor extra omitido:", e)
+                break
 
     # ------------------------------------------------------------ carga
     def preload_weights(self, repos=("tencent/Hunyuan3D-2", "tencent/Hunyuan3D-2mv")):
@@ -729,27 +767,14 @@ class Engine:
                 import queue as _q
                 self._paint_pool = _q.Queue()
                 self._paint_pool.put(self.paint)
-                # copias extra del pintor (A100): dos texturas a la vez
-                for i in range(int(self.p.get("pinturas", 1)) - 1):
-                    try:
-                        t_ = time.time()
-                        kw = {"subfolder": self.paint_kind} if "turbo" in str(self.paint_kind) else {}
-                        extra = Hunyuan3DPaintPipeline.from_pretrained("tencent/Hunyuan3D-2", **kw)
-                        self._tl.paint = extra
-                        self._set_texture_size(self.p["tex"])
-                        self._tl.paint = None
-                        self._paint_pool.put(extra)
-                        self.log(f"  pintor de textura extra {i + 2} listo en {time.time() - t_:.0f} s")
-                    except Exception as e:
-                        self._tl.paint = None
-                        self.log("  pintor extra omitido:", e)
-                        break
+                self.__dict__["_n_pintores"] = 1
             else:
                 self.log("  Textura IA no disponible (color proyectado de la foto)")
         if not self.p["all_on_gpu"]:
             for p in (self.shape_mv, self.shape_mv_t, self.shape):
                 if p is not None and p is not self.shape_t:
                     p.to("cpu")
+        self._pintores_extra()
         self.ready = True
         self.warmup()
         self._diferidos = diferidos
