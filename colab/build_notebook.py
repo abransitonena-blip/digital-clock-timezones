@@ -440,7 +440,7 @@ sys.path.insert(0, "/content/ap3d_app")
 from ap3d.engine import get_engine
 e = get_engine()
 if LIBERAR_MODELOS:
-    e.shape = e.shape_mv = e.paint = None; e.ready = False
+    e.shape = e.shape_mv = e.paint = None; e.ready = False; e.__dict__.pop("_paint_pool", None)
     gc.collect(); torch.cuda.empty_cache()
 e.log_mem()
 '''

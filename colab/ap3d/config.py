@@ -75,6 +75,11 @@ def detect():
     p["preload_weights"] = ram >= 40
     if ram >= 120:
         p["workers"] = max(p["workers"], 3)
+    # Linea de montaje: con >= 40 GB de VRAM la forma de un modelo y la textura
+    # de otro corren a la vez (cada una con su candado); en GPUs chicas, uno a uno.
+    p["linea"] = vram >= 40
+    # pintores de textura en paralelo: cada copia ~10-12 GB; en la A100 80 GB, 2
+    p["pinturas"] = 2 if vram >= 70 else 1
     p.update(gpu=name, vram_gb=round(vram, 1), ram_gb=round(ram, 1),
              cpus=cpus, work_dir=work, shm_free_gb=round(shm_free, 1))
     return p

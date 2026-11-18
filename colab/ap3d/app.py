@@ -484,17 +484,22 @@ def batch(files, rig, video, activo="Auto", altura_prop=0.40, roblox="Roblox 12k
     eng = get_engine()
     zips, filas = [], []
     t0 = time.time()
-    for i, f in enumerate(files):
-        path = f if isinstance(f, str) else f.name
+    import concurrent.futures as _cf
+    import threading as _th
+    paths = [f if isinstance(f, str) else f.name for f in files]
+    # linea de montaje (A100): hasta 3 fotos a la vez (forma de una mientras
+    # otra pinta la textura y otra pasa por Blender)
+    n_par = min(3, len(paths)) if eng.p.get("linea") else 1
+    hechas = [0]
+    lk = _th.Lock()
+
+    def uno(path):
         nom = os.path.basename(path)
-        hechas = time.time() - t0
-        resta = f" · faltan ~{hechas / i * (len(files) - i) / 60:.0f} min" if i else ""
-        progress(i / len(files), desc=f"Foto {i + 1}/{len(files)}: {nom}{resta}")
         try:
             r = eng.run(path, rig=RIGS.get(rig, rig), video=video,
                         asset_type=TIPO_ACTIVO.get(activo, "auto"), altura_prop=float(altura_prop),
                         roblox_tris=ROBLOX_TRIS.get(roblox, 12000))
-            zips.append(r["zip"])
+            zp = r["zip"]
             info = r.get("info") or {}
             if not info and r.get("dir"):
                 try:
@@ -503,7 +508,7 @@ def batch(files, rig, video, activo="Auto", altura_prop=0.40, roblox="Roblox 12k
                     info = {}
             qa = info.get("qa") or {}
             dm = qa.get("dimensions_m") or ["", "", ""]
-            filas.append({"foto": nom, "zip": os.path.basename(r["zip"]),
+            fila = ({"foto": nom, "zip": os.path.basename(r["zip"]),
                           "tipo": qa.get("asset_type") or info.get("tipo_activo", ""),
                           "ancho_m": dm[0], "fondo_m": dm[1], "alto_m": dm[2],
                           "triangulos": qa.get("triangles", ""), "roblox": qa.get("roblox_triangles", ""),
@@ -511,9 +516,23 @@ def batch(files, rig, video, activo="Auto", altura_prop=0.40, roblox="Roblox 12k
                           "qa": "aprobado" if qa.get("passed") else "revisar",
                           "avisos": " | ".join(qa.get("warnings") or [])})
         except Exception as e:
-            filas.append({"foto": nom, "zip": "", "tipo": "", "ancho_m": "", "fondo_m": "", "alto_m": "",
-                          "triangulos": "", "roblox": "", "esqueleto": "", "qa": "ERROR",
-                          "avisos": str(e)[:200]})
+            fila = {"foto": nom, "zip": "", "tipo": "", "ancho_m": "", "fondo_m": "", "alto_m": "",
+                    "triangulos": "", "roblox": "", "esqueleto": "", "qa": "ERROR", "avisos": str(e)[:200]}
+            zp = None
+        with lk:
+            hechas[0] += 1
+            n = hechas[0]
+            dt = time.time() - t0
+            resta = f" · faltan ~{dt / n * (len(paths) - n) / 60:.0f} min" if n < len(paths) else ""
+            progress(n / len(paths), desc=f"{n}/{len(paths)} listas ({n_par} a la vez){resta}")
+        return fila, zp
+
+    progress(0.0, desc=f"0/{len(paths)} · procesando {n_par} a la vez")
+    with _cf.ThreadPoolExecutor(max_workers=n_par) as ex:
+        for fila, zp in ex.map(uno, paths):        # map conserva el orden de las fotos
+            filas.append(fila)
+            if zp:
+                zips.append(zp)
     out_csv = os.path.join(config.OUT_DIR, f"catalogo_{time.strftime('%Y%m%d_%H%M%S')}.csv")
     os.makedirs(config.OUT_DIR, exist_ok=True)
     with open(out_csv, "w", newline="", encoding="utf-8") as fh:

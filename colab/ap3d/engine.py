@@ -33,6 +33,17 @@ from . import config
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 GPU_LOCK = threading.Lock()
+# Estaciones de la linea de montaje (A100/H100): forma y textura por separado
+SHAPE_LOCK = threading.Lock()
+PAINT_LOCK = threading.Lock()
+
+
+class _Nada:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
 VIEWS = ("front", "back", "left", "right")
 
 
@@ -521,7 +532,43 @@ def aviso_trasera(met, umbral=0.35):
 
 
 class Engine:
+    # self.paint: el pintor de textura del hilo actual (si tomo uno del grupo)
+    # o el principal. Asi dos modelos pueden pintar a la vez con dos copias.
+    @property
+    def paint(self):
+        tl = self.__dict__.get("_tl")
+        p = getattr(tl, "paint", None) if tl is not None else None
+        return p if p is not None else self.__dict__.get("_paint_base")
+
+    @paint.setter
+    def paint(self, v):
+        self.__dict__["_paint_base"] = v
+
+    def _ranura_pintura(self):
+        """Contexto: toma un pintor libre del grupo (espera si estan ocupados)."""
+        eng = self
+
+        class _Ranura:
+            def __enter__(self_):
+                pool = eng.__dict__.get("_paint_pool")
+                self_.p = pool.get() if pool is not None else None
+                if self_.p is not None:
+                    eng._tl.paint = self_.p
+                return self_
+
+            def __exit__(self_, *a):
+                if self_.p is not None:
+                    eng._tl.paint = None
+                    eng._paint_pool.put(self_.p)
+                return False
+        return _Ranura()
+
+    def pintores_libres(self):
+        pool = self.__dict__.get("_paint_pool")
+        return pool.qsize() if pool is not None else 1
+
     def __init__(self, prof=None, log=print):
+        self._tl = threading.local()
         self.p = prof or config.detect()
         self.log = log
         self.rembg = None
@@ -679,6 +726,24 @@ class Engine:
                 self._set_texture_size(self.p["tex"])
                 if self.p["offload"]:
                     self.paint.enable_model_cpu_offload()
+                import queue as _q
+                self._paint_pool = _q.Queue()
+                self._paint_pool.put(self.paint)
+                # copias extra del pintor (A100): dos texturas a la vez
+                for i in range(int(self.p.get("pinturas", 1)) - 1):
+                    try:
+                        t_ = time.time()
+                        kw = {"subfolder": self.paint_kind} if "turbo" in str(self.paint_kind) else {}
+                        extra = Hunyuan3DPaintPipeline.from_pretrained("tencent/Hunyuan3D-2", **kw)
+                        self._tl.paint = extra
+                        self._set_texture_size(self.p["tex"])
+                        self._tl.paint = None
+                        self._paint_pool.put(extra)
+                        self.log(f"  pintor de textura extra {i + 2} listo en {time.time() - t_:.0f} s")
+                    except Exception as e:
+                        self._tl.paint = None
+                        self.log("  pintor extra omitido:", e)
+                        break
             else:
                 self.log("  Textura IA no disponible (color proyectado de la foto)")
         if not self.p["all_on_gpu"]:
@@ -728,7 +793,7 @@ class Engine:
         seeds = [int(seed0) + i * 7919 if seed0 is not None else _r.randint(0, 2**31 - 1)
                  for i in range(n)]
         out = []
-        with GPU_LOCK:
+        with (SHAPE_LOCK if self.p.get("linea") else GPU_LOCK):
             for sd in seeds:
                 mesh, _ = self._shape(views, 5, 256, sd, 5.0, True, motor)
                 out.append((sd, render_preview(mesh)))
@@ -817,7 +882,7 @@ class Engine:
             self.paint.config.texture_size = size
             self.paint.config.render_size = render
             self.paint.render = MeshRender(default_resolution=render, texture_size=size)
-            self._tex = (size, render)
+            self.paint._ap3d_tex = (size, render)     # cada pintor guarda su tamano
         except Exception as e:
             self.log("No se pudo cambiar el tamano de textura:", e)
 
@@ -969,7 +1034,7 @@ class Engine:
         if self.paint is None:
             return mesh, False
         render = int(render or self.p["render"])
-        if (tex_size, render) != getattr(self, "_tex", None):
+        if (tex_size, render) != getattr(self.paint, "_ap3d_tex", None):
             self._set_texture_size(tex_size, render)
         imgs = [views["front"]] + [views[k] for k in ("back", "left", "right") if views.get(k)]
         try:
@@ -1087,20 +1152,25 @@ class Engine:
                 stop.set()
                 th.join()
 
+        linea = bool(self.p.get("linea"))
+        lk_forma = SHAPE_LOCK if linea else _Nada()
+        lk_tex = self._ranura_pintura() if linea else _Nada()
         self.jobs["en_cola"] += 1
-        if GPU_LOCK.locked():
-            progress(0.03, "En cola: la GPU termina otro modelo")
-        with GPU_LOCK:
+        if (SHAPE_LOCK if linea else GPU_LOCK).locked():
+            progress(0.03, "En cola: la GPU termina la forma de otro modelo" if linea
+                     else "En cola: la GPU termina otro modelo")
+        with (_Nada() if linea else GPU_LOCK):
             self.jobs["en_cola"] -= 1
             self.jobs["activos"] += 1
             try:
                 nv = sum(v is not None for v in views.values())
                 ts = time.time()
-                mesh, used_mv = phase(0.05, f_shape, E["forma"],
-                                      "Generando la forma 3D" + (" (varias vistas)" if nv > 1 else "")
-                                      + (" · Turbo" if turbo else ""),
-                                      lambda: self._shape(views, steps, octree, seed,
-                                                          guidance, turbo, motor))
+                with lk_forma:
+                    mesh, used_mv = phase(0.05, f_shape, E["forma"],
+                                          "Generando la forma 3D" + (" (varias vistas)" if nv > 1 else "")
+                                          + (" · Turbo" if turbo else ""),
+                                          lambda: self._shape(views, steps, octree, seed,
+                                                              guidance, turbo, motor))
                 t_shape = time.time() - ts
                 progress(f_shape, "Limpiando y cerrando agujeros")
                 # 1) malla completa en alta resolucion (todo el detalle de la IA)
@@ -1132,10 +1202,13 @@ class Engine:
                 stage("malla", out)          # etapa 1: la malla ya se ve
                 ts = time.time()
                 if texture:
-                    textured, ok_tex = phase(f_shape + 0.01, f_tex, E["textura"],
-                                             "Pintando la textura con IA",
-                                             lambda: self.texture(mesh, views, tex,
-                                                                  1024 if tex_rapida else None))
+                    if linea and self.pintores_libres() == 0:
+                        progress(f_shape + 0.01, "Esperando la textura de otro modelo (forma ya lista)")
+                    with lk_tex:
+                        textured, ok_tex = phase(f_shape + 0.01, f_tex, E["textura"],
+                                                 "Pintando la textura con IA",
+                                                 lambda: self.texture(mesh, views, tex,
+                                                                      1024 if tex_rapida else None))
                 else:
                     textured, ok_tex = mesh, False
                 t_tex = time.time() - ts
