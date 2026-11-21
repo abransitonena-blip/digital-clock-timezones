@@ -4,6 +4,7 @@ Cubo impermeable (IP67 de diseño) de 80 mm para letreros: cartucho de potencia 
 regulación configurable por tarjeta de resistencias o por app (la tarjeta fija el máximo), control ESP32-C3
 con Bluetooth/Wi-Fi y 4 canales PWM + datos para tiras direccionables.
 
+- `video.py`: video de presentación de 20 s (Cycles) con el Cubo AP, la placa v3, el Nodo AP en su carcasa y el sistema completo; resultado en `ap_productos.mp4`.
 - `cubo.py`: modelo paramétrico para Blender 4.x (bpy). Genera `cubo_ap.blend` y `cuerpo.stl`, `tapa.stl`, `empaque.stl` (mallas cerradas).
 - `render.py`: renders armado / explotado / corte con Cycles.
 - `hacer_documento.py` + `imprimir.cjs`: `cubo_ap_sistema.pdf` con la arquitectura y las reglas de diseño.

@@ -5,7 +5,7 @@ export default function Inicio() {
   return (<>
     <section className="heroe">
       <div>
-        <span className="etiqueta plan">Nuevo · Cubo AP v1</span>
+        <span className="etiqueta plan">Nuevo · Cubo AP v3 y Nodo AP</span>
         <h1 style={{ margin: '12px 0' }}>Un solo módulo LED para cada cliente.</h1>
         <p className="mut" style={{ fontSize: 18 }}>Cambias una tarjeta de dos resistencias y el mismo cubo impermeable entrega 5, 12, 15 o 24 V hasta 5 A.
           Se controla desde el celular por Bluetooth, por Wi-Fi, con Alexa o Home Assistant, y funciona con las tiras más vendidas: RGB, RGBW, CCT, WS2812B, SK6812, WS2811 y WS2815.</p>
@@ -16,6 +16,13 @@ export default function Inicio() {
         </div>
       </div>
       <img src={B + 'img/cubo_render_explotado.jpg'} alt="Cubo AP abierto: tapa, empaque y placa de control dentro de la caja" />
+    </section>
+
+    <section className="seccion">
+      <h2>Los productos en 3D</h2>
+      <p className="mut" style={{ margin: '6px 0 12px' }}>El Cubo AP con su carcasa IP67 y la placa v3, el Nodo AP y el sistema completo: el cubo transmite DMX y los nodos copian su color.</p>
+      <video className="foto" src={B + 'video/ap_productos.mp4'} poster={B + 'img/video_poster.jpg'} controls muted playsInline preload="none"
+        style={{ width: '100%', borderRadius: 14, background: '#111' }} aria-label="Animación 3D del Cubo AP y el Nodo AP" />
     </section>
 
     <section className="seccion">
