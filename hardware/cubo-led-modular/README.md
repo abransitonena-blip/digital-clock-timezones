@@ -58,6 +58,9 @@ El cartucho debe dar al menos Vout + 1.2 V. Para 12 V y 15 V se usa el de 24 V; 
 | 3 | ADC NTC 10k | | 20 | LED de estado (tubo de luz de la tapa) |
 | 4 | EN del reductor (+ ALERT del INA226) | | 21 | PWM R |
 
+## Nodo AP (`nodo/`): DMX → RGBW con CH32V003
+Decodificador DMX512 de bajo costo con el CH32V003 soldado, 4 salidas PWM de 3 A y firmware propio sin SDK. Detalles en `nodo/README.md`.
+
 ## Placa de control v3 (`placa-control-v3/`): ESP32-C3 soldado, sin módulo
 Es la v2 con el **chip ESP32-C3FH4** (QFN32 5 × 5, flash de 4 MB dentro del chip) soldado directo en lugar del SuperMini enchufable. Usa el **mismo mapa de pines**, así que corre el mismo firmware (`CUBO_PLACA=2`) y el mismo instalador web.
 

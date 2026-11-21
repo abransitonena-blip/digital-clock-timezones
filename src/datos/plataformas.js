@@ -9,7 +9,7 @@ export const CHIPS = [
   { chip: 'ESP32-H2', marca: 'Espressif (China)', radio: '802.15.4 + BLE 5 (sin Wi-Fi)', nucleo: 'RISC-V 96 MHz', enc: 'QFN32 4×4',
     uso: 'Lámparas Thread/Zigbee de bajo consumo que dependen de un hub.', fuente: 'https://esp32.co.uk/best-esp32-matter-thread-zigbee-c6-h2-h21-h4-c5/' },
   { chip: 'CH32V003', marca: 'WCH (China)', radio: '—', nucleo: 'RISC-V 48 MHz, 16 KB flash, 2 KB RAM', enc: 'SOP8 a QFN20',
-    uso: 'Nodo esclavo de ~0.10 USD: recibe DMX/UART y genera PWM en tiras o focos; 1 controlador maestro por instalación.', fuente: 'https://cnx-software.com/2022/10/22/10-cents-ch32v003-risc-v-mcu-offers-2kb-sram-16kb-flash-in-sop8-to-qfn20-packages/?amp=1' },
+    uso: 'Nodo AP (hecho): decodificador DMX → RGBW con firmware propio sin SDK.', fuente: 'https://cnx-software.com/2022/10/22/10-cents-ch32v003-risc-v-mcu-offers-2kb-sram-16kb-flash-in-sop8-to-qfn20-packages/?amp=1' },
   { chip: 'CH32V208', marca: 'WCH (China)', radio: 'BLE 5 + Ethernet 10 M con PHY integrado', nucleo: 'RISC-V 144 MHz', enc: 'QFN (varias versiones)',
     uso: 'Variante cableada: Art-Net/sACN por Ethernet sin chip externo.', fuente: 'https://www.olimex.com/Products/RISC-V/WCH/' },
   { chip: 'RP2350', marca: 'Raspberry Pi (Reino Unido)', radio: '— (necesita chip de radio aparte)', nucleo: '2× Cortex-M33 / Hazard3 150 MHz, PIO', enc: 'QFN60 / QFN80',
@@ -32,7 +32,7 @@ export const PRODUCTOS = [
 ]
 
 export const NIVELES = [
-  { nivel: 'Nodo', chip: 'CH32V003', que: 'Esclavo de 1–4 canales PWM por DMX/UART, para luminarias repetidas en serie.', estado: 'Propuesta' },
+  { nivel: 'Nodo', chip: 'CH32V003', que: 'Decodificador DMX512 → 4 canales PWM (RGBW) para luminarias en serie; dirección por botón “aprender”.', estado: 'Placa y firmware diseñados (sin probar)' },
   { nivel: 'Cubo', chip: 'ESP32-C3FH4', que: 'Controlador completo: Wi-Fi, BLE, Art-Net/sACN, DMX por cable, 5 canales, grupos firmados.', estado: 'Placa v3 diseñada (sin probar)' },
   { nivel: 'Cubo Matter', chip: 'ESP32-C6FH4', que: 'Igual al cubo, más Thread/Matter para Apple Home, Google y Alexa sin nube.', estado: 'Siguiente' },
   { nivel: 'Cubo cableado', chip: 'CH32V208', que: 'Art-Net/sACN por Ethernet para escenarios y fachadas.', estado: 'Propuesta' },

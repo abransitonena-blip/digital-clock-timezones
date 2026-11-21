@@ -146,6 +146,12 @@ export const PROYECTOS = [
     docs: [['Esquema v3 (PDF)', 'docs/esquema_placa_control_v3.pdf'], ['Gerber v3 (ZIP)', 'docs/cubo_ap_control_v3_gerbers.zip'], ['BOM v3 (CSV)', 'docs/bom_v3.csv']],
   },
   {
+    id: 'nodo', nombre: 'Nodo AP · DMX → RGBW con CH32V003', estado: 'Gerber listos, sin fabricar',
+    img: 'img/nodo_ap_arriba.jpg',
+    texto: 'Decodificador DMX512 de bajo costo: CH32V003 soldado, RS-485 con entrada y salida, 4 MOSFET de nivel lógico (3 A por canal) y botón para aprender la dirección. Firmware propio sin SDK. DRC sin errores.',
+    docs: [['Esquema (PDF)', 'docs/esquema_nodo_ap.pdf'], ['Gerber (ZIP)', 'docs/nodo_ap_gerbers.zip'], ['BOM (CSV)', 'docs/bom_nodo.csv']],
+  },
+  {
     id: 'fuente127', nombre: 'Fuente universal 127 V (flyback)', estado: 'Diseño para planchar, sin probar',
     img: 'img/fuente127_vista_montaje.jpg',
     texto: 'Flyback UC3844 tipo cargador + LM2596-ADJ: de 127 V a 1.2–20 V 2 A en una sola placa.',
