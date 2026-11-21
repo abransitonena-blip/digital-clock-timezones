@@ -29,3 +29,6 @@ __pycache__/
 *-backups/
 hardware/**/kicad/*.dsn
 hardware/**/kicad/*.ses
+
+# generados al compilar el sitio desde hardware/cubo-led-modular/firmware/binarios
+public/firmware/*.bin

@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80.0mm" height="50.0mm" viewBox="0 0 80 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="80" height="50" rx="1" fill="#fbf8f2" stroke="#555" stroke-width="0.3"/>
+<path d="M70.00 15.90 L76.50 15.90" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M70.00 19.80 L76.50 19.80" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M39.60 12.00 L49.00 12.00 L49.00 17.20" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M49.00 12.00 L70.00 12.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M42.60 12.00 L42.60 15.20" fill="none" stroke="#ead0b3" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60.00 12.00 L60.00 15.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M56.00 12.00 L56.00 31.00 L60.00 31.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M53.50 29.40 L56.00 29.40" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M53.50 32.60 L53.50 35.20" fill="none" stroke="#ead0b3" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M37.70 12.00 L37.70 6.80" fill="none" stroke="#ead0b3" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M37.70 6.80 L5.00 6.80 L5.00 10.60" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 6.80 L15.00 11.60" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M36.00 12.00 L36.00 18.00" fill="none" stroke="#ead0b3" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M32.60 12.00 L32.60 18.00" fill="none" stroke="#ead0b3" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M42.60 18.40 L41.00 18.40" fill="none" stroke="#ead0b3" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M36.00 26.00 L36.00 38.00" fill="none" stroke="#ead0b3" stroke-width="7.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.00 40.00 L68.00 40.00" fill="none" stroke="#ead0b3" stroke-width="4.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M49.00 25.80 L49.00 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 35.70 L8.00 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 36.08 L17.50 40.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 31.20 L14.40 38.50" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M53.50 37.40 L53.50 39.00" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.00 17.40 L5.00 19.50 L2.20 19.50 L2.20 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M68.00 23.70 L68.00 40.00" fill="none" stroke="#ead0b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M70.00 23.70 L68.00 23.70" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60.00 20.00 L63.50 20.00 L63.50 25.00 L68.00 25.00" fill="none" stroke="#ead0b3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60.00 36.00 L68.00 36.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.00 21.40 L15.00 25.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8.00 25.00 L20.80 25.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M17.50 25.00 L17.50 31.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.40 25.00 L14.40 28.00" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.30 11.00 L34.30 9.00 L21.00 9.00 L21.00 15.50" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M21.00 15.50 L26.90 15.50" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M26.00 15.50 L26.00 22.04" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M29.10 15.50 L32.60 15.50" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 25.00 L26.00 25.00" fill="none" stroke="#ead0b3" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 25.00 L20.80 28.50" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 31.70 L20.80 33.70" fill="none" stroke="#ead0b3" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.80 35.90 L20.80 39.00" fill="none" stroke="#ead0b3" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.5" cy="15.31" r="1.5" fill="#d9a877"/><circle cx="76.5" cy="15.31" r="0.55" fill="#fff"/>
+<circle cx="76.5" cy="20.39" r="1.5" fill="#d9a877"/><circle cx="76.5" cy="20.39" r="0.55" fill="#fff"/>
+<circle cx="70" cy="12" r="1.2" fill="#d9a877"/><circle cx="70" cy="12" r="0.55" fill="#fff"/>
+<circle cx="70" cy="15.9" r="1.2" fill="#d9a877"/><circle cx="70" cy="15.9" r="0.55" fill="#fff"/>
+<circle cx="70" cy="19.8" r="1.2" fill="#d9a877"/><circle cx="70" cy="19.8" r="0.55" fill="#fff"/>
+<circle cx="70" cy="23.7" r="1.2" fill="#d9a877"/><circle cx="70" cy="23.7" r="0.55" fill="#fff"/>
+<rect x="72.60" y="15.38" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="72.60" y="18.57" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<circle cx="60" cy="15" r="1.2" fill="#d9a877"/><circle cx="60" cy="15" r="0.55" fill="#fff"/>
+<circle cx="60" cy="20" r="1.2" fill="#d9a877"/><circle cx="60" cy="20" r="0.55" fill="#fff"/>
+<circle cx="60" cy="31" r="1.2" fill="#d9a877"/><circle cx="60" cy="31" r="0.55" fill="#fff"/>
+<circle cx="60" cy="36" r="1.2" fill="#d9a877"/><circle cx="60" cy="36" r="0.55" fill="#fff"/>
+<rect x="52.60" y="28.52" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="52.60" y="31.73" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="52.80" y="34.60" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="52.80" y="36.80" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="32.05" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="33.75" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="35.45" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="37.15" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="38.85" y="10.25" width="1.1" height="3.5" rx="0.2" fill="#d9a877"/>
+<rect x="30.60" y="17.65" width="10.8" height="9.6" rx="0.2" fill="#d9a877"/>
+<rect x="47.70" y="15.20" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="47.70" y="23.80" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="41.70" y="14.32" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="41.70" y="17.52" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="3.35" y="9.35" width="3.3" height="2.5" rx="0.2" fill="#d9a877"/>
+<rect x="3.35" y="16.15" width="3.3" height="2.5" rx="0.2" fill="#d9a877"/>
+<rect x="12.50" y="10.00" width="5.0" height="3.2" rx="0.2" fill="#d9a877"/>
+<rect x="12.50" y="19.80" width="5.0" height="3.2" rx="0.2" fill="#d9a877"/>
+<rect x="6.70" y="25.30" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="6.70" y="33.70" width="2.6" height="4.0" rx="0.2" fill="#d9a877"/>
+<rect x="13.50" y="27.12" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="13.50" y="30.32" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<circle cx="17.5" cy="31" r="1.5" fill="#d9a877"/><circle cx="17.5" cy="31" r="0.55" fill="#fff"/>
+<circle cx="17.5" cy="36.08" r="1.5" fill="#d9a877"/><circle cx="17.5" cy="36.08" r="0.55" fill="#fff"/>
+<circle cx="26" cy="19.5" r="0.9" fill="#d9a877"/><circle cx="26" cy="19.5" r="0.55" fill="#fff"/>
+<circle cx="26" cy="22.04" r="0.9" fill="#d9a877"/><circle cx="26" cy="22.04" r="0.55" fill="#fff"/>
+<circle cx="26" cy="24.58" r="0.9" fill="#d9a877"/><circle cx="26" cy="24.58" r="0.55" fill="#fff"/>
+<rect x="26.30" y="14.80" width="1.2" height="1.4" rx="0.2" fill="#d9a877"/>
+<rect x="28.50" y="14.80" width="1.2" height="1.4" rx="0.2" fill="#d9a877"/>
+<rect x="19.90" y="27.62" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="19.90" y="30.82" width="1.8" height="1.75" rx="0.2" fill="#d9a877"/>
+<rect x="20.10" y="33.10" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<rect x="20.10" y="35.30" width="1.4" height="1.2" rx="0.2" fill="#d9a877"/>
+<circle cx="3.5" cy="3.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<circle cx="76.5" cy="3.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<circle cx="3.5" cy="46.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<circle cx="76.5" cy="46.5" r="1.6" fill="#fff" stroke="#999" stroke-width="0.3"/>
+<rect x="30.9" y="15.4" width="10.2" height="9.4" rx="0.4" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<path d="M32.6 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M34.3 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M36.0 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M37.7 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<path d="M39.4 11.2 V15.4" stroke="#111" stroke-width="0.5"/>
+<circle cx="39.4" cy="16.6" r="0.45" fill="#111"/><text x="36" y="20.6" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">U1</text><text x="36" y="22.4" font-size="1.0" text-anchor="middle" font-weight="400" fill="#111">LM2596S-ADJ</text>
+<text x="39.4" y="8.0" font-size="0.9" text-anchor="middle" font-weight="400" fill="#111">1</text><text x="32.6" y="8.0" font-size="0.9" text-anchor="middle" font-weight="400" fill="#111">5</text>
+<rect x="2.3" y="9.4" width="5.4" height="9.2" rx="0.5" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><rect x="2.3" y="9.4" width="5.4" height="1.3" fill="#111"/><text x="5" y="13.8" font-size="1.2" text-anchor="middle" font-weight="700" fill="#111">D1</text><text x="5" y="15.2" font-size="0.9" text-anchor="middle" font-weight="400" fill="#111">SS54</text>
+<rect x="9" y="10.5" width="12" height="12" rx="1.5" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><circle cx="15" cy="16.5" r="4.2" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="15" y="16.4" font-size="1.5" text-anchor="middle" font-weight="700" fill="#111">L1</text><text x="15" y="18.0" font-size="1.0" text-anchor="middle" font-weight="400" fill="#111">47µH</text>
+<path d="M45.45 16.35 H52.55 L54.15 17.950000000000003 V26.65 H43.85 V17.950000000000003 Z" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><circle cx="49" cy="21.5" r="4.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M44.7 23.2 A4.6 4.6 0 0 0 53.3 23.2 Z" fill="#111"/><text x="49" y="20.9" font-size="1.5" text-anchor="middle" font-weight="700" fill="#111">C1</text><text x="49" y="22.4" font-size="0.95" text-anchor="middle" font-weight="400" fill="#111">220µF 50V</text><text x="45.0" y="18.5" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">+</text><path d="M4.449999999999999 26.35 H11.55 L13.15 27.950000000000003 V36.65 H2.8499999999999996 V27.950000000000003 Z" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><circle cx="8" cy="31.5" r="4.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M3.7 33.2 A4.6 4.6 0 0 0 12.3 33.2 Z" fill="#111"/><text x="8" y="30.9" font-size="1.5" text-anchor="middle" font-weight="700" fill="#111">C3</text><text x="8" y="32.4" font-size="0.95" text-anchor="middle" font-weight="400" fill="#111">470µF 35V</text><text x="4.0" y="28.5" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">+</text>
+<rect x="41.5" y="14.0" width="2.2" height="5.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="42.6" y="21.3" font-size="0.9" text-anchor="middle" font-weight="700" fill="#111">C2</text><text x="42.6" y="22.4" font-size="0.75" text-anchor="middle" font-weight="400" fill="#111">1µF</text>
+<rect x="13.3" y="26.8" width="2.2" height="5.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="12.2" y="39.0" font-size="0.8" text-anchor="start" font-weight="700" fill="#111">C4 4.7µF</text>
+<rect x="26.2" y="14.6" width="3.6" height="1.8" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="28.0" y="13.6" font-size="0.85" text-anchor="middle" font-weight="700" fill="#111">R3 1k</text>
+<rect x="19.6" y="26.9" width="2.4" height="6.4" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="22.6" y="30.6" font-size="0.85" text-anchor="start" font-weight="700" fill="#111">R1</text><text x="22.6" y="31.7" font-size="0.7" text-anchor="start" font-weight="400" fill="#111">3.3k</text>
+<rect x="19.9" y="33.0" width="1.8" height="3.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M20.1 36.1 H21.5" stroke="#111" stroke-width="0.35"/><text x="22.6" y="35.0" font-size="0.85" text-anchor="start" font-weight="700" fill="#111">LED2</text><text x="22.6" y="36.1" font-size="0.7" text-anchor="start" font-weight="400" fill="#111">verde</text>
+<rect x="52.4" y="28.2" width="2.2" height="5.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="52.0" y="30.7" font-size="0.85" text-anchor="end" font-weight="700" fill="#111">R2</text><text x="52.0" y="31.8" font-size="0.75" text-anchor="end" font-weight="400" fill="#111">10k</text>
+<rect x="52.6" y="34.4" width="1.8" height="3.6" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M52.8 37.8 H54.2" stroke="#111" stroke-width="0.35"/><text x="52.0" y="36.0" font-size="0.85" text-anchor="end" font-weight="700" fill="#111">LED1</text><text x="52.0" y="37.1" font-size="0.7" text-anchor="end" font-weight="400" fill="#111">rojo</text>
+<rect x="72.4" y="15.1" width="2.2" height="5.5" rx="0.3" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><text x="73.5" y="23.4" font-size="0.85" text-anchor="middle" font-weight="700" fill="#111">C5</text><text x="73.5" y="24.5" font-size="0.7" text-anchor="middle" font-weight="400" fill="#111">100nF</text>
+<rect x="68.2" y="10.3" width="3.5999999999999943" height="15.099999999999998" rx="0.6" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<circle cx="60" cy="17.5" r="6.25" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<circle cx="60" cy="33.5" r="6.25" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<rect x="72.4" y="12.6" width="7.599999999999994" height="10.500000000000002" rx="0.6" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<rect x="13.7" y="28.4" width="7.600000000000001" height="10.300000000000004" rx="0.6" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<rect x="23.6" y="16.4" width="4.799999999999997" height="10.5" rx="0.6" fill="none" stroke="#2563eb" stroke-width="0.3" stroke-dasharray="1 0.7"/>
+<text x="60" y="26.4" font-size="1.2" text-anchor="middle" font-weight="700" fill="#2563eb">C6</text><text x="60" y="28.6" font-size="1.2" text-anchor="middle" font-weight="700" fill="#2563eb">C7</text>
+<text x="59.0" y="16.0" font-size="1.5" text-anchor="end" font-weight="700" fill="#c00">+</text><text x="59.0" y="32.0" font-size="1.5" text-anchor="end" font-weight="700" fill="#c00">+</text>
+<text x="66.6" y="12.6" font-size="1.4" text-anchor="middle" font-weight="700" fill="#c00">+</text><text x="66.6" y="26.0" font-size="1.6" text-anchor="middle" font-weight="700" fill="#111">−</text><text x="70" y="33.4" font-size="1.1" text-anchor="middle" font-weight="700" fill="#2563eb">BR1</text><text x="70" y="34.7" font-size="0.8" text-anchor="middle" font-weight="400" fill="#2563eb">KBP307</text>
+<text x="76.3" y="10.6" font-size="1.0" text-anchor="middle" font-weight="700" fill="#2563eb">ENTRADA</text><text x="17.5" y="34.1" font-size="1.3" text-anchor="middle" font-weight="700" fill="#c00">+</text><text x="17.5" y="27.6" font-size="0.9" text-anchor="middle" font-weight="700" fill="#2563eb">SALIDA</text>
+<text x="26" y="28.4" font-size="1.0" text-anchor="middle" font-weight="700" fill="#2563eb">TP1</text><text x="26" y="29.6" font-size="0.8" text-anchor="middle" font-weight="400" fill="#2563eb">20k</text>
+</svg>
