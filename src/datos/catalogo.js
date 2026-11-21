@@ -142,7 +142,7 @@ export const PROYECTOS = [
   {
     id: 'placa3', nombre: 'Placa de control v3 · ESP32-C3 soldado', estado: 'Gerber listos, sin fabricar',
     img: 'img/placa_control_v3_arriba.jpg',
-    texto: 'La v2 sin módulo: chip ESP32-C3FH4 en la placa con cristal, red RF, U.FL para antena externa y regulador propio. Mismo firmware. DRC sin errores, 0 redes abiertas.',
+    texto: 'La v2 sin módulo: chip ESP32-C3FH4 en la placa con cristal, red RF, U.FL para antena externa y regulador propio. Puede transmitir DMX para manejar Nodos AP (puente JP4). DRC sin errores, 0 redes abiertas.',
     docs: [['Esquema v3 (PDF)', 'docs/esquema_placa_control_v3.pdf'], ['Gerber v3 (ZIP)', 'docs/cubo_ap_control_v3_gerbers.zip'], ['BOM v3 (CSV)', 'docs/bom_v3.csv']],
   },
   {

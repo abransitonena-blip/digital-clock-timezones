@@ -5,7 +5,7 @@ const B = import.meta.env.BASE_URL
 export default function Instalar() {
   const [placa, setPlaca] = useState('v2')
   const [listo, setListo] = useState(false)
-  const fw = placa === 'v3' ? 'v2' : placa            // la v3 usa el mismo mapa de pines y firmware que la v2
+  const fw = placa                                    // cada placa tiene su binario (la v3 agrega la salida DMX)
   const soportado = typeof navigator !== 'undefined' && 'serial' in navigator
   useEffect(() => { import('esp-web-tools').then(() => setListo(true)).catch(() => setListo(false)) }, [])
   return (<>

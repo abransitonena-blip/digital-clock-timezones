@@ -55,7 +55,7 @@ export default function Plataformas() {
         <li>ESP32-C3FH4 (QFN32, flash de 4 MB dentro del chip) con el circuito de la guía de hardware de Espressif: cristal de 40 MHz ±10 ppm, 24 nH en serie en XTAL_P, LC en la alimentación de RF y RC en CHIP_EN.</li>
         <li>Antena externa por U.FL (sale por la pared del cubo) con red de acople CLC junto al chip.</li>
         <li>Regulador propio de 3.3 V (AP2112K) y programación por el USB nativo del chip en 6 pads.</li>
-        <li>Mismo mapa de pines que la v2: usa el mismo firmware y el mismo instalador.</li>
+        <li>Mismo mapa de pines que la v2. Con el puente JP4 cerrado el cubo transmite DMX por cable y maneja Nodos AP (modo espejo o puente desde Art-Net).</li>
       </ul>
       <p className="aviso" style={{ marginTop: 10 }}>Sin fabricar ni probar. La red de RF y los capacitores del cristal se tienen que ajustar en la placa real con analizador de redes y prueba de tono.</p>
     </section>

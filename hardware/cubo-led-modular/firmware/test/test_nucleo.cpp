@@ -301,6 +301,35 @@ int main() {
   v2.estadoJson(grande, sizeof grande, ok); CHECK(strstr(grande, "\"dmx\":\"cable\"") && strstr(grande, "\"tira\":\"RGBCCT\""));
   procesarComando(v2, "DMX OFF", ok, rr, sizeof rr); CHECK(!v2.entradaDmx(got, gn, 900));
 
+  // ---- Salida DMX por cable (placa v3): ESPEJO para Nodos AP y PUENTE Art-Net/sACN -> cable ----
+  uint8_t tx[512];
+  procesarComando(v2, "DMX SALIDA ESPEJO", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));   // v2: no transmite
+  v2.placaEmisorDmx(true);
+  procesarComando(v2, "DMX CABLE 1", ok, rr, sizeof rr);
+  CHECK(!v2.configurarSalidaDmx(SalidaDmx::ESPEJO, 4));                    // un transceptor: o entra o sale
+  procesarComando(v2, "DMX OFF", ok, rr, sizeof rr);
+  procesarComando(v2, "DMX SALIDA ESPEJO 0", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  procesarComando(v2, "DMX SALIDA ESPEJO 129", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));
+  procesarComando(v2, "DMX SALIDA ESPEJO 3", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK") && v2.salidaDmx() == SalidaDmx::ESPEJO);
+  CHECK(!v2.configurarDmx(ProtoDmx::CABLE, 0, 1));                         // y al revés
+  Salida sx{}; sx.pwm[0] = 4095; sx.pwm[1] = 0; sx.pwm[2] = 1; sx.pwm[3] = (uint16_t)lroundf(4095 * powf(128 / 255.f, 2.2f));
+  CHECK(v2.tramaSalidaDmx(sx, 1000, tx) == 12);
+  CHECK(tx[0] == 255 && tx[1] == 0 && tx[2] >= 1 && tx[3] == 128);         // inverso de la gamma del nodo
+  CHECK(tx[4] == 255 && tx[8] == 255 && tx[11] == 128);                     // 3 grupos iguales: nodos en 1, 5, 9
+  procesarComando(v2, "DMX SALIDA ESPEJO", ok, rr, sizeof rr); CHECK(v2.tramaSalidaDmx(sx, 1000, tx) == 512);
+  procesarComando(v2, "DMX SALIDA PUENTE", ok, rr, sizeof rr); CHECK(!strncmp(rr, "ERR", 3));   // falta Art-Net/sACN
+  CHECK(v2.configurarDmx(ProtoDmx::ARTNET, 0, 1));
+  procesarComando(v2, "DMX SALIDA PUENTE", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK"));
+  CHECK(v2.tramaSalidaDmx(sx, 5000, tx) == 0);                              // sin paquetes todavía: no transmite
+  uint8_t univ[20]; for (int i = 0; i < 20; ++i) univ[i] = (uint8_t)(i * 10);
+  uint8_t pkx[600]; v2.paqueteRed(pkx, artnet(pkx, 0, univ, 20), 6000);
+  CHECK(v2.tramaSalidaDmx(sx, 6010, tx) == 20 && tx[0] == 0 && tx[19] == 190);
+  CHECK(v2.tramaSalidaDmx(sx, 6000 + 3000, tx) == 0);                       // se cortó la red: deja de reenviar
+  v2.configurarDmx(ProtoDmx::OFF, 0, 1); CHECK(v2.salidaDmx() == SalidaDmx::OFF);   // PUENTE sin red se apaga
+  v2.configurarDmx(ProtoDmx::ARTNET, 0, 1); procesarComando(v2, "DMX SALIDA ESPEJO 2", ok, rr, sizeof rr);
+  v2.estadoJson(grande, sizeof grande, ok); CHECK(strstr(grande, "\"dmx_sal\":\"espejo\"") && strstr(grande, "\"dmx_tx\":true"));
+  procesarComando(v2, "DMX SALIDA OFF", ok, rr, sizeof rr); CHECK(!strcmp(rr, "OK"));
+
   printf("%d/%d pruebas OK\n", total - fallos, total);
   return fallos ? 1 : 0;
 }

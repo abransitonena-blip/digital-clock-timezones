@@ -30,6 +30,7 @@ static const int P_TARJETA = 0;   // ADC: R_ID de la tarjeta (pull-up 47k)
 static const int P_VIN     = 1;   // ADC: Vin / 11 (100k / 10k)
 #ifndef CUBO_PLACA
 #define CUBO_PLACA 2               // 1: placa v1 (botón en GPIO2) · 2: placa v2 (DMX por cable + 5.º canal)
+                                   // 3: placa v3 (chip soldado; el RS-485 puede transmitir: puente JP4 en TX)
 #endif
 static const int P_BOTON   = 2;   // v1: botón a GND (pull-up 10k) · v2: RO del transceptor RS-485 (DMX512)
 static const int P_CANAL5  = 10;  // v2: 5.º canal (blanco frío) en el mismo GPIO que DAT; nunca se usan juntos
@@ -61,7 +62,8 @@ static WiFiUDP udp_grupo;
 static char grupo_nom[25] = "", grupo_clave[41] = "";
 static uint64_t grupo_ultimo = 0, grupo_enviado = 0;
 static bool grupo_udp = false;
-static bool uart_dmx = false;
+static uint8_t uart_dmx = 0;       // 0 apagado · 1 recibe (DMX CABLE) · 2 transmite (DMX SALIDA, placa v3)
+static ap::Salida ult_salida{};
 static bool reiniciar_udp = true, ota_negada = false, ota_activa = false;
 static volatile bool conectado = false;
 static bool en_previo = false, guardar_pendiente = false, integraciones = false, wifi_ok = false;
@@ -126,6 +128,7 @@ static void cargar() {
   ctl.fijarTira((ap::Tira)nvs.getUChar("tira", 0));       // si no corresponde a la tarjeta, se queda en RGBW
   ctl.fijarCCT(nvs.getUShort("cct", 4000));
   ctl.configurarDmx((ap::ProtoDmx)nvs.getUChar("dmxp", 0), nvs.getUShort("dmxu", 1), nvs.getUShort("dmxd", 1));
+  ctl.configurarSalidaDmx((ap::SalidaDmx)nvs.getUChar("dmxs", 0), nvs.getUShort("dmxg", 128));
   { ap::Escena e[ap::N_ESCENAS] = {}; if (nvs.getBytes("esc", e, sizeof e) == sizeof e) ctl.cargarEscenas(e); }
   if (nvs.getBool("prog", false)) ctl.programar(true, nvs.getUShort("pon", 0), nvs.getUShort("poff", 0));
   tira.updateLength(nvs.getUShort("leds", 60));
@@ -148,6 +151,7 @@ static void guardar() {
   nvs.putBool("prog", ctl.horarioActivo()); nvs.putUShort("pon", ctl.minEncender()); nvs.putUShort("poff", ctl.minApagar());
   nvs.putUShort("leds", tira.numPixels());
   nvs.putUChar("dmxp", (uint8_t)ctl.protoDmx()); nvs.putUShort("dmxu", ctl.universoDmx()); nvs.putUShort("dmxd", ctl.direccionDmx());
+  nvs.putUChar("dmxs", (uint8_t)ctl.salidaDmx()); nvs.putUShort("dmxg", ctl.gruposSalidaDmx());
   nvs.putBytes("esc", ctl.escenas(), sizeof(ap::Escena) * ap::N_ESCENAS);
   if (ctl.perfil() == ap::PERFIL_PERSONAL) { nvs.putFloat("vp", ctl.vmaxPerfil()); nvs.putFloat("ip", ctl.limiteCorriente()); }
   nvs.end();
@@ -397,18 +401,36 @@ static void led_estado(uint32_t t) {
 }
 static void uart_dmx_atender() {                 // DMX512 por cable: 250 kbit/s 8N2, la ruptura separa tramas
 #if CUBO_PLACA >= 2
-  bool quiero = ctl.protoDmx() == ap::ProtoDmx::CABLE;
-  if (quiero && !uart_dmx) {
-    Serial1.setRxBufferSize(1024);
-    Serial1.onReceive([] { while (Serial1.available()) rx_dmx.byte((uint8_t)Serial1.read()); });
-    Serial1.onReceiveError([](hardwareSerial_error_t e) {
-      if (e == UART_BREAK_ERROR) { while (Serial1.available()) rx_dmx.byte((uint8_t)Serial1.read()); rx_dmx.ruptura(); }
-    });
-    Serial1.begin(250000, SERIAL_8N2, P_BOTON, -1);
-    uart_dmx = true;
-  } else if (!quiero && uart_dmx) { Serial1.end(); uart_dmx = false; }
+  uint8_t quiero = ctl.protoDmx() == ap::ProtoDmx::CABLE ? 1 : ctl.salidaDmx() != ap::SalidaDmx::OFF ? 2 : 0;
+  if (quiero != uart_dmx) {
+    if (uart_dmx) Serial1.end();
+    if (quiero == 1) {
+      Serial1.setRxBufferSize(1024);
+      Serial1.onReceive([] { while (Serial1.available()) rx_dmx.byte((uint8_t)Serial1.read()); });
+      Serial1.onReceiveError([](hardwareSerial_error_t e) {
+        if (e == UART_BREAK_ERROR) { while (Serial1.available()) rx_dmx.byte((uint8_t)Serial1.read()); rx_dmx.ruptura(); }
+      });
+      Serial1.begin(250000, SERIAL_8N2, P_BOTON, -1);
+    } else if (quiero == 2) {                        // placa v3: GPIO2 maneja DI; el puente JP4 habilita DE y apaga RO
+      Serial1.setTxBufferSize(1024);                 // la trama sale en segundo plano: el control a 100 Hz no espera
+      Serial1.begin(250000, SERIAL_8N2, -1, P_BOTON);
+    }
+    uart_dmx = quiero;
+  }
   static uint8_t trama[512]; uint16_t n;
-  if (uart_dmx && rx_dmx.tomar(trama, n)) ctl.entradaDmx(trama, n, millis());
+  if (uart_dmx == 1 && rx_dmx.tomar(trama, n)) ctl.entradaDmx(trama, n, millis());
+  static uint32_t t_tx = 0; uint32_t t = millis();
+  if (uart_dmx == 2 && t - t_tx >= 30) {            // ~33 tramas/s (una de 513 bytes dura 23 ms)
+    t_tx = t;
+    n = ctl.tramaSalidaDmx(ult_salida, t, trama);
+    if (n) {
+      Serial1.flush();                               // la trama anterior ya terminó
+      Serial1.updateBaudRate(90000); Serial1.write((uint8_t)0); Serial1.flush();   // 0x00 a 90 kbaud = ruptura de 100 µs + MAB
+      Serial1.updateBaudRate(250000);
+      Serial1.write((uint8_t)0);                     // código de inicio
+      Serial1.write(trama, n);
+    }
+  }
 #endif
 }
 static void boton(uint32_t t) {
@@ -435,6 +457,7 @@ void setup() {
   pinMode(P_EN, OUTPUT); digitalWrite(P_EN, LOW);      // reductor apagado hasta decidir
   pinMode(P_LED, OUTPUT); pinMode(P_BOTON, INPUT_PULLUP);
   ctl.placaCincoCanales(CUBO_PLACA >= 2);
+  ctl.placaEmisorDmx(CUBO_PLACA >= 3);
   for (int i = 0; i < 4; ++i) { ledcAttach(P_PWM[i], 19000, 12); ledcWrite(P_PWM[i], 0); }
   Serial.begin(115200);
   analogReadResolution(12);
@@ -484,6 +507,7 @@ void loop() {
     medir();
     if (en_previo && (ina_r(0x06) & 0x0010)) ctl.fallaExterna(ap::Falla::SOBRECORRIENTE, t); // AFF: ALERT disparó
     ap::Salida s = ctl.paso(med, t);
+    ult_salida = s;
     if (s.habilitar_reductor && !en_previo) ina_r(0x06);  // leer Mask/Enable libera el ALERT
     en_previo = s.habilitar_reductor;
     dac_w(s.vdac);

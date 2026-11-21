@@ -17,7 +17,7 @@ Regenerar: `python3 cubo.py && python3 render.py && python3 hacer_documento.py &
   - calcula el voltaje y el DAC;
   - aplica el arranque suave, la limitación suave de corriente, el recorte térmico, las fallas con reintento y los efectos;
   - interpreta el protocolo de texto.
-- `firmware/test/test_nucleo.cpp`: **234 pruebas** que corren en PC. Comando:
+- `firmware/test/test_nucleo.cpp`: **252 pruebas** que corren en PC. Comando:
   `cd firmware/test && g++ -std=c++17 -I../src test_nucleo.cpp ../src/nucleo.cpp -o t && ./t`
 - **Compilación real:** `firmware/compilar.sh` usa arduino-cli + núcleo ESP32 3.1.1 con las librerías en versión fija y compila **sin errores**: v2 1.39 MB y v1 1.38 MB, el 70 % de la partición `min_spiffs`. La partición de fábrica de 1.25 MB **no alcanza**.
   - `firmware/binarios/`: imágenes completas (para la dirección 0x0) y binarios OTA, para cada placa.
@@ -62,7 +62,15 @@ El cartucho debe dar al menos Vout + 1.2 V. Para 12 V y 15 V se usa el de 24 V; 
 Decodificador DMX512 de bajo costo con el CH32V003 soldado, 4 salidas PWM de 3 A y firmware propio sin SDK. Detalles en `nodo/README.md`.
 
 ## Placa de control v3 (`placa-control-v3/`): ESP32-C3 soldado, sin módulo
-Es la v2 con el **chip ESP32-C3FH4** (QFN32 5 × 5, flash de 4 MB dentro del chip) soldado directo en lugar del SuperMini enchufable. Usa el **mismo mapa de pines**, así que corre el mismo firmware (`CUBO_PLACA=2`) y el mismo instalador web.
+Es la v2 con el **chip ESP32-C3FH4** (QFN32 5 × 5, flash de 4 MB dentro del chip) soldado directo en lugar del SuperMini enchufable. Usa el **mismo mapa de pines** que la v2. Su firmware (`CUBO_PLACA=3`) agrega la **salida DMX por cable** para manejar Nodos AP.
+
+- **DMX que entra o sale:** el GPIO2 va a RO y a DI del RS‑485.
+  - Por defecto, R30 pone DE y /RE en 0 y el cubo **recibe** (`DMX CABLE dirección`).
+  - Con el puente de soldadura **JP4** cerrado, RO queda en alta impedancia y el cubo **transmite**:
+    - `DMX SALIDA ESPEJO [grupos]` repite su color en grupos de 4 canales (Nodos AP en las direcciones 1, 5, 9…), con la curva gamma del nodo compensada;
+    - `DMX SALIDA PUENTE` reenvía al cable el universo que llega por Art‑Net/sACN;
+    - `DMX SALIDA OFF` apaga la salida.
+  - La ruptura se genera mandando 0x00 a 90 kbaud (100 µs + MAB). Se envían unas 33 tramas por segundo, en segundo plano.
 
 - **Circuito del chip:** según la guía de hardware de Espressif (esquema de referencia y lista de verificación del ESP32-C3):
   - VDD3P3 con 2.0 nH + 1 µF, y 10 µF + 0.1 µF del lado de 3V3; VDDA con 1 µF + 10 nF; RTC y CPU con 0.1 µF; VDD_SPI (alimenta la flash) con 1 µF;
@@ -72,7 +80,7 @@ Es la v2 con el **chip ESP32-C3FH4** (QFN32 5 × 5, flash de 4 MB dentro del chi
 - **3.3 V propio:** AP2112K-3.3 (600 mA), que antes traía el módulo.
 - **Programación:** por el USB nativo del chip en 6 pads para puntas pogo (5V · D− · D+ · GND · EN · IO9). Con el chip virgen, IO9 a GND al conectar = modo descarga. Después, OTA por Wi-Fi.
 - **Huellas:** las del chip, el cristal, el U.FL y los 0402 se leen tal cual de la librería oficial de KiCad (`huellas_kicad/`, CC-BY-SA 4.0 con excepción para diseños).
-- **Ruteo:** DRC sin errores, 0 redes abiertas, 268 vías. Junto al chip: pistas de 0.15 mm, abanico fijo de salida de los pines, pistas fijas para RF y cristal, y plano de GND inferior sin cortes bajo el cristal y la red RF. `reparar.py` termina de cerrar redes arrancando y rehaciendo solo los vecinos que estorban.
+- **Ruteo:** DRC sin errores, 0 redes abiertas, 270 vías. El cambio del RS‑485 se aplicó con `eco.py`, que conserva el ruteo y rehace solo las redes afectadas. Junto al chip: pistas de 0.15 mm, abanico fijo de salida de los pines, pistas fijas para RF y cristal, y plano de GND inferior sin cortes bajo el cristal y la red RF. `reparar.py` termina de cerrar redes arrancando y rehaciendo solo los vecinos que estorban.
 - **Archivos:** Gerber en `cubo_ap_control_v3_gerbers.zip`, BOM y CPL, esquema en `esquema_placa_control_v3.pdf`.
 - **Hay que ajustar en la placa real:** la red CLC (arranca con L4 = 0 Ω y C40/C41 sin poblar) con analizador de redes, y los capacitores del cristal con la prueba de tono de Espressif hasta ±10 ppm. La pista de RF es corta (2 mm, coplanar de ≈57 Ω). VDDA sale por una vía porque queda encerrada entre el cristal y la RF.
 
@@ -133,7 +141,7 @@ Placa de 2 capas, 68 × 64 mm, hecha para fabricarse y ensamblarse (JLCPCB o sim
 - **Luz:** `ON`, `OFF`, `BRILLO 0-100`, `RGBW r g b w`, `V 11.5`, `MODO FIJO|RESPIRA|ARCOIRIS|FUEGO|COMETA`, `RESET`.
 - **Tira:** `TIRA RGBW|RGB|CCT|MONO|WS2812B|SK6812|WS2811|WS2815`, `CCT 2700-6500`, `LEDS n`.
 - **Horario:** `HORA epoch_local`, `PROG 18:30 01:00` (o `PROG OFF`), `ZONA -6`.
-- **Escenas y DMX:** `ESCENA n`, `ESCENA GUARDAR n`, `DMX ARTNET|SACN universo dirección`, `DMX CABLE dirección` (v2), `DMX OFF`. Tira `RGBCCT` en la v2.
+- **Escenas y DMX:** `ESCENA n`, `ESCENA GUARDAR n`, `DMX ARTNET|SACN universo dirección`, `DMX CABLE dirección` (v2 y v3), `DMX SALIDA ESPEJO [grupos]|PUENTE|OFF` (v3 con JP4 cerrado), `DMX OFF`. Tira `RGBCCT` desde la v2.
 - **Grupos:** `GRUPO nombre clave`, `GRUPO OFF`, `TODOS orden`.
 - **Solo por USB:** `OLVIDAR` borra los vínculos Bluetooth.
 - **Tarjeta y red:** `LIMITES v i`, `WIFI red clave` (o `WIFI OFF`), `NOMBRE x`, `INTEGRACIONES ON|OFF`.

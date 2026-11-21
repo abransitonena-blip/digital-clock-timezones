@@ -20,7 +20,7 @@ export default function Panel() {
   const [brillo, setBrillo] = useState(60), [volt, setVolt] = useState(12), [cct, setCct] = useState(4000)
   const [color, setColor] = useState('#ffffff'), [w, setW] = useState(0)
   const [hon, setHon] = useState('18:30'), [hoff, setHoff] = useState('01:00')
-  const [esc, setEsc] = useState(1), [dmxp, setDmxp] = useState('ARTNET'), [dmxu, setDmxu] = useState(1), [dmxd, setDmxd] = useState(1)
+  const [esc, setEsc] = useState(1), [dsal, setDsal] = useState('ESPEJO'), [dgru, setDgru] = useState(8), [dmxp, setDmxp] = useState('ARTNET'), [dmxu, setDmxu] = useState(1), [dmxd, setDmxd] = useState(1)
   const [pv, setPv] = useState(13), [pi, setPi] = useState(2), [ssid, setSsid] = useState(''), [clave, setClave] = useState('')
   const editando = useRef(false)
   useEffect(() => {
@@ -171,6 +171,16 @@ export default function Panel() {
               <span className="mut peq">{!s?.dmx || s.dmx === 'off' ? 'Sin DMX' : `${s.dmx === 'cable' ? 'Cable' : s.dmx === 'artnet' ? 'Art-Net U' + s.univ : 'sACN U' + s.univ} @${s.dir} · ${s.dmx_vivo ? 'recibiendo' : 'sin señal'}`}</span>
               <div className="fila" style={{ flexWrap: 'nowrap' }}><button className="boton" onClick={() => enviar('DMX OFF')}>Apagar</button><button className="boton pri" onClick={() => enviar(dmxp === 'CABLE' ? `DMX CABLE ${dmxd}` : `DMX ${dmxp} ${dmxu} ${dmxd}`)}>Aplicar</button></div>
             </div>
+            {s?.dmx_tx && <div>
+                <label className="campo" style={{ marginTop: 10 }}>Salida a Nodos AP por cable (placa v3, puente JP4 cerrado)</label>
+                <div className="fila" style={{ flexWrap: 'wrap' }}>
+                  <select style={{ flex: '1 1 180px', minWidth: 0 }} value={dsal} onChange={e => setDsal(e.target.value)}><option value="ESPEJO">Espejo: copian este cubo</option><option value="PUENTE">Puente desde Art-Net/sACN</option></select>
+                  {dsal === 'ESPEJO' && <input type="number" min="1" max="128" value={dgru} onChange={e => setDgru(e.target.value)} title="Nodos (grupos de 4 canales)" style={{ width: 70 }} />}
+                  <button className="boton pri" onClick={() => enviar(dsal === 'ESPEJO' ? `DMX SALIDA ESPEJO ${dgru}` : 'DMX SALIDA PUENTE')}>Enviar</button>
+                  <button className="boton" onClick={() => enviar('DMX SALIDA OFF')}>Parar</button>
+                </div>
+                <span className="mut peq">{s.dmx_sal && s.dmx_sal !== 'off' ? `Transmitiendo: ${s.dmx_sal}` : 'Sin salida DMX'}</span>
+            </div>}
             <p className="mut peq" style={{ marginTop: 6 }}>Analógicas: atenuador + R, G, B, W (RGB+CCT: + blanco frío). Direccionables: 3 o 4 canales por LED. Para consolas, xLights, QLC+, Resolume o MadMapper.</p>
           </div>
 

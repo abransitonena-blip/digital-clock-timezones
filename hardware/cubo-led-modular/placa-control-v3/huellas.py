@@ -33,6 +33,8 @@ def huella(tipo):
     if tipo == "XTAL3225": return kicad("Crystal_SMD_3225-4Pin_3.2x2.5mm")
     if tipo == "UFL":                                                    # patio = cuerpo (sin la lengüeta de 0.7 mm del pad central)
         p, _ = kicad("U.FL_Hirose_U.FL-R-SMT-1_Vertical"); return p, (-1.32, -1.8, 2.28, 1.8)
+    if tipo == "SJ2":                                                    # puente de soldadura de 2 pads (abierto)
+        return [("1", -0.65, 0, 0.9, 1.3, "r", None), ("2", 0.65, 0, 0.9, 1.3, "r", None)], (2.8, 1.8)
     if tipo == "PROG6":                                                  # 6 pads SMD para puntas pogo, paso 2.54 (en x)
         return [(str(i + 1), -6.35 + 2.54 * i, 0, 1.5, 1.5, "c", None) for i in range(6)], (16.0, 2.2)
     if tipo == "0603": return _dos(0.8, 0.9, 1.0), (3.0, 1.6)

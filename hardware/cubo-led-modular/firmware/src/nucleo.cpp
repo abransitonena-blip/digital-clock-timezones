@@ -392,9 +392,33 @@ bool leerE131(const uint8_t* p, size_t len, uint16_t& u, const uint8_t*& d, uint
   n = cuenta - 1; d = p + 126; return true;
 }
 bool Controlador::configurarDmx(ProtoDmx p, uint16_t u, uint16_t dir) {
-  if (p == ProtoDmx::CABLE) u = 0;
+  if (p == ProtoDmx::CABLE) { if (sal_dmx_ != SalidaDmx::OFF) return false; u = 0; }   // un solo transceptor
+  if (sal_dmx_ == SalidaDmx::PUENTE && p != ProtoDmx::ARTNET && p != ProtoDmx::SACN) sal_dmx_ = SalidaDmx::OFF;
   if (dir < 1 || dir > 512 || (p == ProtoDmx::SACN && (u < 1 || u > 63999)) || (p == ProtoDmx::ARTNET && u > 32767)) return false;
   dmx_proto_ = p; dmx_univ_ = u; dmx_dir_ = dir; t_dmx_ = 0; return true;
+}
+bool Controlador::configurarSalidaDmx(SalidaDmx m, uint16_t grupos) {
+  if (m == SalidaDmx::OFF) { sal_dmx_ = m; return true; }
+  if (!emisor_dmx_ || dmx_proto_ == ProtoDmx::CABLE) return false;
+  if (m == SalidaDmx::PUENTE && dmx_proto_ != ProtoDmx::ARTNET && dmx_proto_ != ProtoDmx::SACN) return false;
+  if (m == SalidaDmx::ESPEJO && (grupos < 1 || grupos > 128)) return false;
+  sal_dmx_ = m; if (m == SalidaDmx::ESPEJO) grupos_dmx_ = grupos;
+  return true;
+}
+// Inverso de la curva gamma 2.2 del nodo: así el nodo reproduce el mismo PWM que el cubo.
+static uint8_t aNivelDmx(uint16_t pwm12) {
+  if (pwm12 == 0) return 0;
+  long v = lroundf(255.f * powf(pwm12 / 4095.f, 1.f / 2.2f));
+  return (uint8_t)(v < 1 ? 1 : v > 255 ? 255 : v);
+}
+uint16_t Controlador::tramaSalidaDmx(const Salida& s, uint32_t ahora, uint8_t* out) const {
+  if (sal_dmx_ == SalidaDmx::ESPEJO) {
+    uint8_t g[4]; for (int i = 0; i < 4; ++i) g[i] = aNivelDmx(s.pwm[i]);
+    for (uint16_t k = 0; k < grupos_dmx_; ++k) memcpy(out + 4 * k, g, 4);
+    return (uint16_t)(4 * grupos_dmx_);
+  }
+  if (sal_dmx_ == SalidaDmx::PUENTE && dmxActivo(ahora)) { memcpy(out, dmx_, dmx_n_); return dmx_n_; }
+  return 0;
 }
 bool Controlador::paqueteRed(const uint8_t* p, size_t len, uint32_t ahora) {
   uint16_t u, n; const uint8_t* d;
@@ -444,14 +468,15 @@ size_t Controlador::estadoJson(char* buf, size_t n, const Medicion& m) const {
     "\"v\":%.2f,\"i\":%.3f,\"w\":%.1f,\"vin\":%.1f,\"t\":%.1f,\"brillo\":%d,"
     "\"rgbw\":[%u,%u,%u,%u],\"modo\":\"%s\",\"falla\":\"%s\",\"tira\":\"%s\",\"cct\":%u,"
     "\"prog\":%s,\"on_min\":%u,\"off_min\":%u,\"hora\":%d,\"dmx\":\"%s\",\"univ\":%u,\"dir\":%u,"
-    "\"dmx_vivo\":%s,\"escenas\":%u}",
+    "\"dmx_vivo\":%s,\"escenas\":%u,\"dmx_sal\":\"%s\",\"dmx_tx\":%s}",
     on_ ? 1 : 0, perfil_ < 0 ? "-" : PERFILES[perfil_].nombre, vmax,
     perfil_ < 0 ? 0.f : vminDeRed(red_), limiteCorriente(), vset_,
     m.vout, m.iout, m.vout * m.iout, m.vin, m.temp_c, (int)lroundf(brillo_ * 100),
     color_.r, color_.g, color_.b, color_.w, nombreModo(modo_), nombreFalla(falla_), nombreTira(tira_), cct_,
     prog_on_ ? "true" : "false", min_on_, min_off_, minutoDelDia(t_ultimo_),
     dmx_proto_ == ProtoDmx::ARTNET ? "artnet" : dmx_proto_ == ProtoDmx::SACN ? "sacn" : dmx_proto_ == ProtoDmx::CABLE ? "cable" : "off", dmx_univ_, dmx_dir_,
-    dmxActivo(t_ultimo_) ? "true" : "false", mascaraEscenas());
+    dmxActivo(t_ultimo_) ? "true" : "false", mascaraEscenas(),
+    sal_dmx_ == SalidaDmx::ESPEJO ? "espejo" : sal_dmx_ == SalidaDmx::PUENTE ? "puente" : "off", emisor_dmx_ ? "true" : "false");
   return w < 0 ? 0 : ((size_t)w < n ? (size_t)w : n - 1);
 }
 
@@ -523,6 +548,13 @@ size_t procesarComando(Controlador& c, const char* linea, const Medicion& m, cha
   }
   if (igual(arg[0], "DMX")) {
     if (na == 2 && igual(arg[1], "OFF")) { c.configurarDmx(ProtoDmx::OFF, 0, 1); return resp(r, n, "OK"); }
+    if (na >= 3 && igual(arg[1], "SALIDA")) {
+      bool ok = false;
+      if (na == 3 && igual(arg[2], "OFF")) ok = c.configurarSalidaDmx(SalidaDmx::OFF, 0);
+      else if (na == 3 && igual(arg[2], "PUENTE")) ok = c.configurarSalidaDmx(SalidaDmx::PUENTE, 0);
+      else if ((na == 3 || na == 4) && igual(arg[2], "ESPEJO")) ok = c.configurarSalidaDmx(SalidaDmx::ESPEJO, na == 4 ? (uint16_t)atoi(arg[3]) : 128);
+      return resp(r, n, ok ? "OK" : "ERR salida DMX: solo placa v3 con el puente en TX, sin DMX CABLE; PUENTE requiere Art-Net o sACN; ESPEJO 1-128 grupos");
+    }
     if (na == 3 && igual(arg[1], "CABLE")) {
       if (c.configurarDmx(ProtoDmx::CABLE, 0, (uint16_t)atoi(arg[2]))) return resp(r, n, "OK");
     }
@@ -530,7 +562,7 @@ size_t procesarComando(Controlador& c, const char* linea, const Medicion& m, cha
       ProtoDmx p = igual(arg[1], "ARTNET") ? ProtoDmx::ARTNET : ProtoDmx::SACN;
       if (c.configurarDmx(p, (uint16_t)atoi(arg[2]), (uint16_t)atoi(arg[3]))) return resp(r, n, "OK");
     }
-    return resp(r, n, "ERR usa DMX ARTNET|SACN universo direccion, DMX CABLE direccion o DMX OFF");
+    return resp(r, n, "ERR usa DMX ARTNET|SACN universo direccion, DMX CABLE direccion, DMX SALIDA ESPEJO [grupos]|PUENTE|OFF o DMX OFF");
   }
   if (igual(arg[0], "LIMITES") && na == 3) {
     float v, i; if (!num(arg[1], v) || !num(arg[2], i) || !c.fijarLimitesPersonal(v, i)) return resp(r, n, "ERR solo tarjeta PERSONAL, 3-24.4 V y 0.2-5 A");

@@ -1,5 +1,5 @@
 """Cubo AP · placa de control v3: ESP32-C3 SOLDADO DIRECTO (chip QFN32, sin módulo) + DMX512 por cable + 5 canales. 68 × 64 mm, 2 capas.
-Mismo mapa de GPIO que la v2: corre el mismo firmware (CUBO_PLACA=2). Circuito del chip según la guía de diseño de hardware
+Mismo mapa de GPIO que la v2 (firmware CUBO_PLACA=3: agrega DMX SALIDA si JP4 está cerrado). Circuito del chip según la guía de diseño de hardware
 de Espressif (ESP32-C3, esquema de referencia y lista de verificación): cristal 40 MHz ±10 ppm, inductor serie de 24 nH en XTAL_P,
 LC en VDD3P3, CLC de acople RF, RC en CHIP_EN. Única fuente de verdad: componentes, valores, conexiones y posición.
 Coordenadas en mm con origen en el centro del cubo; +x hacia la salida LED (derecha), +y hacia atrás (ventila)."""
@@ -150,9 +150,12 @@ c("C24", "0805", "1 µF", "", 21.4, -15.6, 0, {"1": "5V", "2": "GND"})
 
 # ---------------- DMX512 por cable (RS-485, solo recepción) ----------------
 c("U9", "SOIC8", "RS-485 3.3 V", "Transceptor RS-485 3.3 V con fail-safe, pinout xx485 (p. ej. THVD1410, SN65HVD72)", -19.5, -21.0, 0,
-  {"1": "DMX_RX", "2": "GND", "3": "GND", "4": "DMX_DI", "5": "GND", "6": "DMX_A", "7": "DMX_B", "8": "3V3"})
+  {"1": "DMX_RX", "2": "DMX_DIR", "3": "DMX_DIR", "4": "DMX_RX", "5": "GND", "6": "DMX_A", "7": "DMX_B", "8": "3V3"})
+# GPIO2 va a RO y a DI: recibiendo (DE=/RE=0) el driver está apagado; transmitiendo (DE=/RE=1) RO queda en alta impedancia
+# y el GPIO2 maneja DI. Así el mismo pin sirve para DMX CABLE (entrada) o DMX SALIDA (Nodos AP), según JP4.
 c("C23", "0603", "100 nF", "", -21.4, -15.8, 0, {"1": "3V3", "2": "GND"})
-c("R30", "0603", "10k", "DI fijo (solo recepción)", -17.6, -15.8, 0, {"1": "3V3", "2": "DMX_DI"})
+c("R30", "0603", "10k", "DE//RE a GND: recibe por defecto", -17.6, -15.8, 0, {"1": "DMX_DIR", "2": "GND"})
+c("JP4", "SJ2", "TX", "Puente de soldadura: cerrado = el cubo TRANSMITE DMX (maestro de Nodos AP)", -15.0, -17.6, 90, {"1": "DMX_DIR", "2": "3V3"})
 c("D7", "SOT23", "SM712", "TVS para RS-485 (−7/+12 V)", -24.5, -22.0, 0, {"1": "DMX_A", "2": "DMX_B", "3": "GND"})
 c("R31", "0603", "120", "Terminación DMX", -14.2, -21.2, 0, {"1": "DMX_A", "2": "TERM"})
 c("JP3", "HDR1x2", "TERM", "Puente: colocar solo en el último equipo de la línea", -13.0, -23.8, 90, {"1": "TERM", "2": "DMX_B"})

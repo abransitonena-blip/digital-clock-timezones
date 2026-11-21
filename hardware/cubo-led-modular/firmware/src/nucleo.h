@@ -82,6 +82,9 @@ struct Salida {          // lo que el firmware aplica al hardware en cada ciclo
 
 // ---------- DMX por red: Art-Net (UDP 6454) y sACN / E1.31 (UDP 5568) ----------
 enum class ProtoDmx : uint8_t { OFF, ARTNET, SACN, CABLE };
+// Salida DMX por cable (placa v3 con el puente del RS-485 en TX): ESPEJO repite el color del cubo en grupos
+// de 4 canales (R G B W) para Nodos AP; PUENTE reenvía el universo que llega por Art-Net/sACN.
+enum class SalidaDmx : uint8_t { OFF, ESPEJO, PUENTE };
 
 // DMX512 por cable (RS-485 a 250 kbit/s, 8N2). La UART avisa la ruptura (break) entre tramas;
 // cada byte va a byte(). Al llegar la ruptura, la trama anterior queda lista si empezó con código 0.
@@ -158,6 +161,13 @@ public:
   ProtoDmx protoDmx() const { return dmx_proto_; }
   uint16_t universoDmx() const { return dmx_univ_; }
   uint16_t direccionDmx() const { return dmx_dir_; }
+  void placaEmisorDmx(bool si) { emisor_dmx_ = si; }
+  // false si la placa no transmite, si DMX CABLE (entrada) está activo, o si PUENTE no tiene Art-Net/sACN configurado
+  bool configurarSalidaDmx(SalidaDmx m, uint16_t grupos);
+  SalidaDmx salidaDmx() const { return sal_dmx_; }
+  uint16_t gruposSalidaDmx() const { return grupos_dmx_; }
+  // Trama a transmitir (canales 1..n en out[0..n-1]). Devuelve n; 0 = no transmitir.
+  uint16_t tramaSalidaDmx(const Salida& s, uint32_t ahora_ms, uint8_t* out) const;
   // Escenas (1..8): guardan color, brillo, efecto y temperatura de blanco
   bool guardarEscena(int i);
   bool aplicarEscena(int i);
@@ -192,6 +202,9 @@ private:
   uint8_t dmx_[512] = {};
   Escena escenas_[N_ESCENAS] = {};
   bool cinco_canales_ = false;
+  bool emisor_dmx_ = false;
+  SalidaDmx sal_dmx_ = SalidaDmx::OFF;
+  uint16_t grupos_dmx_ = 128;
 };
 
 // ---------- Protocolo de texto (BLE UART / USB serie) ----------

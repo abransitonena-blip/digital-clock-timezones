@@ -32,7 +32,7 @@ python3 "$AQUI/gen_pagina.py"
 rm -rf CuboAP && mkdir CuboAP && cp "$AQUI"/src/*.cpp "$AQUI"/src/*.h CuboAP/ && echo '// programa en main.cpp y nucleo.cpp' > CuboAP/CuboAP.ino
 FQBN=esp32:esp32:esp32c3:CDCOnBoot=cdc,PartitionScheme=min_spiffs
 mkdir -p "$AQUI/binarios"
-for P in 2 1; do
+for P in 3 2 1; do
   ./arduino-cli --config-file cli.yaml compile -b $FQBN --build-property runtime.tools.ctags.path="$D/ctags" \
     --build-property "compiler.cpp.extra_flags=-DCUBO_PLACA=$P" --output-dir "$D/out$P" CuboAP
   cp "out$P/CuboAP.ino.merged.bin" "$AQUI/binarios/CuboAP_placa_v${P}_completo_0x0.bin"

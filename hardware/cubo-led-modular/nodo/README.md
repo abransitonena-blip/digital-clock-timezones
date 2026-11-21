@@ -44,4 +44,4 @@ Escrito sin SDK: arranque, vector de interrupciones, linker y registros propios 
   - PD2 = T1CH1 y PC4 = T1CH4 se confirmaron con los ejemplos de ch32v003fun;
   - PA1 = T1CH2 y PC3 = T1CH3 (mapeo por defecto) hay que confirmarlos en la hoja de datos;
   - hay que verificar también los del 78L05 en SOT‑89 (1 OUT · 2 GND · 3 IN) y del AO3400A (1 G · 2 S · 3 D).
-- **El Cubo AP v2/v3 solo recibe DMX** (su RS‑485 está fijo en recepción). Para que un cubo alimente nodos por cable hace falta una revisión de su placa con el transceptor en modo transmisión (DE y DI a un GPIO). Por ahora los nodos se alimentan desde una consola o una interfaz Art‑Net → DMX.
+- **Cubo como maestro:** el Cubo AP **v3** con el puente JP4 cerrado transmite DMX. Con `DMX SALIDA ESPEJO` los nodos (en las direcciones 1, 5, 9…) copian el color del cubo; con `DMX SALIDA PUENTE`, el universo de Art‑Net/sACN. El v2 solo recibe. También sirve cualquier consola o interfaz Art‑Net → DMX.

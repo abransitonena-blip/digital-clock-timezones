@@ -3,7 +3,7 @@
 
 export const CHIPS = [
   { chip: 'ESP32-C3FH4', marca: 'Espressif (China)', radio: 'Wi-Fi 4 + BLE 5', nucleo: 'RISC-V 160 MHz, 4 MB flash interna', enc: 'QFN32 5×5',
-    uso: 'Cubo AP v3 (hecho): el mismo firmware de la v2, sin módulo.', fuente: 'https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32c3/schematic-checklist.html' },
+    uso: 'Cubo AP v3 (hecho): sin módulo; además transmite DMX para manejar Nodos AP.', fuente: 'https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32c3/schematic-checklist.html' },
   { chip: 'ESP32-C6FH4', marca: 'Espressif (China)', radio: 'Wi-Fi 6 + BLE 5 + 802.15.4 (Thread/Zigbee)', nucleo: 'RISC-V 160 MHz, 4 MB flash interna', enc: 'QFN40 5×5',
     uso: 'Siguiente: Cubo Matter (Wi-Fi o Thread). Su guía recomienda filtro CLCCL en RF, útil en iluminación con fuentes conmutadas.', fuente: 'https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32c6/esp-hardware-design-guidelines-en-master-esp32c6.pdf' },
   { chip: 'ESP32-H2', marca: 'Espressif (China)', radio: '802.15.4 + BLE 5 (sin Wi-Fi)', nucleo: 'RISC-V 96 MHz', enc: 'QFN32 4×4',
