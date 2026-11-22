@@ -1,0 +1,6 @@
+{
+  "name": "Cubo AP · placa v3 · variante Matter",
+  "version": "3.0.0-matter",
+  "new_install_prompt_erase": true,
+  "builds": [{ "chipFamily": "ESP32-C3", "parts": [{ "path": "CuboAP_placa_v3_matter.bin", "offset": 0 }] }]
+}

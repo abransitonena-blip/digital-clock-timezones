@@ -38,5 +38,9 @@ for P in 3 2 1; do
   cp "out$P/CuboAP.ino.merged.bin" "$AQUI/binarios/CuboAP_placa_v${P}_completo_0x0.bin"
   cp "out$P/CuboAP.ino.bin" "$AQUI/binarios/CuboAP_placa_v${P}_OTA.bin"
 done
+# Variante Matter (placa v3): partición huge_app de 3 MB, sin OTA por Wi-Fi (se actualiza por USB)
+./arduino-cli --config-file cli.yaml compile -b esp32:esp32:esp32c3:CDCOnBoot=cdc,PartitionScheme=huge_app --build-property runtime.tools.ctags.path="$D/ctags" \
+  --build-property "compiler.cpp.extra_flags=-DCUBO_PLACA=3 -DCUBO_MATTER=1" --output-dir "$D/outm" CuboAP
+cp "outm/CuboAP.ino.merged.bin" "$AQUI/binarios/CuboAP_placa_v3_matter_completo_0x0.bin"
 echo "Binarios en $AQUI/binarios"
 [ -z "$PUERTO" ] || ./arduino-cli --config-file cli.yaml upload -b $FQBN -p "$PUERTO" --input-dir out${PLACA:-2} CuboAP

@@ -18,10 +18,12 @@ export default function Instalar() {
           <button className={'chip' + (placa === 'v2' ? ' sel' : '')} onClick={() => setPlaca('v2')}>Placa v2 · DMX + 5 canales</button>
           <button className={'chip' + (placa === 'v1' ? ' sel' : '')} onClick={() => setPlaca('v1')}>Placa v1 · con botón</button>
           <button className={'chip' + (placa === 'v3' ? ' sel' : '')} onClick={() => setPlaca('v3')}>Placa v3 · chip soldado</button>
+          <button className={'chip' + (placa === 'v3_matter' ? ' sel' : '')} onClick={() => setPlaca('v3_matter')}>Placa v3 · Matter</button>
         </div>
+        {placa === 'v3_matter' && <p className="aviso peq" style={{ marginTop: 8 }}>Variante Matter: el cubo aparece en Apple Home, Google Home, Alexa y Home Assistant sin nube. Ocupa más memoria, así que se actualiza por USB (sin OTA por Wi-Fi) y no trae la emulación Alexa anterior. Tras conectarlo a tu Wi-Fi, pide el código con el botón “Código Matter” del panel.</p>}
         <h2 style={{ marginTop: 14 }}>2 · Conecta y graba</h2>
         <ol className="lista peq" style={{ margin: '8px 0 14px' }}>
-          {placa === 'v3'
+          {placa.startsWith('v3')
             ? <li>Conecta el adaptador de puntas pogo a los pads J5 (5V · D− · D+ · GND · EN · IO9). Con el chip nuevo, une IO9 a GND al conectar para entrar en modo descarga.</li>
             : <li>Conecta el ESP32-C3 SuperMini por USB-C (con o sin la placa).</li>}
           <li>Pulsa el botón de abajo y elige el puerto (suele llamarse “USB JTAG/serial debug unit”).</li>
@@ -38,7 +40,9 @@ export default function Instalar() {
         <ul className="lista peq">
           <li>Abre la sección <a href="#cubo">Cubo AP</a> y conecta por Bluetooth: el PIN de 6 dígitos sale por el USB al arrancar y va en la etiqueta.</li>
           <li>Configura el Wi-Fi para tener la página del cubo, horario por internet y grupos.</li>
-          <li>Las siguientes actualizaciones pueden ir por Wi-Fi (OTA) con el archivo <code>CuboAP_placa_{fw}_OTA.bin</code> de la carpeta <code>firmware/binarios</code> del repositorio.</li>
+          {placa === 'v3_matter'
+            ? <li>La variante Matter se actualiza volviendo a instalar desde esta página por USB.</li>
+            : <li>Las siguientes actualizaciones pueden ir por Wi-Fi (OTA) con el archivo <code>CuboAP_placa_{fw}_OTA.bin</code> de la carpeta <code>firmware/binarios</code> del repositorio.</li>}
           <li>“Borrar el dispositivo” durante la instalación quita también el Wi-Fi, escenas y vínculos Bluetooth guardados.</li>
         </ul>
         <p className="aviso" style={{ marginTop: 10 }}>Firmware compilado con el núcleo oficial ESP32 3.1.1, sin probar todavía en una placa real.</p>

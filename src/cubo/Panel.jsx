@@ -15,7 +15,7 @@ function useRetardo(fn, ms) {                     // evita inundar el Bluetooth 
 }
 
 export default function Panel() {
-  const { estado: s, red, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo, todos, setTodos } = useCubo()
+  const { estado: s, red, matter, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo, todos, setTodos } = useCubo()
   const [gnom, setGnom] = useState(''), [gclave, setGclave] = useState('')
   const [brillo, setBrillo] = useState(60), [volt, setVolt] = useState(12), [cct, setCct] = useState(4000)
   const [color, setColor] = useState('#ffffff'), [w, setW] = useState(0)
@@ -146,6 +146,14 @@ export default function Panel() {
               <span className="mut peq">WLED · Home Assistant · Alexa {red ? (red.integraciones ? '(activas)' : '(apagadas)') : ''}</span>
               <div className="fila" style={{ flexWrap: "nowrap" }}><button className="boton" onClick={() => enviar("INTEGRACIONES OFF")}>Apagar</button><button className="boton" onClick={() => enviar('INTEGRACIONES ON')}>Activar</button></div>
             </div>
+            <div className="entre" style={{ marginTop: 10 }}>
+              <span className="mut peq">Matter (Apple Home, Google Home, Alexa){matter ? ` · ${matter.matter}` : ''}</span>
+              <button className="boton" onClick={() => enviar('MATTER')}>Código Matter</button>
+            </div>
+            {matter?.codigo && <div className="aviso" style={{ marginTop: 8 }}>
+              Código de vinculación: <b style={{ letterSpacing: 1 }}>{matter.codigo}</b>. En la app de tu casa: “Agregar accesorio” → “Más opciones” y escribe el código
+              {matter.qr && <> (o abre el <a href={matter.qr} target="_blank" rel="noreferrer">código QR</a>)</>}. El cubo debe estar en el mismo Wi-Fi.
+            </div>}
           </div>
 
           <div className="tarjeta">

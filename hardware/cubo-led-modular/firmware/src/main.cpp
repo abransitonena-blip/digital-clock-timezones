@@ -19,7 +19,14 @@
 #include <Update.h>
 #include <NimBLEDevice.h>
 #include <Adafruit_NeoPixel.h>
+#ifndef CUBO_MATTER
+#define CUBO_MATTER 0              // 1: variante Matter (Apple Home, Google Home, Alexa, Home Assistant sin nube)
+#endif
+#if CUBO_MATTER
+#include <Matter.h>               // núcleo ESP32 3.1.1: Matter por Wi-Fi; se vincula por la red (sin BLE de Matter)
+#else
 #include <Espalexa.h>
+#endif
 #include <time.h>
 #include "nucleo.h"
 #include "grupo.h"
@@ -55,7 +62,12 @@ static Preferences nvs;
 static Adafruit_NeoPixel tira(60, P_DATOS, NEO_GRB + NEO_KHZ800);
 static NimBLECharacteristic* tx = nullptr;
 static WebServer web(80);
+#if CUBO_MATTER
+static MatterEnhancedColorLight luz_matter;
+static bool matter_listo = false, desde_matter = false;
+#else
 static Espalexa alexa;
+#endif
 static WiFiUDP udp_art, udp_sacn;
 static ap::ReceptorDmx rx_dmx;
 static WiFiUDP udp_grupo;
@@ -156,7 +168,50 @@ static void guardar() {
   if (ctl.perfil() == ap::PERFIL_PERSONAL) { nvs.putFloat("vp", ctl.vmaxPerfil()); nvs.putFloat("ip", ctl.limiteCorriente()); }
   nvs.end();
 }
-static void marcar() { guardar_pendiente = true; t_cambio = millis(); }
+static void matter_sincronizar();
+static void marcar() { guardar_pendiente = true; t_cambio = millis(); matter_sincronizar(); }
+
+// ---------------- Matter (variante CUBO_MATTER) ----------------
+#if CUBO_MATTER
+// El cubo es una luz de color Matter. Los cambios desde Apple Home/Google/Alexa llegan a los callbacks;
+// los cambios locales (app, botón, escenas) se reportan con matter_sincronizar().
+static void matter_sincronizar() {
+  if (!matter_listo || desde_matter) return;
+  ap::RGBW c = ctl.color();
+  luz_matter.setOnOff(ctl.encendido());
+  luz_matter.setBrightness((uint8_t)constrain(lroundf(ctl.brillo() * 255.f), 1, 255));
+  if (c.r || c.g || c.b) luz_matter.setColorRGB({c.r, c.g, c.b});
+}
+static void matter_iniciar() {
+  if (matter_listo) return;
+  ap::RGBW c = ctl.color();
+  espHsvColor_t h = espRgbColorToHsvColor({c.r, c.g, c.b});
+  luz_matter.begin(ctl.encendido(), h, (uint8_t)constrain(lroundf(ctl.brillo() * 255.f), 1, 255), (uint16_t)(1000000UL / ctl.cct()));
+  luz_matter.onChangeOnOff([](bool s) { desde_matter = true; ctl.encender(s); marcar(); desde_matter = false; return true; });
+  luz_matter.onChangeBrightness([](uint8_t b) {
+    desde_matter = true; ctl.fijarBrillo(b / 255.f); marcar(); desde_matter = false; return true;
+  });
+  luz_matter.onChangeColorHSV([](espHsvColor_t h) {
+    h.v = 255; espRgbColor_t r = espHsvColorToRgbColor(h);     // el brillo va por separado
+    desde_matter = true; ctl.fijarColor({r.r, r.g, r.b, 0}); marcar(); desde_matter = false; return true;
+  });
+  luz_matter.onChangeColorTemperature([](uint16_t mired) {     // blancos: CCT nativo o canal W
+    if (!mired) return false;
+    uint16_t k = (uint16_t)constrain(1000000UL / mired, 2700UL, 6500UL);
+    desde_matter = true;
+    ctl.fijarCCT(k);
+    if (ctl.tira() == ap::Tira::RGBW || ctl.tira() == ap::Tira::SK6812) ctl.fijarColor({0, 0, 0, 255});
+    else if (ctl.tira() != ap::Tira::CCT && ctl.tira() != ap::Tira::RGBCCT) { espRgbColor_t r = espCTToRgbColor(mired); ctl.fijarColor({r.r, r.g, r.b, 0}); }
+    marcar(); desde_matter = false; return true;
+  });
+  Matter.begin();
+  matter_listo = true;
+  if (!Matter.isDeviceCommissioned())
+    Serial.printf("Matter: sin vincular. Código manual %s  QR %s\n", Matter.getManualPairingCode().c_str(), Matter.getOnboardingQRCodeUrl().c_str());
+}
+#else
+static void matter_sincronizar() {}
+#endif
 
 // ---------------- Comandos (mismo protocolo por BLE, USB y Wi-Fi) ----------------
 static uint32_t passkey() {   // 6 dígitos únicos por equipo; se imprime en la etiqueta
@@ -203,6 +258,16 @@ static void ejecutar(const char* l, char* r, size_t n) {
     nvs.begin("cubo", false); nvs.putString("gnom", grupo_nom); nvs.putString("gclave", grupo_clave); nvs.end();
     if (!grupo_nom[0] && grupo_udp) { udp_grupo.stop(); grupo_udp = false; }
     snprintf(r, n, "OK"); return;
+  }
+  if (!strcasecmp(l, "MATTER")) {
+#if CUBO_MATTER
+    if (!matter_listo) { snprintf(r, n, "{\"matter\":\"esperando Wi-Fi\"}"); return; }
+    snprintf(r, n, "{\"matter\":\"%s\",\"codigo\":\"%s\",\"qr\":\"%s\"}", Matter.isDeviceCommissioned() ? "vinculado" : "sin vincular",
+             Matter.getManualPairingCode().c_str(), Matter.getOnboardingQRCodeUrl().c_str());
+#else
+    snprintf(r, n, "ERR este firmware no trae Matter: instala la variante Matter");
+#endif
+    return;
   }
   if (!strncasecmp(l, "LEDS ", 5)) {
     int k = atoi(l + 5);
@@ -306,6 +371,9 @@ static void web_iniciar() {
   web.on("/api/estado", HTTP_GET, [] { char b[640]; ctl.estadoJson(b, sizeof b, med); cuerpo_json(b); });
   web.on("/update", HTTP_POST, [] {                       // OTA: el archivo .bin de "pio run"
     if (ota_negada) { web.send(401, "text/plain", "ERR PIN"); return; }
+#if CUBO_MATTER
+    web.send(501, "text/plain", "ERR la variante Matter se actualiza por USB (instalador web)"); return;
+#endif
     bool ok = !Update.hasError();
     web.send(ok ? 200 : 500, "text/plain", ok ? "OK reiniciando" : "ERR actualizacion");
     if (ok) { delay(300); ESP.restart(); }
@@ -313,7 +381,7 @@ static void web_iniciar() {
   }, [] {
     HTTPUpload& u = web.upload();
     if (u.status == UPLOAD_FILE_START) {
-      ota_negada = !pin_ok(); if (ota_negada) return;
+      ota_negada = !pin_ok() || CUBO_MATTER; if (ota_negada) return;
       ota_activa = true; ctl.encender(false); digitalWrite(P_EN, LOW);   // sin salida mientras se escribe la flash
       Update.begin(UPDATE_SIZE_UNKNOWN);
     } else if (u.status == UPLOAD_FILE_WRITE && !ota_negada) Update.write(u.buf, u.currentSize);
@@ -333,11 +401,16 @@ static void web_iniciar() {
       String b = String("{\"state\":") + s + ",\"info\":{\"ver\":\"0.14.0-cuboap\",\"name\":\"" + nombre + "\"}}";
       cuerpo_json(b.c_str());
     });
+#if CUBO_MATTER
+    web.onNotFound([] { web.send(404, "text/plain", "no encontrado"); });
+    web.begin();                                          // Alexa llega por Matter
+#else
     web.onNotFound([] {
       if (!alexa.handleAlexaApiCall(web.uri(), web.arg(0))) web.send(404, "text/plain", "no encontrado");
     });
     alexa.addDevice(nombre, cb_alexa);
     alexa.begin(&web);                                    // también arranca el servidor web
+#endif
   } else {
     web.onNotFound([] { web.send(404, "text/plain", "no encontrado"); });
     web.begin();
@@ -355,8 +428,10 @@ static void wifi_atender(uint32_t t) {
     wifi_ok = true;
     char host[32]; uint64_t mac = ESP.getEfuseMac();
     snprintf(host, sizeof host, "cuboap-%04x", (unsigned)((mac >> 32) & 0xFFFF));
+#if !CUBO_MATTER                                          // Matter trae su propio mDNS (puerto 5353): no se duplica
     MDNS.begin(host); MDNS.addService("http", "tcp", 80);
     if (integraciones) MDNS.addService("wled", "tcp", 80);
+#endif
     configTime(0, 0, "pool.ntp.org", "time.google.com");
     static bool web_listo = false;
     if (!web_listo) { web_iniciar(); web_listo = true; }
@@ -368,7 +443,11 @@ static void wifi_atender(uint32_t t) {
     time_t u = time(nullptr);
     if (u > 1700000000) { ctl.fijarHora((uint32_t)(u + zona_h * 3600L), t); t_ntp = t; }
   }
+#if CUBO_MATTER
+  if (wifi_ok) { web.handleClient(); matter_iniciar(); }
+#else
   if (wifi_ok) { web.handleClient(); if (integraciones) alexa.loop(); }
+#endif
   if (wifi_ok && reiniciar_udp) {                          // DMX por red
     udp_art.stop(); udp_sacn.stop();
     if (ctl.protoDmx() == ap::ProtoDmx::ARTNET) udp_art.begin(6454);
@@ -490,6 +569,9 @@ void loop() {
     if (ch == '\n' || n == sizeof b - 1) {
       b[n] = 0;
       if (!strcasecmp(b, "OLVIDAR")) { NimBLEDevice::deleteAllBonds(); Serial.println("OK vinculos borrados"); }  // solo por USB
+#if CUBO_MATTER
+      else if (!strcasecmp(b, "MATTER OLVIDAR")) { Matter.decommission(); Serial.println("OK Matter desvinculado"); }   // solo por USB
+#endif
       else if (n) { ejecutar(b, r, sizeof r); Serial.println(r); }
       n = 0;
     }

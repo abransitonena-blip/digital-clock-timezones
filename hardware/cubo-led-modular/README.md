@@ -59,6 +59,23 @@ El cartucho debe dar al menos Vout + 1.2 V. Para 12 V y 15 V se usa el de 24 V; 
 | 3 | ADC NTC 10k | | 20 | LED de estado (tubo de luz de la tapa) |
 | 4 | EN del reductor (+ ALERT del INA226) | | 21 | PWM R |
 
+## Variante Matter del firmware (`CUBO_MATTER=1`, placa v3)
+El cubo aparece como **luz de color Matter** en Apple Home, Google Home, Alexa y Home Assistant, en la red local y sin nube. Usa la librería Matter del núcleo ESP32 3.1.1 por Wi‑Fi.
+
+- **Qué controla Matter:** encendido, brillo, color (HSV) y temperatura de blanco.
+  - Los blancos van al CCT nativo, al canal W o a una mezcla RGB, según la tira.
+  - Los cambios que se hacen desde la app, el BLE o las escenas también se reportan de vuelta a Matter.
+- **Vinculación:**
+  1. Primero se conecta el Wi‑Fi (`WIFI red clave`).
+  2. `MATTER` da el código manual y el enlace al QR. En la app de la casa: Agregar accesorio → Más opciones → escribir el código.
+  3. `MATTER OLVIDAR` desvincula; solo funciona por USB.
+- **Diferencias con el firmware normal:**
+  - **Tamaño:** pesa 2.05 MB, así que usa la partición `huge_app` de 3 MB. **No hay OTA por Wi‑Fi**: se actualiza con el instalador web por USB.
+  - **Alexa:** no trae Espalexa, porque Alexa llega por Matter.
+  - **mDNS:** no anuncia `cuboap-xxxx.local`, porque Matter usa su propio mDNS. Al cubo se llega por su IP (`RED`).
+  - El BLE del cubo, el DMX, los grupos y la página web siguen igual.
+- **Sin probar** con controladores Matter reales. La RAM libre al arrancar es de unos 230 KB; hay que medir el margen en uso.
+
 ## Nodo AP (`nodo/`): DMX → RGBW con CH32V003
 Decodificador DMX512 de bajo costo con el CH32V003 soldado, 4 salidas PWM de 3 A y firmware propio sin SDK. Detalles en `nodo/README.md`.
 

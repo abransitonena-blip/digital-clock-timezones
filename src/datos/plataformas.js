@@ -34,6 +34,6 @@ export const PRODUCTOS = [
 export const NIVELES = [
   { nivel: 'Nodo', chip: 'CH32V003', que: 'Decodificador DMX512 → 4 canales PWM (RGBW) para luminarias en serie; dirección por botón “aprender”.', estado: 'Placa y firmware diseñados (sin probar)' },
   { nivel: 'Cubo', chip: 'ESP32-C3FH4', que: 'Controlador completo: Wi-Fi, BLE, Art-Net/sACN, DMX por cable, 5 canales, grupos firmados.', estado: 'Placa v3 diseñada (sin probar)' },
-  { nivel: 'Cubo Matter', chip: 'ESP32-C6FH4', que: 'Igual al cubo, más Thread/Matter para Apple Home, Google y Alexa sin nube.', estado: 'Siguiente' },
+  { nivel: 'Cubo Matter', chip: 'ESP32-C3 (Wi-Fi) · ESP32-C6 (Thread)', que: 'Apple Home, Google Home, Alexa y Home Assistant sin nube. Por Wi-Fi ya existe como variante de firmware del cubo v3; Thread necesita el ESP32-C6.', estado: 'Firmware Wi-Fi hecho (sin probar)' },
   { nivel: 'Cubo cableado', chip: 'CH32V208', que: 'Art-Net/sACN por Ethernet para escenarios y fachadas.', estado: 'Propuesta' },
 ]

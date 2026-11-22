@@ -37,6 +37,7 @@ function simulador() {
     else if (K === 'RED') return JSON.stringify({ wifi: false, ip: '', nombre: 'CuboAP-DEMO', integraciones: false, zona: -6, grupo: s.grupo || '' })
     else if (K === 'GRUPO') s.grupo = a[0] === 'OFF' ? '' : a[0]
     else if (K === 'TODOS') { if (!s.grupo) return 'ERR configura GRUPO nombre clave'; return cmd(a.join(' ')) }
+    else if (K === 'MATTER') return JSON.stringify({ matter: 'sin vincular', codigo: '3497-011-2332', qr: 'https://project-chip.github.io/connectedhomeip/qrcode.html?data=MT:Y.K9042C00KA0648G00' })
     else if (K === 'ESTADO') return JSON.stringify(paso())
     return 'OK'
   }
@@ -46,6 +47,7 @@ function simulador() {
 export default function useCubo() {
   const [estado, setEstado] = useState(null)
   const [red, setRed] = useState(null)
+  const [matter, setMatter] = useState(null)
   const [modo, setModo] = useState('ninguno')     // ninguno | ble | demo
   const [nombre, setNombre] = useState('')
   const [mensaje, setMensaje] = useState(null)
@@ -53,7 +55,7 @@ export default function useCubo() {
 
   const recibir = useCallback(t => {
     t = (t || '').trim(); if (!t) return
-    if (t[0] === '{') { try { const j = JSON.parse(t); if ('wifi' in j) setRed(j); else setEstado(j) } catch { /* trozo incompleto */ } }
+    if (t[0] === '{') { try { const j = JSON.parse(t); if ('wifi' in j) setRed(j); else if ('matter' in j) setMatter(j); else setEstado(j) } catch { /* trozo incompleto */ } }
     else if (t.startsWith('ERR')) setMensaje({ tipo: 'error', texto: t.replace(/^ERR\s*/, 'Rechazado: ') })
   }, [])
 
@@ -95,5 +97,5 @@ export default function useCubo() {
   }, [recibir])
 
   useEffect(() => () => clearInterval(reloj.current), [])
-  return { estado, red, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo, todos, setTodos }
+  return { estado, red, matter, modo, nombre, mensaje, setMensaje, enviar, conectarBle, demo, todos, setTodos }
 }
