@@ -1,6 +1,6 @@
 // Funciona sin internet: guarda el sitio la primera vez y después responde desde la caché,
 // actualizándola en segundo plano. Los PDF y ZIP grandes se guardan solo cuando se abren.
-const CACHE = 'ap-v3'
+const CACHE = 'ap-v4'
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.webmanifest', './icono-192.png'])).then(() => self.skipWaiting()))
 })

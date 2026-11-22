@@ -102,6 +102,37 @@ Es la v2 con el **chip ESP32-C3FH4** (QFN32 5 × 5, flash de 4 MB dentro del chi
 - **Archivos:** Gerber en `cubo_ap_control_v3_gerbers.zip`, BOM y CPL, esquema en `esquema_placa_control_v3.pdf`.
 - **Hay que ajustar en la placa real:** la red CLC (arranca con L4 = 0 Ω y C40/C41 sin poblar) con analizador de redes, y los capacitores del cristal con la prueba de tono de Espressif hasta ±10 ppm. La pista de RF es corta (2 mm, coplanar de ≈57 Ω). VDDA sale por una vía porque queda encerrada entre el cristal y la RF.
 
+## Análisis térmico (`analisis/`)
+`termico.py` calcula las pérdidas de cada pieza por perfil, ajustadas a la temperatura. Modela la placa como lámina 2D con convección natural y radiación, y la caja como red térmica (plástico o aluminio). De ahí salen la curva de carga contra temperatura ambiente y la vida de los capacitores. Resultado: `informe_termico.md` con mapas y gráficas. Es una **estimación de primer orden (±15 K)**: se valida con termopares y cámara térmica en el prototipo.
+
+Conclusiones aplicadas:
+- **Cubo de plástico sellado:** saca ≈ 15 W de salida a 30 °C. Para más, **cuerpo de aluminio con aletas**, con costilla interna y gap pad bajo la zona de potencia, y el cartucho atornillado a la pared.
+- **Placa v3:**
+  - C1 pasa de electrolítico a **híbrido de polímero 125 °C**: a 68 °C pasa de ≈ 3 a ≈ 20 años de vida continua;
+  - **C12** se movió a 2.5 mm de L1 (antes 0.2 mm);
+  - C20 se reubicó entre U6 y U7.
+  - Los cerámicos de entrada y salida se quedan junto al reductor: el lazo conmutado debe ser corto y los X7R no se desgastan con el calor.
+  - Ya había 4 vías térmicas bajo el PowerPAD de U1 y 4 bajo el ánodo de D2.
+  - El ECO conservó el ruteo: DRC 0, 0 redes abiertas.
+- **Nodo AP rev. B:**
+  - MOSFET DFN 3.3×3.3 de ≤ 10 mΩ en lugar de los AO3400A: a 40 °C con 2 × 3 A pasan de ≈ 147 °C a ≈ 88 °C;
+  - fusible de 8 A;
+  - R30 de 150 Ω en serie con el 78L05;
+  - límite de 5 A en total.
+  - Reruteado: DRC 0, 0 redes abiertas.
+- **Siguiente revisión (v4):** cambiar a un reductor síncrono de 60 V 5 A. Así desaparece el Schottky D2, cuya fuga crece con la temperatura.
+
+## Documentos públicos (`documentos/`)
+`datos.py` guarda los datos públicos: entradas, salidas, límites, ambiente y uso. **No incluye cómo están hechos por dentro.** `hacer_publicos.py` + `pdf.cjs` generan cuatro documentos en tamaño carta:
+- hoja de datos del Cubo AP;
+- hoja de datos del Nodo AP;
+- manual de usuario;
+- póliza de garantía.
+
+También generan `src/datos/fichas.json`, que usa la página **Soporte** del sitio.
+
+La póliza es un **borrador**: faltan los datos del responsable y su revisión legal (LFPC y NOM-024-SCFI-2013). Todo está marcado como preliminar hasta medir los prototipos y obtener las certificaciones (NOM, IFT e IP67).
+
 ## Placa de control v2 (`placa-control-v2/`), la recomendada
 Es la v1 con dos agregados:
 - **DMX512 por cable:**

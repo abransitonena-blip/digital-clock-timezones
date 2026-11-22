@@ -54,7 +54,7 @@ direccionables, medición de voltaje, corriente y temperatura, LED de estado y a
 <h2 class="pb">2 · Tus ejemplos de clientes</h2>
 {tabla(["Pedido", "Potencia", "Cartucho", "Tarjeta", "Notas"], [
  ["20 letreros a 12 V 5 A", "60 W", "L (75 W)", "12 V / 5 A", "Pierde ≈ 8 W en calor: cuerpo de aluminio o base metálica"],
- ["12 V a 1 A", "12 W", "S (25 W)", "12 V / 1 A", "Carcasa impresa sin problema"],
+ ["12 V a 1 A", "12 W", "S (25 W)", "12 V / 1 A", "Carcasa impresa en interiores (hasta ≈ 15 W a 30 °C)"],
  ["15 V a 1 A", "15 W", "S (25 W)", "15 V / 1 A", "Mismo cubo que el anterior, otra tarjeta"]])}
 <div class="nota">Regla: el cartucho debe dar <b>al menos 25 % más</b> que lo que pide el cliente. Las tiras de 12 V son de <b>voltaje constante</b>:
 el «amperaje» que te piden es la <b>capacidad</b> de la fuente y el <b>límite de protección</b>, no algo que se le fuerce a la tira.</div>
@@ -89,7 +89,7 @@ el «amperaje» que te piden es la <b>capacidad</b> de la fuente y el <b>límite
 <li>Imprimir en <b>ASA o PETG</b> (aguantan sol y calor), con 4 perímetros y 100 % de relleno en paredes; barniz o resina por fuera si es para exterior.</li>
 <li>Apretar los 4 tornillos en cruz y parejo, para que el empaque comprima igual en todo el contorno.</li>
 <li>Nada de metal sobre la antena del ESP32: la ventana delgada de la tapa queda justo encima.</li>
-<li>Cartucho L (60–75 W): la caja cerrada debe sacar ≈ 8 W de calor. Usar <b>cuerpo de aluminio</b> (o base de aluminio con pasta térmica). En plástico, máximo ≈ 25 W.</li>
+<li>Cartucho L (60–75 W): dentro del cubo se disipan 12–14 W (placa + cartucho). Usar <b>cuerpo de aluminio con aletas</b>, costilla interna con gap pad bajo la zona de potencia y el cartucho atornillado a la pared. En plástico sellado, máximo ≈ 15 W de salida a 30 °C (ver <code>analisis/informe_termico.md</code>).</li>
 <li>Opcional: barnizar o encapsular (potting) la placa de control para máxima protección.</li>
 <li>Prueba de cada lote: 30 minutos sumergido a 1 m (IP67) o chorro de manguera (IP65); abrir y revisar que no haya humedad.</li>
 </ul>

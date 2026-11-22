@@ -23,7 +23,7 @@ c("Q1", "SO8-PMOS", "P-MOSFET −60 V", "P-MOSFET SO-8 −60 V ≥ 8 A Rds ≤ 2
 c("DZ1", "SOD123", "12 V", "Zener 12 V 500 mW SOD-123 (protege Vgs)", -24.0, 24.6, 0, {"1": "VIN", "2": "QG"})
 c("R1", "0603", "100k", "", -24.0, 27.0, 0, {"1": "QG", "2": "GND"})
 c("D1", "SMB", "SMBJ40A", "TVS 40 V unidireccional SMB", -22.5, 17.5, 90, {"1": "VIN", "2": "GND"})
-c("C1", "ELEC8", "100 µF 50 V", "Electrolítico SMD 8×10 low-ESR", -18.5, 3.0, 0, {"1": "VIN", "2": "GND"})
+c("C1", "ELEC8", "68 µF 50 V", "Híbrido de polímero 8×10, 125 °C ≥ 4000 h (Panasonic ZC o equivalente): no se seca con el calor", -18.5, 3.0, 0, {"1": "VIN", "2": "GND"})
 
 # ---------------- Reductor principal TPS54560 (5 A, Vref 0.8 V, 400 kHz) ----------------
 c("U1", "HSOP8", "TPS54560DDA", "TI TPS54560DDAR (60 V 5 A)", -5.0, 22.0, 270,
@@ -45,7 +45,7 @@ c("L1", "IND1265", "10 µH ≥ 9 A", "Inductor blindado 12.5×12.5 mm, Isat ≥ 
 c("D2", "SMC", "B560C", "Schottky 60 V 5 A SMC", 1.8, 26.0, 90, {"1": "SW", "2": "GND"})
 c("C10", "1210", "22 µF 35 V X7R", "", 20.1, 27.6, 90, {"1": "VBUCK", "2": "GND"})
 c("C11", "1210", "22 µF 35 V X7R", "", 23.5, 27.6, 90, {"1": "VBUCK", "2": "GND"})
-c("C12", "ELEC6", "100 µF 35 V", "Polímero / low-ESR 6.3×7.7", 12.2, 12.8, 180, {"1": "VBUCK", "2": "GND"})
+c("C12", "ELEC6", "100 µF 35 V", "Polímero sólido 6.3×7.7 105 °C (vida ×10 cada 20 K menos); a 2.5 mm de L1", 12.2, 10.5, 180, {"1": "VBUCK", "2": "GND"})
 c("RS", "2512", "5 mΩ 1% 3 W", "Shunt de corriente", 21.8, 21.0, 270, {"1": "VBUCK", "2": "VOUT"})
 c("D3", "SOD123", "SMF26A", "TVS salida 26 V 200 W, SOD-123FL", 19.8, 15.55, 180, {"1": "VOUT", "2": "GND"})
 
@@ -135,7 +135,7 @@ for ref, ia, ib, ga, gb in (("U6", "IO21", "IO5", "GR", "GG"), ("U7", "IO6", "IO
     x, y, r = {"U6": (14.2, 3.4, 0), "U7": (14.2, -7.2, 0)}[ref]
     c(ref, "SOIC8", "UCC27524", "TI UCC27524DR doble driver 5 A", x, y, r,
       {"1": "5V", "2": ia, "3": "GND", "4": ib, "5": gb + "_D", "6": "5V", "7": ga + "_D", "8": "5V"})
-c("C20", "0805", "1 µF", "", 14.2, 8.2, 0, {"1": "5V", "2": "GND"})
+c("C20", "0805", "1 µF", "", 14.2, -1.95, 0, {"1": "5V", "2": "GND"})
 c("C21", "0805", "1 µF", "", 14.2, -12.2, 0, {"1": "5V", "2": "GND"})
 CANAL = [("R", 12.7, "GR"), ("G", 7.62, "GG"), ("B", 2.54, "GB"), ("W", -2.54, "GW"), ("C", -7.62, "GC")]
 for i, (n, yj, g) in enumerate(CANAL):

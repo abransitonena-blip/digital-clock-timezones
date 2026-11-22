@@ -1,6 +1,6 @@
 """Nodo AP · decodificador DMX512 → 4 canales PWM (RGBW) con el CH32V003 soldado. 50 × 38 mm, 2 capas.
 Recibe DMX por cable (del Cubo AP, de una consola o de otro nodo) y maneja una tira de ánodo común de 12–24 V,
-hasta 3 A por canal. Coordenadas en mm, origen al centro de la placa, +x hacia la salida LED."""
+hasta 3 A por canal y 5 A en total. Coordenadas en mm, origen al centro de la placa, +x hacia la salida LED."""
 from shapely.geometry import box
 
 W, H = 50.0, 38.0
@@ -13,11 +13,13 @@ def c(ref, fp, val, mpn, x, y, rot, nets): P.append(dict(ref=ref, fp=fp, val=val
 
 # ---------------- Entrada y 5 V ----------------
 c("J1", "BORNE2", "Entrada 12–24 V", "Bornera 5.08 mm 2 polos", -21.0, 10.5, 0, {"1": "VIN_RAW", "2": "GND"})
-c("F1", "2410", "6.3 A", "Fusible SMD 2410 6.3 A 63 V", -12.5, 14.3, 0, {"1": "VIN_RAW", "2": "VIN"})
+c("F1", "2410", "8 A", "Fusible SMD 2410 8 A rápido ≥ 32 V (carga máx. 5 A = 63 % del nominal, con margen por temperatura)", -12.5, 14.3, 0, {"1": "VIN_RAW", "2": "VIN"})
 c("D1", "SMA", "B140", "Schottky 40 V 1 A: protege la lógica de la polaridad invertida", -12.5, 10.4, 180, {"1": "VIN_D", "2": "VIN"})
-c("C1", "0805", "1 µF 50 V", "X7R", -8.6, 10.4, 90, {"1": "VIN_D", "2": "GND"})
+c("R30", "1206", "150", "Resistencia serie 1206 0.25 W: se lleva parte del calor del 78L05 (a 24 V, 20 mA: 0.06 W)", -7.5, 6.4, 0,
+  {"1": "VIN_D", "2": "VIN_R"})
+c("C1", "0805", "1 µF 50 V", "X7R", -8.6, 10.4, 90, {"1": "VIN_R", "2": "GND"})
 c("U3", "SOT89", "78L05", "Regulador 5 V 100 mA SOT-89 (1 OUT · 2 GND · 3 IN), Vin máx. 30 V", -4.6, 11.0, 0,
-  {"1": "5V", "2": "GND", "3": "VIN_D"})
+  {"1": "5V", "2": "GND", "3": "VIN_R"})
 c("C2", "0805", "10 µF", "X5R 10 V", -0.6, 11.4, 90, {"1": "5V", "2": "GND"})
 
 # ---------------- Microcontrolador CH32V003F4P6 (a 5 V) ----------------
@@ -42,8 +44,8 @@ c("J2", "BORNE5", "Salida LED", "Bornera 5.08 mm 5 polos: V+ R G B W (ánodo com
   {"1": "VIN", "2": "CH_R", "3": "CH_G", "4": "CH_B", "5": "CH_W"})
 for i, (n, pwm) in enumerate((("R", "PWM_R"), ("G", "PWM_G"), ("B", "PWM_B"), ("W", "PWM_W"))):
     y = J2Y + 5.08 - 5.08 * i
-    c(f"Q{i+1}", "SOT23", "AO3400A", "N-MOSFET 30 V 5.7 A, 26 mΩ @ Vgs 4.5 V, SOT-23 (1 G · 2 S · 3 D)", 15.2, y, 270,
-      {"1": "G" + n, "2": "GND", "3": "CH_" + n})
+    c(f"Q{i+1}", "DFN3x3", "N-MOSFET 30 V", "N-MOSFET 30 V Rds ≤ 10 mΩ @ Vgs 4.5 V, DFN 3.3×3.3 (pad de drenaje grande: disipa al cobre)", 15.4, y, 270,
+      {"1": "GND", "2": "GND", "3": "GND", "4": "G" + n, "D": "CH_" + n})
     c(f"R{i+1}", "0603", "100", "Compuerta", 11.4, y + 0.9, 0, {"1": pwm, "2": "G" + n})
     c(f"R{i+11}", "0603", "100k", "Pull-down: apagado al arrancar", 11.4, y - 0.9, 0, {"1": "G" + n, "2": "GND"})
 
@@ -58,8 +60,8 @@ ZONAS = {"VIN": box(-11.0, 15.6, 23.0, 18.4).union(box(20.0, 9.0, 23.0, 18.4))} 
 for i, n in enumerate("RGBW"):
     y = J2Y + 5.08 - 5.08 * i
     ZONAS["CH_" + n] = box(15.8, y - 1.0, 21.0, y + 1.0)
-ANCHO = {"VIN": 0.8, "VIN_RAW": 1.0, "VIN_D": 0.4, "5V": 0.4, "CH_R": 1.2, "CH_G": 1.2, "CH_B": 1.2, "CH_W": 1.2}
+ANCHO = {"VIN": 0.8, "VIN_RAW": 1.0, "VIN_D": 0.4, "VIN_R": 0.4, "5V": 0.4, "CH_R": 1.2, "CH_G": 1.2, "CH_B": 1.2, "CH_W": 1.2}
 PISTAS, VIAS, VEDA = [], [], []
-LEYENDAS = [("V+", 17.6, 10.16, 0.9), ("R", 17.6, 6.3, 0.9), ("G", 17.6, 1.2, 0.9), ("B", 17.6, -3.9, 0.9), ("W", 17.6, -9.0, 0.9),
+LEYENDAS = [("V+", 18.9, 10.16, 0.9), ("R", 18.9, 6.3, 0.9), ("G", 18.9, 1.2, 0.9), ("B", 18.9, -3.9, 0.9), ("W", 18.9, -9.0, 0.9),
             ("12-24V", -21.0, 17.2, 0.9), ("DMX", -21.5, -8.1, 0.9), ("GND D- D+", -12.0, -9.0, 0.7),
             ("NODO AP", 2.5, 13.6, 1.2), ("5V SWIO GND", 7.0, 11.4, 0.6)]
