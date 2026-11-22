@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80.0mm" height="50.0mm" viewBox="0 0 80 50" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="80" height="50" fill="#fff"/>
+<g>
+<rect x="0.7" y="0.7" width="78.6" height="48.6" rx="2" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="76.5" cy="15.31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="76.5" cy="20.39" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="70" cy="12" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="70" cy="15.9" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="70" cy="19.8" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="70" cy="23.7" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="60" cy="15" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="60" cy="20" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="60" cy="31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="60" cy="36" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="17.5" cy="31" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="17.5" cy="36.08" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="26" cy="19.5" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="26" cy="22.04" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="26" cy="24.58" r="0.8" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="3.5" cy="3.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="76.5" cy="3.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="3.5" cy="46.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<circle cx="76.5" cy="46.5" r="1.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/>
+<path d="M68.4 11.8 L69.4 10.4 H71.6 V25.3 H68.4 Z" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(70 9.4) scale(-1 1)"><text x="0" y="0" font-size="1.0" text-anchor="middle" font-weight="700">BR1</text></g><g transform="translate(70 27.0) scale(-1 1)"><text x="0" y="0" font-size="0.8" text-anchor="middle" font-weight="400">KBP307</text></g>
+<circle cx="60" cy="17.5" r="6.25" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M56.4 22.61 A6.25 6.25 0 0 0 63.6 22.61" stroke="#000" stroke-width="1.2" fill="none"/>
+<g transform="translate(60 18.1) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">C6</text></g><g transform="translate(60 13.5) scale(-1 1)"><text x="0" y="0" font-size="0.95" text-anchor="middle" font-weight="400">1000µF 50V</text></g><g transform="translate(57.6 15.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g>
+<circle cx="60" cy="33.5" r="6.25" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M56.4 38.61 A6.25 6.25 0 0 0 63.6 38.61" stroke="#000" stroke-width="1.2" fill="none"/>
+<g transform="translate(60 34.1) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">C7</text></g><g transform="translate(60 29.5) scale(-1 1)"><text x="0" y="0" font-size="0.95" text-anchor="middle" font-weight="400">1000µF 50V</text></g><g transform="translate(57.6 31.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g>
+<rect x="72.4" y="12.6" width="7.0" height="10.5" rx="0.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(76.0 25.4) scale(-1 1)"><text x="0" y="0" font-size="1.1" text-anchor="middle" font-weight="700">ENTRADA</text></g><g transform="translate(76.0 26.9) scale(-1 1)"><text x="0" y="0" font-size="0.8" text-anchor="middle" font-weight="400">8–35V= / 6–22V~</text></g>
+<rect x="13.7" y="28.4" width="7.6" height="10.3" rx="0.6" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><g transform="translate(17.5 27.3) scale(-1 1)"><text x="0" y="0" font-size="1.1" text-anchor="middle" font-weight="700">SALIDA</text></g><g transform="translate(15.0 31.6) scale(-1 1)"><text x="0" y="0" font-size="1.6" text-anchor="middle" font-weight="700">+</text></g><g transform="translate(15.0 36.8) scale(-1 1)"><text x="0" y="0" font-size="1.8" text-anchor="middle" font-weight="700">−</text></g>
+<rect x="23.6" y="16.4" width="4.8" height="10.5" rx="0.4" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><circle cx="26" cy="17.6" r="0.55" fill="none" stroke="#111" stroke-width="0.3" stroke-linejoin="round"/><path d="M25.6 17.6 H26.4" stroke="#000" stroke-width="0.25"/><g transform="translate(26 15.4) scale(-1 1)"><text x="0" y="0" font-size="1.0" text-anchor="middle" font-weight="700">AJUSTE V</text></g>
+<g transform="translate(26 28.6) scale(-1 1)"><text x="0" y="0" font-size="0.8" text-anchor="middle" font-weight="400">derecha = más V</text></g>
+<g transform="translate(38 30) scale(-1 1)"><text x="0" y="0" font-size="6.0" text-anchor="middle" font-weight="700">AP</text></g><g transform="translate(38 34.5) scale(-1 1)"><text x="0" y="0" font-size="1.2" text-anchor="middle" font-weight="700">MÓDULO UNIVERSAL 1.2–24 V · 2 A</text></g>
+<g transform="translate(38 9.5) scale(-1 1)"><text x="0" y="0" font-size="1.0" text-anchor="middle" font-weight="400">Las piezas SMD van del otro lado</text></g>
+</g></svg>

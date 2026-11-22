@@ -1,0 +1,16 @@
+%TF.GenerationSoftware,CuboAP,fab.py,1*%
+%TF.CreationDate,2026-11-22T00:00:00*%
+%TF.FileFunction,Profile,NP*%
+%TF.FilePolarity,Positive*%
+%FSLAX46Y46*%
+%MOMM*%
+%LPD*%
+%ADD10C,0.100*%
+G01*
+D10*
+X50000000Y0D02*
+X0Y0D01*
+X0Y38000000D01*
+X50000000Y38000000D01*
+X50000000Y0D01*
+M02*

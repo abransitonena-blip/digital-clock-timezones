@@ -1,0 +1,479 @@
+{
+ "fecha": "2026-11-22",
+ "version": "0.9 (preliminar)",
+ "cubo": {
+  "codigo": "HD-CUBO-AP",
+  "nombre": "Cubo AP",
+  "subtitulo": "Controlador LED inteligente impermeable para letreros y arquitectura",
+  "resumen": "Controlador de tiras LED en un cubo sellado de 80 mm con fuente integrada. Maneja tiras analógicas de 1 a 5 canales y tiras direccionables, se controla por Bluetooth, Wi-Fi, DMX512, Art-Net/sACN y Matter, y protege la tira con un voltaje máximo fijado por una tarjeta de configuración.",
+  "versiones": [
+   [
+    "Cuerpo ASA (plástico)",
+    "Interiores y exteriores bajo techo, hasta ≈ 15 W de salida continua a 30 °C"
+   ],
+   [
+    "Cuerpo de aluminio con aletas",
+    "Exteriores y potencia: hasta 45 W al 100 % a 40 °C; 60–72 W al 100 % hasta ≈ 25 °C (ver curva de carga)"
+   ]
+  ],
+  "secciones": [
+   [
+    "Entrada de alimentación",
+    [
+     [
+      "Con cartucho de corriente alterna",
+      "100–240 V~, 50/60 Hz (rango 90–264 V~)"
+     ],
+     [
+      "Cartucho S / L",
+      "25 W / 75 W de salida máxima"
+     ],
+     [
+      "Sin cartucho (corriente directa)",
+      "12–36 V⎓; debe ser al menos 1.2 V mayor que el voltaje de salida"
+     ],
+     [
+      "Consumo en espera (luz apagada, Wi-Fi conectado)",
+      "≈ 1 W (estimado)"
+     ],
+     [
+      "Protecciones de entrada",
+      "Fusible, polaridad invertida (CD), supresión de transitorios, bajo voltaje"
+     ]
+    ]
+   ],
+   [
+    "Salida LED analógica (ánodo común)",
+    [
+     [
+      "Canales",
+      "Hasta 5: R, G, B, W y blanco frío (según el tipo de tira)"
+     ],
+     [
+      "Voltaje de salida",
+      "Fijado por la tarjeta: 5, 12, 15 o 24 V⎓; ajustable hacia abajo desde la app"
+     ],
+     [
+      "Corriente máxima total",
+      "Fijada por la tarjeta: 1 a 5 A (ver tabla de perfiles)"
+     ],
+     [
+      "Corriente máxima por canal",
+      "5 A"
+     ],
+     [
+      "Atenuación",
+      "PWM de 19 kHz, 4096 pasos, sin parpadeo visible en cámara"
+     ],
+     [
+      "Tipos de tira",
+      "RGBW, RGB, CCT (blanco dual), monocolor y RGB+CCT"
+     ]
+    ]
+   ],
+   [
+    "Salida LED direccionable",
+    [
+     [
+      "Señal",
+      "Datos de 5 V, un hilo"
+     ],
+     [
+      "Compatibles",
+      "WS2812B y SK6812 (5 V), WS2811 y WS2815 (12 V)"
+     ],
+     [
+      "Número de LEDs",
+      "Hasta 600"
+     ]
+    ]
+   ],
+   [
+    "Control y comunicación",
+    [
+     [
+      "Bluetooth",
+      "Bluetooth LE 5, vinculación con PIN de 6 dígitos (en la etiqueta)"
+     ],
+     [
+      "Wi-Fi",
+      "2.4 GHz 802.11 b/g/n, antena externa"
+     ],
+     [
+      "Iluminación profesional",
+      "Art-Net y sACN (E1.31) por Wi-Fi; DMX512 por cable, entrada o salida"
+     ],
+     [
+      "Hogar",
+      "Matter (Apple Home, Google Home, Amazon Alexa, Home Assistant) en la versión con Matter; WLED y Alexa en la versión estándar"
+     ],
+     [
+      "Grupos",
+      "Varios cubos sincronizados con clave de grupo"
+     ],
+     [
+      "Funciones",
+      "Brillo, color, temperatura de blanco, 5 efectos, 8 escenas, horario diario, actualización por Wi-Fi"
+     ]
+    ]
+   ],
+   [
+    "Protección de la carga",
+    [
+     [
+      "Voltaje máximo",
+      "Lo fija la tarjeta: ninguna orden de la app puede rebasarlo"
+     ],
+     [
+      "Sobrecorriente",
+      "Reduce el brillo al acercarse al límite; corta a 1.5 × el máximo y reintenta (3 veces, cada 5 s)"
+     ],
+     [
+      "Corto en la salida",
+      "Corte inmediato y reintento"
+     ],
+     [
+      "Temperatura",
+      "Reduce el brillo de forma gradual por encima de 70 °C internos; apaga a 90 °C y vuelve al enfriarse"
+     ]
+    ]
+   ],
+   [
+    "Ambiente",
+    [
+     [
+      "Temperatura de operación",
+      "−20 a +50 °C (con la curva de carga de abajo)"
+     ],
+     [
+      "Temperatura de almacenamiento",
+      "−30 a +70 °C"
+     ],
+     [
+      "Humedad",
+      "10–95 %; membrana de ventilación contra la condensación"
+     ],
+     [
+      "Protección",
+      "IP67 de diseño (sumergible 30 min a 1 m); certificación pendiente"
+     ],
+     [
+      "Sol directo",
+      "Preferir acabado claro; el sol suma calor y reduce la carga máxima"
+     ]
+    ]
+   ],
+   [
+    "Mecánica",
+    [
+     [
+      "Medidas",
+      "80 × 80 × 80 mm (104 mm de largo con las orejas de montaje)"
+     ],
+     [
+      "Masa aproximada",
+      "ASA ≈ 300 g · aluminio ≈ 550 g (con cartucho S)"
+     ],
+     [
+      "Entradas de cable",
+      "2 prensaestopas M16 IP68 para cable de 4–8 mm de diámetro (alimentación y LED)"
+     ],
+     [
+      "Conexiones internas",
+      "Borneras enchufables: entrada 2 polos, salida LED 8 polos (V+ R G B WW CW DAT GND), DMX 3 polos"
+     ],
+     [
+      "Montaje",
+      "2 orejas con ranura para tornillo M4 (pared, poste o riel)"
+     ]
+    ]
+   ]
+  ],
+  "perfiles": [
+   [
+    "5 V 3 A",
+    "5.0 V",
+    "3 A",
+    "15 W",
+    "Direccionables de 5 V"
+   ],
+   [
+    "12 V 1 A · 2 A · 5 A",
+    "12.0 V",
+    "1 / 2 / 5 A",
+    "12 / 24 / 60 W",
+    "Tiras de 12 V; 12 V 5 A requiere cuerpo de aluminio"
+   ],
+   [
+    "15 V 1 A · 3 A",
+    "15.0 V",
+    "1 / 3 A",
+    "15 / 45 W",
+    "Módulos de 15 V"
+   ],
+   [
+    "24 V 2 A · 3 A",
+    "24.3 V",
+    "2 / 3 A",
+    "48 / 72 W",
+    "Tiras de 24 V; cuerpo de aluminio y cartucho L"
+   ]
+  ],
+  "notas": [
+   "Valores de diseño, preliminares: se confirmarán con mediciones en prototipos y con las certificaciones.",
+   "Certificaciones pendientes: seguridad eléctrica (NOM), homologación de radio (IFT) e IP67 en laboratorio.",
+   "La instalación del lado de 100–240 V~ debe hacerla personal calificado."
+  ]
+ },
+ "nodo": {
+  "codigo": "HD-NODO-AP",
+  "nombre": "Nodo AP",
+  "subtitulo": "Decodificador DMX512 de 4 canales para tiras LED",
+  "resumen": "Recibe DMX512 por cable y maneja una tira de 12–24 V de 4 canales (RGBW, ánodo común). Se encadena: muchos nodos en una sola línea DMX, alimentada por un Cubo AP, una consola o una interfaz Art-Net.",
+  "versiones": [
+   [
+    "Caja de plástico",
+    "Interiores; carga completa hasta 40 °C"
+   ],
+   [
+    "Caja de perfil de aluminio",
+    "Carga completa hasta 50 °C; recomendada para 5 A continuos"
+   ]
+  ],
+  "secciones": [
+   [
+    "Entrada de alimentación",
+    [
+     [
+      "Voltaje",
+      "12–24 V⎓ (rango 10.8–26.4 V)"
+     ],
+     [
+      "Consumo propio",
+      "< 0.5 W"
+     ],
+     [
+      "Protecciones",
+      "Fusible de 8 A, protección de la lógica contra polaridad invertida"
+     ]
+    ]
+   ],
+   [
+    "Salidas",
+    [
+     [
+      "Canales",
+      "4 (R, G, B, W), ánodo común: V+ y un negativo por canal"
+     ],
+     [
+      "Corriente",
+      "Hasta 3 A por canal y 5 A en total"
+     ],
+     [
+      "Atenuación",
+      "PWM de 3.9 kHz, 1024 pasos, curva gamma 2.2 (o lineal)"
+     ],
+     [
+      "Al arrancar",
+      "Salidas apagadas hasta recibir DMX"
+     ]
+    ]
+   ],
+   [
+    "DMX512",
+    [
+     [
+      "Estándar",
+      "DMX512-A (ANSI E1.11), 250 kbit/s"
+     ],
+     [
+      "Conexión",
+      "Bornera de entrada y bornera de salida en paralelo (encadenar), 3 polos: GND · D− · D+ (XLR 1 · 2 · 3)"
+     ],
+     [
+      "Terminación",
+      "120 Ω con puente, solo en el último equipo de la línea"
+     ],
+     [
+      "Canales que usa",
+      "4 consecutivos a partir de su dirección (1–509)"
+     ],
+     [
+      "Dirección",
+      "Con el botón APRENDER (ver manual); se guarda aunque se apague"
+     ],
+     [
+      "Sin señal",
+      "Mantiene el último valor; el LED lo indica"
+     ],
+     [
+      "Protección",
+      "Contra descargas electrostáticas en la línea DMX"
+     ]
+    ]
+   ],
+   [
+    "Indicador",
+    [
+     [
+      "LED verde",
+      "Fijo: recibe DMX · un destello por segundo: sin señal · rápido: aprendiendo dirección"
+     ]
+    ]
+   ],
+   [
+    "Ambiente y mecánica",
+    [
+     [
+      "Temperatura de operación",
+      "−20 a +40 °C (caja de plástico) · −20 a +50 °C (aluminio)"
+     ],
+     [
+      "Humedad",
+      "10–90 % sin condensación"
+     ],
+     [
+      "Protección",
+      "IP20 (uso interior). Para exterior, dentro de una caja IP65"
+     ],
+     [
+      "Medidas",
+      "Plástico 58 × 46 × 23 mm · aluminio 70 × 50 × 25 mm"
+     ],
+     [
+      "Bornas",
+      "Potencia: 5.08 mm, cable de 0.5–2.5 mm² · DMX: 3.5 mm, cable de 0.2–1.5 mm²"
+     ]
+    ]
+   ]
+  ],
+  "notas": [
+   "Valores de diseño, preliminares hasta medir prototipos.",
+   "Usar cable de par trenzado de 120 Ω para DMX (o cable de red categoría 5); hasta 32 nodos por línea sin repetidor."
+  ]
+ },
+ "curva": {
+  "temperaturas": [
+   25,
+   30,
+   35,
+   40,
+   45,
+   50,
+   55
+  ],
+  "aluminio": {
+   "12 V 5 A (60 W)": [
+    100,
+    89,
+    73,
+    56,
+    33,
+    16,
+    0
+   ],
+   "24 V 3 A (72 W)": [
+    100,
+    91,
+    73,
+    56,
+    30,
+    12,
+    0
+   ]
+  },
+  "plastico_w": [
+   19.0,
+   14.9,
+   10.6,
+   7.2,
+   3.8,
+   0.0,
+   0.0
+  ]
+ },
+ "fallas": [
+  [
+   "1 destello",
+   "Sin tarjeta de configuración o mal insertada",
+   "Apaga, inserta la tarjeta hasta el fondo y enciende."
+  ],
+  [
+   "2 destellos",
+   "La tarjeta no coincide con el voltaje medido",
+   "Verifica que la tarjeta sea la de tu tira; si persiste, servicio."
+  ],
+  [
+   "3 destellos",
+   "Sobrecorriente",
+   "La tira pide más de lo que permite la tarjeta: baja el brillo, acorta la tira o usa una tarjeta mayor."
+  ],
+  [
+   "4 destellos",
+   "Temperatura alta: se apagó para protegerse",
+   "Revisa ventilación y sol directo; vuelve solo al enfriarse."
+  ],
+  [
+   "5 destellos",
+   "Voltaje de entrada insuficiente",
+   "Revisa la alimentación y que el cartucho sea el indicado para tu tarjeta."
+  ],
+  [
+   "6 destellos",
+   "Corto en la salida",
+   "Desconecta la tira y revisa cables y conectores; el cubo reintenta solo."
+  ]
+ ],
+ "problemas": [
+  [
+   "No aparece en la app",
+   "Usa Chrome o Edge en Android, Windows o macOS con Bluetooth activo; acércate a menos de 10 m. iPhone y iPad no tienen Bluetooth web: la primera configuración del Wi-Fi se hace desde Android o una computadora; después se usa la página por Wi-Fi o Matter."
+  ],
+  [
+   "Pide un PIN",
+   "Es el número de 6 dígitos de la etiqueta del cubo."
+  ],
+  [
+   "La tira enciende con colores cambiados",
+   "Elige el tipo de tira correcto en la app o intercambia los cables de color en la bornera."
+  ],
+  [
+   "Brilla menos de lo esperado",
+   "Revisa el estado térmico en la app: con calor el cubo baja el brillo para protegerse. Revisa también el voltaje de salida."
+  ],
+  [
+   "Parpadea en video",
+   "Normal en tiras direccionables con brillo bajo; las analógicas usan 19 kHz y no parpadean."
+  ],
+  [
+   "No toma el Wi-Fi",
+   "Solo redes de 2.4 GHz; escribe el nombre sin espacios. Acerca el router o reorienta la antena."
+  ],
+  [
+   "DMX: la luz no responde",
+   "Revisa dirección y universo, la polaridad D+/D− y que solo el último equipo tenga terminación."
+  ],
+  [
+   "Nodo AP: el LED destella una vez por segundo",
+   "No recibe DMX: revisa el cable, la polaridad y que el maestro esté transmitiendo."
+  ]
+ ],
+ "documentos": [
+  [
+   "hd_cubo_ap.pdf",
+   "Hoja de datos · Cubo AP"
+  ],
+  [
+   "hd_nodo_ap.pdf",
+   "Hoja de datos · Nodo AP"
+  ],
+  [
+   "manual_usuario_ap.pdf",
+   "Manual de usuario"
+  ],
+  [
+   "garantia_ap.pdf",
+   "Póliza de garantía (borrador)"
+  ]
+ ]
+}

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="95mm" height="72mm" viewBox="0 0 95 72" font-family="Arial,Helvetica,sans-serif">
+<rect x="0" y="0" width="95" height="72" fill="#fff" stroke="#000" stroke-width="0.3"/>
+<path d="M6.00 12.00 L16.00 12.00 L16.00 22.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.00 12.00 L38.50 12.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.00 12.00 L31.00 22.00 L35.00 22.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52.78 22.00 L58.00 22.00 L63.00 17.00 L66.00 14.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M76.16 14.00 L79.00 17.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M76.16 14.00 L71.00 22.00 L71.00 60.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M66.00 40.00 L71.00 40.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M76.16 30.00 L79.00 27.16 L89.00 27.16 L89.00 67.00 L6.00 67.00 L6.00 17.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M63.00 27.16 L66.00 30.00 L61.00 35.00 L61.00 52.00 L26.00 52.00 L26.00 60.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M66.00 60.00 L61.00 60.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M56.00 60.00 L51.00 60.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M46.00 60.00 L41.00 60.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M36.00 60.00 L31.00 60.00" fill="none" stroke="#e8c9a8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1.5" y="9" width="8" height="11" fill="none" stroke="#000" stroke-width="0.35"/><text x="5.5" y="7.6" font-size="2.2" text-anchor="middle" font-weight="700">J0</text><text x="2.5" y="13" font-size="1.8" text-anchor="start" font-weight="700">L</text><text x="2.5" y="18" font-size="1.8" text-anchor="start" font-weight="700">N</text>
+<rect x="13" y="7.5" width="28.5" height="9" rx="1" fill="none" stroke="#000" stroke-width="0.35"/><text x="27" y="11" font-size="2.6" text-anchor="middle" font-weight="700">C1</text><text x="27" y="15.5" font-size="1.7" text-anchor="middle" font-weight="400">X2 564J 275VAC</text>
+<rect x="19.5" y="20.6" width="8" height="2.8" rx="1.2" fill="none" stroke="#000" stroke-width="0.35"/><text x="23.5" y="19.6" font-size="1.7" text-anchor="middle" font-weight="400">R1 1M ½W</text>
+<rect x="38.5" y="20.3" width="11" height="3.4" rx="1.5" fill="none" stroke="#000" stroke-width="0.35"/><text x="44" y="19.4" font-size="1.7" text-anchor="middle" font-weight="400">R2 150Ω 1W</text>
+<path d="M68.48 12.700000000000001 L73.67999999999999 12.700000000000001 L73.67999999999999 15.299999999999999 L68.48 15.299999999999999 Z" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M72.88 12.700000000000001 L72.88 15.299999999999999" stroke="#000" stroke-width="0.9"/>
+<text x="71.08" y="18.2" font-size="2" text-anchor="middle" font-weight="700">D1</text>
+<path d="M61.7 24.68 L61.7 19.479999999999997 L64.3 19.479999999999997 L64.3 24.68 Z" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M61.7 20.279999999999998 L64.3 20.279999999999998" stroke="#000" stroke-width="0.9"/>
+<text x="59.8" y="22.88" font-size="2" text-anchor="middle" font-weight="700">D3</text>
+<path d="M77.7 24.68 L77.7 19.479999999999997 L80.3 19.479999999999997 L80.3 24.68 Z" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M77.7 20.279999999999998 L80.3 20.279999999999998" stroke="#000" stroke-width="0.9"/>
+<text x="82.4" y="22.88" font-size="2" text-anchor="middle" font-weight="700">D2</text>
+<path d="M68.48 28.7 L73.67999999999999 28.7 L73.67999999999999 31.3 L68.48 31.3 Z" fill="none" stroke="#000" stroke-width="0.35"/>
+<path d="M72.88 28.7 L72.88 31.3" stroke="#000" stroke-width="0.9"/>
+<text x="71.08" y="34.199999999999996" font-size="2" text-anchor="middle" font-weight="700">D4</text>
+<text x="71" y="23.5" font-size="1.6" text-anchor="middle" font-weight="400">4×1N4007</text><text x="71" y="25.5" font-size="1.4" text-anchor="middle" font-weight="400">franja = cátodo</text>
+<circle cx="63.5" cy="40" r="6.5" fill="none" stroke="#000" stroke-width="0.35"/><path d="M61 33.6 A6.5 6.5 0 0 0 61 46.4" stroke="#000" stroke-width="0.35" fill="#ddd"/>
+<text x="63.5" y="37" font-size="2.2" text-anchor="middle" font-weight="700">C2</text><text x="63.5" y="44.5" font-size="1.5" text-anchor="middle" font-weight="400">47µF 250V</text><text x="55.5" y="40.8" font-size="2.6" text-anchor="middle" font-weight="700">−</text><text x="68.4" y="40.8" font-size="2.4" text-anchor="middle" font-weight="700">+</text>
+<rect x="62.5" y="50.6" width="7" height="2.8" rx="1.2" fill="none" stroke="#000" stroke-width="0.35"/><text x="66" y="49.6" font-size="1.6" text-anchor="middle" font-weight="400">R3 220k ½W</text>
+<rect x="63.5" y="56.5" width="10" height="7.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="68.5" y="66.5" font-size="1.9" text-anchor="middle" font-weight="700">SAL1</text><text x="71" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">+</text><text x="66" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">−</text>
+<rect x="53.5" y="56.5" width="10" height="7.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="58.5" y="66.5" font-size="1.9" text-anchor="middle" font-weight="700">SAL2</text><text x="61" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">+</text><text x="56" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">−</text>
+<rect x="43.5" y="56.5" width="10" height="7.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="48.5" y="66.5" font-size="1.9" text-anchor="middle" font-weight="700">SAL3</text><text x="51" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">+</text><text x="46" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">−</text>
+<rect x="33.5" y="56.5" width="10" height="7.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="38.5" y="66.5" font-size="1.9" text-anchor="middle" font-weight="700">SAL4</text><text x="41" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">+</text><text x="36" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">−</text>
+<rect x="23.5" y="56.5" width="10" height="7.5" fill="none" stroke="#000" stroke-width="0.35"/>
+<text x="28.5" y="66.5" font-size="1.9" text-anchor="middle" font-weight="700">SAL5</text><text x="31" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">+</text><text x="26" y="58.2" font-size="1.8" text-anchor="middle" font-weight="700">−</text>
+<text x="48" y="70.6" font-size="1.6" text-anchor="middle" font-weight="400">salidas en serie: misma corriente en las 5</text>
+<text x="47.5" y="3.8" font-size="2" text-anchor="middle" font-weight="700">VISTA DE COMPONENTES (lado sin cobre)</text>
+<circle cx="6" cy="12" r="0.55" fill="#000"/>
+<circle cx="6" cy="17" r="0.55" fill="#000"/>
+<circle cx="16" cy="12" r="0.55" fill="#000"/>
+<circle cx="31" cy="12" r="0.55" fill="#000"/>
+<circle cx="38.5" cy="12" r="0.55" fill="#000"/>
+<circle cx="16" cy="22" r="0.55" fill="#000"/>
+<circle cx="31" cy="22" r="0.55" fill="#000"/>
+<circle cx="35" cy="22" r="0.55" fill="#000"/>
+<circle cx="52.78" cy="22" r="0.55" fill="#000"/>
+<circle cx="66" cy="14" r="0.55" fill="#000"/>
+<circle cx="76.16" cy="14" r="0.55" fill="#000"/>
+<circle cx="63" cy="17" r="0.55" fill="#000"/>
+<circle cx="63" cy="27.16" r="0.55" fill="#000"/>
+<circle cx="79" cy="17" r="0.55" fill="#000"/>
+<circle cx="79" cy="27.16" r="0.55" fill="#000"/>
+<circle cx="66" cy="30" r="0.55" fill="#000"/>
+<circle cx="76.16" cy="30" r="0.55" fill="#000"/>
+<circle cx="61" cy="40" r="0.55" fill="#000"/>
+<circle cx="66" cy="40" r="0.55" fill="#000"/>
+<circle cx="61" cy="52" r="0.55" fill="#000"/>
+<circle cx="71" cy="52" r="0.55" fill="#000"/>
+<circle cx="71" cy="60" r="0.55" fill="#000"/>
+<circle cx="66" cy="60" r="0.55" fill="#000"/>
+<circle cx="61" cy="60" r="0.55" fill="#000"/>
+<circle cx="56" cy="60" r="0.55" fill="#000"/>
+<circle cx="51" cy="60" r="0.55" fill="#000"/>
+<circle cx="46" cy="60" r="0.55" fill="#000"/>
+<circle cx="41" cy="60" r="0.55" fill="#000"/>
+<circle cx="36" cy="60" r="0.55" fill="#000"/>
+<circle cx="31" cy="60" r="0.55" fill="#000"/>
+<circle cx="26" cy="60" r="0.55" fill="#000"/>
+</svg>

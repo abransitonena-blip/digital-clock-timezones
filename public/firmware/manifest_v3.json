@@ -1,0 +1,6 @@
+{
+  "name": "Cubo AP · placa de control v3 (chip soldado)",
+  "version": "3.0.0",
+  "new_install_prompt_erase": true,
+  "builds": [{ "chipFamily": "ESP32-C3", "parts": [{ "path": "CuboAP_placa_v3.bin", "offset": 0 }] }]
+}
