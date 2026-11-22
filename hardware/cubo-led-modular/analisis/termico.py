@@ -35,7 +35,7 @@ CAJAS = {
     "plastico": dict(nombre="Cubo ASA (plástico) sellado", area_ext=5 * 0.080**2, area_int=5 * 0.072**2, k=0.17, e=0.004,
                      aletas=1.0, eps=0.9, pad=False, cart_a_pared=0.05),
     "aluminio": dict(nombre="Cubo de aluminio con aletas + costilla y gap pad bajo la potencia", area_ext=5 * 0.080**2,
-                     area_int=5 * 0.072**2, k=150.0, e=0.003, aletas=2.2, eps=0.85, pad=True, cart_a_pared=1.2),
+                     area_int=5 * 0.072**2, k=150.0, e=0.003, aletas=1.55, eps=0.85, pad=True, cart_a_pared=1.2),   # 16 aletas 12 mm (cubo.py): área ×1.67, eficiencia ≈ 0.93
     "nodo_al": dict(nombre="Nodo en perfil de aluminio 70×50×25 mm con gap pad bajo los MOSFET",
                     area_ext=2 * (0.070 * 0.050 + 0.070 * 0.025 + 0.050 * 0.025), area_int=2 * (0.066 * 0.046 + 0.066 * 0.021 + 0.046 * 0.021),
                     k=150.0, e=0.002, aletas=1.0, eps=0.8, pad=True, cart_a_pared=0.0),
@@ -145,7 +145,8 @@ class Placa:
             g_w = 2 * h_rad(t_board, t_wall, 0.9) * A + gp     # radiación de las dos caras + gap pad
             g_aw = h_nat(t_air - t_wall) * c["area_int"]
             hr_ext = h_rad(t_wall, t_amb, c["eps"])
-            g_wall = 1 / (c["e"] / (c["k"] * c["area_int"]) + 1 / ((h_nat(t_wall - t_amb, 0.08) + hr_ext) * c["area_ext"] * c["aletas"]))
+            # aletas: multiplican el área de convección; la radiación sale por la envolvente (las aletas se ven entre sí)
+            g_wall = 1 / (c["e"] / (c["k"] * c["area_int"]) + 1 / ((h_nat(t_wall - t_amb, 0.08) * c["aletas"] + hr_ext) * c["area_ext"]))
             K = self.lap + sp.diags(g_conv + g_w)
             ca = sp.csr_matrix(np.full((n, 1), -g_conv)); cw = sp.csr_matrix(-g_w.reshape(n, 1))
             filas_a = sp.csr_matrix(np.concatenate([np.full(n, -g_conv), [n * g_conv + g_aw, -g_aw]]).reshape(1, -1))
@@ -278,7 +279,7 @@ def main():
     w(f"- **Placa** como lámina 2D de celdas de 0.5 mm: conductancia en el plano {K_SHEET*1e3:.1f} mW/K por cuadro "
       "(2 capas de 35 µm al 70 % + FR4). Cada cara: convección natural al aire interior y radiación a la pared (ε 0.9).")
     w(f"- **Convección natural** laminar h = 1.42·(ΔT/L)^¼ en cada superficie (3–6 W/m²K), radiación con h = εσ(T₁²+T₂²)(T₁+T₂). "
-      "Caja: aire interior → pared, conducción por la pared, pared → ambiente. Aluminio: área efectiva ×2.2 por aletas; gap pad bajo la zona de potencia "
+      "Caja: aire interior → pared, conducción por la pared, pared → ambiente. Aluminio: 16 aletas de 12 mm con canal de 7.2 mm (cubo.py, CUBO_CUERPO=aluminio): área de convección ×1.55, la radiación sale por la envolvente; gap pad bajo la zona de potencia "
       f"({H_PAD:.0f} W/m²K con vías térmicas); cartucho atornillado a la pared con pasta.")
     w("- **Cartucho AC-DC**: eficiencia 82–89 % según carga (típica de módulos IRM/LRS); su pérdida es la mayor fuente de calor.")
     w("- **Límites usados**: uniones ≤ 125 °C (margen de 25 K al máximo de 150 °C y de ~50 K al disparo térmico del TPS54560), "
@@ -331,8 +332,9 @@ def main():
     w("\n![Mapa plástico](mapa_v3_plastico.png) ![Mapa aluminio](mapa_v3_aluminio.png)\n")
     w("**Conclusión:** en el cubo de plástico sellado el aire interior es la resistencia que manda (el calor tiene que pasar "
       "placa → aire → pared con coeficientes de 3–5 W/m²K). Con 60 W de salida no es viable: el aire pasa de 60 °C, el cartucho "
-      "sale de su curva y la fuga del Schottky D2 crece con la temperatura hasta desbocarse (fuga térmica). El cuerpo de aluminio con costilla y gap pad bajo la potencia saca el calor por conducción y deja "
-      "las uniones con margen.\n")
+      "sale de su curva y la fuga del Schottky D2 crece con la temperatura hasta desbocarse (fuga térmica). El cuerpo de aluminio con aletas, costilla y gap pad saca el calor por conducción: da el 100 % hasta ≈ 25–30 °C "
+      "en los perfiles de 60–72 W y a 40 °C recorta a ≈ 56 %. El límite es la unión del TPS54560 (≈ 1.9 W de pérdida a 12 V 5 A): "
+      "la v4 con reductor síncrono lo resuelve. Los perfiles de hasta 45 W van al 100 % hasta 40 °C.\n")
 
     # --- derating
     w("## 4. Curva de carga máxima contra temperatura ambiente\n")

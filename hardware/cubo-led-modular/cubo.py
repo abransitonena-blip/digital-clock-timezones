@@ -16,6 +16,12 @@ BOSS_D, INSERT_D = 10.0, 4.2     # postes de esquina y barreno para inserto M3
 GLAND = 16.2      # barreno para prensaestopas M16 (entrada 127 V y salida LED)
 VENT = 12.2       # barreno para membrana de ventilación M12 (evita condensación)
 TAB_L, TAB_W, TAB_T = 26.0, 12.0, 4.0   # orejas de montaje
+# Variante de aluminio (CUBO_CUERPO=aluminio): aletas verticales y costilla interna con gap pad bajo la zona de potencia.
+# Ver analisis/informe_termico.md: en plástico sellado el cubo saca ≈ 15 W; con aluminio, 60–75 W.
+AL = os.environ.get("CUBO_CUERPO", "") == "aluminio"
+SUF = "_aluminio" if AL else ""
+ALETA_E, ALETA_P, ALETA_H = 1.8, 9.0, 12.0      # espesor, paso (deja 7.2 mm de canal: convección natural) y saliente
+COSTILLA = ((-14.0, 18.5, 29.0), (26.0, 36.0, 35.0))   # caja (x1, y1, z1)–(x2, y2, z2) pegada a la pared trasera interior
 # ---------------- utilidades ----------------
 def limpiar():
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -88,6 +94,15 @@ for sy in (1, -1):                                   # orejas de montaje con ran
     s = caja_redondeada("slot", 10, 4.4, 10, 2.2, z0=-2); s.location = (0, sy*(L/2 + TAB_W/2), 0)
     bpy.ops.object.select_all(action='DESELECT'); s.select_set(True); bpy.context.view_layer.objects.active = s; bpy.ops.object.transform_apply(location=True)
     booleana(cuerpo, s)
+if AL:
+    zc, hz = (6 + HB - 4) / 2, HB - 10
+    for k in (13.5, 22.5):                           # 4 aletas por cara; libres: logo (frente), ventila (atrás) y prensaestopas (lados)
+        for sg in (1, -1):
+            for cara in (1, -1):
+                booleana(cuerpo, cubo_("aleta", (ALETA_E, ALETA_H + 0.6, hz), (sg * k, cara * (L/2 + ALETA_H/2 - 0.3), zc)), 'UNION')
+                booleana(cuerpo, cubo_("aleta", (ALETA_H + 0.6, ALETA_E, hz), (cara * (L/2 + ALETA_H/2 - 0.3), sg * k, zc)), 'UNION')
+    (x1, y1, z1), (x2, y2, z2) = COSTILLA
+    booleana(cuerpo, cubo_("costilla", (x2 - x1, y2 - y1 + 0.5, z2 - z1), ((x1 + x2)/2, (y1 + y2 + 0.5)/2, (z1 + z2)/2)), 'UNION')
 logo = texto("logo", "AP", 16, 0.8, (0, -L/2 + 0.6, HB/2), (math.pi/2, 0, 0)); booleana(cuerpo, logo)
 biselar(cuerpo, 0.6)
 # TAPA
@@ -111,6 +126,9 @@ emp_in = caja_redondeada("emp_in", L - WALL - 2.2, L - WALL - 2.2, 3.0, R - WALL
 booleana(emp, emp_in)
 # INTERIOR de referencia (no se imprime): placa de potencia, placa de control y prensaestopas
 fuente = cubo_("Ref_fuente_ACDC", (52, 44, 24), (0, -4, FLOOR + 6 + 12))
+if AL:
+    (x1, y1, z1), (x2, y2, z2) = COSTILLA
+    cubo_("Gap_pad", (x2 - x1, y2 - y1, Z_PLACA - z2), ((x1 + x2)/2, (y1 + y2)/2, (z2 + Z_PLACA)/2))
 # placa de control real (68 × 64 mm, contorno y textura de placa-control/)
 sys.path.insert(0, os.path.join(OUT, "placa-control"))
 import diseno as PD, geom as PG
@@ -138,7 +156,8 @@ for i, x in enumerate((-L/2 - 6, L/2 + 6)):
     cb = cilindro(f"Cable_{i+1}", 7, 30, (x + (-16 if x < 0 else 16), 0, 22), (0, math.pi/2, 0))
 vent = cilindro("Membrana_ventila", 16, 3, (0, L/2 + 1.5, 48), (math.pi/2, 0, 0), seg=40)
 # materiales
-mats = {"Cuerpo": material("ASA_gris", (0.16, 0.17, 0.19), 0.55), "Tapa": material("ASA_tapa", (0.85, 0.86, 0.88), 0.4),
+mats = {"Cuerpo": material("Aluminio", (0.80, 0.82, 0.85), 0.32, 1.0) if AL else material("ASA_gris", (0.16, 0.17, 0.19), 0.55),
+        "Gap_pad": material("Gap_pad", (0.55, 0.6, 0.65), 0.8), "Tapa": material("ASA_tapa", (0.85, 0.86, 0.88), 0.4),
         "Empaque": material("Silicon", (0.9, 0.35, 0.1), 0.6), "Ref_fuente_ACDC": material("Fuente", (0.12, 0.12, 0.12), 0.7),
         "Ref_ESP32C3": material("ESP", (0.02, 0.02, 0.04), 0.4), "Ref_ESP_chip": material("Metal", (0.7, 0.7, 0.72), 0.3, 1.0),
         "Ref_borne_J1": material("Borne", (0.1, 0.55, 0.25), 0.5), "Ref_borne_J2": material("Borne2", (0.1, 0.55, 0.25), 0.5),
@@ -154,12 +173,12 @@ for ob in bpy.data.objects:
         ob.data.materials.clear(); ob.data.materials.append(mats.get(ob.name, neg))
         if ob.name == 'Ref_placa_control': continue
         for f in ob.data.polygons: f.use_smooth = False
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cubo_ap.blend"))
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, f"cubo_ap{SUF}.blend"))
 # STL para imprimir (unidades: mm); se triangula antes para que la malla salga cerrada
-for nombre in ("Cuerpo", "Tapa", "Empaque"):
+for nombre in (("Cuerpo",) if AL else ("Cuerpo", "Tapa", "Empaque")):
     ob = bpy.data.objects[nombre]; bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.view_layer.objects.active = ob
     bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.triangulate(bm, faces=bm.faces, quad_method='BEAUTY', ngon_method='EAR_CLIP')
     bmesh.ops.dissolve_degenerate(bm, dist=1e-4, edges=bm.edges); bmesh.ops.triangulate(bm, faces=bm.faces)
     bm.to_mesh(ob.data); bm.free()
-    bpy.ops.wm.stl_export(filepath=os.path.join(OUT, f"{nombre.lower()}.stl"), export_selected_objects=True, global_scale=1.0)
+    bpy.ops.wm.stl_export(filepath=os.path.join(OUT, f"{nombre.lower()}{SUF}.stl"), export_selected_objects=True, global_scale=1.0)
 print("modelo listo:", [o.name for o in bpy.data.objects])

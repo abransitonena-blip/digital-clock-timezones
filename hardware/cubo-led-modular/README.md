@@ -106,7 +106,7 @@ Es la v2 con el **chip ESP32-C3FH4** (QFN32 5 × 5, flash de 4 MB dentro del chi
 `termico.py` calcula las pérdidas de cada pieza por perfil, ajustadas a la temperatura. Modela la placa como lámina 2D con convección natural y radiación, y la caja como red térmica (plástico o aluminio). De ahí salen la curva de carga contra temperatura ambiente y la vida de los capacitores. Resultado: `informe_termico.md` con mapas y gráficas. Es una **estimación de primer orden (±15 K)**: se valida con termopares y cámara térmica en el prototipo.
 
 Conclusiones aplicadas:
-- **Cubo de plástico sellado:** saca ≈ 15 W de salida a 30 °C. Para más, **cuerpo de aluminio con aletas**, con costilla interna y gap pad bajo la zona de potencia, y el cartucho atornillado a la pared.
+- **Cubo de plástico sellado:** saca ≈ 15 W de salida a 30 °C. Para más, **cuerpo de aluminio con aletas** (`CUBO_CUERPO=aluminio python3.11 cubo.py`: 16 aletas de 12 mm, costilla interna y gap pad bajo la zona de potencia; renders `render_aluminio*.png`) y el cartucho atornillado a la pared. Así los perfiles de hasta 45 W van al 100 % hasta 40 °C; los de 60–72 W, hasta ≈ 25 °C (el límite es la unión del TPS54560).
 - **Placa v3:**
   - C1 pasa de electrolítico a **híbrido de polímero 125 °C**: a 68 °C pasa de ≈ 3 a ≈ 20 años de vida continua;
   - **C12** se movió a 2.5 mm de L1 (antes 0.2 mm);

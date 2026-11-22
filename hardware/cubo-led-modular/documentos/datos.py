@@ -17,7 +17,7 @@ CUBO = {
                 "voltaje máximo fijado por una tarjeta de configuración."),
     "versiones": [
         ["Cuerpo ASA (plástico)", "Interiores y exteriores bajo techo, hasta ≈ 15 W de salida continua a 30 °C"],
-        ["Cuerpo de aluminio con aletas", "Exteriores e instalaciones de potencia: hasta 60–75 W de salida (ver curva de carga)"],
+        ["Cuerpo de aluminio con aletas", "Exteriores y potencia: hasta 45 W al 100 % a 40 °C; 60–72 W al 100 % hasta ≈ 25 °C (ver curva de carga)"],
     ],
     "secciones": [
         ["Entrada de alimentación", [

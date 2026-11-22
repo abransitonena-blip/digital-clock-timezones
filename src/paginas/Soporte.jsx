@@ -74,6 +74,15 @@ export default function Soporte() {
       <Ficha P={F[prod]} />
     </section>
 
+    {prod === 'cubo' && <section className="seccion">
+      <h2>Cuerpo de aluminio con aletas</h2>
+      <p className="mut peq" style={{ maxWidth: 820 }}>Para potencias altas y exteriores: aletas verticales con canal ancho para que el aire suba, y una costilla interna que toca la zona caliente de la placa a través de una almohadilla térmica aislante.</p>
+      <div className="rejilla dos" style={{ marginTop: 10 }}>
+        <img className="foto" src="img/cubo_aluminio.jpg" alt="Cubo AP con cuerpo de aluminio y aletas" loading="lazy" />
+        <img className="foto" src="img/cubo_aluminio_interior.jpg" alt="Interior del cuerpo de aluminio con la costilla y la almohadilla térmica" loading="lazy" />
+      </div>
+    </section>}
+
     {prod === 'cubo' && <section className="seccion tarjeta">
       <h2>Carga máxima contra temperatura</h2>
       <p className="mut peq">El cubo es sellado: saca su calor por las paredes. Arriba de la curva baja el brillo solo para protegerse y lo recupera al enfriarse.</p>

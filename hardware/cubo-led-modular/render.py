@@ -2,7 +2,9 @@
 import bpy, math, os
 from mathutils import Vector
 OUT = os.path.dirname(os.path.abspath(__file__))
-bpy.ops.wm.open_mainfile(filepath=os.path.join(OUT, "cubo_ap.blend"))
+import sys
+SOLO = sys.argv[1] if len(sys.argv) > 1 else "todo"
+bpy.ops.wm.open_mainfile(filepath=os.path.join(OUT, "cubo_ap_aluminio.blend" if SOLO == "aluminio" else "cubo_ap.blend"))
 sc = bpy.context.scene
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = 40
 try: sc.cycles.use_denoising = True
@@ -27,8 +29,12 @@ def ver(nombres_ocultos):
         if o.type == 'MESH' and o is not piso: o.hide_render = o.name in nombres_ocultos
 def rend(nombre):
     sc.render.filepath = os.path.join(OUT, nombre); bpy.ops.render.render(write_still=True); print("render", nombre)
-import sys
-SOLO = sys.argv[1] if len(sys.argv) > 1 else "todo"
+if SOLO == "aluminio":                     # cuerpo de aluminio con aletas: armado y corte que muestra la costilla y el gap pad
+  ver({o.name for o in refs} | {"Gap_pad"})
+  mirar((-230, 300, 210), (0, 0, 36)); rend("render_aluminio.png")
+  ver({"Tapa", "Empaque"} | {o.name for o in refs if o.name != "Ref_fuente_ACDC"})   # sin tapa ni placa: se ve la costilla
+  mirar((-110, -250, 250), (0, 10, 28)); rend("render_aluminio_interior.png")
+  raise SystemExit
 if SOLO == "todo":
   # 1) armado
   ver({o.name for o in refs})

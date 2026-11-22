@@ -6,7 +6,7 @@ Generado por `analisis/termico.py`. **Estimación de primer orden (±15 K), sin 
 
 - **Pérdidas por pieza**, recalculadas con la temperatura: TPS54560 (conducción con Rds(on) de 92 mΩ +0.4 %/K, conmutación Vin²·fsw·I·0.25 ns/V, carga de compuerta, Iq), Schottky B560C (Vf·I·(1−D) + **fuga en inversa** Vin·Ir(T)·D, Ir ×10 cada 37.5 K + carga de la capacitancia), inductor (I²·DCR con +0.39 %/K + núcleo), shunt, MOSFET de canal (peor caso: toda la corriente en un canal), borneras, fusible, MOSFET de polaridad, buck de 5 V y LDO de 3.3 V, ESP32-C3.
 - **Placa** como lámina 2D de celdas de 0.5 mm: conductancia en el plano 19.3 mW/K por cuadro (2 capas de 35 µm al 70 % + FR4). Cada cara: convección natural al aire interior y radiación a la pared (ε 0.9).
-- **Convección natural** laminar h = 1.42·(ΔT/L)^¼ en cada superficie (3–6 W/m²K), radiación con h = εσ(T₁²+T₂²)(T₁+T₂). Caja: aire interior → pared, conducción por la pared, pared → ambiente. Aluminio: área efectiva ×2.2 por aletas; gap pad bajo la zona de potencia (900 W/m²K con vías térmicas); cartucho atornillado a la pared con pasta.
+- **Convección natural** laminar h = 1.42·(ΔT/L)^¼ en cada superficie (3–6 W/m²K), radiación con h = εσ(T₁²+T₂²)(T₁+T₂). Caja: aire interior → pared, conducción por la pared, pared → ambiente. Aluminio: 16 aletas de 12 mm con canal de 7.2 mm (cubo.py, CUBO_CUERPO=aluminio): área de convección ×1.55, la radiación sale por la envolvente; gap pad bajo la zona de potencia (900 W/m²K con vías térmicas); cartucho atornillado a la pared con pasta.
 - **Cartucho AC-DC**: eficiencia 82–89 % según carga (típica de módulos IRM/LRS); su pérdida es la mayor fuente de calor.
 - **Límites usados**: uniones ≤ 125 °C (margen de 25 K al máximo de 150 °C y de ~50 K al disparo térmico del TPS54560), ESP32-C3 ≤ 85 °C, aire interior ≤ 60 °C (los módulos AC-DC entregan el 100 % hasta 50–60 °C de aire).
 
@@ -14,13 +14,13 @@ Generado por `analisis/termico.py`. **Estimación de primer orden (±15 K), sin 
 
 | Perfil | Cartucho | Ciclo D | U1 | D2 | L1 | Canal | Resto | **Placa** | **Cartucho** | **Total en el cubo** |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 5V 3A | 24 V | 0.21 | 0.39 | 1.13 | 0.19 | 0.11 | 0.80 | **2.6 W** | **3.1 W** | **5.7 W** |
-| 12V 1A | 24 V | 0.50 | 0.14 | 0.26 | 0.11 | 0.01 | 0.71 | **1.2 W** | **2.5 W** | **3.7 W** |
+| 5V 3A | 24 V | 0.21 | 0.40 | 1.11 | 0.19 | 0.12 | 0.80 | **2.6 W** | **3.1 W** | **5.7 W** |
+| 12V 1A | 24 V | 0.50 | 0.14 | 0.25 | 0.11 | 0.01 | 0.71 | **1.2 W** | **2.5 W** | **3.7 W** |
 | 12V 2A | 24 V | 0.50 | 0.35 | 0.49 | 0.16 | 0.05 | 0.78 | **1.8 W** | **4.0 W** | **5.9 W** |
-| 12V 5A | 24 V | 0.50 | 1.87 | 1.32 | 0.55 | 0.33 | 1.27 | **5.3 W** | **8.1 W** | **13.4 W** |
-| 15V 3A | 24 V | 0.63 | 0.81 | 0.58 | 0.23 | 0.12 | 0.95 | **2.7 W** | **5.9 W** | **8.6 W** |
-| 24V 2A | 36 V | 0.68 | 0.59 | 0.40 | 0.24 | 0.05 | 0.81 | **2.1 W** | **6.3 W** | **8.4 W** |
-| 24V 3A | 36 V | 0.68 | 1.12 | 0.58 | 0.33 | 0.12 | 0.98 | **3.1 W** | **9.4 W** | **12.6 W** |
+| 12V 5A | 24 V | 0.50 | 1.92 | 1.34 | 0.56 | 0.35 | 1.28 | **5.5 W** | **8.1 W** | **13.6 W** |
+| 15V 3A | 24 V | 0.63 | 0.83 | 0.57 | 0.24 | 0.12 | 0.96 | **2.7 W** | **5.9 W** | **8.7 W** |
+| 24V 2A | 36 V | 0.68 | 0.60 | 0.41 | 0.24 | 0.05 | 0.82 | **2.1 W** | **6.3 W** | **8.4 W** |
+| 24V 3A | 36 V | 0.68 | 1.15 | 0.62 | 0.33 | 0.12 | 0.98 | **3.2 W** | **9.4 W** | **12.6 W** |
 
 La pérdida del Schottky domina cuando el ciclo es bajo (5 V desde 24 V: conduce el 79 % del tiempo). El cartucho pierde más que toda la placa en los perfiles grandes.
 
@@ -31,26 +31,26 @@ La pérdida del Schottky domina cuando el ciclo es bajo (5 V desde 24 V: conduce
 | Caja | Aire interior | Pared | U1 (unión) | D2 (unión) | L1 | ESP32-C3 | C1 | C12 | ¿Cumple? |
 |---|---|---|---|---|---|---|---|---|---|
 | Cubo ASA (plástico) sellado | > 150 °C | > 150 °C | > 150 °C (fuga térmica) | > 150 °C | > 150 °C | > 150 °C | > 150 °C | > 150 °C | **no** |
-| Cubo de aluminio con aletas + costilla y gap pad bajo la potencia | 63 °C | 56 °C | 128 °C | 93 °C | 90 °C | 78 °C | 68 °C | 63 °C | **no** |
+| Cubo de aluminio con aletas + costilla y gap pad bajo la potencia | 73 °C | 67 °C | 141 °C | 107 °C | 103 °C | 88 °C | 78 °C | 73 °C | **no** |
 
 ![Mapa plástico](mapa_v3_plastico.png) ![Mapa aluminio](mapa_v3_aluminio.png)
 
-**Conclusión:** en el cubo de plástico sellado el aire interior es la resistencia que manda (el calor tiene que pasar placa → aire → pared con coeficientes de 3–5 W/m²K). Con 60 W de salida no es viable: el aire pasa de 60 °C, el cartucho sale de su curva y la fuga del Schottky D2 crece con la temperatura hasta desbocarse (fuga térmica). El cuerpo de aluminio con costilla y gap pad bajo la potencia saca el calor por conducción y deja las uniones con margen.
+**Conclusión:** en el cubo de plástico sellado el aire interior es la resistencia que manda (el calor tiene que pasar placa → aire → pared con coeficientes de 3–5 W/m²K). Con 60 W de salida no es viable: el aire pasa de 60 °C, el cartucho sale de su curva y la fuga del Schottky D2 crece con la temperatura hasta desbocarse (fuga térmica). El cuerpo de aluminio con aletas, costilla y gap pad saca el calor por conducción: da el 100 % hasta ≈ 25–30 °C en los perfiles de 60–72 W y a 40 °C recorta a ≈ 56 %. El límite es la unión del TPS54560 (≈ 1.9 W de pérdida a 12 V 5 A): la v4 con reductor síncrono lo resuelve. Los perfiles de hasta 45 W van al 100 % hasta 40 °C.
 
 ## 4. Curva de carga máxima contra temperatura ambiente
 
 | Perfil · caja | 25 °C | 30 °C | 35 °C | 40 °C | 45 °C | 50 °C | 55 °C |
 |---|---|---|---|---|---|---|---|
 | 12V 5A · plástico | 30 % | 23 % | 17 % | 11 % | 6 % | 0 % | 0 % |
-| 12V 5A · aluminio | 100 % | 100 % | 100 % | 88 % | 64 % | 31 % | 6 % |
+| 12V 5A · aluminio | 100 % | 89 % | 73 % | 56 % | 33 % | 16 % | 0 % |
 | 24V 3A · plástico | 25 % | 19 % | 12 % | 8 % | 3 % | 0 % | 0 % |
-| 24V 3A · aluminio | 100 % | 100 % | 100 % | 89 % | 62 % | 28 % | 5 % |
+| 24V 3A · aluminio | 100 % | 91 % | 73 % | 56 % | 30 % | 12 % | 0 % |
 | 5V 3A · plástico | 84 % | 70 % | 55 % | 38 % | 22 % | 0 % | 0 % |
-| 5V 3A · aluminio | 100 % | 100 % | 100 % | 100 % | 100 % | 91 % | 25 % |
+| 5V 3A · aluminio | 100 % | 100 % | 100 % | 100 % | 92 % | 48 % | 0 % |
 | 15V 3A · plástico | 42 % | 33 % | 23 % | 16 % | 8 % | 0 % | 0 % |
-| 15V 3A · aluminio | 100 % | 100 % | 100 % | 100 % | 94 % | 45 % | 9 % |
+| 15V 3A · aluminio | 100 % | 100 % | 100 % | 84 % | 47 % | 22 % | 0 % |
 | 12V 2A · plástico | 75 % | 59 % | 44 % | 30 % | 16 % | 0 % | 0 % |
-| 12V 2A · aluminio | 100 % | 100 % | 100 % | 100 % | 100 % | 80 % | 19 % |
+| 12V 2A · aluminio | 100 % | 100 % | 100 % | 100 % | 83 % | 39 % | 0 % |
 
 ![Derating](derating.png)
 
@@ -60,7 +60,7 @@ El firmware ya tiene **recorte térmico de 70 a 90 °C** medido en la placa (TH1
 
 ## 5. Sol directo
 
-Con sol de 1000 W/m² sobre la tapa y una cara (absortancia 0.5, gris claro) entran ≈ 4.8 W más. En aluminio, 12V 5A a 40 °C: aire 68 °C, U1 134 °C, ESP32 83 °C (no cumple: el recorte térmico baja el brillo). Recomendación: acabado claro (anodizado natural o pintura blanca); un acabado negro casi duplica la carga solar.
+Con sol de 1000 W/m² sobre la tapa y una cara (absortancia 0.5, gris claro) entran ≈ 4.8 W más. En aluminio, 12V 5A a 40 °C: aire 247 °C, U1 1121 °C, ESP32 222 °C (no cumple: el recorte térmico baja el brillo). Recomendación: acabado claro (anodizado natural o pintura blanca); un acabado negro casi duplica la carga solar.
 
 ## 6. Capacitores y calor
 
@@ -68,12 +68,12 @@ Regla aplicada: **ningún electrolítico junto a una fuente de calor**. Los cer�
 
 | Pieza | Tipo | Temperatura (aluminio, 40 °C, 12V 5A) | Vida estimada | Acción |
 |---|---|---|---|---|
-| C1 entrada 100 µF 50 V | electrolítico 105 °C 2000 h | 68 °C | 3.0 años continuos | **cambiar a híbrido de polímero 125 °C 4000 h** → 24 años |
-| C12 salida 100 µF 35 V | polímero sólido | 63 °C | 30 años | **movido a 2.5 mm de L1** (estaba a 0.2 mm del cuerpo del inductor) |
-| C2 | cerámico X7R | 66 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
-| C10 | cerámico X7R | 59 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
-| C18 | cerámico X7R | 69 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
-| C31 | cerámico X7R | 73 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
+| C1 entrada 100 µF 50 V | electrolítico 105 °C 2000 h | 78 °C | 1.5 años continuos | **cambiar a híbrido de polímero 125 °C 4000 h** → 12 años |
+| C12 salida 100 µF 35 V | polímero sólido | 73 °C | 9 años | **movido a 2.5 mm de L1** (estaba a 0.2 mm del cuerpo del inductor) |
+| C2 | cerámico X7R | 76 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
+| C10 | cerámico X7R | 70 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
+| C18 | cerámico X7R | 80 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
+| C31 | cerámico X7R | 83 °C | sin desgaste térmico | se queda junto a su regulador (lazo corto) |
 
 ## 7. Nodo AP
 

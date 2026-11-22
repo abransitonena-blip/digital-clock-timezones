@@ -171,7 +171,7 @@ El nodo toma ese canal como su dirección y usa ese y los 3 siguientes (R, G, B,
 <h2>9. Calor y carga máxima</h2><p>El cubo saca su calor por las paredes. Con más temperatura ambiente, menos carga continua:</p>
 <img class="fig" src="curva_carga.png"><ul>
 <li>Cuerpo ASA (plástico): hasta ≈ 15 W continuos a 30 °C. Para más, cuerpo de aluminio.</li>
-<li>Cuerpo de aluminio: 100 % hasta 35 °C; menos arriba de eso, según la curva.</li>
+<li>Cuerpo de aluminio: perfiles de hasta 45 W al 100 % hasta 40 °C; los de 60–72 W al 100 % hasta ≈ 25 °C y menos arriba, según la curva.</li>
 <li>Si se excede, el cubo baja el brillo solo y lo recupera al enfriarse: no es falla.</li>
 <li>No lo encierres en cajas sin ventilación ni lo cubras. Al sol, prefiere el acabado claro.</li></ul>
 <h2>10. Solución de problemas</h2>""" + tabla(PROBLEMAS, ["Síntoma", "Qué revisar"]) + f"""
