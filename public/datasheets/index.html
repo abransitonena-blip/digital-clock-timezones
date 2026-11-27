@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblioteca de hojas de datos</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --texto: #1b1f27; --suave: #5b6472; --linea: #dfe3e9;
+    --acento: #0b6bcb; --acento-txt: #ffffff; --chip: #e9eef6; --peligro: #c0392b; --ok: #1e8e5a;
+    --sombra: 0 1px 2px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151a; --panel: #1b2027; --texto: #e8ebf0; --suave: #9aa4b2; --linea: #2c333d;
+      --acento: #4c9bff; --acento-txt: #08121f; --chip: #252c36; --peligro: #ff7b6b; --ok: #4cc38a;
+      --sombra: 0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--texto);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--panel); border-bottom: 1px solid var(--linea); }
+  .envoltura { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+  .cabecera { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 18px 0; }
+  h1 { font-size: 1.35rem; margin: 0; }
+  .sub { color: var(--suave); margin: 2px 0 0; font-size: .9rem; }
+  button, .btn { font: inherit; cursor: pointer; border: 1px solid var(--linea); background: var(--panel); color: var(--texto);
+    padding: 8px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  button:hover, .btn:hover { border-color: var(--acento); }
+  .primario { background: var(--acento); color: var(--acento-txt); border-color: var(--acento); font-weight: 600; }
+  .peligro { color: var(--peligro); }
+  .filtros { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 0; }
+  input, select, textarea { font: inherit; color: var(--texto); background: var(--bg); border: 1px solid var(--linea);
+    border-radius: 8px; padding: 8px 10px; width: 100%; }
+  .filtros input { flex: 1 1 260px; width: auto; }
+  .filtros select { flex: 0 1 190px; width: auto; }
+  main { padding: 18px 0 48px; }
+  .conteo { color: var(--suave); font-size: .85rem; margin-bottom: 12px; }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .tarjeta { background: var(--panel); border: 1px solid var(--linea); border-radius: 12px; box-shadow: var(--sombra);
+    display: flex; flex-direction: column; overflow: hidden; }
+  .miniatura { height: 170px; background: var(--chip); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .miniatura img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .miniatura .pdf-ico { font-size: 2.4rem; color: var(--suave); font-weight: 700; letter-spacing: .05em; }
+  .cuerpo { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .parte { font-size: 1.1rem; font-weight: 700; margin: 0; word-break: break-word; }
+  .nombre { margin: 0; color: var(--suave); font-size: .9rem; }
+  .etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .etiqueta { background: var(--chip); border-radius: 999px; padding: 2px 10px; font-size: .75rem; color: var(--suave); }
+  .etiqueta.cat { color: var(--acento); font-weight: 600; }
+  .desc { margin: 0; font-size: .88rem; }
+  dl.specs { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: .82rem; }
+  dl.specs dt { color: var(--suave); }
+  dl.specs dd { margin: 0; font-weight: 600; text-align: right; }
+  .acciones { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--linea); flex-wrap: wrap; }
+  .acciones .btn, .acciones button { padding: 6px 12px; font-size: .88rem; }
+  .vacio { text-align: center; color: var(--suave); padding: 48px 0; }
+  .aviso { background: var(--chip); border-radius: 10px; padding: 10px 14px; font-size: .85rem; color: var(--suave); margin-bottom: 16px; }
+  dialog { border: 1px solid var(--linea); border-radius: 14px; background: var(--panel); color: var(--texto);
+    width: min(560px, calc(100vw - 24px)); padding: 0; }
+  dialog::backdrop { background: rgba(0,0,0,.5); }
+  dialog form { padding: 20px; display: grid; gap: 12px; }
+  dialog h2 { margin: 0; font-size: 1.15rem; }
+  label { display: grid; gap: 4px; font-size: .85rem; color: var(--suave); }
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .dos { grid-template-columns: 1fr; } }
+  .pie-form { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .error { color: var(--peligro); font-size: .85rem; min-height: 1.2em; }
+  .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--texto); color: var(--bg);
+    padding: 10px 18px; border-radius: 10px; font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .toast.on { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <div class="envoltura">
+    <div class="cabecera">
+      <div>
+        <h1>Biblioteca de hojas de datos</h1>
+        <p class="sub">Hojas técnicas de componentes en español: busca, consulta, descarga y guarda las tuyas.</p>
+      </div>
+      <button class="primario" id="btnAgregar" type="button">＋ Agregar hoja de datos</button>
+    </div>
+    <div class="filtros">
+      <input id="q" type="search" placeholder="Buscar por número de parte, nombre, fabricante…" aria-label="Buscar">
+      <select id="fCategoria" aria-label="Categoría"><option value="">Todas las categorías</option></select>
+      <select id="fFabricante" aria-label="Fabricante"><option value="">Todos los fabricantes</option></select>
+      <select id="fProyecto" aria-label="Proyecto"><option value="">Todos los proyectos</option></select>
+    </div>
+  </div>
+</header>
+
+<main class="envoltura">
+  <div class="aviso" id="aviso">
+    Las hojas que subes con el botón “Agregar” se guardan <strong>solo en este navegador</strong>.
+    Para que queden en el sitio para todos, copia el PDF a <code>public/datasheets/pdf/</code> y registra la hoja en <code>catalog.js</code>.
+  </div>
+  <div class="conteo" id="conteo" aria-live="polite"></div>
+  <div class="rejilla" id="rejilla"></div>
+  <div class="vacio" id="vacio" hidden>No hay hojas de datos que coincidan con la búsqueda.</div>
+</main>
+
+<dialog id="dlg">
+  <form id="form" method="dialog">
+    <h2>Agregar hoja de datos</h2>
+    <label>Archivo PDF *
+      <input type="file" id="fArchivo" accept="application/pdf,.pdf" required>
+    </label>
+    <div class="dos">
+      <label>Número de parte *
+        <input id="fParte" required maxlength="60" placeholder="Ej. NCEP40T13GU">
+      </label>
+      <label>Fabricante
+        <input id="fFab" maxlength="60" list="listaFab" placeholder="Ej. Stelpro">
+        <datalist id="listaFab"></datalist>
+      </label>
+    </div>
+    <label>Nombre o descripción corta
+      <input id="fNombre" maxlength="120" placeholder="Ej. Termostato electrónico de pared">
+    </label>
+    <div class="dos">
+      <label>Categoría
+        <input id="fCat" maxlength="40" list="listaCat" placeholder="Ej. MOSFET, Termostato, Sensor">
+        <datalist id="listaCat"></datalist>
+      </label>
+      <label>Proyecto
+        <input id="fProy" maxlength="60" list="listaProy" placeholder="Ej. Stelpro">
+        <datalist id="listaProy"></datalist>
+      </label>
+    </div>
+    <label>Notas
+      <textarea id="fDesc" rows="3" maxlength="600" placeholder="Para qué se usa, voltaje, observaciones…"></textarea>
+    </label>
+    <div class="error" id="error" role="alert"></div>
+    <div class="pie-form">
+      <button type="button" id="btnCancelar">Cancelar</button>
+      <button type="submit" class="primario">Guardar</button>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="catalog.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const DB_NOMBRE = "hojas-de-datos", TIENDA = "hojas";
+  const MAX_MB = 25;
+  let propias = [];           // hojas subidas por el usuario (IndexedDB)
+  let urlsBlob = new Map();   // id -> object URL
+
+  /* ---------- IndexedDB ---------- */
+  function abrirDB() {
+    return new Promise((ok, fallo) => {
+      if (!window.indexedDB) return fallo(new Error("Sin IndexedDB"));
+      const r = indexedDB.open(DB_NOMBRE, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore(TIENDA, { keyPath: "id" });
+      r.onsuccess = () => ok(r.result);
+      r.onerror = () => fallo(r.error);
+    });
+  }
+  async function dbOp(modo, fn) {
+    const db = await abrirDB();
+    return new Promise((ok, fallo) => {
+      const tx = db.transaction(TIENDA, modo);
+      const req = fn(tx.objectStore(TIENDA));
+      tx.oncomplete = () => { db.close(); ok(req && req.result); };
+      tx.onerror = tx.onabort = () => { db.close(); fallo(tx.error); };
+    });
+  }
+  const dbTodas = () => dbOp("readonly", (s) => s.getAll());
+  const dbGuardar = (o) => dbOp("readwrite", (s) => s.put(o));
+  const dbBorrar = (id) => dbOp("readwrite", (s) => s.delete(id));
+
+  /* ---------- Datos ---------- */
+  const texto = (s) => (s == null ? "" : String(s));
+  function todas() {
+    const base = (window.CATALOGO || []).map((h) => ({ ...h, propia: false }));
+    const mias = propias.map((h) => ({ ...h, propia: true }));
+    return base.concat(mias).sort((a, b) => texto(a.parte).localeCompare(texto(b.parte), "es"));
+  }
+  function urlPdf(h) {
+    if (!h.propia) return h.archivo;
+    if (!urlsBlob.has(h.id)) urlsBlob.set(h.id, URL.createObjectURL(h.blob));
+    return urlsBlob.get(h.id);
+  }
+  function nombreDescarga(h) {
+    return h.propia ? h.archivoNombre || h.parte + ".pdf" : h.archivo.split("/").pop();
+  }
+
+  /* ---------- Render ---------- */
+  function el(tag, props = {}, ...hijos) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === "class") e.className = v; else if (k === "text") e.textContent = v;
+      else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+    }
+    hijos.flat(Infinity).forEach((h) => h && e.append(h));
+    return e;
+  }
+  function tarjeta(h) {
+    const mini = el("div", { class: "miniatura" });
+    if (h.imagen) mini.append(el("img", { src: h.imagen, alt: "Primera página de " + h.parte, loading: "lazy" }));
+    else mini.append(el("span", { class: "pdf-ico", text: "PDF" }));
+
+    const etiquetas = el("div", { class: "etiquetas" },
+      h.categoria && el("span", { class: "etiqueta cat", text: h.categoria }),
+      h.fabricante && el("span", { class: "etiqueta", text: h.fabricante }),
+      h.proyecto && el("span", { class: "etiqueta", text: "Proyecto: " + h.proyecto }),
+      h.version && el("span", { class: "etiqueta", text: h.version }),
+      h.paginas && el("span", { class: "etiqueta", text: h.paginas + " págs." }),
+      h.propia && el("span", { class: "etiqueta", text: "Guardada en este navegador" }));
+
+    const specs = h.especificaciones && h.especificaciones.length
+      ? el("dl", { class: "specs" }, h.especificaciones.map(([k, v]) => [el("dt", { text: k }), el("dd", { text: v })]))
+      : null;
+
+    const acciones = el("div", { class: "acciones" },
+      el("a", { class: "btn primario", href: urlPdf(h), target: "_blank", rel: "noopener", text: "Ver PDF" }),
+      el("a", { class: "btn", href: urlPdf(h), download: nombreDescarga(h), text: "Descargar" }),
+      h.fuente && /^https?:\/\//.test(h.fuente) && el("a", { class: "btn", href: h.fuente, target: "_blank", rel: "noopener noreferrer", text: "Fabricante" }),
+      h.propia && el("button", { class: "peligro", type: "button", text: "Eliminar", onclick: () => eliminar(h) }));
+
+    return el("article", { class: "tarjeta" }, mini,
+      el("div", { class: "cuerpo" },
+        el("h2", { class: "parte", text: h.parte }),
+        h.nombre && el("p", { class: "nombre", text: h.nombre }),
+        etiquetas,
+        h.descripcion && el("p", { class: "desc", text: h.descripcion }),
+        specs),
+      acciones);
+  }
+
+  function opciones(sel, valores, vacio) {
+    const actual = sel.value;
+    sel.replaceChildren(el("option", { value: "", text: vacio }));
+    [...valores].sort((a, b) => a.localeCompare(b, "es")).forEach((v) => sel.append(el("option", { value: v, text: v })));
+    sel.value = valores.has(actual) ? actual : "";
+  }
+  function datalist(id, valores) {
+    $(id).replaceChildren(...[...valores].sort((a, b) => a.localeCompare(b, "es")).map((v) => el("option", { value: v })));
+  }
+  const conjunto = (lista, campo) => new Set(lista.map((h) => texto(h[campo]).trim()).filter(Boolean));
+
+  function render() {
+    const lista = todas();
+    const cats = conjunto(lista, "categoria"), fabs = conjunto(lista, "fabricante"), proys = conjunto(lista, "proyecto");
+    opciones($("fCategoria"), cats, "Todas las categorías");
+    opciones($("fFabricante"), fabs, "Todos los fabricantes");
+    opciones($("fProyecto"), proys, "Todos los proyectos");
+    datalist("listaCat", cats); datalist("listaFab", fabs); datalist("listaProy", new Set([...proys, "Stelpro"]));
+
+    const q = $("q").value.trim().toLowerCase();
+    const c = $("fCategoria").value, f = $("fFabricante").value, p = $("fProyecto").value;
+    const vistas = lista.filter((h) =>
+      (!c || h.categoria === c) && (!f || h.fabricante === f) && (!p || h.proyecto === p) &&
+      (!q || [h.parte, h.nombre, h.fabricante, h.categoria, h.proyecto, h.descripcion].join(" ").toLowerCase().includes(q)));
+
+    $("rejilla").replaceChildren(...vistas.map(tarjeta));
+    $("vacio").hidden = vistas.length > 0;
+    $("conteo").textContent = vistas.length === lista.length
+      ? lista.length + (lista.length === 1 ? " hoja de datos" : " hojas de datos")
+      : vistas.length + " de " + lista.length + " hojas de datos";
+  }
+
+  function aviso(msg) {
+    const t = $("toast"); t.textContent = msg; t.classList.add("on");
+    clearTimeout(aviso.t); aviso.t = setTimeout(() => t.classList.remove("on"), 2800);
+  }
+
+  /* ---------- Acciones ---------- */
+  async function eliminar(h) {
+    if (!confirm("¿Eliminar la hoja de datos “" + h.parte + "” de este navegador?")) return;
+    try {
+      await dbBorrar(h.id);
+      propias = propias.filter((x) => x.id !== h.id);
+      if (urlsBlob.has(h.id)) { URL.revokeObjectURL(urlsBlob.get(h.id)); urlsBlob.delete(h.id); }
+      render(); aviso("Hoja eliminada");
+    } catch (e) { aviso("No se pudo eliminar"); }
+  }
+
+  $("btnAgregar").addEventListener("click", () => { $("form").reset(); $("error").textContent = ""; $("dlg").showModal(); });
+  $("btnCancelar").addEventListener("click", () => $("dlg").close());
+  $("fArchivo").addEventListener("change", () => {
+    const a = $("fArchivo").files[0];
+    if (a && !$("fParte").value) $("fParte").value = a.name.replace(/\.pdf$/i, "").replace(/[_-]?Hoja_de_Datos.*$/i, "").slice(0, 60);
+  });
+  $("form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const archivo = $("fArchivo").files[0], err = $("error");
+    if (!archivo) { err.textContent = "Elige un archivo PDF."; return; }
+    if (archivo.type !== "application/pdf" && !/\.pdf$/i.test(archivo.name)) { err.textContent = "El archivo debe ser un PDF."; return; }
+    if (archivo.size > MAX_MB * 1048576) { err.textContent = "El PDF pesa más de " + MAX_MB + " MB."; return; }
+    const reg = {
+      id: "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      parte: $("fParte").value.trim(), nombre: $("fNombre").value.trim(), fabricante: $("fFab").value.trim(),
+      categoria: $("fCat").value.trim(), proyecto: $("fProy").value.trim(), descripcion: $("fDesc").value.trim(),
+      archivoNombre: archivo.name, blob: archivo, fecha: Date.now()
+    };
+    if (!reg.parte) { err.textContent = "Escribe el número de parte."; return; }
+    try {
+      await dbGuardar(reg);
+      propias.push(reg); $("dlg").close(); render(); aviso("Hoja guardada");
+    } catch (e) { err.textContent = "No se pudo guardar (¿modo privado o sin espacio?)."; }
+  });
+  ["q", "fCategoria", "fFabricante", "fProyecto"].forEach((id) => $(id).addEventListener("input", render));
+
+  /* ---------- Inicio ---------- */
+  render();
+  dbTodas().then((r) => { propias = r || []; render(); }).catch(() => {
+    $("aviso").textContent = "Este navegador no permite guardar archivos propios (modo privado o sin IndexedDB). El catálogo del sitio se sigue viendo normal.";
+    $("btnAgregar").disabled = true;
+  });
+})();
+</script>
+</body>
+</html>
